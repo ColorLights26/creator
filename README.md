@@ -131,6 +131,20 @@ de empaquetar los assets. Primero descubre archivos y genera el registro; luego
 valida y genera JSON/shaders. La app carga los assets empaquetados, evitando que
 un registro Dart antiguo compita con la generación del build.
 
+Para comprobar tus archivos sin abrir el estudio, ejecuta desde `studio/`:
+
+```sh
+dart run tool/compile_visuals.dart
+```
+
+Revisa estructura, IDs, rangos y restricciones del catálogo y muestra cuántos
+visuales encontró. **Run ejecuta este mismo paso automáticamente**, además de
+compilar los assets; la vista previa comprueba la carga del programa. Editar
+`templates/visual_template.dart` no registra un visual: guarda la respuesta de
+la IA en `packages/visual_catalog/lib/visuals/`. Dibujo (`shaderSource`) y
+metadata (`id`, `name`, `role`, `reactivity`, `thumbnail`, etc.) van en ese
+mismo archivo. Compilar correctamente no certifica rendimiento sostenido.
+
 CI comprueba generación reproducible, contratos y tests Flutter. Para revisar
 el catálogo en una Mac con Metal disponible:
 
