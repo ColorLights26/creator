@@ -377,8 +377,14 @@ void main() {
       await _flush(tester);
       expect(controller.resets, hasLength(1));
       expect(controller.signals, isEmpty);
-      await tester.pump(const Duration(seconds: 9));
-      await tester.pump(const Duration(seconds: 9));
+      await tester.pump(
+        createSyntheticSceneSignalRecording().duration +
+            const Duration(seconds: 1),
+      );
+      await tester.pump(
+        createSyntheticSceneSignalRecording().duration +
+            const Duration(seconds: 1),
+      );
       await _flush(tester);
       expect(controller.resets, hasLength(1));
       expect(controller.signals, isEmpty);
@@ -403,14 +409,17 @@ void main() {
       ),
     );
     await _flush(tester);
-    await tester.pump(const Duration(seconds: 9));
+    await tester.pump(
+      createSyntheticSceneSignalRecording().duration +
+          const Duration(seconds: 1),
+    );
     await _flush(tester);
     expect(controller.resets, hasLength(2));
     await tester.ensureVisible(find.byKey(const ValueKey('reaction-switch')));
     await tester.tap(find.byKey(const ValueKey('reaction-switch')));
     await _flush(tester);
     final signalCount = controller.signals.length;
-    await tester.pump(const Duration(seconds: 18));
+    await tester.pump(createSyntheticSceneSignalRecording().duration * 2);
     await _flush(tester);
     expect(controller.resets, hasLength(2));
     expect(controller.signals.length, signalCount);

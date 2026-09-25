@@ -49,7 +49,8 @@ al estudio. Hot Reload y Hot Restart no bastan para estos cambios.
 Puedes empezar con Aurora Ribbons, Quiet Orbits y Prismatic Halo.
 El visual ocupa toda la pantalla. Los controles están superpuestos en un panel
 desplazable; en pantallas amplias, el panel queda a la derecha.
-La Demo sintética simula señales de música para el dibujo; el estudio no escucha
+La Demo sintética recorre 32 segundos con partes suaves, subidas, una pausa y
+golpes de distinta fuerza. Graves y agudos varían por separado. El estudio no escucha
 el micrófono ni reproduce canciones.
 
 ## Cuando esté listo

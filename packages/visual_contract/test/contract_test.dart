@@ -9,6 +9,7 @@ void main() {
   _codecCompatibility();
   _recordingValidation();
   _replay();
+  _musicalVariation();
   stdout.writeln(
     'visual_contract: codec, recording, and replay checks passed.',
   );
@@ -74,7 +75,7 @@ void _recordingValidation() {
   final recording = createSyntheticSceneSignalRecording();
   _expect(recording.synthetic, 'honest synthetic provenance');
   _expect(
-    recording.qaSessionSeed == 26 && recording.samples.length == 240,
+    recording.qaSessionSeed == 26 && recording.samples.length == 960,
     'seed and count',
   );
   final bytes = recording.signalBytes;
@@ -180,7 +181,7 @@ void _replay() {
   );
   batch = replay.advance(recording.capturedDuration);
   _expect(
-    batch.samples.last.frame.sequence == 240 && batch.cycle == 0,
+    batch.samples.last.frame.sequence == 960 && batch.cycle == 0,
     'final captured frame retained',
   );
   batch = replay.advance(recording.duration);
@@ -198,7 +199,7 @@ void _replay() {
   replay.reset();
   batch = replay.advance(recording.duration * 2, loop: false);
   _expect(
-    batch.resetRequired && batch.completed && batch.samples.length == 240,
+    batch.resetRequired && batch.completed && batch.samples.length == 960,
     'nonloop completion delivers all frames',
   );
   batch = replay.advance(recording.duration * 3, loop: false);
@@ -208,6 +209,102 @@ void _replay() {
   );
   batch = replay.advance(Duration.zero, loop: false);
   _expect(batch.resetRequired && !batch.completed, 'restart after completion');
+}
+
+void _musicalVariation() {
+  final recording = createSyntheticSceneSignalRecording();
+  final frames = recording.samples.map((s) => s.frame).toList();
+  _expect(
+    _sameBytes(
+      recording.signalBytes,
+      createSyntheticSceneSignalRecording().signalBytes,
+    ),
+    'reproducible demo',
+  );
+  final beats = frames.where((f) => f.beat.active).toList();
+  final intervals = <int>{};
+  for (var i = 1; i < beats.length; i++) {
+    intervals.add(
+      beats[i].beat.timestampMicros - beats[i - 1].beat.timestampMicros,
+    );
+  }
+  _expect(intervals.length >= 4, 'tempo variation and musical break');
+  _expect(
+    beats.map((f) => f.beat.strength).toSet().length > 10,
+    'varied beat dynamics',
+  );
+  _expect(
+    frames.any((f) => f.accent.active && !f.beat.active),
+    'offbeat accents',
+  );
+  _expect(
+    frames.any((f) => f.beat.active && !f.impact.active),
+    'beat is not always a kick',
+  );
+  _expect(
+    frames.sublist(14 * 30, 16 * 30).every((f) => !f.musicActive),
+    'interior silence',
+  );
+  double averageEnergy(int from, int to) =>
+      frames
+          .sublist(from * 30, to * 30)
+          .fold<double>(0, (sum, f) => sum + f.dynamics[1]) /
+      ((to - from) * 30);
+  _expect(
+    averageEnergy(18, 22) > averageEnergy(2, 6) * 1.5,
+    'strong return contrasts with quiet opening',
+  );
+  _expect(
+    frames.any((f) => f.instantSpectrum[3] != f.smoothedSpectrum[3]),
+    'spectral release differs from instantaneous input',
+  );
+  for (final frame in frames) {
+    _expect(
+      [
+        ...frame.channels,
+        ...frame.instantSpectrum,
+        ...frame.smoothedSpectrum,
+      ].every((v) => v >= 0 && v <= 1),
+      'bounded signals',
+    );
+    if (!frame.musicActive) {
+      _expect(
+        [
+          ...frame.channels,
+          ...frame.dynamics,
+          ...frame.rhythm,
+          ...frame.instantSpectrum,
+          ...frame.smoothedSpectrum,
+          ...frame.onsets,
+        ].every((v) => v == 0),
+        'silence is neutral',
+      );
+    }
+  }
+  for (final select
+      in <SceneRenderSignalEventV2 Function(SceneRenderSignalFrameV2)>[
+        (f) => f.impact,
+        (f) => f.accent,
+        (f) => f.beat,
+        (f) => f.flash,
+      ]) {
+    var serial = 0;
+    var timestamp = 0;
+    for (final frame in frames) {
+      final event = select(frame);
+      _expect(
+        event.serial == serial + (event.active ? 1 : 0),
+        'independent event serials',
+      );
+      _expect(
+        event.timestampMicros ==
+            (event.active ? frame.audioTimestampMicros : timestamp),
+        'event timestamp retained between hits',
+      );
+      serial = event.serial;
+      timestamp = event.timestampMicros;
+    }
+  }
 }
 
 bool _sameBytes(Uint8List a, Uint8List b) {

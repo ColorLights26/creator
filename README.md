@@ -155,7 +155,9 @@ Hot Restart no bastan** para recompilar el dibujo.
 
 Si elegiste `.optional`, prueba el interruptor de reacción musical activado y
 desactivado. La **Demo sintética** simula señales de música: el estudio no escucha
-el micrófono ni reproduce una canción. Así puedes probar sin conectar sensores.
+el micrófono ni reproduce una canción. Recorre 32 segundos con partes suaves,
+subidas, una pausa y acentos de distinta fuerza, en vez de un pulso constante.
+Así puedes probar sin conectar sensores.
 
 ## 6. Para crear otro visual
 

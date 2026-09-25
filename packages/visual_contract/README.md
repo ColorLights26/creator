@@ -28,7 +28,11 @@ playback. Modulo, clamping, or float32 rounding cannot be called exact replay.
 Reset the compositor with the same supported seed before the first publication,
 each loop, and any backward seek; never substitute a fresh random seed.
 
-The bundled fixture is explicitly **synthetic**, useful for wiring only. A file
+The bundled fixture is explicitly **synthetic**, a repeatable 32-second musical
+sketch with a quiet opening, build, silence, stronger return and release.
+Beat timing and strength vary; kicks and offbeat accents have separate serials,
+and bass/body/spark/flow use distinct envelopes. This is not a calibrated sensor
+model. A file
 using the capture schema does not establish device provenance. Import actual
 `signals.bin` and `timeline.json` artifacts to evaluate recorded musical input.
 No real recordings were bundled with this kit.

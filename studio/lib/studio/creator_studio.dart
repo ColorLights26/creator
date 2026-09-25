@@ -103,7 +103,7 @@ class _CreatorStudioState extends State<CreatorStudio>
       StudioRecording(
         name: 'Demo sintética',
         description:
-            'Pulsos de prueba generados. No es una grabación de sensores ni reproduce audio.',
+            'Demo de 32 s con partes suaves, subidas, pausas y acentos. Señales sintéticas; no reproduce audio.',
         recording: createSyntheticSceneSignalRecording(),
       ),
     ];
