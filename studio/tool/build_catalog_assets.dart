@@ -8,7 +8,8 @@ import 'package:visual_catalog/src/registry.g.dart';
 import 'portable_shader.dart';
 
 /// Second phase: the registry has already been regenerated before this library
-/// is compiled. Both consumers receive these exact bundled program assets.
+/// is compiled. Studio receives the full authoring catalog; production builds
+/// its own approved snapshots using the same wire format and shader compiler.
 void main() {
   try {
     final root = File.fromUri(Platform.script).parent.parent;

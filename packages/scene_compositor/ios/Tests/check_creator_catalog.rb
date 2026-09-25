@@ -24,7 +24,7 @@ Dir.mktmpdir('creator-native-test-') do |temporary|
   unless ARGV.empty?
     catalog = File.expand_path(ARGV.fetch(0))
     abort "Creator catalog not found: #{catalog}" unless File.file?(catalog)
-    output, status = Open3.capture2e(executable, catalog)
+    output, status = Open3.capture2e(executable, catalog, *ARGV.drop(1))
     puts output
     abort 'Authored creator catalog Metal smoke failed' unless status.success?
   end

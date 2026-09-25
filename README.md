@@ -63,8 +63,8 @@ El estudio incluye Aurora Ribbons, Quiet Orbits y el overlay Prismatic Halo.
 | `reactivity: optional` | Permite activar o desactivar la reacción. |
 | `purposes`, `moods`, `concepts` | Categorías que describen la intención del visual. |
 | `credits` | Autor, licencia y origen del trabajo. |
-| `publication: draft` | Disponible en el estudio y en la integración debug. |
-| `publication: published` | Elegible para la integración en builds de producción después de revisarlo. |
+| `publication: draft` | Borrador del colaborador; disponible en el estudio. |
+| `publication: published` | Etiqueta editorial; no aprueba ni incorpora el visual a Color Lights. |
 
 Los controles `intensity`, `speed` y `glow` admiten 0–2; `detail`, 0.25–2. El
 efecto recibe tiempo, paleta, semilla y señales musicales ya preparadas. No abre
@@ -110,10 +110,40 @@ se validan en dispositivos físicos.
 ## Entregar y actualizar la app
 
 Comparte los dos archivos del visual y, si existe, su miniatura propia mediante Git.
-El estudio y el adaptador de Color Lights consumen el mismo paquete
-`visual_catalog`: los borradores se incluyen en debug; los publicados pueden
-incluirse en release. Cambiar la marca a `published` no sustituye la revisión
-visual y de rendimiento.
+Todo aparece automáticamente en **Creator**. Color Lights utiliza un catálogo
+separado con copias de las versiones aprobadas por el responsable de la app.
+Los borradores no entran en la app principal, ni siquiera en debug. Un borrador
+roto tampoco participa en su compilación.
+
+En el workspace de Color Lights, el responsable ejecuta desde `minibase/`:
+
+```sh
+dart run tool/creator_review.dart list
+dart run tool/creator_review.dart validate olas
+```
+
+La validación comprueba el par seleccionado, la metadata, el shader combinado
+con los aprobados y su compilación Metal/GLES/GLES3/Vulkan; también renderiza
+el candidato con Metal en la Mac. Requiere macOS, Xcode y el Dart de Flutter.
+Devuelve una revisión exacta y el comando `approve … --revision … --reviewed`.
+El responsable lo ejecuta **después de revisar aspecto, transparencia, música
+y rendimiento físico**. Compilar no decide si un visual es bueno.
+
+La aprobación guarda código, metadata y miniatura en
+`metadata/creator_catalog/approved/`, fuera de este repositorio. Al recompilar
+Color Lights aparece automáticamente en fondos o transparencias según `role`.
+Si el colaborador cambia algo después, queda pendiente otra revisión; la app
+conserva la versión aprobada. `revoke <id>` retira una aprobación en el siguiente
+build. Cambiar `publication` nunca sustituye estos pasos.
+
+Una versión aprobada conserva su ID y su tipo (fondo o transparencia) para no
+romper escenas guardadas. Si quieres otro tipo, crea otro par con un ID nuevo.
+
+La colaboración sobre visuales se limita a `packages/visual_catalog/` y las
+plantillas; los cambios al compositor y al contrato compartidos requieren su
+propia revisión. El almacén de aprobaciones debe permanecer bajo control del
+responsable de Color Lights. Una huella detecta cambios, no reemplaza permisos
+del repositorio ni constituye una firma.
 
 La aplicación debe sincronizar este repositorio y compilar nuevamente. Un
 commit o push no modifica una app ya instalada, y el manifiesto remoto nunca
@@ -135,7 +165,7 @@ máquina. Abre `studio/` dentro de la copia y ejecuta `flutter pub get`.
 | `studio/` | Aplicación, controles y selección de señales. |
 | `templates/visual_template.dart` | Plantilla de código que se copia a la IA. |
 | `templates/visual_template_metadata.dart` | Plantilla separada de datos y configuración. |
-| `packages/visual_catalog/` | Archivos creativos, metadatos y programas bundled compartidos. |
+| `packages/visual_catalog/` | Archivos creativos, metadata y catálogo completo del estudio. |
 | `packages/scene_compositor/` | Compositor, render, recursos y miniaturas. |
 | `packages/scene_compositor_host/` | Registro nativo exclusivo del estudio en iOS. |
 | `packages/visual_contract/` | Codec y replay; Dart puro, sin sensores. |

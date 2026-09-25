@@ -54,16 +54,21 @@ ni temperatura. Revisa la vista previa, la reacción y el consumo físico.
 
 ## Cómo llega a Color Lights
 
-Creator y Color Lights usan el mismo paquete `visual_catalog`. En este workspace
-ya está conectado a la lista de fondos y transparencias de la app principal.
+Creator muestra todo el trabajo del colaborador. Color Lights utiliza un
+catálogo separado de versiones aprobadas, conectado a fondos y transparencias.
 
 1. El colaborador guarda y comparte el par de archivos por Git.
 2. Sincronizas el checkout `creator` que usa Color Lights.
-3. Compilas Color Lights: sus hooks regeneran el catálogo automáticamente.
-4. Los borradores aparecen en debug; `published` permite su aparición en release.
+3. Desde `minibase/`, ejecutas `dart run tool/creator_review.dart validate olas`.
+4. Revisas el visual y su consumo físico; ejecutas el comando de aprobación que
+   devuelve la validación, con la revisión exacta y `--reviewed`.
+5. Compilas Color Lights: sus hooks incluyen únicamente las versiones aprobadas.
 
 Si editas directamente el checkout `creator` de este monorepo, el segundo paso
-ya está hecho. No debes copiar código a `minibase` ni registrar visuales uno a uno.
+ya está hecho. No debes copiar código a `minibase` ni editar registros.
+La aprobación es explícita por versión: si cambian el dibujo, la metadata o
+la imagen, la app mantiene lo aprobado hasta una nueva revisión. Los borradores
+rotos no bloquean su build y `publication: published` no salta este control.
 Run del estudio actualiza el estudio; para ver cambios en Color Lights debes
 recompilar Color Lights. Las apps ya instaladas por usuarios requieren una nueva
 versión distribuida.

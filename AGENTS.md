@@ -7,7 +7,7 @@ No añadas dependencias de `minibase`, `base`, `skeleton`, `metadata`,
 `sharedkernel`, `appkernel` u otros checkouts externos.
 
 - `studio/`: aplicación Flutter y herramientas de generación/exportación.
-- `packages/visual_catalog/`: única fuente de visuales y metadatos compartidos.
+- `packages/visual_catalog/`: visuales y metadata del estudio; fuente de candidatos.
 - `packages/scene_compositor/`: SDK gráfico; no posee sensores ni servicios de app.
 - `packages/scene_compositor_host/`: plugin iOS exclusivo del estudio; registra el SDK.
 - `packages/visual_contract/`: codec/replay Dart puro; preserva el protocolo.
@@ -32,6 +32,14 @@ visuales son `draft` salvo instrucción expresa de publicación. Un overlay debe
 conservar su transparencia y un visual no reactivo no debe adquirir audio.
 Las miniaturas son imágenes fijas cacheadas o assets de `visual_catalog`;
 nunca ejecutes un compositor continuo por tarjeta.
+
+La app principal consume snapshots aprobados en su propio repositorio, nunca
+el catálogo de borradores de Creator. `publication` es una etiqueta editorial,
+no una autorización. No añadas aprobaciones ni cambies sus huellas para saltar
+la revisión. La herramienta del responsable valida la versión exacta y exige
+una aprobación explícita después de la revisión visual y energética.
+La autoría normal no modifica el SDK ni el contrato compartidos; esos cambios
+se revisan separadamente del catálogo.
 
 No edites a mano los productos generados: `lib/src/registry.g.dart`,
 `assets/creator_catalog.json`, `assets/catalog_metadata.json` y

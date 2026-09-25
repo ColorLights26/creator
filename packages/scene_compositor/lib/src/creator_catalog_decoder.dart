@@ -7,6 +7,7 @@ import 'creator_visual_definition.dart';
 List<CreatorVisualDefinition> decodeCreatorCatalog({
   required String runtimeJson,
   required String metadataJson,
+  bool allowEmpty = false,
 }) {
   if (utf8.encode(runtimeJson).length > 4 * 1024 * 1024 ||
       utf8.encode(metadataJson).length > 1024 * 1024) {
@@ -19,7 +20,7 @@ List<CreatorVisualDefinition> decodeCreatorCatalog({
   }
   final programs = _list(runtime['visuals'], 'runtime.visuals');
   final descriptions = _list(metadata['visuals'], 'metadata.visuals');
-  if (programs.isEmpty ||
+  if ((!allowEmpty && programs.isEmpty) ||
       programs.length > 64 ||
       programs.length != descriptions.length) {
     throw const FormatException(
@@ -105,7 +106,7 @@ List<CreatorVisualDefinition> decodeCreatorCatalog({
     }
     visuals.add(visual);
   }
-  return validateCreatorCatalog(visuals);
+  return validateCreatorCatalog(visuals, allowEmpty: allowEmpty);
 }
 
 Map<String, dynamic> _object(Object? value, String field) {

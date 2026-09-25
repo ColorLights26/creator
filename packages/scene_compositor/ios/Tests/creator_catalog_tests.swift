@@ -4,7 +4,7 @@ import Metal
 @main
 enum CreatorCatalogTests {
   static func main() throws {
-    if CommandLine.arguments.count == 2 {
+    if CommandLine.arguments.count >= 2 {
       try smokeAuthoredCatalog(path: CommandLine.arguments[1])
       return
     }
@@ -86,6 +86,7 @@ enum CreatorCatalogTests {
   }
 
   static func smokeAuthoredCatalog(path: String) throws {
+    let admission = CommandLine.arguments.contains("--admission")
     let data = try Data(contentsOf: URL(fileURLWithPath: path))
     let catalog = try SceneCreatorCatalog.decode(data)
     precondition(!catalog.isEmpty, "Authored catalog must contain an example")
@@ -112,13 +113,18 @@ enum CreatorCatalogTests {
           distinctColors.insert(UInt32(blue) | UInt32(green) << 8 | UInt32(red) << 16 | UInt32(alpha) << 24)
         }
         let pixelCount = Int(size.width * size.height)
-        precondition(visiblePixels > pixelCount / 8, "Authored shader is transparent: \(programID)")
-        precondition(coloredPixels > pixelCount / 8, "Authored shader is black: \(programID)")
-        precondition(distinctColors.count > 16, "Authored shader has no spatial detail: \(programID)")
+        if !admission {
+          precondition(visiblePixels > pixelCount / 8, "Authored shader is transparent: \(programID)")
+          precondition(coloredPixels > pixelCount / 8, "Authored shader is black: \(programID)")
+          precondition(distinctColors.count > 16, "Authored shader has no spatial detail: \(programID)")
+        }
+        if admission && program.role == "background" {
+          precondition(stride(from: 3, to: bytes.count, by: 4).allSatisfy { bytes[$0] == 255 }, "Background shader must be opaque")
+        }
         print("PASS authored \(programID): \(Int(size.width))x\(Int(size.height)), \(visiblePixels) visible pixels, \(distinctColors.count) distinct BGRA values")
       }
     }
-    print("PASS all \(catalog.count) bundled authored shaders compile and render varied nontransparent Metal output")
+    print("PASS all \(catalog.count) bundled authored shaders compile and render Metal output")
   }
 
   static func readPixels(texture: MTLTexture, device: MTLDevice) -> [UInt8] {
