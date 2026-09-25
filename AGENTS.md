@@ -11,7 +11,8 @@ No añadas dependencias de `minibase`, `base`, `skeleton`, `metadata`,
 - `packages/scene_compositor/`: SDK gráfico; no posee sensores ni servicios de app.
 - `packages/scene_compositor_host/`: plugin iOS exclusivo del estudio; registra el SDK.
 - `packages/visual_contract/`: codec/replay Dart puro; preserva el protocolo.
-- `templates/visual_template.dart`: ejemplo completo para copiar a una IA.
+- `templates/visual_template.dart`: código completo para copiar a una IA.
+- `templates/visual_template_metadata.dart`: metadata separada del visual.
 
 Revisa el estado Git antes de editar y conserva cambios de otros colaboradores.
 No publiques, hagas push ni cambies el estado de publicación de un visual sin
@@ -19,9 +20,11 @@ autorización para esa acción.
 
 ## Autoría
 
-Para un visual normal, modifica únicamente su archivo en
-`packages/visual_catalog/lib/visuals/`. Cada archivo exporta un `const visual`
-con ID único y un shader portable `paintVisual`. No agregues registros manuales,
+Para un visual normal, modifica su par de archivos en
+`packages/visual_catalog/lib/visuals/`: `nombre.dart` declara `const shaderSource`
+y `nombre_metadata.dart` declara `const metadata = CreatorVisualMetadata(...)`.
+El código contiene `paintVisual`; el ID único y toda la configuración viven en
+metadata. El generador une pares por nombre y rechaza compañeros ausentes. No agregues registros manuales,
 widgets, sensores, timers o renderers independientes al archivo creativo.
 
 Mantén explícitos `role`, `reactivity`, autoría y clasificación. Los nuevos
@@ -75,7 +78,7 @@ flutter test --no-pub
 
 # Desde packages/scene_compositor/
 dart run test/creator_visual_definition_test.dart
-flutter test --no-pub test/creator_shader_frame_test.dart test/scene_compositor_controller_test.dart
+flutter test --no-pub test/creator_shader_frame_test.dart test/scene_compositor_controller_test.dart test/creator_catalog_metadata_test.dart
 
 # Desde packages/visual_contract/
 dart run test/contract_test.dart

@@ -40,7 +40,7 @@ String generateCreatorRegistry(Directory visualsDirectory) {
   if (!visualsDirectory.existsSync()) {
     throw FormatException('No existe ${visualsDirectory.path}.');
   }
-  final names = <String>[];
+  final files = <String>{};
   for (final entity in visualsDirectory.listSync(followLinks: false)) {
     if (!entity.path.endsWith('.dart')) continue;
     if (entity is! File) {
@@ -55,18 +55,31 @@ String generateCreatorRegistry(Directory visualsDirectory) {
     if (entity.lengthSync() > 256 * 1024) {
       throw FormatException('$name supera el tamaño permitido.');
     }
-    names.add(name);
+    files.add(name);
+  }
+  final names =
+      files.where((name) => !name.endsWith('_metadata.dart')).toList();
+  for (final name in files) {
+    final companion =
+        name.endsWith('_metadata.dart')
+            ? '${name.substring(0, name.length - '_metadata.dart'.length)}.dart'
+            : '${name.substring(0, name.length - '.dart'.length)}_metadata.dart';
+    if (!files.contains(companion)) {
+      throw FormatException('$name: falta su archivo compañero $companion.');
+    }
   }
   names.sort();
   if (names.isEmpty || names.length > 64) {
-    throw const FormatException('Añade entre 1 y 64 archivos de visuales.');
+    throw const FormatException(
+      'Añade entre 1 y 64 pares de visual y metadata.',
+    );
   }
   return '''// Generated from lib/visuals/*.dart. Do not edit.
 import 'package:scene_compositor/authoring.dart';
-${[for (var i = 0; i < names.length; i++) "import '../visuals/${names[i]}' as visual_$i;"].join('\n')}
+${[for (var i = 0; i < names.length; i++) "import '../visuals/${names[i]}' as visual_$i;\nimport '../visuals/${names[i].replaceFirst('.dart', '_metadata.dart')}' as metadata_$i;"].join('\n')}
 
-const creatorSourceVisuals = <CreatorVisualDefinition>[
-${[for (var i = 0; i < names.length; i++) '  visual_$i.visual,'].join('\n')}
+final creatorSourceVisuals = <CreatorVisualDefinition>[
+${[for (var i = 0; i < names.length; i++) '  metadata_$i.metadata.withShader(visual_$i.shaderSource),'].join('\n')}
 ];
 ''';
 }

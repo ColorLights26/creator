@@ -1,19 +1,12 @@
-import 'package:scene_compositor/authoring.dart';
-
-// VISUAL TEMPLATE — copia ESTE ARCHIVO COMPLETO a tu IA.
-// Pide: "Crea [tu idea] conservando la API y las reglas de esta plantilla.
-// Devuelve este archivo completo, listo para pegar, sin modificar el motor."
+// CÓDIGO DEL VISUAL — copia este archivo completo a la IA.
+// Pide el efecto conservando const shaderSource, paintVisual y estas reglas.
+// Guarda la respuesta en packages/visual_catalog/lib/visuals/olas.dart.
+// Sus datos van APARTE en olas_metadata.dart (const metadata).
+// El generador empareja ambos nombres; no se importan uno al otro.
+// Detén y ejecuta Run para compilar; hot reload no basta.
 //
-// Guarda un archivo .dart por visual en packages/visual_catalog/lib/visuals/.
-// Conserva la declaración const visual. Cada archivo aparece automáticamente
-// al volver a ejecutar la app; no edites imports ni registros. Máximo 64 visuales.
-// Usa un ID único: minúsculas, números y guiones bajos, comenzando por letra.
-// Guarda y ejecuta de nuevo: un shader nuevo requiere RECOMPILAR, no hot reload.
-//
-// Esto es Dart para declarar el catálogo y GLSL portable dentro de
-// shaderSource. El kit usa SceneSurface/Metal en iOS y FragmentProgram en Android.
-// No crear widgets, Canvas, CustomPainter, timers, sensores ni reproductores.
-// No imports adicionales, paquetes, archivos, texturas, includes ni entrypoints.
+// Dart contiene el string GLSL; no añadir widgets, Canvas, timers, sensores,
+// imports, dependencias, texturas, includes ni entrypoints distintos.
 // Puedes escribir funciones auxiliares y esta función obligatoria:
 //   vec4 paintVisual(vec2 uv, CreatorFrame f)
 // uv: 0..1. Devuelve RGBA recto 0..1 (el motor premultiplica alpha).
@@ -45,38 +38,8 @@ import 'package:scene_compositor/authoring.dart';
 // El motor limita cadencia/resolución y pausa al salir. Eso no garantiza que
 // cualquier shader sea barato: validar el coste en un iPhone antes de integrar.
 //
-// CreatorControls: intensity/speed/glow 0..2, detail0.25..2.
-// colors: exactamente cuatro enteros ARGB. seed:0..4294967295.
-// Usa solo CreatorVisualDefinition, CreatorRole, CreatorReactivity,
-// CreatorControls, CreatorCredits, CreatorThumbnailSpec, CreatorPublication
-// y strings GLSL. Conserva la declaración const visual.
 
-// description/purposes/moods/concepts describen la intención del visual.
-// credits registra autoría/licencia/origen. publication.draft aparece en el
-// estudio y app debug; published habilita su inclusión en producción.
-// La miniatura se congela en thumbnail.timeSeconds, sin reloj ni micrófono.
-// Opcional: assetPath en assets/thumbnails/ y assetPackage: visual_catalog.
-
-const visual = CreatorVisualDefinition(
-  id: 'prismatic_halo',
-  name: 'Halo · capa de luz',
-  publication: CreatorPublication.draft,
-  description:
-      'Un halo de luz transparente que acompaña los acentos musicales.',
-  purposes: ['visualizer', 'party'],
-  moods: ['dreamy', 'energetic'],
-  concepts: ['halo', 'prism', 'light'],
-  credits: CreatorCredits(
-    author: 'Chic Apps',
-    license: 'Proprietary',
-    source: 'Visual Studio examples',
-  ),
-  thumbnail: CreatorThumbnailSpec(timeSeconds: 3),
-  role: CreatorRole.overlay,
-  reactivity: CreatorReactivity.optional,
-  colors: [0xff040712, 0xff49eadc, 0xffb17dff, 0xffffcddd],
-  controls: CreatorControls(speed: .5, glow: .8),
-  shaderSource: r'''
+const shaderSource = r'''
 vec4 paintVisual(vec2 uv, CreatorFrame f) {
   vec2 p = (uv - 0.5) * vec2(f.size.x / max(f.size.y, 1.0), 1.0);
   float radius = 0.27 + 0.015 * sin(f.time * f.speed) + 0.025 * f.bass;
@@ -87,5 +50,4 @@ vec4 paintVisual(vec2 uv, CreatorFrame f) {
   vec3 ink = mix(f.color1.rgb, f.color2.rgb, 0.5 + 0.5 * sin(p.x * 7.0 + f.time * 0.2));
   return vec4(ink, alpha);
 }
-''',
-);
+''';

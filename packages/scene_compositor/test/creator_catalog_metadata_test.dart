@@ -30,6 +30,37 @@ String _metadata(List<CreatorVisualDefinition> visuals) => jsonEncode({
 });
 
 void main() {
+  test(
+    'separate metadata and shader preserve the existing runtime contract',
+    () {
+      const metadata = CreatorVisualMetadata(
+        id: 'aurora',
+        name: 'Aurora',
+        description: 'Soft light ribbons.',
+        purposes: ['relax', 'visualizer'],
+        moods: ['calm'],
+        concepts: ['aurora'],
+        credits: CreatorCredits(
+          author: 'Artist',
+          license: 'CC0',
+          source: 'Original',
+        ),
+        thumbnail: CreatorThumbnailSpec(timeSeconds: 3.5),
+      );
+      final joined = metadata.withShader(_first.shaderSource);
+      expect(joined.toManifest(), _first.toManifest());
+      expect(joined.toMetadata(), _first.toMetadata());
+      expect(
+        () => validateCreatorCatalog([joined, joined]),
+        throwsFormatException,
+      );
+      expect(
+        () => validateCreatorCatalog([metadata.withShader('invalid')]),
+        throwsFormatException,
+      );
+    },
+  );
+
   test('editorial metadata never enters the strict native manifest', () {
     expect(_first.publication, CreatorPublication.draft);
     expect(_first.toManifest().keys.toSet(), {

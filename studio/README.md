@@ -1,66 +1,71 @@
 # Visual Studio
 
 Abre esta carpeta `studio/` como proyecto Flutter. Conserva `packages/` y
-`templates/` a su lado, dentro del repositorio Creator.
+`templates/` a su lado dentro del repositorio Creator.
 
-## Dónde pegar lo que devuelve la IA
+## Dos archivos por visual
 
-1. Copia **todo** `../templates/visual_template.dart` a la IA y describe tu idea.
-2. Pide que devuelva el archivo completo conservando `const visual` y las reglas.
-3. Guarda esa respuesta en
-   `../packages/visual_catalog/lib/visuals/mi_visual.dart`.
-4. Cambia `id` y `name`. Cada visual debe tener un ID único.
-5. Guarda, detén el estudio y pulsa **Run**. El nuevo visual aparece en
-   **Tus visuales**. No basta con hot reload.
+Copia las dos plantillas de `../templates/` a
+`../packages/visual_catalog/lib/visuals/` y renómbralas con el mismo prefijo:
 
-Para crear otro visual, añade otro archivo a esa misma carpeta. No reemplaces
-los anteriores ni edites listas, imports o registros generados. El archivo de
-`templates/` es el molde: editarlo allí no lo añade al catálogo.
+```text
+olas.dart           ← código del dibujo: const shaderSource
+olas_metadata.dart  ← nombre, ID, tipo, reactividad, miniatura: const metadata
+```
 
-## Código y metadata: el mismo archivo
+Envía `visual_template.dart` completo a la IA. Pega su respuesta en `olas.dart`
+y edita los datos de `olas_metadata.dart`. Ambos archivos son independientes;
+el generador los relaciona por nombre. No tienen que importarse entre ellos.
 
-Dentro de `const visual = CreatorVisualDefinition(...)`:
+En el archivo de código, conserva `const shaderSource = r'''...''';` y la función
+`paintVisual`. El dibujo es GLSL portable dentro del archivo Dart.
 
-- `shaderSource: r''' ... '''` contiene el dibujo, dentro de `paintVisual`.
-  Es GLSL portable, encapsulado en un archivo Dart; la IA debe respetar la
-  plantilla, no entregar un widget Flutter o CustomPainter independiente.
-- `id`, `name`, `description`, `purposes`, `moods`, `concepts` y `credits`
-  contienen la metadata.
-- `role: CreatorRole.background` indica fondo (es el valor predeterminado).
-  `CreatorRole.overlay` permite transparencia; el shader debe devolver alpha
-  menor que 1 en las zonas que dejen ver el fondo.
-- `reactivity` puede ser `CreatorReactivity.none`, `.music` u `.optional`.
-- `thumbnail: CreatorThumbnailSpec(timeSeconds: 2.5)` genera una miniatura fija
-  automáticamente. Para una imagen propia, consulta el README raíz.
-- `publication: CreatorPublication.draft` conserva el visual como borrador.
+En la metadata, conserva `const metadata = CreatorVisualMetadata(...)`:
 
-## Validar
+- `id`, `name`, `description`, `purposes`, `moods`, `concepts` y `credits`.
+- `role: CreatorRole.background` para fondo o `CreatorRole.overlay` para
+  transparencia. El shader debe devolver alpha menor que 1 donde corresponda.
+- `reactivity`: `CreatorReactivity.none`, `.music` u `.optional`.
+- `colors`, `controls` y `seed`: parámetros del dibujo.
+- `thumbnail: CreatorThumbnailSpec(timeSeconds: 2.5)`: miniatura fija automática.
+- `publication: CreatorPublication.draft`: borrador para pruebas.
 
-**Run hace las comprobaciones automáticamente.** Revisa IDs duplicados,
-metadata mal formada, límites, miniaturas propias inexistentes y parte de las
-restricciones gráficas. La compilación gráfica y la vista previa detectan
-problemas adicionales del shader. Corrige el error antes de continuar.
+Para otro visual, añade otro par con un ID único. No edites listas ni registros.
+Editar las plantillas dentro de `templates/` no añade visuales al catálogo.
 
-Para comprobar estructura y regenerar el catálogo sin abrir el estudio,
-ejecuta desde esta carpeta:
+## Aparición automática y validación
+
+Guarda ambos archivos, detén el estudio y pulsa **Run**. El nuevo visual aparece
+en **Tus visuales**. Hot reload no basta para empaquetar shaders.
+
+Run valida automáticamente que cada archivo tenga su compañero, los IDs,
+rangos, metadata, miniaturas propias y restricciones del shader. Después compila
+y carga el programa gráfico. Corrige los errores antes de continuar.
+
+Para el chequeo previo desde esta carpeta, sin abrir la app:
 
 ```sh
 dart run tool/compile_visuals.dart
 ```
 
-Si termina correctamente, muestra por ejemplo:
-`Visual Studio: 3 visuales, 0 grabaciones.`
-Este paso no certifica compilación GPU en ambas plataformas ni rendimiento.
-Después ejecuta el estudio, selecciona el visual y comprueba su aspecto,
-transparencia, pausa y reacción con la demo sintética. Para validar temperatura
-y consumo, usa dispositivos físicos.
+Al completar muestra, por ejemplo, `Visual Studio: 3 visuales, 0 grabaciones.`
+Esta comprobación no certifica apariencia, compilación GPU en ambas plataformas
+ni temperatura. Revisa la vista previa, la reacción y el consumo físico.
 
-## Cuándo aparece en Color Lights
+## Cómo llega a Color Lights
 
-El estudio lo lista después de un nuevo build. La app Color Lights también lo
-incorpora después de sincronizar este repositorio y compilar: los borradores
-aparecen en debug y los marcados `published` en release. Guardar un archivo o
-hacer push no actualiza una app instalada.
+Creator y Color Lights usan el mismo paquete `visual_catalog`. En este workspace
+ya está conectado a la lista de fondos y transparencias de la app principal.
 
-[Guía completa del repositorio](../README.md), con señales, miniaturas propias,
-exportación, plataformas y límites.
+1. El colaborador guarda y comparte el par de archivos por Git.
+2. Sincronizas el checkout `creator` que usa Color Lights.
+3. Compilas Color Lights: sus hooks regeneran el catálogo automáticamente.
+4. Los borradores aparecen en debug; `published` permite su aparición en release.
+
+Si editas directamente el checkout `creator` de este monorepo, el segundo paso
+ya está hecho. No debes copiar código a `minibase` ni registrar visuales uno a uno.
+Run del estudio actualiza el estudio; para ver cambios en Color Lights debes
+recompilar Color Lights. Las apps ya instaladas por usuarios requieren una nueva
+versión distribuida.
+
+[Guía completa](../README.md).

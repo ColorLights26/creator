@@ -1,7 +1,7 @@
 # Color Lights Creator
 
 Un estudio Flutter independiente para crear visuales de Color Lights con un
-archivo por efecto. Copia la plantilla a una IA, pega su respuesta y vuelve a
+par de archivos por efecto: código y metadata. Copia la plantilla a una IA, pega su respuesta y vuelve a
 ejecutar el estudio: el catálogo se prepara automáticamente.
 
 ## Empezar
@@ -25,17 +25,30 @@ micrófono.
 
 ## Crear un visual
 
-1. Copia [templates/visual_template.dart](templates/visual_template.dart) completo a tu IA.
-2. Describe el efecto y pide conservar la API, las restricciones y `const visual`.
-3. Guarda la respuesta completa como `packages/visual_catalog/lib/visuals/mi_visual.dart`.
-4. Usa un nombre de archivo y un `id` únicos en `snake_case`.
+1. Copia las dos plantillas a `packages/visual_catalog/lib/visuals/`, renombrándolas `olas.dart` y `olas_metadata.dart`.
+2. Envía [templates/visual_template.dart](templates/visual_template.dart) a la IA. Describe el efecto y pide conservar `const shaderSource`, `paintVisual` y las restricciones.
+3. Pega el código completo devuelto en `olas.dart`.
+4. Edita `olas_metadata.dart`: ID único, nombre, rol, reactividad, colores, controles, categorías, créditos, miniatura y publicación.
 5. Detén la ejecución anterior y pulsa **Run**. El visual aparece en la lista.
 
-No edites imports del catálogo ni archivos generados. Cada archivo declara un
-solo `const visual`; se admiten hasta 64. El código gráfico vive en su
-`shaderSource` y usa `vec4 paintVisual(vec2 uv, CreatorFrame f)`. La plantilla
-contiene todo el contrato que necesita la IA. Un shader nuevo requiere
-recompilar; hot reload no empaqueta el nuevo programa.
+```text
+packages/visual_catalog/lib/visuals/
+  olas.dart              ← const shaderSource: código del dibujo
+  olas_metadata.dart     ← const metadata: datos y configuración
+  fuego.dart
+  fuego_metadata.dart
+```
+
+El generador empareja los archivos por nombre. Cada metadata declara
+`const metadata = CreatorVisualMetadata(...)`; no incluye código gráfico.
+No hay imports entre los dos archivos ni registro manual. Si falta cualquiera
+del par, la validación indica su nombre. Se admiten hasta 64 pares completos.
+El sufijo `_metadata.dart` está reservado para metadata.
+
+El dibujo usa GLSL portable dentro del string Dart `shaderSource`, con
+`vec4 paintVisual(vec2 uv, CreatorFrame f)`. Un shader nuevo requiere recompilar;
+hot reload no empaqueta el programa. Las plantillas fuera de `lib/visuals/` no
+se incluyen en el catálogo.
 
 El estudio incluye Aurora Ribbons, Quiet Orbits y el overlay Prismatic Halo.
 
@@ -96,7 +109,7 @@ se validan en dispositivos físicos.
 
 ## Entregar y actualizar la app
 
-Comparte el archivo del visual y, si existe, su miniatura propia mediante Git.
+Comparte los dos archivos del visual y, si existe, su miniatura propia mediante Git.
 El estudio y el adaptador de Color Lights consumen el mismo paquete
 `visual_catalog`: los borradores se incluyen en debug; los publicados pueden
 incluirse en release. Cambiar la marca a `published` no sustituye la revisión
@@ -120,7 +133,8 @@ máquina. Abre `studio/` dentro de la copia y ejecuta `flutter pub get`.
 | Ruta | Responsabilidad |
 | --- | --- |
 | `studio/` | Aplicación, controles y selección de señales. |
-| `templates/visual_template.dart` | Plantilla que se copia a la IA. |
+| `templates/visual_template.dart` | Plantilla de código que se copia a la IA. |
+| `templates/visual_template_metadata.dart` | Plantilla separada de datos y configuración. |
 | `packages/visual_catalog/` | Archivos creativos, metadatos y programas bundled compartidos. |
 | `packages/scene_compositor/` | Compositor, render, recursos y miniaturas. |
 | `packages/scene_compositor_host/` | Registro nativo exclusivo del estudio en iOS. |
@@ -137,13 +151,13 @@ Para comprobar tus archivos sin abrir el estudio, ejecuta desde `studio/`:
 dart run tool/compile_visuals.dart
 ```
 
-Revisa estructura, IDs, rangos y restricciones del catálogo y muestra cuántos
+Revisa pares incompletos, estructura, IDs, rangos y restricciones del catálogo y muestra cuántos
 visuales encontró. **Run ejecuta este mismo paso automáticamente**, además de
 compilar los assets; la vista previa comprueba la carga del programa. Editar
 `templates/visual_template.dart` no registra un visual: guarda la respuesta de
-la IA en `packages/visual_catalog/lib/visuals/`. Dibujo (`shaderSource`) y
-metadata (`id`, `name`, `role`, `reactivity`, `thumbnail`, etc.) van en ese
-mismo archivo. Compilar correctamente no certifica rendimiento sostenido.
+la IA en `packages/visual_catalog/lib/visuals/olas.dart`, acompañada de
+`olas_metadata.dart`. Dibujo y metadata se mantienen separados; el generador
+los une para producir el contrato que ya consume Color Lights. Compilar correctamente no certifica rendimiento sostenido.
 
 CI comprueba generación reproducible, contratos y tests Flutter. Para revisar
 el catálogo en una Mac con Metal disponible:

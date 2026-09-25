@@ -40,7 +40,7 @@ Future<void> main() async {
   }
   File('${export.path}/LEEME.txt').writeAsStringSync(
     'Abre studio en tu IDE Flutter. Lee studio/README.md.\n'
-    'Copia templates/visual_template.dart a packages/visual_catalog/lib/visuals/mi_visual.dart.\n'
+    'Copia ambas plantillas a packages/visual_catalog/lib/visuals/: mi_visual.dart y mi_visual_metadata.dart.\n'
     'Conserva packages y templates al lado de studio.\n',
   );
   final archive = '${export.path}.zip';
