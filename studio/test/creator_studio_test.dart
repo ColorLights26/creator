@@ -98,6 +98,51 @@ Future<void> _flush(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('preview fills the display behind safe overlay controls', (
+    tester,
+  ) async {
+    final controller = _Controller();
+    tester.view.devicePixelRatio = 1;
+    tester.view.padding = const FakeViewPadding(top: 44, bottom: 34);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetPadding);
+    for (final size in [
+      const Size(390, 844),
+      const Size(844, 390),
+      const Size(1024, 1366),
+    ]) {
+      tester.view.physicalSize = size;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CreatorStudio(
+            catalogBuilder: () => [_aurora],
+            controllerFactory: () => controller,
+            recordingsLoader: () async => [],
+            thumbnailBuilder: (_, _) => const SizedBox(),
+          ),
+        ),
+      );
+      await _flush(tester);
+      final surface = tester.getRect(
+        find.byKey(const ValueKey('visual-surface')),
+      );
+      expect(surface, Offset.zero & size);
+      expect(tester.getRect(find.byType(Texture)), surface);
+      final controls = tester.getRect(
+        find.byKey(const ValueKey('studio-controls-overlay')),
+      );
+      expect(surface.contains(controls.topLeft), isTrue);
+      expect(controls.bottom, lessThanOrEqualTo(size.height - 34));
+      await tester.ensureVisible(find.byKey(const ValueKey('reaction-switch')));
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(controller.visuals, ['aurora']);
+    }
+    await tester.pumpWidget(const SizedBox());
+    await _flush(tester);
+  });
+
   testWidgets('selects every definition using one compositor', (tester) async {
     final controller = _Controller();
     var creations = 0;

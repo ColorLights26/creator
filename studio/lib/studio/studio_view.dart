@@ -70,7 +70,11 @@ class StudioView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.8),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
         title: const Text('Visual Studio'),
         actions: [
           IconButton(
@@ -81,35 +85,39 @@ class StudioView extends StatelessWidget {
           const SizedBox(width: 8),
         ],
       ),
-      body: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final preview = _preview(context);
-              final controls = SingleChildScrollView(child: _controls(context));
-              if (constraints.maxWidth >= 760) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(child: preview),
-                    const SizedBox(width: 24),
-                    SizedBox(width: 310, child: controls),
-                  ],
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          _preview(context),
+          SafeArea(
+            minimum: const EdgeInsets.fromLTRB(16, 72, 16, 16),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final wide = constraints.maxWidth >= 760;
+                return Align(
+                  alignment:
+                      wide ? Alignment.bottomRight : Alignment.bottomCenter,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: wide ? 340 : 520,
+                      maxHeight: constraints.maxHeight * (wide ? 1 : 0.5),
+                    ),
+                    child: Material(
+                      key: const ValueKey('studio-controls-overlay'),
+                      color: theme.colorScheme.surface.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(24),
+                      clipBehavior: Clip.antiAlias,
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(16),
+                        child: _controls(context),
+                      ),
+                    ),
+                  ),
                 );
-              }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(flex: 6, child: preview),
-                  const SizedBox(height: 20),
-                  Flexible(flex: 5, child: controls),
-                ],
-              );
-            },
+              },
+            ),
           ),
-        ),
+        ],
       ),
       backgroundColor: theme.colorScheme.surface,
     );
@@ -126,78 +134,73 @@ class StudioView extends StatelessWidget {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           onViewportChanged(size, pixelRatio);
         });
-        return ClipRRect(
+        return ColoredBox(
           key: const ValueKey('visual-surface'),
-          borderRadius: BorderRadius.circular(24),
-          child: ColoredBox(
-            color: colors.surfaceContainerLowest,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (preview case final Widget surface)
-                  surface
-                else if (nativeTextureId != null)
-                  Texture(
-                    key: ValueKey(nativeTextureId),
-                    textureId: nativeTextureId,
-                    filterQuality: FilterQuality.low,
+          color: colors.surfaceContainerLowest,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (preview case final Widget surface)
+                surface
+              else if (nativeTextureId != null)
+                Texture(
+                  key: ValueKey(nativeTextureId),
+                  textureId: nativeTextureId,
+                  filterQuality: FilterQuality.low,
+                ),
+              if (preview == null &&
+                  nativeTextureId == null &&
+                  problem == null &&
+                  !loading)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      visuals.isEmpty
+                          ? 'La lista de visuales está vacía.'
+                          : 'Prepara un visual para empezar.',
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                if (preview == null &&
-                    nativeTextureId == null &&
-                    problem == null &&
-                    !loading)
-                  Center(
-                    child: Padding(
+                ),
+              if (problem != null)
+                ColoredBox(
+                  color: colors.surfaceContainerLowest.withValues(alpha: 0.95),
+                  child: Center(
+                    child: SingleChildScrollView(
                       padding: const EdgeInsets.all(24),
-                      child: Text(
-                        visuals.isEmpty
-                            ? 'La lista de visuales está vacía.'
-                            : 'Prepara un visual para empezar.',
-                        textAlign: TextAlign.center,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.error_outline_rounded,
+                            color: colors.error,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No se pudo mostrar el visual',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 12),
+                          SelectableText(
+                            problem,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                if (problem != null)
-                  ColoredBox(
-                    color: colors.surfaceContainerLowest.withValues(
-                      alpha: 0.95,
-                    ),
-                    child: Center(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.error_outline_rounded,
-                              color: colors.error,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'No se pudo mostrar el visual',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 12),
-                            SelectableText(
-                              problem,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                ),
+              if (loading)
+                Center(
+                  child: Semantics(
+                    label: 'Preparando visual',
+                    child: const CircularProgressIndicator(strokeWidth: 2),
                   ),
-                if (loading)
-                  Center(
-                    child: Semantics(
-                      label: 'Preparando visual',
-                      child: const CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-              ],
-            ),
+                ),
+            ],
           ),
         );
       },
