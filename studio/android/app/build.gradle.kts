@@ -56,9 +56,9 @@ val compileCreatorVisuals by tasks.registering(Exec::class) {
         ?: error("flutter.sdk is missing from local.properties")
     workingDir(project.file("../.."))
     if (System.getProperty("os.name").lowercase().startsWith("windows")) {
-        commandLine("cmd", "/c", "$sdk/bin/dart.bat", "run", "tool/compile_visuals.dart")
+        commandLine("cmd", "/c", "$sdk/bin/dart.bat", "run", "tool/compile_creator.dart")
     } else {
-        commandLine("$sdk/bin/dart", "run", "tool/compile_visuals.dart")
+        commandLine("$sdk/bin/dart", "run", "tool/compile_creator.dart")
     }
 }
 tasks.configureEach {

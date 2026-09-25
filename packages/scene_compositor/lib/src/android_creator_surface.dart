@@ -7,6 +7,8 @@ import 'package:flutter/widgets.dart';
 import 'package:visual_contract/visual_contract.dart';
 
 import 'creator_shader_frame.dart';
+import 'creator_native_program.dart';
+import 'creator_command_canvas.dart';
 import 'creator_visual_definition.dart';
 import 'creator_shader_program.dart';
 
@@ -16,13 +18,18 @@ class AndroidCreatorSession extends ChangeNotifier {
   AndroidCreatorSession._({
     required this.visual,
     required this.visualIndex,
-    required ui.FragmentShader shader,
+    required ui.FragmentShader? shader,
+    CreatorNativeProgram? native,
+    CreatorCommandCanvas? canvas,
     required Size size,
     required double pixelRatio,
     required bool reactive,
     required bool playing,
     required this.onError,
   }) : _shader = shader,
+       _native = native,
+       _canvas = canvas,
+       _reactive = reactive,
        _size = size,
        _pixelRatio = pixelRatio,
        _state = CreatorShaderFrame(
@@ -31,6 +38,7 @@ class AndroidCreatorSession extends ChangeNotifier {
          reactive: reactive,
        ) {
     _state.setPlaying(playing, hostTime: 0);
+    _native?.configure(reactive: reactive, playing: playing, hostTime: 0);
   }
 
   static Future<AndroidCreatorSession> create({
@@ -43,6 +51,29 @@ class AndroidCreatorSession extends ChangeNotifier {
     required bool playing,
     required void Function(Object, StackTrace) onError,
   }) async {
+    if (visual.isNative) {
+      final canvas = await CreatorCommandCanvas.prepare(visual);
+      CreatorNativeProgram? native;
+      try {
+        native = CreatorNativeProgram(visual);
+        return AndroidCreatorSession._(
+          visual: visual,
+          visualIndex: visualIndex,
+          shader: null,
+          native: native,
+          canvas: canvas,
+          size: size,
+          pixelRatio: pixelRatio,
+          reactive: reactive,
+          playing: playing,
+          onError: onError,
+        );
+      } on Object {
+        native?.dispose();
+        canvas.dispose();
+        rethrow;
+      }
+    }
     final program = await loadCreatorShaderProgram(shaderAsset);
     return AndroidCreatorSession._(
       visual: visual,
@@ -58,7 +89,10 @@ class AndroidCreatorSession extends ChangeNotifier {
 
   final CreatorVisualDefinition visual;
   final int visualIndex;
-  final ui.FragmentShader _shader;
+  final ui.FragmentShader? _shader;
+  final CreatorNativeProgram? _native;
+  final CreatorCommandCanvas? _canvas;
+  bool _reactive;
   final void Function(Object, StackTrace) onError;
   final ChangeNotifier repaint = ChangeNotifier();
   CreatorShaderFrame _state;
@@ -105,25 +139,69 @@ class AndroidCreatorSession extends ChangeNotifier {
   void setPlaying(bool playing) {
     if (_closed) return;
     _state.setPlaying(playing, hostTime: _hostTime);
+    _native?.configure(
+      reactive: _reactive,
+      playing: playing,
+      hostTime: _hostTime,
+    );
+    notifyListeners();
+  }
+
+  void setReactive(bool reactive) {
+    if (_closed || _reactive == reactive) return;
+    _state.setReactive(reactive);
+    _reactive = reactive;
+    _native?.configure(
+      reactive: reactive,
+      playing: _state.playing,
+      hostTime: _hostTime,
+    );
+    _generation++;
+    notifyListeners();
+  }
+
+  void setControls(CreatorControls controls) {
+    if (_closed) return;
+    controls.validate();
+    _state.setControls(controls);
+    _native?.setControls(controls);
+    _native?.configure(
+      reactive: _reactive,
+      playing: _state.playing,
+      hostTime: _hostTime,
+    );
+    _generation++;
     notifyListeners();
   }
 
   void reset({required bool reactive, int? seed}) {
     if (_closed) return;
     final wasPlaying = _state.playing;
+    final controls = _state.controls;
+    _reactive = reactive;
+    _native?.reset(seed: seed);
+    _native?.configure(
+      reactive: reactive,
+      playing: wasPlaying,
+      hostTime: _hostTime,
+    );
     _state = CreatorShaderFrame(
       visual: visual,
       visualIndex: visualIndex,
       reactive: reactive,
       seed: seed,
     )..setPlaying(wasPlaying, hostTime: _hostTime);
+    _state.setControls(controls);
     _failed = false;
     _generation++;
     notifyListeners();
   }
 
   void consume(SceneRenderSignalFrameV2 frame) {
-    if (!_closed) _state.consume(frame);
+    if (!_closed) {
+      _state.consume(frame);
+      _native?.consume(frame);
+    }
   }
 
   void render(double hostTime, {required bool reducedMotion}) {
@@ -142,21 +220,42 @@ class AndroidCreatorSession extends ChangeNotifier {
 
   Future<void> _render(int generation, bool reducedMotion) async {
     ui.Picture? picture;
+    var materialShaders = <ui.Shader>[];
     try {
       final size = rasterSize(_size, _pixelRatio);
-      final uniforms = _state.uniforms(
-        width: size.width,
-        height: size.height,
-        hostTime: _hostTime,
-        reducedMotion: reducedMotion,
-      );
-      for (var i = 0; i < uniforms.length; i++) {
-        _shader.setFloat(i, uniforms[i]);
-      }
       final recorder = ui.PictureRecorder();
-      ui.Canvas(
-        recorder,
-      ).drawRect(Offset.zero & size, ui.Paint()..shader = _shader);
+      final canvas = ui.Canvas(recorder);
+      if (visual.role == CreatorRole.background) {
+        canvas.drawColor(
+          Color(visual.colors.first).withAlpha(255),
+          BlendMode.src,
+        );
+      }
+      if (_native case final native?) {
+        native.configure(
+          reactive: _reactive,
+          playing: _state.playing,
+          hostTime: _hostTime,
+        );
+        native.update(
+          width: _size.width,
+          height: _size.height,
+          hostTime: _hostTime,
+          reducedMotion: reducedMotion,
+        );
+        canvas.scale(size.width / _size.width, size.height / _size.height);
+        materialShaders = _canvas!.paint(canvas, native.draw());
+      } else {
+        final uniforms = _state.uniforms(
+          width: size.width,
+          height: size.height,
+          hostTime: _hostTime,
+          reducedMotion: reducedMotion,
+        );
+        for (var i = 0; i < uniforms.length; i++)
+          _shader!.setFloat(i, uniforms[i]);
+        canvas.drawRect(Offset.zero & size, ui.Paint()..shader = _shader);
+      }
       picture = recorder.endRecording();
       // One pending image plus the displayed image bounds the owned targets.
       // With a GPU context the image remains GPU-resident; no toByteData/readback.
@@ -181,6 +280,7 @@ class AndroidCreatorSession extends ChangeNotifier {
       }
     } finally {
       picture?.dispose();
+      for (final shader in materialShaders) shader.dispose();
     }
   }
 
@@ -192,7 +292,9 @@ class AndroidCreatorSession extends ChangeNotifier {
     await _inFlight;
     _image?.dispose();
     _image = null;
-    _shader.dispose();
+    _shader?.dispose();
+    _native?.dispose();
+    _canvas?.dispose();
     repaint.dispose();
     super.dispose();
   }
@@ -270,7 +372,9 @@ class _AndroidCreatorPreviewState extends State<AndroidCreatorPreview>
     final micros = elapsed.inMicroseconds;
     _hostMicros += math.max(0, micros - _lastTickMicros);
     _lastTickMicros = micros;
-    if (_hostMicros - _lastRenderMicros < 33333) return;
+    if (_hostMicros - _lastRenderMicros <
+        (1000000 / widget.session.visual.framesPerSecond).round())
+      return;
     _lastRenderMicros = _hostMicros;
     widget.session.render(_hostMicros / 1000000, reducedMotion: _reducedMotion);
   }

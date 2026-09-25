@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:scene_compositor/scene_compositor.dart';
@@ -83,7 +84,7 @@ class _CreatorStudioState extends State<CreatorStudio>
   bool get _shouldPlay =>
       !_disposed &&
       _playing &&
-      _foreground &&
+      (_foreground || _controller.pictureInPictureActive) &&
       _ready &&
       !_loading &&
       _error == null;
@@ -133,7 +134,12 @@ class _CreatorStudioState extends State<CreatorStudio>
       final catalog = validateCreatorCatalog(widget.catalogBuilder());
       _catalog = catalog;
       if (!catalog.any((visual) => visual.id == _selectedId)) {
-        _selectedId = catalog.isEmpty ? null : catalog.first.id;
+        _selectedId =
+            catalog.isEmpty
+                ? null
+                : catalog
+                    .firstWhere((v) => v.isNative, orElse: () => catalog.first)
+                    .id;
       }
       _error = null;
     } on Object catch (error, stack) {
@@ -281,7 +287,7 @@ class _CreatorStudioState extends State<CreatorStudio>
 
   void _syncReplay() {
     if (_disposed) return;
-    if (_shouldPlay && _effectiveReaction) {
+    if (_shouldPlay && _foreground && _effectiveReaction) {
       if (!_ticker.isActive) {
         _tickerStartElapsed = _replayElapsed;
         _ticker.start();
@@ -442,6 +448,17 @@ class _CreatorStudioState extends State<CreatorStudio>
       onReactiveChanged: _setReactive,
       onReload: _reload,
       onViewportChanged: _viewportChanged,
+      pictureInPictureActive: _controller.pictureInPictureActive,
+      onPictureInPicture:
+          defaultTargetPlatform == TargetPlatform.iOS
+              ? () => _enqueue(() async {
+                if (_controller.pictureInPictureActive) {
+                  await _controller.stopPictureInPicture();
+                } else {
+                  await _controller.startPictureInPicture();
+                }
+              })
+              : null,
     );
   }
 }

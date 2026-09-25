@@ -1258,12 +1258,15 @@ final class SceneRenderV2NeonPulseState {
 final class SceneSurfaceNativeOutputAllocator {
   static let capacity = 2
   private let device: MTLDevice
+  private let shaderWrite: Bool
   private var heap: MTLHeap?
   private var textureDescriptor: MTLTextureDescriptor?
   private var allocationSize = 0
   private var byteLimit = 0
 
-  init(device: MTLDevice) { self.device = device }
+  init(device: MTLDevice, shaderWrite: Bool = false) {
+    self.device = device; self.shaderWrite = shaderWrite
+  }
 
   /// Nil allocator preserves the independent output lifetime of shared V2
   /// renderers. Only a V1 component owner supplies an allocator.
@@ -1282,11 +1285,11 @@ final class SceneSurfaceNativeOutputAllocator {
     return device.makeTexture(descriptor: descriptor(width: width, height: height))
   }
 
-  private static func descriptor(width: Int, height: Int) -> MTLTextureDescriptor {
+  private static func descriptor(width: Int, height: Int, shaderWrite: Bool = false) -> MTLTextureDescriptor {
     let descriptor = MTLTextureDescriptor.texture2DDescriptor(
       pixelFormat: .bgra8Unorm, width: width, height: height, mipmapped: false
     )
-    descriptor.usage = [.shaderRead, .renderTarget]
+    descriptor.usage = shaderWrite ? [.shaderRead, .shaderWrite, .renderTarget] : [.shaderRead, .renderTarget]
     descriptor.storageMode = .private
     return descriptor
   }
@@ -1300,7 +1303,7 @@ final class SceneSurfaceNativeOutputAllocator {
       guard heap?.usedSize ?? 0 == 0 else {
         throw AllocationError("native_program_target_backpressure")
       }
-      let nextDescriptor = Self.descriptor(width: width, height: height)
+      let nextDescriptor = Self.descriptor(width: width, height: height, shaderWrite: shaderWrite)
       nextDescriptor.hazardTrackingMode = .tracked
       let requirement = device.heapTextureSizeAndAlign(descriptor: nextDescriptor)
       guard requirement.size > 0, requirement.align > 0 else {
@@ -5001,6 +5004,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
       })
     }
 
+    var creatorMetrics: [String: Any]? { catalogProgram?.creatorMetrics }
     var usesAuthoredSourceOver: Bool { catalogProgram != nil }
 
     var preferredFramesPerSecond: Int {
@@ -5104,8 +5108,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
       ))
       let reducedMotion = UIAccessibility.isReduceMotionEnabled
       if let catalogProgram {
-        return try? catalogProgram.render(target: target, hostTime: hostTime,
-          reducedMotion: reducedMotion)
+        do { return try catalogProgram.render(target: target, hostTime: hostTime, reducedMotion: reducedMotion) }
+        catch { catalogProgram.reportFailure(error); return nil }
       }
       guard let node else { return nil }
       if playing {

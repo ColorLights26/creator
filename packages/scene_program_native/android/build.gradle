@@ -1,0 +1,40 @@
+group 'com.chic.scene_program_native'
+version '1.0'
+apply plugin: 'com.android.library'
+
+def hostRoot = rootProject.projectDir.parentFile
+def props = new Properties()
+rootProject.file('local.properties').withInputStream { props.load(it) }
+def flutterSdk = props.getProperty('flutter.sdk')
+def generatedDir = new File(hostRoot, 'build/creator_native')
+
+android {
+    namespace 'com.chic.scene_program_native'
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+    defaultConfig {
+        minSdk = 21
+        externalNativeBuild {
+            cmake { arguments "-DCREATOR_GENERATED_DIR=${generatedDir.absolutePath}" }
+        }
+    }
+    externalNativeBuild { cmake { path 'CMakeLists.txt' } }
+}
+
+def configurations = ['Debug', 'RelWithDebInfo', 'Release']
+def preparations = configurations.collect { configuration ->
+    tasks.register("prepareCreatorPrograms${configuration}", Exec) {
+        workingDir hostRoot
+        environment 'CREATOR_NATIVE_CONFIGURATION', configuration
+        if (System.getProperty('os.name').toLowerCase().startsWith('windows')) {
+            commandLine 'cmd', '/c', "${flutterSdk}/bin/dart.bat", 'run', 'tool/compile_creator.dart'
+        } else {
+            commandLine "${flutterSdk}/bin/dart", 'run', 'tool/compile_creator.dart'
+        }
+    }
+}
+def prepareCreator = tasks.register('prepareCreatorPrograms') { dependsOn preparations }
+tasks.configureEach {
+    if (name.startsWith('configureCMake') || name.startsWith('buildCMake') ||
+        name.startsWith('externalNativeBuild') || name == 'preBuild') dependsOn prepareCreator
+}

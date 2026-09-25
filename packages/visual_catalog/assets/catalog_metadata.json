@@ -31,6 +31,92 @@
       "reactivity": "optional"
     },
     {
+      "id": "chrome_scene",
+      "name": "Liquid Chrome",
+      "description": "Escena programable de ejemplo; pendiente de revisión para producción.",
+      "purposes": [],
+      "moods": [],
+      "concepts": [],
+      "credits": {
+        "author": "Creator SDK",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "galaxy_scene",
+      "name": "Spiral Galaxy",
+      "description": "Escena programable de ejemplo; pendiente de revisión para producción.",
+      "purposes": [],
+      "moods": [],
+      "concepts": [],
+      "credits": {
+        "author": "Creator SDK",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "golden_particles_scene",
+      "name": "Golden Drift",
+      "description": "Escena programable de ejemplo; pendiente de revisión para producción.",
+      "purposes": [],
+      "moods": [],
+      "concepts": [],
+      "credits": {
+        "author": "Creator SDK",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "olas",
+      "name": "Olas",
+      "description": "Olas azules suaves que reaccionan a la música.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "calm",
+        "dreamy"
+      ],
+      "concepts": [
+        "waves",
+        "ocean",
+        "blue"
+      ],
+      "credits": {
+        "author": "ChatGPT",
+        "license": "",
+        "source": "https://chatgpt.com/c/6ab5f5ae-ddf4-83e9-b757-a08fdeeb5da1"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "prismatic_halo",
       "name": "Halo · capa de luz",
       "description": "Un halo de luz transparente que acompaña los acentos musicales.",
@@ -87,6 +173,25 @@
       "publication": "draft",
       "role": "background",
       "reactivity": "none"
+    },
+    {
+      "id": "synthwave_scene",
+      "name": "Midnight Highway",
+      "description": "Escena programable de ejemplo; pendiente de revisión para producción.",
+      "purposes": [],
+      "moods": [],
+      "concepts": [],
+      "credits": {
+        "author": "Creator SDK",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
     }
   ]
 }

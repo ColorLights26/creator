@@ -13,7 +13,7 @@ void main() {
     'catalog thumbnails are frozen cached pixels with overlay alpha',
     (tester) async {
       final index = creatorVisuals.indexWhere(
-        (v) => v.role == CreatorRole.overlay,
+        (v) => v.role == CreatorRole.overlay && !v.isNative,
       );
       expect(index, greaterThanOrEqualTo(0));
       final visual = creatorVisuals[index];

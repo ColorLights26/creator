@@ -17,7 +17,7 @@ final class SceneCreatorShaderState: SceneCatalogShaderState {
   private var lastEvents: [Int64] = [-1, -1, -1, -1]
 
   init?(program: String, options: [String: Any], mode: String?, reactive: Bool, seed: UInt32? = nil) {
-    guard let definition = SceneCreatorCatalog.program(program), definition.allows(reactive: reactive),
+    guard let definition = SceneCreatorCatalog.program(program), !definition.isNative, definition.allows(reactive: reactive),
       mode == nil || mode == "default",
       Set(options.keys).isSubset(of: Set(SceneCreatorCatalog.controlRanges.keys).union(["Music Reactive"]))
     else { return nil }

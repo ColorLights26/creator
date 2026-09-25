@@ -88,6 +88,7 @@ struct SceneCatalogVectorRRect {
   }
 }
 final class SceneCatalogVectorPath {
+  var evenOdd = false
   let path = CGMutablePath()
   func moveTo(_ x: Double, _ y: Double) { path.move(to: CGPoint(x: x, y: y)) }
   func lineTo(_ x: Double, _ y: Double) { path.addLine(to: CGPoint(x: x, y: y)) }
@@ -238,6 +239,7 @@ final class SceneCatalogVectorCanvas {
     var transform = CGAffineTransform.identity
     var localBlurPath: CGPath? = nil
     var screen = false
+    var evenOdd = false
     var sourceBounds: CGRect? = nil
     var ambientBlurPath: CGPath? = nil
     func atScale(_ scale: Float) -> Draw {
@@ -250,7 +252,7 @@ final class SceneCatalogVectorCanvas {
       return Draw(path: adjusted.copy(using: &matrix)!, color: color, gradient: gradient, sigma: sigma,
                   additive: additive, clip: clip, stroke: nil,
                   alphaScale: stroke.width == 0 ? 1 : min(1, Float(stroke.width) * effectiveScale * 2),
-                  transform: transform, localBlurPath: localBlurPath == nil ? nil : adjusted, screen: screen,
+                  transform: transform, localBlurPath: localBlurPath == nil ? nil : adjusted, screen: screen, evenOdd: evenOdd,
                   sourceBounds: sourceBounds)
     }
   }
@@ -272,7 +274,7 @@ final class SceneCatalogVectorCanvas {
     // DisplayListBuilder::DrawPath recognizes rectangular paths before dispatch.
     var rectangle = CGRect.zero
     let isRectangle = path.path.isRect(&rectangle)
-    record(path.path, paint, roundedBlur: isRectangle ? .init(rect: rectangle, radius: 0) : nil)
+    record(path.path, paint, evenOdd: path.evenOdd, roundedBlur: isRectangle ? .init(rect: rectangle, radius: 0) : nil)
   }
   func drawRect(_ rect: SceneCatalogVectorRect, _ paint: SceneCatalogVectorPaint) {
     record(CGPath(rect: rect.rect, transform: nil), paint, roundedBlur: .init(rect: rect.rect, radius: 0))
@@ -302,7 +304,8 @@ final class SceneCatalogVectorCanvas {
     if useCenter { path.closeSubpath() }
     record(path.copy(using: &transform)!, paint)
   }
-  private func record(_ source: CGPath, _ paint: SceneCatalogVectorPaint, forceStroke: Bool = false,
+  func concat(_ matrix: CGAffineTransform) { transforms[transforms.count - 1] = matrix.concatenating(transforms.last!) }
+  private func record(_ source: CGPath, _ paint: SceneCatalogVectorPaint, forceStroke: Bool = false, evenOdd: Bool = false,
                       roundedBlur: RoundedBlurShape? = nil) {
     let path: CGPath
     var stroke: Stroke?
@@ -322,7 +325,7 @@ final class SceneCatalogVectorCanvas {
                          && roundedBlur?.radius == (roundedBlur?.rect.width ?? -1) * 0.5 ? roundedBlur : nil,
                        transform: transform,
                        localBlurPath: !transform.isIdentity && paint.maskFilter != nil ? path : nil,
-                       screen: paint.blendMode == .screen,
+                       screen: paint.blendMode == .screen, evenOdd: evenOdd && stroke == nil,
                        sourceBounds: source.boundingBox.insetBy(
                          dx: stroke == nil ? 0 : -max(paint.strokeWidth, 1) * (paint.strokeJoin == .miter ? 2 : paint.strokeCap == .square ? sqrt(2) / 2 : 0.5),
                          dy: stroke == nil ? 0 : -max(paint.strokeWidth, 1) * (paint.strokeJoin == .miter ? 2 : paint.strokeCap == .square ? sqrt(2) / 2 : 0.5)),
@@ -370,6 +373,7 @@ final class SceneCatalogVectorRenderer {
   private let shadowPlusPipeline: MTLRenderPipelineState
   private let shadowScreenPipeline: MTLRenderPipelineState
   private let windingState: MTLDepthStencilState
+  private let evenOddState: MTLDepthStencilState
   private let maskState: MTLDepthStencilState
   private let sampler: MTLSamplerState
   private let horizontalBlur: MTLComputePipelineState
@@ -547,6 +551,15 @@ final class SceneCatalogVectorRenderer {
     guard let windingState = device.makeDepthStencilState(descriptor: winding),
           let maskState = device.makeDepthStencilState(descriptor: mask) else { throw Failure("vector_stencil_states") }
     self.windingState = windingState; self.maskState = maskState
+    let parity = MTLDepthStencilDescriptor()
+    parity.frontFaceStencil.stencilCompareFunction = .always
+    parity.frontFaceStencil.depthStencilPassOperation = .invert
+    parity.frontFaceStencil.writeMask = 1
+    parity.backFaceStencil.stencilCompareFunction = .always
+    parity.backFaceStencil.depthStencilPassOperation = .invert
+    parity.backFaceStencil.writeMask = 1
+    guard let evenOddState = device.makeDepthStencilState(descriptor: parity) else { throw Failure("vector_even_odd_state") }
+    self.evenOddState = evenOddState
     let clear = MTLDepthStencilDescriptor()
     clear.frontFaceStencil.depthStencilPassOperation = .replace
     clear.backFaceStencil.depthStencilPassOperation = .replace
@@ -807,7 +820,7 @@ final class SceneCatalogVectorRenderer {
         encoder.setStencilReferenceValue(0)
         encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         encoder.setRenderPipelineState(directWindingPipeline)
-        encoder.setDepthStencilState(windingState)
+        encoder.setDepthStencilState(draw.evenOdd ? evenOddState : windingState)
         encoder.setVertexBuffer(directBuffer, offset: 0, index: 0)
         var target = SIMD4<Float>(0, 0, Float(width), Float(height))
         encoder.setVertexBytes(&target, length: 16, index: 1)

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:scene_compositor/authoring.dart';
+import 'package:scene_compositor/native_compiler.dart';
 import 'package:visual_contract/visual_contract.dart';
 
 import 'package:visual_catalog/src/registry.g.dart';
@@ -29,9 +30,14 @@ void main() {
     }
     // Prepare every output before writing: a validation failure must not replace
     // runtime assets with a mixture of the previous and rejected catalogs.
+    final nativeManifest = prepareCreatorNative(
+      host: root,
+      catalog: catalogRoot,
+      visuals: visuals,
+    );
     final outputs = {
       '${catalogRoot.path}/assets/creator_catalog.json':
-          '${encodeCreatorCatalog(visuals)}\n',
+          '${const JsonEncoder.withIndent('  ').convert(nativeManifest)}\n',
       '${catalogRoot.path}/shaders/creator_programs.frag':
           compilePortableShader(visuals),
       '${catalogRoot.path}/assets/catalog_metadata.json':

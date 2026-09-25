@@ -13,6 +13,11 @@ struct SceneCatalogShaderUniform {
   let byteLength: Int
 }
 
+struct SceneCatalogShaderSampler {
+  let textureIndex: Int?
+  let samplerIndex: Int?
+}
+
 struct SceneCatalogShaderDefinition {
   let program: String
   let sourceSHA256: String
@@ -21,6 +26,7 @@ struct SceneCatalogShaderDefinition {
   let floatCount: Int
   let uniforms: [SceneCatalogShaderUniform]
   let metalSource: String
+  var samplers: [SceneCatalogShaderSampler] = []
 }
 
 /// GPU-only runtime for the original catalog fragment programs. Owners serialize
@@ -30,6 +36,7 @@ final class SceneCatalogShaderRenderer {
   private let device: MTLDevice
   private let queue: MTLCommandQueue
   private let vertex: MTLFunction
+  private let imageSampler: MTLSamplerState
   private var pipelines: [String: MTLRenderPipelineState] = [:]
   private var multisampleTarget: MTLTexture?
   private static let sampleCount = 4
@@ -43,6 +50,13 @@ final class SceneCatalogShaderRenderer {
       throw RendererError("catalog_shader_command_queue_failed")
     }
     self.queue = queue
+    let samplerDescription = MTLSamplerDescriptor()
+    samplerDescription.minFilter = .linear; samplerDescription.magFilter = .linear
+    samplerDescription.sAddressMode = .clampToEdge; samplerDescription.tAddressMode = .clampToEdge
+    guard let sampler = device.makeSamplerState(descriptor: samplerDescription) else {
+      throw RendererError("catalog_material_sampler")
+    }
+    self.imageSampler = sampler
     let library = try device.makeLibrary(source: Self.vertexSource, options: nil)
     guard let vertex = library.makeFunction(name: "catalogShaderVertex") else {
       throw RendererError("catalog_shader_vertex_missing")
@@ -60,6 +74,13 @@ final class SceneCatalogShaderRenderer {
     guard let definition = SceneCatalogShaderSources.programs[program] ?? SceneCreatorCatalog.program(program)?.shader else {
       throw RendererError("catalog_shader_unknown_program: \(program)")
     }
+    return try render(definition: definition, uniforms: uniforms, images: [], width: width, height: height, outputAllocator: outputAllocator)
+  }
+
+  func render(definition: SceneCatalogShaderDefinition, uniforms: [Float], images: [MTLTexture],
+              width: Int, height: Int, outputAllocator: SceneSurfaceNativeOutputAllocator? = nil) throws -> MTLTexture {
+    let program = definition.program
+    guard images.count == definition.samplers.count else { throw RendererError("catalog_shader_sampler_count") }
     guard uniforms.count == definition.floatCount,
           uniforms.enumerated().allSatisfy({ offset, value in
             (offset == 3 && SceneCreatorCatalog.program(program) != nil) || value.isFinite
@@ -105,6 +126,12 @@ final class SceneCatalogShaderRenderer {
       }
       encoder.setFragmentBytes(&value, length: uniform.byteLength, index: bufferIndex)
     }
+    if !images.isEmpty {
+      for (index, binding) in definition.samplers.enumerated() {
+        if let slot = binding.textureIndex { encoder.setFragmentTexture(images[index], index: slot) }
+        if let slot = binding.samplerIndex { encoder.setFragmentSamplerState(imageSampler, index: slot) }
+      }
+    }
     encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
     encoder.endEncoding()
     command.commit()
@@ -122,6 +149,8 @@ final class SceneCatalogShaderRenderer {
     }
     _ = try pipeline(for: definition)
   }
+
+  func prepare(definition: SceneCatalogShaderDefinition) throws { _ = try pipeline(for: definition) }
 
   private func multisampleTexture(width: Int, height: Int) throws -> MTLTexture {
     if let target = multisampleTarget, target.width == width, target.height == height {

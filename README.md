@@ -3,8 +3,9 @@
 # Creator: crea tu primer visual
 
 Aquí puedes crear fondos y efectos transparentes para Color Lights.
-Tu trabajo es **copiar una plantilla, pedirle un dibujo a la IA, pegar el resultado
-y ejecutarlo**. El proyecto ya se ocupa de mostrarlo y darle señales de prueba.
+Tu trabajo es **copiar una plantilla, pedirle una escena a la IA, pegar el resultado
+y ejecutarlo**. Puedes pedir galaxias con partículas, paisajes con curvas, imágenes
+y materiales animados combinados. El proyecto ya se ocupa de mostrarlo y darle señales de prueba.
 
 **Lo que crees aparece en Creator.** El responsable de Color Lights revisará
 lo que entregues y decidirá qué incorpora a la app principal.
@@ -32,7 +33,8 @@ Usa Android o iOS. La versión de Flutter probada es **3.44.5 stable**; iOS requ
 una Mac con Xcode y CocoaPods. Si tu editor ya tiene preparado el dispositivo,
 también puedes usar su botón **Run**.
 
-Deberías ver los ejemplos **Aurora Ribbons**, **Quiet Orbits** y **Prismatic Halo**.
+Deberías ver **Liquid Chrome**, **Spiral Galaxy**, **Midnight Highway** y
+**Golden Drift**, además de los visuales anteriores.
 Primero comprueba que estos funcionan; después crea el tuyo.
 
 Si tu editor sólo muestra `studio/`, abre también la carpeta completa `creator/`
@@ -126,7 +128,8 @@ Elige cómo usa la música:
 
 **Para empezar conserva `.optional`.** En el estudio puedes probar ambos estados
 con el interruptor **Reaccionar a la señal**. Al apagarlo, el motor entrega los
-valores musicales en cero; la animación propia del dibujo puede continuar.
+valores musicales en cero; la animación propia del dibujo puede continuar. Las partículas ya creadas conservan su movimiento; apagar
+la música no borra la historia de la escena.
 También entrega ceros si no hay señal musical válida. Con `.none` la reacción
 queda siempre apagada; con `.music` queda siempre activada cuando hay señal.
 
@@ -203,7 +206,7 @@ comparte ese error con el responsable del proyecto para revisar la instalación.
 ## 7. Entrega el resultado
 
 Comparte tu pareja de archivos por el repositorio o envíasela al responsable.
-Si añadiste una imagen para la miniatura, inclúyela también. Una captura o un vídeo
+Si añadiste imágenes a la escena o a la miniatura, inclúyelas también. Una captura o un vídeo
 corto ayuda a mostrar qué resultado esperabas.
 
 **Tu parte termina al crear, probar y entregar.** El responsable valida y aprueba

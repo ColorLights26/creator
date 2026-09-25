@@ -6096,7 +6096,7 @@ private final class PictureInPictureSceneLayerRuntime {
     let alphaMode: String
     let rgbGainEffect: SceneSurfaceRGBGainEffectRuntime?
     let naturalReactiveLightEffect: SceneSurfaceNaturalReactiveLightEffectRuntime?
-    let explicitlyAudioReactive: Bool
+    private(set) var explicitlyAudioReactive: Bool
     let playbackRate: Float
 
     private let renderEngine: MusicVibeRenderEngine
@@ -6760,6 +6760,8 @@ private final class PictureInPictureSceneLayerRuntime {
         nativeProgram?.didPublish(hostTime: hostTime)
     }
 
+    var creatorMetrics: [String: Any]? { nativeProgram?.creatorMetrics }
+
     var usesAuthoredSourceOver: Bool { nativeProgram?.usesAuthoredSourceOver == true }
 
     func prepareCatalogControlUpdate(parameters: [String: Any]) -> SceneCatalogControlUpdate? {
@@ -6773,14 +6775,19 @@ private final class PictureInPictureSceneLayerRuntime {
             prepared = nativeProgram?.prepareCatalogControlUpdate(parameters: parameters)
         }
         guard let update = prepared else { return nil }
+        let previousReaction = explicitlyAudioReactive
+        let nextReaction = SceneCatalogControlUpdatePlan.isStatefulCreator(parameters)
+          ? SceneCatalogNativeDescriptor.parse(parameters)?.audioReactive : nil
         return SceneCatalogControlUpdate(
             apply: { [weak self] in
                 update.apply()
+                if let nextReaction { self?.explicitlyAudioReactive = nextReaction }
                 self?.image = nil
                 self?.scheduledDynamicSourceRefresh = true
             },
             rollback: { [weak self] in
                 update.rollback()
+                self?.explicitlyAudioReactive = previousReaction
                 self?.image = nil
                 self?.scheduledDynamicSourceRefresh = true
             }
@@ -6943,7 +6950,7 @@ private final class PictureInPictureSceneLayerRuntime {
                 sessionId: rendererSessionId
             )
         }
-        return min(max(dynamicFramesPerSecond, 1), 60)
+        return min(max(nativeProgram?.preferredFramesPerSecond ?? dynamicFramesPerSecond, 1), 60)
     }
 
     var nativeProgramEventFramesPerSecond: Int {
@@ -13622,6 +13629,7 @@ final class SceneSurfaceRenderEngine: NSObject {
                 "generation": boundedInt(session.generation),
                 "videoReservations": SceneSurfaceVideoReservations.shared.diagnostics,
                 "videoSources": session.document.layers.compactMap { $0.videoDiagnostics },
+                "creatorPrograms": session.document.layers.compactMap { $0.creatorMetrics },
                 "residentOutputBuffers": session.publishedBufferBudget.residentCount,
                 "preparing": session.preparationId != nil || self.documentInspections[session.id] != nil,
                 "playing": session.playing,

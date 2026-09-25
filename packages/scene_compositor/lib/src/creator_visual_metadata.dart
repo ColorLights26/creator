@@ -19,6 +19,7 @@ class CreatorVisualMetadata {
     this.seed = 42,
     this.colors = const [0xff061427, 0xff00d5b1, 0xff6774ff, 0xffe9cbff],
     this.controls = const CreatorControls(),
+    this.images = const {},
   });
 
   final String id;
@@ -36,24 +37,50 @@ class CreatorVisualMetadata {
   final int seed;
   final List<int> colors;
   final CreatorControls controls;
+  final Map<String, String> images;
+
+  CreatorVisualDefinition withNative(
+    String nativeSource, {
+    Map<String, String> shaderSources = const {},
+    String sourceFile = 'visual.dart',
+    int sourceLine = 1,
+  }) => _join(
+    nativeSource: nativeSource,
+    shaderSources: shaderSources,
+    sourceFile: sourceFile,
+    sourceLine: sourceLine,
+  );
 
   CreatorVisualDefinition withShader(String shaderSource) =>
-      CreatorVisualDefinition(
-        shaderSource: shaderSource,
-        id: id,
-        name: name,
-        description: description,
-        purposes: purposes,
-        moods: moods,
-        concepts: concepts,
-        credits: credits,
-        thumbnail: thumbnail,
-        publication: publication,
-        role: role,
-        reactivity: reactivity,
-        framesPerSecond: framesPerSecond,
-        seed: seed,
-        colors: colors,
-        controls: controls,
-      );
+      _join(shaderSource: shaderSource);
+
+  CreatorVisualDefinition _join({
+    String shaderSource = '',
+    String nativeSource = '',
+    Map<String, String> shaderSources = const {},
+    String sourceFile = 'visual.dart',
+    int sourceLine = 1,
+  }) => CreatorVisualDefinition(
+    shaderSource: shaderSource,
+    nativeSource: nativeSource,
+    shaderSources: shaderSources,
+    sourceFile: sourceFile,
+    sourceLine: sourceLine,
+    images: images,
+    id: id,
+    name: name,
+    description: description,
+    purposes: purposes,
+    moods: moods,
+    concepts: concepts,
+    credits: credits,
+    thumbnail: thumbnail,
+    publication: publication,
+    role: role,
+    reactivity: reactivity,
+    framesPerSecond: framesPerSecond,
+    seed: seed,
+    colors: colors,
+    controls: controls,
+  );
 }

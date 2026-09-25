@@ -30,8 +30,15 @@ class CreatorShaderFrame {
   static const uniformCount = 34;
   final CreatorVisualDefinition visual;
   final int visualIndex;
-  final bool reactive;
+  bool reactive;
   final int seed;
+  CreatorControls? _liveControls;
+  CreatorControls get controls => _liveControls ?? visual.controls;
+  void setControls(CreatorControls value) {
+    value.validate();
+    _liveControls = value;
+  }
+
   final Float32List _uniforms = Float32List(uniformCount);
   final List<int> _eventSerials = List<int>.filled(4, -1);
   SceneRenderSignalFrameV2? _frame;
@@ -63,6 +70,15 @@ class CreatorShaderFrame {
         _eventSerials[i] = event.serial;
       }
     }
+  }
+
+  void setReactive(bool next) {
+    if ((visual.reactivity == CreatorReactivity.none && next) ||
+        (visual.reactivity == CreatorReactivity.music && !next))
+      throw ArgumentError('Invalid reactivity');
+    reactive = next;
+    _pendingPulse = 0;
+    _frame = null;
   }
 
   void setPlaying(bool next, {required double hostTime}) {
@@ -111,10 +127,10 @@ class CreatorShaderFrame {
     _pendingPulse = 0;
     _uniforms[11] = active ? frame.rhythm[1] : 0;
     _uniforms[12] = active ? frame.rhythm[0] : 0;
-    _uniforms[13] = visual.controls.intensity;
-    _uniforms[14] = visual.controls.speed;
-    _uniforms[15] = visual.controls.detail;
-    _uniforms[16] = visual.controls.glow;
+    _uniforms[13] = controls.intensity;
+    _uniforms[14] = controls.speed;
+    _uniforms[15] = controls.detail;
+    _uniforms[16] = controls.glow;
     for (var i = 0; i < 4; i++) {
       final color = visual.colors[i];
       final offset = 17 + i * 4;

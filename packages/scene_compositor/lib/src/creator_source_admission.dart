@@ -71,16 +71,72 @@ void validateCreatorVisualSource(String source) {
       'Pegaste las marcas del bloque de la IA. Copia sólo el código que está dentro.',
     );
   }
+  parseCreatorVisualSource(source);
+}
+
+class CreatorSourceEnvelope {
+  const CreatorSourceEnvelope(
+    this.source, {
+    this.native = false,
+    this.materials = const {},
+    this.line = 1,
+  });
+  final String source;
+  final bool native;
+  final Map<String, String> materials;
+  final int line;
+}
+
+/// Parse literal constants only; never execute author expressions during discovery.
+CreatorSourceEnvelope parseCreatorVisualSource(String source) {
   final code = stripComments(source);
-  final envelope = RegExp(
-    r"^const\s+shaderSource\s*=\s*r'''([\s\S]*?)'''\s*;$",
+  final head = RegExp(
+    r'^const\s+(shaderSource|nativeSource)\s*=\s*r(\x27{3}|\x22{3})([\s\S]*?)\2\s*;',
   ).firstMatch(code);
-  if (envelope == null || envelope[1]!.contains("'''")) {
+  if (head == null) {
     throw const FormatException(
-      'La respuesta no tiene el formato de la plantilla. Necesitas el archivo completo '
-      'con const shaderSource = r\'\'\'...\'\'\';, sin widgets, imports ni metadata.',
+      'Conserva const nativeSource = r\'\'\'...\'\'\'; (o shaderSource para visuales anteriores), sin imports, widgets ni metadata.',
     );
   }
+  var tail = code.substring(head.end).trim();
+  final materials = <String, String>{};
+  if (tail.isNotEmpty && head[1] == 'nativeSource') {
+    final map = RegExp(
+      r'^const\s+shaderSources\s*=\s*(?:<String,\s*String>)?\s*\{',
+    ).firstMatch(tail);
+    if (map == null || !tail.endsWith('};'))
+      throw const FormatException(
+        'shaderSources debe ser un mapa constante de nombres y strings GLSL raw.',
+      );
+    tail = tail.substring(map.end, tail.length - 2).trim();
+    final entry = RegExp(
+      r'^\x27([a-z][a-z0-9_]*)\x27\s*:\s*r(\x27{3}|\x22{3})([\s\S]*?)\2\s*(,|$)',
+    );
+    while (tail.isNotEmpty) {
+      final match = entry.firstMatch(tail);
+      if (match == null || materials.containsKey(match[1]))
+        throw const FormatException(
+          'Material inválido o repetido. Usa nombre: string raw, sin expresiones.',
+        );
+      materials[match[1]!] = match[3]!;
+      tail = tail.substring(match.end).trim();
+    }
+  }
+  if (tail.isNotEmpty)
+    throw const FormatException(
+      'El archivo creativo sólo contiene nativeSource y shaderSources opcional, o shaderSource anterior.',
+    );
+  final literal = source.indexOf('r${head[2]}${head[3]}');
+  final line =
+      literal < 0
+          ? 1
+          : '\n'.allMatches(source.substring(0, literal + 4)).length + 1;
+  return CreatorSourceEnvelope(
+    head[3]!,
+    native: head[1] == 'nativeSource',
+    materials: materials,
+    line: line,
+  );
 }
 
 void validateCreatorMetadataSource(String metadata) {

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -28,8 +29,18 @@ class SceneCompositorController extends ChangeNotifier {
   static int _nextId = 0;
   Future<void> _pending = Future.value();
   CreatorVisualDefinition? _visual;
+  CreatorControls? _controls;
   Size _size = Size.zero;
   double _pixelRatio = 1;
+  static const _pipChannel = MethodChannel('com.chic.dev/picture_in_picture');
+  static const _pipEvents = EventChannel(
+    'com.chic.dev/picture_in_picture/events',
+  );
+  StreamSubscription<dynamic>? _pipSubscription;
+  Map<Object?, Object?>? _pipIdentity;
+  Completer<void>? _pipStopped;
+  String? _documentGeneration;
+  bool get pictureInPictureActive => _pipIdentity != null;
   String? _sessionId;
   int? _textureId;
   Widget? _preview;
@@ -102,8 +113,8 @@ class SceneCompositorController extends ChangeNotifier {
     final catalog =
         jsonDecode(await rootBundle.loadString(assets.catalogAsset))
             as Map<String, dynamic>;
-    final installedVisuals = (catalog['visuals'] as List)
-        .cast<Map<String, dynamic>>();
+    final installedVisuals =
+        (catalog['visuals'] as List).cast<Map<String, dynamic>>();
     final installed = installedVisuals.where(
       (entry) => entry['id'] == visual.id,
     );
@@ -115,6 +126,7 @@ class SceneCompositorController extends ChangeNotifier {
     }
     await _detach();
     _visual = visual;
+    _controls = visual.controls;
     _visualIndex = installedVisuals.indexWhere(
       (entry) => entry['id'] == visual.id,
     );
@@ -153,13 +165,44 @@ class SceneCompositorController extends ChangeNotifier {
     if (visual.reactivity != CreatorReactivity.optional) {
       throw ArgumentError('This visual has fixed reactivity.');
     }
-    _reactive = reactive;
     if (_android != null) {
-      _android!.reset(reactive: reactive, seed: _qaSeed);
+      _android!.setReactive(reactive);
+      _reactive = reactive;
       return;
     }
-    await _detach();
-    await _attach();
+    if (_sessionId != null) {
+      await _invoke<Object>('updateDocument', {
+        'sessionId': _sessionId!,
+        'sceneDocument': visual.sceneDocument(
+          width: _size.width,
+          height: _size.height,
+          reactive: reactive,
+          qaSessionSeed: _qaSeed,
+          liveControls: _controls,
+        ),
+      });
+    }
+    _reactive = reactive;
+  });
+
+  Future<void> setControls(CreatorControls controls) => _queue(() async {
+    controls.validate();
+    final visual = _visual;
+    if (visual == null) throw StateError('No visual is installed.');
+    if (_android != null) _android!.setControls(controls);
+    if (_sessionId != null) {
+      await _invoke<Object>('updateDocument', {
+        'sessionId': _sessionId!,
+        'sceneDocument': visual.sceneDocument(
+          width: _size.width,
+          height: _size.height,
+          reactive: _reactive,
+          qaSessionSeed: _qaSeed,
+          liveControls: controls,
+        ),
+      });
+    }
+    _controls = controls;
   });
 
   Future<void> sendSignal(SceneRenderSignalFrameV2 frame) => _queue(() async {
@@ -224,6 +267,7 @@ class SceneCompositorController extends ChangeNotifier {
         },
       );
       if (_qaSeed != null) session.reset(reactive: _reactive, seed: _qaSeed);
+      session.setControls(_controls ?? visual.controls);
       _android = session;
       _preview = AndroidCreatorPreview(
         key: ObjectKey(session),
@@ -245,12 +289,14 @@ class SceneCompositorController extends ChangeNotifier {
           height: _size.height,
           reactive: _reactive,
           qaSessionSeed: _qaSeed,
+          liveControls: _controls,
         ),
       });
       final texture = receipt?['textureId'];
       if (texture is! int || texture < 0)
         throw StateError('El compositor no devolvió una textura válida.');
       _textureId = texture;
+      _documentGeneration = receipt?['documentGeneration'] as String?;
     } on PlatformException catch (error) {
       final diagnostics = await _invoke<Object>('creatorDiagnostics', const {});
       await _detach();
@@ -265,7 +311,120 @@ class SceneCompositorController extends ChangeNotifier {
     }
   }
 
+  Future<Map<Object?, Object?>?> startPerformanceProbe() =>
+      _invoke<Map<Object?, Object?>>('startPerformanceProbe', {
+        'sceneId': _visual!.programId,
+      });
+
+  Future<Map<Object?, Object?>?> stopPerformanceProbe(
+    Map<Object?, Object?> identity,
+  ) => _invoke<Map<Object?, Object?>>(
+    'stopPerformanceProbe',
+    identity.cast<String, Object>(),
+  );
+
+  Future<void> startPictureInPicture() => _queue(() async {
+    if (_sessionId == null ||
+        _documentGeneration == null ||
+        _pipIdentity != null) {
+      throw StateError('PiP necesita una escena nativa preparada.');
+    }
+    if (await _pipChannel.invokeMethod<bool>('isSupported') != true) {
+      throw UnsupportedError('PiP no está disponible en este dispositivo.');
+    }
+    _pipSubscription ??= _pipEvents.receiveBroadcastStream().listen(
+      (dynamic raw) {
+        if (raw is! Map || raw['sessionId'] != _pipIdentity?['pipSessionId'])
+          return;
+        if (raw['type'] == 'stopped') {
+          if (!(_pipStopped?.isCompleted ?? true)) _pipStopped!.complete();
+          unawaited(_queue(_releasePictureInPicture));
+        }
+      },
+      onError: (Object error, StackTrace stack) {
+        developer.log(
+          'PiP events failed',
+          name: 'scene_compositor',
+          error: error,
+          stackTrace: stack,
+        );
+      },
+    );
+    final recorder = ui.PictureRecorder();
+    ui.Canvas(
+      recorder,
+    ).drawColor(Color(_visual!.colors.first), ui.BlendMode.src);
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(8, 8);
+    Uint8List poster;
+    try {
+      final bytes = (await image.toByteData(format: ui.ImageByteFormat.png))!;
+      poster = bytes.buffer.asUint8List(
+        bytes.offsetInBytes,
+        bytes.lengthInBytes,
+      );
+    } finally {
+      image.dispose();
+      picture.dispose();
+    }
+    final generation = _documentGeneration!;
+    final identity = await _pipChannel
+        .invokeMapMethod<Object?, Object?>('prepareWithSceneContinuation', {
+          'sessionId': 'pip:$_sessionId',
+          'sceneSessionId': _sessionId,
+          'sceneSurfaceIdentity': {
+            'generation': generation,
+            'revision': 0,
+            'semanticPlanHash': 'v1:$generation:0',
+          },
+          'sourceKind': 'sceneComposition',
+          'posterBytes': poster,
+          'width': 360,
+          'height': (360 * _size.height / _size.width).round().clamp(1, 1280),
+          'framesPerSecond': 30,
+          'degradedFramesPerSecond': 15,
+        })
+        .timeout(const Duration(seconds: 12));
+    if (identity == null)
+      throw StateError('La escena todavía no está lista para PiP.');
+    _pipIdentity = identity;
+    _pipStopped = Completer<void>();
+    try {
+      if (await _pipChannel
+              .invokeMethod<bool>('start')
+              .timeout(const Duration(seconds: 12)) !=
+          true) {
+        throw StateError('iOS rechazó el inicio de PiP.');
+      }
+    } on Object {
+      await _releasePictureInPicture();
+      rethrow;
+    }
+    notifyListeners();
+  });
+
+  Future<void> stopPictureInPicture() => _queue(_stopPictureInPicture);
+  Future<void> _stopPictureInPicture() async {
+    if (_pipIdentity == null) return;
+    await _pipChannel
+        .invokeMethod<bool>('stop', {'reason': 'creator'})
+        .timeout(const Duration(seconds: 8));
+    await _pipStopped?.future.timeout(const Duration(seconds: 8));
+    await _releasePictureInPicture();
+  }
+
+  Future<void> _releasePictureInPicture() async {
+    final identity = _pipIdentity;
+    if (identity == null) return;
+    await _pipChannel
+        .invokeMethod<Object>('releaseSceneContinuation', identity)
+        .timeout(const Duration(seconds: 8));
+    _pipIdentity = null;
+    if (!_disposed) notifyListeners();
+  }
+
   Future<void> _detach() async {
+    await _stopPictureInPicture();
     final android = _android;
     if (android != null) {
       await android.close();
@@ -275,6 +434,7 @@ class SceneCompositorController extends ChangeNotifier {
     if (_sessionId == null) return;
     await _invoke<Object>('detach', {'sessionId': _sessionId!});
     _sessionId = null;
+    _documentGeneration = null;
     _textureId = null;
   }
 
@@ -295,6 +455,8 @@ class SceneCompositorController extends ChangeNotifier {
     if (_closed) return;
     await _queue(() async {
       await _detach();
+      await _pipSubscription?.cancel();
+      _pipSubscription = null;
       _closed = true;
     });
   }

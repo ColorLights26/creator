@@ -2,6 +2,7 @@
 # Run the canonical descriptor/state and Metal renderer without application services.
 require 'open3'
 require 'tmpdir'
+require 'json'
 
 runtime = File.expand_path('../Classes/Runtime', __dir__)
 surface = File.read(File.join(runtime, 'SceneRenderV2ImageSurface.swift'))
@@ -24,7 +25,13 @@ Dir.mktmpdir('creator-native-test-') do |temporary|
   unless ARGV.empty?
     catalog = File.expand_path(ARGV.fetch(0))
     abort "Creator catalog not found: #{catalog}" unless File.file?(catalog)
-    output, status = Open3.capture2e(executable, catalog, *ARGV.drop(1))
+    # Stateful programs have their own full native admission probe. Keep this
+    # compatibility check scoped to the legacy shader format.
+    parsed = JSON.parse(File.read(catalog))
+    parsed['visuals'].reject! { |entry| entry['kind'] == 'scene' }
+    legacy = File.join(temporary, 'legacy-catalog.json')
+    File.write(legacy, JSON.generate(parsed))
+    output, status = Open3.capture2e(executable, legacy, *ARGV.drop(1))
     puts output
     abort 'Authored creator catalog Metal smoke failed' unless status.success?
   end

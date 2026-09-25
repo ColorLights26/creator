@@ -77,9 +77,10 @@ void _catalogAdmission() {
     'long name',
   );
   _throws<FormatException>(
-    () => validateCreatorCatalog([_visual(fps: 60)]),
+    () => validateCreatorCatalog([_visual(fps: 45)]),
     'unsupported rendering budget',
   );
+  validateCreatorCatalog([_visual(fps: 60)]);
   _throws<FormatException>(
     () => validateCreatorCatalog([_visual(seed: -1)]),
     'negative seed',

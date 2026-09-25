@@ -67,6 +67,20 @@ class CreatorControls {
   final double detail;
   final double glow;
 
+  void validate() {
+    if (![
+          intensity,
+          speed,
+          detail,
+          glow,
+        ].every((v) => v.isFinite && v >= 0 && v <= 2) ||
+        detail < .25) {
+      throw ArgumentError(
+        'Controls must be finite: intensity/speed/glow 0–2, detail .25–2.',
+      );
+    }
+  }
+
   Map<String, double> toMap() => {
     'intensity': intensity,
     'speed': speed,
@@ -81,7 +95,13 @@ class CreatorVisualDefinition {
   const CreatorVisualDefinition({
     required this.id,
     required this.name,
-    required this.shaderSource,
+    this.shaderSource = '',
+    this.nativeSource = '',
+    this.shaderSources = const {},
+    this.images = const {},
+    this.nativeBuild = const {},
+    this.sourceFile = 'visual.dart',
+    this.sourceLine = 1,
     this.description = '',
     this.purposes = const [],
     this.moods = const [],
@@ -100,6 +120,13 @@ class CreatorVisualDefinition {
   final String id;
   final String name;
   final String shaderSource;
+  final String nativeSource;
+  final Map<String, String> shaderSources;
+  final Map<String, String> images;
+  final Map<String, dynamic> nativeBuild;
+  final String sourceFile;
+  final int sourceLine;
+  bool get isNative => nativeSource.isNotEmpty;
   final String description;
   final List<String> purposes;
   final List<String> moods;
@@ -141,6 +168,13 @@ class CreatorVisualDefinition {
     'colors': colors,
     'controls': controls.toMap(),
     'shaderSource': shaderSource,
+    if (isNative) ...{
+      'kind': 'scene',
+      'nativeSource': nativeSource,
+      'shaderSources': shaderSources,
+      'images': images,
+      'nativeBuild': nativeBuild,
+    },
   };
 
   /// The production V1 owner already executes this restricted V2 descriptor.
@@ -150,7 +184,10 @@ class CreatorVisualDefinition {
     required double height,
     required bool reactive,
     int? qaSessionSeed,
+    CreatorControls? liveControls,
   }) {
+    final effectiveControls = liveControls ?? controls;
+    effectiveControls.validate();
     if (!width.isFinite ||
         !height.isFinite ||
         width <= 0 ||
@@ -203,7 +240,10 @@ class CreatorVisualDefinition {
               'programId': programId,
               'audioReactive': reactive,
               if (qaSessionSeed != null) 'seed': qaSessionSeed,
-              'options': {...controls.toMap(), 'Music Reactive': reactive},
+              'options': {
+                ...effectiveControls.toMap(),
+                'Music Reactive': reactive,
+              },
             },
             'resourceSlots': <Object>[],
             'signalBindings': [
@@ -277,7 +317,7 @@ List<CreatorVisualDefinition> validateCreatorCatalog(
       visual.name.trim().isNotEmpty && visual.name.length <= 100,
       'Nombre inválido.',
     );
-    require(visual.framesPerSecond == 30, 'El presupuesto del kit es 30 FPS.');
+    require([30, 60].contains(visual.framesPerSecond), 'Solicita 30 o 60 FPS.');
     require(visual.description.length <= 2000, 'Descripción demasiado larga.');
     for (final tags in [visual.purposes, visual.moods, visual.concepts]) {
       require(
@@ -335,13 +375,50 @@ List<CreatorVisualDefinition> validateCreatorCatalog(
         'Control ${entry.key} fuera de rango.',
       );
     }
-    require(
-      visual.shaderSource.contains('paintVisual') &&
-          !visual.shaderSource.contains('#') &&
-          !visual.shaderSource.contains('[[') &&
-          utf8.encode(visual.shaderSource).length <= 65536,
-      'Shader inválido: define paintVisual sin includes, atributos ni entrypoints.',
-    );
+    if (visual.isNative) {
+      require(
+        visual.shaderSource.isEmpty,
+        'Usa nativeSource o shaderSource, no ambos.',
+      );
+      require(
+        utf8.encode(visual.nativeSource).length <= 256 * 1024,
+        'Programa mayor de 256 KiB.',
+      );
+      require(
+        visual.shaderSources.length <= 16 && visual.images.length <= 16,
+        'Máximo 16 materiales y 16 imágenes.',
+      );
+      for (final name in [
+        ...visual.shaderSources.keys,
+        ...visual.images.keys,
+      ]) {
+        require(
+          RegExp(r'^[a-z][a-z0-9_]{0,63}$').hasMatch(name),
+          'Nombre de recurso inválido.',
+        );
+      }
+      for (final source in visual.shaderSources.values) {
+        require(
+          utf8.encode(source).length <= 256 * 1024,
+          'Material mayor de 256 KiB.',
+        );
+      }
+      for (final path in visual.images.values) {
+        require(
+          RegExp(
+            r'^assets/images/[a-zA-Z0-9_-]+\.(png|jpg|jpeg|webp)$',
+          ).hasMatch(path),
+          'Las imágenes deben vivir en assets/images/ con un nombre simple.',
+        );
+      }
+    } else
+      require(
+        visual.shaderSource.contains('paintVisual') &&
+            !visual.shaderSource.contains('#') &&
+            !visual.shaderSource.contains('[[') &&
+            utf8.encode(visual.shaderSource).length <= 65536,
+        'Shader inválido: define paintVisual sin includes, atributos ni entrypoints.',
+      );
   }
   if (utf8.encode(encodeCreatorCatalog(visuals)).length > 4 * 1024 * 1024) {
     throw const FormatException('El catálogo supera 4 MB.');

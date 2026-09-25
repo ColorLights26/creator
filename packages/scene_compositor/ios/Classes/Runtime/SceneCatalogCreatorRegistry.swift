@@ -1,6 +1,12 @@
 import Foundation
 import Metal
 import CryptoKit
+#if os(iOS) && !canImport(scene_program_native)
+#error("Creator requires the scene_program_native pod. Resolve iOS dependencies before building.")
+#endif
+#if canImport(scene_program_native)
+import scene_program_native
+#endif
 
 /// Creator programs are installed with the application. Scene documents can
 /// select their immutable ID but cannot supply or replace executable source.
@@ -13,7 +19,10 @@ enum SceneCreatorCatalog {
     let seed: UInt32
     let colors: [Float]
     let controls: [String: Float]
-    let shader: SceneCatalogShaderDefinition
+    let shader: SceneCatalogShaderDefinition?
+    var nativeBuild: [String: Any] = [:]
+    var images: [String: String] = [:]
+    var isNative: Bool { !nativeBuild.isEmpty }
 
     func allows(reactive: Bool) -> Bool {
       reactivity == "optional" || (reactivity == "music") == reactive
@@ -24,6 +33,7 @@ enum SceneCreatorCatalog {
   private static var loaded = false
   private static var programs = [String: Program]()
   private static var loadError: String?
+  private(set) static var assetRoot: URL?
   private static var preparationErrors = [String: String]()
   private static let maximumCatalogBytes = 4 * 1024 * 1024
   static let controlRanges: [String: ClosedRange<Float>] = [
@@ -49,7 +59,9 @@ enum SceneCreatorCatalog {
     lock.lock()
     defer { lock.unlock() }
     guard programs[program] != nil else { return }
-    preparationErrors[program] = String(error.localizedDescription.prefix(8192))
+    let message = String(error.localizedDescription.prefix(8192))
+    guard preparationErrors[program] != message else { return }
+    preparationErrors[program] = message
     NSLog("[SceneCreatorCatalog] program=%@ shader_rejected: %@", program, error.localizedDescription)
   }
 
@@ -64,6 +76,7 @@ enum SceneCreatorCatalog {
       guard let size, size.intValue > 0, size.intValue <= maximumCatalogBytes else {
         throw CatalogError("catalog_size_invalid")
       }
+      assetRoot = URL(fileURLWithPath: assetPath).deletingLastPathComponent().deletingLastPathComponent()
       programs = try decode(Data(contentsOf: URL(fileURLWithPath: assetPath)))
     } catch {
       // An invalid package is rejected as a whole, never partly installed.
@@ -81,8 +94,10 @@ enum SceneCreatorCatalog {
     var result = [String: Program]()
     var ids = Set<String>()
     for value in values {
-      guard Set(value.keys) == ["id", "name", "programId", "role", "reactivity",
-        "framesPerSecond", "seed", "colors", "controls", "shaderSource"],
+      let native = value["kind"] as? String == "scene"
+      let baseKeys: Set<String> = ["id", "name", "programId", "role", "reactivity",
+        "framesPerSecond", "seed", "colors", "controls", "shaderSource"]
+      guard Set(value.keys) == (native ? baseKeys.union(["kind", "nativeSource", "shaderSources", "images", "nativeBuild"]) : baseKeys),
         let id = value["id"] as? String, id.range(of: "^[a-z][a-z0-9_]{0,63}$", options: .regularExpression) != nil,
         ids.insert(id).inserted,
         let name = value["name"] as? String, !name.isEmpty, name.count <= 100,
@@ -90,12 +105,12 @@ enum SceneCreatorCatalog {
         SceneCatalogShaderSources.programs[programID] == nil,
         let role = value["role"] as? String, ["background", "overlay"].contains(role),
         let reactivity = value["reactivity"] as? String, ["none", "music", "optional"].contains(reactivity),
-        number(value["framesPerSecond"]) == 30,
+        let fps = number(value["framesPerSecond"]), [30.0, 60.0].contains(fps),
         let seed = number(value["seed"]), seed.rounded() == seed, (0...Double(UInt32.max)).contains(seed),
         let colors = value["colors"] as? [Any], colors.count == 4,
         let controls = value["controls"] as? [String: Any], Set(controls.keys) == Set(controlRanges.keys),
-        let source = value["shaderSource"] as? String, !source.isEmpty, source.utf8.count <= 65_536,
-        source.contains("paintVisual"), !source.contains("#"), !source.contains("[[")
+        let source = value["shaderSource"] as? String,
+        native ? source.isEmpty : (!source.isEmpty && source.utf8.count <= 65_536 && source.contains("paintVisual") && !source.contains("#") && !source.contains("[["))
       else { throw CatalogError("catalog_program_invalid") }
       var parsedControls = [String: Float]()
       for (key, range) in controlRanges {
@@ -111,6 +126,27 @@ enum SceneCreatorCatalog {
         let argb = UInt32(raw)
         rgba += [Float((argb >> 16) & 255), Float((argb >> 8) & 255), Float(argb & 255), Float(argb >> 24)].map { $0 / 255 }
       }
+      if native {
+        guard let build = value["nativeBuild"] as? [String: Any],
+          number(build["abi"]) == 1, let hash = build["hash"] as? String, hash.count == 64,
+          let images = value["images"] as? [String: String], images.count <= 16,
+          let materials = build["materials"] as? [String: Any], materials.count <= 16
+        else { throw CatalogError("native_program_manifest_invalid") }
+        for path in images.values {
+          guard path.range(of: "^assets/images/[a-zA-Z0-9_-]+\\.(png|jpg|jpeg|webp)$", options: .regularExpression) != nil
+          else { throw CatalogError("native_image_path_invalid") }
+        }
+        #if canImport(scene_program_native)
+        guard cp_abi_version() == 1, let compiled = programID.withCString({ cp_program_hash($0) }),
+          String(cString: compiled) == hash else { throw CatalogError("native_program_build_mismatch: \(programID)") }
+        #else
+        throw CatalogError("native_program_runtime_not_linked")
+        #endif
+        result[programID] = Program(id: id, role: role, reactivity: reactivity,
+          framesPerSecond: Int(fps), seed: UInt32(seed), colors: rgba, controls: parsedControls,
+          shader: nil, nativeBuild: build, images: images)
+        continue
+      }
       let metalSource = shaderHeader + "\n" + source + "\n" + shaderFooter
       func hash(_ value: String) -> String {
         SHA256.hash(data: Data(value.utf8)).map { String(format: "%02x", $0) }.joined()
@@ -119,7 +155,7 @@ enum SceneCreatorCatalog {
         sourceSHA256: hash(source), metalSHA256: hash(metalSource),
         entryPoint: "creatorFragment", floatCount: 32, uniforms: [], metalSource: metalSource)
       result[programID] = Program(id: id, role: role, reactivity: reactivity,
-        framesPerSecond: 30, seed: UInt32(seed), colors: rgba, controls: parsedControls, shader: shader)
+        framesPerSecond: Int(fps), seed: UInt32(seed), colors: rgba, controls: parsedControls, shader: shader)
     }
     return result
   }

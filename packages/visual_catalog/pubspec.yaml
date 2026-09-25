@@ -17,5 +17,7 @@ flutter:
     - assets/creator_catalog.json
     - assets/catalog_metadata.json
     - assets/thumbnails/
+    - assets/images/
+    - assets/native/
   shaders:
     - shaders/creator_programs.frag

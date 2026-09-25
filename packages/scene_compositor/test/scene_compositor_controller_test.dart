@@ -63,6 +63,15 @@ void main() {
       );
       expect(notifications, 1);
       expect(calls.any((call) => call.method == 'updateSignalFrame'), isTrue);
+      await controller.setControls(const CreatorControls(speed: .3, intensity: .8));
+      await controller.setReactive(false);
+      expect(calls.where((call) => call.method == 'attach'), hasLength(1));
+      expect(controller.textureId, 10);
+      final update = calls.lastWhere((call) => call.method == 'updateDocument').arguments as Map;
+      final updatedLayer = (update['sceneDocument']['layers'] as List).single as Map;
+      final updatedNode = (updatedLayer['proceduralParameters']['document']['layers'] as List).single['node'] as Map;
+      expect(updatedNode['parameters']['options']['speed'], .3);
+      expect(updatedNode['parameters']['audioReactive'], false);
       await controller.reset(qaSessionSeed: 0xffffffff);
       expect(controller.textureId, 11);
       expect(notifications, 2);
@@ -72,6 +81,7 @@ void main() {
       final inner = outer['proceduralParameters']['document'] as Map;
       final node = (inner['layers'] as List).single['node'] as Map;
       expect(node['parameters']['seed'], 0xffffffff);
+      expect(node['parameters']['options']['speed'], .3);
       await controller.close();
       expect(controller.textureId, isNull);
       expect(controller.preview, isNull);

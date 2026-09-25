@@ -5,6 +5,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:scene_compositor/scene_compositor.dart';
 
 void main() {
+  test('changing controls preserves time and deduplicated events', () {
+    final state = _state();
+    state.consume(_frame(serial: 11));
+    _uniforms(state);
+    final elapsed = state.elapsed;
+    state.setControls(const CreatorControls(speed: .25));
+    state.consume(_frame(serial: 11));
+    final values = _uniforms(state);
+    expect(values[14], .25);
+    expect(values[10], 0);
+    expect(state.elapsed, greaterThanOrEqualTo(elapsed));
+    expect(() => state.setControls(const CreatorControls(detail: 0)), throwsArgumentError);
+  });
   test(
     'portable uniforms preserve exact uint32 seed, color and contract positions',
     () {

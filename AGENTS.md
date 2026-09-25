@@ -9,6 +9,7 @@ No añadas dependencias de `minibase`, `base`, `skeleton`, `metadata`,
 - `studio/`: aplicación Flutter y herramientas de generación/exportación.
 - `packages/visual_catalog/`: visuales y metadata del estudio; fuente de candidatos.
 - `packages/scene_compositor/`: SDK gráfico; no posee sensores ni servicios de app.
+- `packages/scene_program_native/`: SDK C++17 y ABI C, compartidos entre plataformas.
 - `packages/scene_compositor_host/`: plugin iOS exclusivo del estudio; registra el SDK.
 - `packages/visual_contract/`: codec/replay Dart puro; preserva el protocolo.
 - `templates/visual_template.dart`: código completo para copiar a una IA.
@@ -30,9 +31,10 @@ autorización para esa acción.
 ## Autoría
 
 Para un visual normal, modifica su par de archivos en
-`packages/visual_catalog/lib/visuals/`: `nombre.dart` declara `const shaderSource`
+`packages/visual_catalog/lib/visuals/`: `nombre.dart` declara `const nativeSource` y opcionalmente `const shaderSources`
 y `nombre_metadata.dart` declara `const metadata = CreatorVisualMetadata(...)`.
-El código contiene `paintVisual`; el ID único y toda la configuración viven en
+El programa C++ implementa `Visual : Scene` con reset/update/render. Los visuales
+anteriores con `shaderSource` y `paintVisual` siguen admitidos. El ID único y toda la configuración viven en
 metadata. El generador une pares por nombre y rechaza compañeros ausentes. No agregues registros manuales,
 widgets, sensores, timers o renderers independientes al archivo creativo.
 
@@ -58,8 +60,12 @@ nativos lo hacen antes de empaquetar Flutter; mantén ese orden.
 
 ## Contratos que deben conservarse
 
-- Usa el mismo archivo de shader en ambas plataformas; respeta el subconjunto
-  portable documentado en la plantilla.
+- Usa el mismo programa C++ y los mismos materiales GLSL en ambas plataformas.
+  Los materiales se compilan con impellerc real; no aplicarles las restricciones
+  del traductor de los visuales antiguos. No agregar límites artificiales de bucles.
+- La referencia de la plantilla se genera del SDK: `dart studio/tool/generate_template.dart`.
+  Edita el bloque AUTHOR API de `creator_scene.hpp` o el ejemplo
+  `templates/visual_template_body.cpp` y regenera; CI comprueba que no diverjan.
 - iOS utiliza SceneSurface V1. Solo Studio depende del plugin
   `scene_compositor_host`: Flutter instala sus pods y lo registra una vez con
   `GeneratedPluginRegistrant`. El Podfile resuelve el pod `scene_compositor`
@@ -91,7 +97,7 @@ elige las comprobaciones afectadas:
 ```sh
 # Desde studio/
 dart run tool/compile_visuals.dart
-flutter test --no-pub
+flutter test --no-pub test/creator_studio_test.dart test/visual_registry_generator_test.dart test/android_shader_runtime_test.dart test/creator_thumbnail_test.dart
 
 # Desde packages/scene_compositor/
 dart run test/creator_visual_definition_test.dart
@@ -110,3 +116,8 @@ mostrarse como error, sin cambiar silenciosamente a otro renderer.
 Al cambiar exportación o dependencias, exporta a otra carpeta y comprueba que
 todas las rutas locales resuelven dentro del kit. No incluyas SDKs, cachés,
 credenciales, rutas personales, `.git` ni enlaces hacia otro checkout.
+
+Los programas nativos se prueban fuera de la app con timeout y ASan/UBSan mediante
+`python3 packages/scene_program_native/test/check_native.py --generated studio/build/creator_native`.
+No es un sandbox. `native_scene_pixels_test.dart` requiere una biblioteca de prueba
+y CREATOR_TEST_LIBRARY/CREATOR_PIXEL_OUTPUT; ver `.github/workflows/check.yml`.

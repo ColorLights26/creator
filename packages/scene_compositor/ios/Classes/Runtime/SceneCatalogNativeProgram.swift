@@ -92,6 +92,10 @@ enum SceneCatalogControlUpdatePlan {
     nextHeader.removeValue(forKey: "layers")
     previousHeader.removeValue(forKey: "filter")
     nextHeader.removeValue(forKey: "filter")
+    if previousLayers.contains(where: { isStatefulCreator($0["proceduralParameters"] as? [String: Any] ?? [:]) }) {
+      previousHeader.removeValue(forKey: "isAudioReactive")
+      nextHeader.removeValue(forKey: "isAudioReactive")
+    }
     guard equal(previousHeader, nextHeader) else { return nil }
     var changes = [(Int, [String: Any])]()
     for index in previousLayers.indices {
@@ -112,6 +116,10 @@ enum SceneCatalogControlUpdatePlan {
           identity == controlIdentity(parameters) else { return nil }
       }
       var previousStructure = previous, proposedStructure = proposed
+      if isStatefulCreator(previousParameters) {
+        previousStructure.removeValue(forKey: "audioReactive")
+        proposedStructure.removeValue(forKey: "audioReactive")
+      }
       previousStructure.removeValue(forKey: "proceduralParameters")
       proposedStructure.removeValue(forKey: "proceduralParameters")
       guard equal(previousStructure, proposedStructure) else { return nil }
@@ -120,12 +128,26 @@ enum SceneCatalogControlUpdatePlan {
     return changes
   }
 
+  static func isStatefulCreator(_ input: [String: Any]) -> Bool {
+    guard let document = input["document"] as? [String: Any],
+      let layers = document["layers"] as? [[String: Any]], layers.count == 1,
+      let node = layers[0]["node"] as? [String: Any],
+      let parameters = node["parameters"] as? [String: Any],
+      let program = parameters["programId"] as? String else { return false }
+    return SceneCreatorCatalog.program(program)?.isNative == true
+  }
+
   static func controlIdentity(_ input: [String: Any]) -> Data? {
     var input = input
     guard var document = input["document"] as? [String: Any],
       var layers = document["layers"] as? [[String: Any]], layers.count == 1,
       var node = layers[0]["node"] as? [String: Any],
       var parameters = node["parameters"] as? [String: Any] else { return nil }
+    if isStatefulCreator(input) {
+      input.removeValue(forKey: "logicalWidth"); input.removeValue(forKey: "logicalHeight")
+      parameters.removeValue(forKey: "audioReactive")
+      node.removeValue(forKey: "signalBindings")
+    }
     parameters.removeValue(forKey: "mode")
     parameters.removeValue(forKey: "options")
     node["parameters"] = parameters
@@ -227,9 +249,16 @@ struct SceneCatalogNativeDescriptor {
       seed = UInt32(value)
     } else { seed = nil }
     if let creator = SceneCreatorCatalog.program(program) {
-      guard creator.allows(reactive: reactive),
-        SceneCreatorShaderState(program: program, options: options, mode: mode, reactive: reactive, seed: seed) != nil
-      else { return nil }
+      guard creator.allows(reactive: reactive) else { return nil }
+      if creator.isNative {
+        #if canImport(scene_program_native)
+        guard SceneCreatorNativeScene.controls(program: creator, options: options, mode: mode, reactive: reactive) != nil else { return nil }
+        #else
+        return nil
+        #endif
+      } else {
+        guard SceneCreatorShaderState(program: program, options: options, mode: mode, reactive: reactive, seed: seed) != nil else { return nil }
+      }
     } else if program == "magic_clouds" {
       guard options.isEmpty, !reactive else { return nil }
     } else if program == "neon_club" {
@@ -303,6 +332,9 @@ struct SceneCatalogNativeDescriptor {
 @available(iOS 15.0, *)
 final class SceneCatalogNativeProgram {
   private enum Source {
+    #if canImport(scene_program_native)
+    case authored(SceneCreatorNativeScene)
+    #endif
     case shader(SceneCatalogShaderState, SceneCatalogShaderRenderer)
     case clouds(SceneCatalogCloudRenderer)
     case vector(SceneCatalogNeonClubState, SceneCatalogNeonClubRenderer)
@@ -339,6 +371,14 @@ final class SceneCatalogNativeProgram {
       guard let controls = SceneCatalogBlueSkyControls(options: descriptor.options, mode: descriptor.mode),
         let renderer = try? SceneCatalogBlueSkyRenderer(device: device) else { return nil }
       source = .sky(controls, renderer)
+    } else if let program = SceneCreatorCatalog.program(descriptor.program), program.isNative {
+      #if canImport(scene_program_native)
+      do { source = .authored(try SceneCreatorNativeScene(program: program, options: descriptor.options,
+        mode: descriptor.mode, reactive: descriptor.audioReactive, seed: descriptor.seed, device: device)) }
+      catch { SceneCreatorCatalog.preparationFailed(program: descriptor.program, error: error); return nil }
+      #else
+      return nil
+      #endif
     } else {
       let state: SceneCatalogShaderState?
       if let creator = SceneCreatorShaderState(program: descriptor.program, options: descriptor.options,
@@ -356,19 +396,51 @@ final class SceneCatalogNativeProgram {
       }
       source = .shader(state, renderer)
     }
-    outputAllocator = SceneSurfaceNativeOutputAllocator(device: device)
+    outputAllocator = SceneSurfaceNativeOutputAllocator(device: device,
+      shaderWrite: SceneCreatorCatalog.program(descriptor.program)?.isNative == true)
   }
 
-  var preferredFramesPerSecond: Int { descriptor.framesPerSecond }
+  var preferredFramesPerSecond: Int {
+    guard SceneCreatorCatalog.program(descriptor.program)?.isNative == true else { return descriptor.framesPerSecond }
+    let process = ProcessInfo.processInfo
+    let cap = process.thermalState == .critical ? 15 : process.thermalState == .serious ? 24 : process.isLowPowerModeEnabled ? 30 : 60
+    return min(descriptor.framesPerSecond, cap)
+  }
+  var creatorMetrics: [String: Any]? {
+    #if canImport(scene_program_native)
+    if case .authored(let scene) = source {
+      return scene.metrics.merging(["framesPerSecond": preferredFramesPerSecond,
+        "thermalState": ProcessInfo.processInfo.thermalState.rawValue,
+        "lowPowerMode": ProcessInfo.processInfo.isLowPowerModeEnabled]) { _, current in current }
+    }
+    #endif
+    return nil
+  }
+  func reportFailure(_ error: Error) { SceneCreatorCatalog.preparationFailed(program: descriptor.program, error: error) }
   var needsContinuousRendering: Bool { descriptor.program != "blue_sky" }
 
   func prepareControlUpdate(parameters: [String: Any]) -> SceneCatalogControlUpdate? {
     guard let next = SceneCatalogNativeDescriptor.parse(parameters),
       next.controlIdentity == descriptor.controlIdentity,
-      next.program == descriptor.program, next.logicalSize == descriptor.logicalSize,
+      next.program == descriptor.program,
       next.framesPerSecond == descriptor.framesPerSecond else { return nil }
+    #if canImport(scene_program_native)
+    if case .authored(let scene) = source {
+      guard let controls = SceneCreatorNativeScene.controls(program: scene.definition, options: next.options, mode: next.mode, reactive: next.audioReactive) else { return nil }
+      let previous = descriptor, previousControls = scene.currentControls, previousReactive = scene.currentReactive
+      return SceneCatalogControlUpdate(apply: { [weak self] in
+        scene.changeControls(controls, reactive: next.audioReactive); self?.descriptor = next
+      }, rollback: { [weak self] in
+        scene.changeControls(previousControls, reactive: previousReactive); self?.descriptor = previous
+      })
+    }
+    #endif
+    guard next.logicalSize == descriptor.logicalSize else { return nil }
     let replacement: Source
     switch source {
+    #if canImport(scene_program_native)
+    case .authored: return nil
+    #endif
     case .shader(let current, let renderer):
       let state: SceneCatalogShaderState?
       if let creator = SceneCreatorShaderState(program: next.program, options: next.options,
@@ -408,6 +480,9 @@ final class SceneCatalogNativeProgram {
       })
   }
   func consume(_ frame: SceneRenderSignalFrameV2) -> Bool {
+    #if canImport(scene_program_native)
+    if case .authored(let scene) = source { return scene.consume(frame) }
+    #endif
     if case .shader(let state, _) = source { return state.consume(frame) }
     if case .vector(let state, _) = source { return state.consume(frame) }
     if case .aurora(let state, _) = source { return state.consume(frame) }
@@ -416,6 +491,9 @@ final class SceneCatalogNativeProgram {
   }
   func setPlaying(_ playing: Bool, hostTime: Double) {
     switch source {
+    #if canImport(scene_program_native)
+    case .authored(let scene): scene.setPlaying(playing, hostTime: hostTime)
+    #endif
     case .shader(let state, _): state.setPlaying(playing, hostTime: hostTime)
     case .vector(let state, _): state.setPlaying(playing, hostTime: hostTime)
     case .aurora(let state, _): state.setPlaying(playing, hostTime: hostTime)
@@ -431,6 +509,12 @@ final class SceneCatalogNativeProgram {
   func render(target: CGRect, hostTime: Double, reducedMotion: Bool) throws -> CIImage {
     let texture: MTLTexture
     switch source {
+    #if canImport(scene_program_native)
+    case .authored(let scene):
+      let viewport = CGSize(width: descriptor.logicalSize.height * target.width / target.height, height: descriptor.logicalSize.height)
+      texture = try scene.render(size: viewport, hostTime: hostTime, reducedMotion: reducedMotion,
+        width: Int(target.width), height: Int(target.height), outputAllocator: outputAllocator)
+    #endif
     case .shader(let state, let renderer):
       let values = state.uniforms(size: descriptor.logicalSize, hostTime: hostTime,
         reducedMotion: reducedMotion)

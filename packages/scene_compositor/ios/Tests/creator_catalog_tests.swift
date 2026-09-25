@@ -36,7 +36,7 @@ enum CreatorCatalogTests {
     musicEntry["reactivity"] = "music"
     let encoded = try data([entry, inert, ambientEntry, musicEntry])
     let parsed = try SceneCreatorCatalog.decode(encoded)
-    precondition(parsed.count == 4 && parsed["creator_test"]?.shader.floatCount == 32)
+    precondition(parsed.count == 4 && parsed["creator_test"]?.shader?.floatCount == 32)
     do { _ = try SceneCreatorCatalog.decode(data([entry, entry])); preconditionFailure("Duplicate accepted") }
     catch {}
     var invalid = entry

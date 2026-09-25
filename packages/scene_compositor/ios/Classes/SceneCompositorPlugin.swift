@@ -7,6 +7,7 @@ import UIKit
 public final class SceneCompositorPlugin: NSObject, FlutterPlugin {
   private let renderEngine: MusicVibeRenderEngine
   private let sceneEngine: SceneSurfaceRenderEngine
+  private let pip: PictureInPictureHandler
 
   private init(registrar: FlutterPluginRegistrar) {
     let renderer = MusicVibeRenderEngine(textureRegistry: registrar.textures())
@@ -16,8 +17,13 @@ public final class SceneCompositorPlugin: NSObject, FlutterPlugin {
       renderEngine: renderer,
       windowProvider: { [weak registrar] in registrar?.viewController?.view.window }
     )
+    pip = PictureInPictureHandler(
+      windowProvider: { [weak registrar] in registrar?.viewController?.view.window },
+      renderEngine: renderer, v2ImageRuntime: sceneEngine.pictureInPictureV2Runtime,
+      sceneSurfaceEngine: sceneEngine)
     super.init()
     sceneEngine.register(with: registrar.messenger())
+    pip.register(with: registrar.messenger())
   }
 
   public static func register(with registrar: FlutterPluginRegistrar) {

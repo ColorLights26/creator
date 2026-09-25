@@ -22,6 +22,7 @@ Future<void> main() async {
   for (final name in [
     'scene_compositor',
     'scene_compositor_host',
+    'scene_program_native',
     'visual_contract',
     'visual_catalog',
   ]) {
@@ -34,7 +35,7 @@ Future<void> main() async {
     Directory('${audiovisual.path}/templates'),
     Directory('${export.path}/templates'),
   );
-  for (final name in ['README.md', 'MAINTAINER.md', 'AGENTS.md', '.gitignore']) {
+  for (final name in ['README.md', 'MAINTAINER.md', 'VERIFICATION.md', 'AGENTS.md', '.gitignore']) {
     final file = File('${audiovisual.path}/$name');
     if (file.existsSync()) file.copySync('${export.path}/$name');
   }
@@ -67,6 +68,7 @@ const _excludedDirectories = {
   'ephemeral',
   '.idea',
   '.gradle',
+  '.cxx',
   '.kotlin',
   'xcuserdata',
   '.swiftpm',

@@ -6,12 +6,14 @@ const metadata = CreatorVisualMetadata(
   id: 'my_visual',
   name: 'Mi visual',
   publication: CreatorPublication.draft,
-  description: 'Cintas de aurora suaves que se expanden con la música.',
+  description: 'Una galaxia de estrellas que se mueve y responde a la música.',
   purposes: ['relax', 'visualizer'],
   moods: ['calm', 'dreamy'],
-  concepts: ['aurora', 'light', 'ribbons'],
+  concepts: ['galaxy', 'stars', 'space'],
   credits: CreatorCredits(author: '', license: '', source: ''),
   thumbnail: CreatorThumbnailSpec(timeSeconds: 2.5),
+  // Recursos opcionales. Guarda cada imagen en packages/visual_catalog/assets/images/.
+  // images: {'planet': 'assets/images/planet.png'},
   role: CreatorRole.background,
   // optional: interruptor; music: reacción activada; none: sin reacción.
   // Apagar la reacción pone las señales en cero, sin detener el tiempo del dibujo.

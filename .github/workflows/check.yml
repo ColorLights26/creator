@@ -55,7 +55,6 @@ jobs:
         run: |
           generated=(
             packages/visual_catalog/lib/src/registry.g.dart
-            packages/visual_catalog/assets/creator_catalog.json
             packages/visual_catalog/assets/catalog_metadata.json
             packages/visual_catalog/shaders/creator_programs.frag
             studio/assets/recordings.json
@@ -66,9 +65,31 @@ jobs:
             printf 'Generated files must be committed:\n%s\n' "$untracked"
             exit 1
           fi
+          python3 - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          path = 'packages/visual_catalog/assets/creator_catalog.json'
+          def authoring(data):
+              catalog = json.loads(data)
+              for visual in catalog['visuals']:
+                  visual.pop('nativeBuild', None) # Platform compiler binaries have distinct hashes.
+              return catalog
+          assert authoring(Path(path).read_text()) == authoring(subprocess.check_output(['git', 'show', 'HEAD:'+path])), 'Catalog source or metadata is stale'
+          PY
+      - name: Native ABI, sanitizers and copyable template
+        run: |
+          cp studio/test/fixtures/native_composition/*.dart packages/visual_catalog/lib/visuals/
+          cp studio/test/fixtures/native_composition/*.png packages/visual_catalog/assets/images/
+          (cd studio && dart run tool/compile_creator.dart)
+          dart studio/tool/generate_template.dart --check
+          python3 packages/scene_program_native/test/check_native.py --generated studio/build/creator_native
+          clang++ -std=c++17 -O2 -shared -fPIC packages/scene_program_native/src/creator_scene.cpp packages/scene_program_native/src/creator_registry.cpp -Istudio/build/creator_native -o /tmp/libcreator_test.so
+      - name: Native scenes through Flutter Canvas
+        working-directory: studio
+        run: flutter test --no-pub --dart-define=CREATOR_TEST_LIBRARY=/tmp/libcreator_test.so --dart-define=CREATOR_PIXEL_OUTPUT=/tmp/creator-pixels test/native_scene_pixels_test.dart
       - name: Studio tests, including the compiled portable shader
         working-directory: studio
-        run: flutter test --no-pub
+        run: flutter test --no-pub test/creator_studio_test.dart test/visual_registry_generator_test.dart test/android_shader_runtime_test.dart test/creator_thumbnail_test.dart
       - name: Resolve compositor test dependencies
         working-directory: packages/scene_compositor
         run: flutter pub get
@@ -91,6 +112,19 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+      - name: Prepare native programs
+        working-directory: studio
+        run: |
+          cp test/fixtures/native_composition/*.dart ../packages/visual_catalog/lib/visuals/
+          cp test/fixtures/native_composition/*.png ../packages/visual_catalog/assets/images/
+          flutter pub get
+          dart run tool/compile_creator.dart
+      - name: Stateful scenes on Metal
+        run: python3 packages/scene_compositor/ios/Tests/check_creator_scenes.py --generated studio/build/creator_native --catalog packages/visual_catalog/assets/creator_catalog.json --output /tmp/creator-metal
       - name: Compile native programs and verify actual output pixels
         run: >-
           ruby packages/scene_compositor/ios/Tests/check_creator_catalog.rb

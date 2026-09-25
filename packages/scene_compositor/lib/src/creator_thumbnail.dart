@@ -2,12 +2,15 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:typed_data';
+import 'dart:isolate';
 import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 import 'package:visual_contract/visual_contract.dart';
 
 import 'creator_shader_frame.dart';
+import 'creator_native_program.dart';
+import 'creator_command_canvas.dart';
 import 'creator_shader_program.dart';
 import 'creator_visual_definition.dart';
 
@@ -141,6 +144,7 @@ class _FrozenPosters {
     if (!time.isFinite || time < 0 || time > 3600) {
       throw ArgumentError('Invalid thumbnail time.');
     }
+    if (visual.isNative) return _renderNative(visual, time);
     final program = await loadCreatorShaderProgram(asset);
     final shader = program.fragmentShader();
     ui.Picture? picture;
@@ -184,4 +188,46 @@ class _FrozenPosters {
       shader.dispose();
     }
   }
+  static Future<Uint8List> _renderNative(CreatorVisualDefinition visual, double time) async {
+    // FFI state is created and destroyed inside the worker. Only value commands
+    // cross isolates; the live scene and its native pointers are never touched.
+    final commands = await Isolate.run(() => _replayNative(visual, time));
+    final resources = await CreatorCommandCanvas.prepare(visual);
+    ui.Picture? picture;
+    ui.Image? image;
+    var shaders = <ui.Shader>[];
+    try {
+      final recorder = ui.PictureRecorder();
+      final canvas = ui.Canvas(recorder);
+      if (visual.role == CreatorRole.background) canvas.drawColor(Color(visual.colors.first).withAlpha(255), BlendMode.src);
+      shaders = resources.paint(canvas, commands);
+      picture = recorder.endRecording();
+      image = await picture.toImage(256, 256);
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (data == null) throw StateError('Unable to encode native thumbnail.');
+      return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+    } finally {
+      image?.dispose(); picture?.dispose();
+      for (final shader in shaders) shader.dispose();
+      resources.dispose();
+    }
+  }
+
+  static Float32List _replayNative(CreatorVisualDefinition visual, double time) {
+    final program = CreatorNativeProgram(visual);
+    final replay = SceneSignalReplay(createSyntheticSceneSignalRecording());
+    try {
+      program.configure(reactive: visual.reactivity != CreatorReactivity.none, playing: true, hostTime: 0);
+      final steps = (time * visual.framesPerSecond).ceil();
+      for (var i=0; i<=steps; i++) {
+        final position = (i / visual.framesPerSecond).clamp(0.0, time);
+        final batch = replay.advance(Duration(microseconds: (position * 1000000).round()));
+        if (batch.resetRequired) program.reset();
+        for (final sample in batch.samples) program.consume(sample.frame);
+        program.update(width: 256, height: 256, hostTime: position, reducedMotion: false);
+      }
+      return Float32List.fromList(program.draw());
+    } finally { program.dispose(); }
+  }
+
 }

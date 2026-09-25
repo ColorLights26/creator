@@ -7,6 +7,12 @@ String compilePortableShader(List<CreatorVisualDefinition> visuals) {
   final sources = <String>[];
   for (var i = 0; i < visuals.length; i++) {
     final visual = visuals[i];
+    if (visual.isNative) {
+      sources.add(
+        'vec4 creator_${i}_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }',
+      );
+      continue;
+    }
     var source = visual.shaderSource
         .replaceAll(RegExp(r'/\*[\s\S]*?\*/'), '')
         .replaceAll(RegExp(r'//[^\n]*'), '');

@@ -1,0 +1,16 @@
+name: scene_program_native
+description: Portable compiled scene programs. No sensors, timers or Flutter registration.
+version: 1.0.0
+publish_to: none
+environment:
+  sdk: '>=3.7.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+flutter:
+  plugin:
+    platforms:
+      android:
+        ffiPlugin: true
+      ios:
+        ffiPlugin: true

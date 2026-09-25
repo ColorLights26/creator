@@ -45,9 +45,13 @@ class StudioView extends StatelessWidget {
     required this.onReactiveChanged,
     required this.onReload,
     required this.onViewportChanged,
+    this.onPictureInPicture,
+    this.pictureInPictureActive = false,
     super.key,
   });
 
+  final VoidCallback? onPictureInPicture;
+  final bool pictureInPictureActive;
   final List<StudioVisualItem> visuals;
   final List<StudioSignalSource> sources;
   final String? selectedVisualId;
@@ -77,6 +81,12 @@ class StudioView extends StatelessWidget {
         elevation: 0,
         title: const Text('Visual Studio'),
         actions: [
+          if (onPictureInPicture != null)
+            IconButton(
+              tooltip: pictureInPictureActive ? 'Volver de PiP' : 'Probar PiP',
+              onPressed: loading ? null : onPictureInPicture,
+              icon: const Icon(Icons.picture_in_picture_alt),
+            ),
           IconButton(
             tooltip: 'Recargar visuales',
             onPressed: loading ? null : onReload,

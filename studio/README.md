@@ -46,7 +46,8 @@ al estudio. Hot Reload y Hot Restart no bastan para estos cambios.
 
 ## Lo que ves al probar
 
-Puedes empezar con Aurora Ribbons, Quiet Orbits y Prismatic Halo.
+Puedes empezar con Liquid Chrome, Spiral Galaxy, Midnight Highway y Golden
+Particles. Los ejemplos anteriores siguen disponibles.
 El visual ocupa toda la pantalla. Los controles están superpuestos en un panel
 desplazable; en pantallas amplias, el panel queda a la derecha.
 La Demo sintética recorre 32 segundos con partes suaves, subidas, una pausa y

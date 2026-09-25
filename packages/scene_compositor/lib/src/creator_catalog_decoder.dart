@@ -39,6 +39,9 @@ List<CreatorVisualDefinition> decodeCreatorCatalog({
   final visuals = <CreatorVisualDefinition>[];
   for (final value in programs) {
     final item = _object(value, 'runtime visual');
+    if (item['kind'] != null && item['kind'] != 'scene') {
+      throw const FormatException('Tipo de programa desconocido.');
+    }
     final id = _string(item['id'], 'runtime.id');
     final info = metadataById.remove(id);
     if (info == null) throw FormatException('Falta metadata de $id.');
@@ -54,6 +57,24 @@ List<CreatorVisualDefinition> decodeCreatorCatalog({
       id: id,
       name: _string(item['name'], '$id.name'),
       shaderSource: _string(item['shaderSource'], '$id.shaderSource'),
+      nativeSource:
+          item['kind'] == 'scene'
+              ? _string(item['nativeSource'], '$id.nativeSource')
+              : '',
+      shaderSources:
+          item['kind'] == 'scene'
+              ? Map<String, String>.from(
+                _object(item['shaderSources'], '$id.shaderSources'),
+              )
+              : const {},
+      images:
+          item['kind'] == 'scene'
+              ? Map<String, String>.from(_object(item['images'], '$id.images'))
+              : const {},
+      nativeBuild:
+          item['kind'] == 'scene'
+              ? _object(item['nativeBuild'], '$id.nativeBuild')
+              : const {},
       role: _enum(CreatorRole.values, item['role'], '$id.role'),
       reactivity: _enum(
         CreatorReactivity.values,

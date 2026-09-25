@@ -4,6 +4,20 @@ import 'package:scene_compositor/authoring.dart';
 /// Bootstrap discovery before importing any generated library. Dart cannot
 /// discover new source files at runtime; this runs before the application build.
 void main(List<String> arguments) {
+  final root = File.fromUri(Platform.script).parent.parent;
+  final file = File('${root.path}/build/creator_prepare.lock');
+  file.parent.createSync(recursive: true);
+  final lock = file.openSync(mode: FileMode.append);
+  try {
+    lock.lockSync(FileLock.blockingExclusive);
+    _prepare(arguments);
+  } finally {
+    lock.unlockSync();
+    lock.closeSync();
+  }
+}
+
+void _prepare(List<String> arguments) {
   try {
     final studio = File.fromUri(Platform.script).parent.parent;
     final catalog = Directory('${studio.parent.path}/packages/visual_catalog');
@@ -94,12 +108,23 @@ String generateCreatorRegistry(Directory visualsDirectory) {
       }
     }
   }
+  final expressions = <String>[];
+  for (var i = 0; i < names.length; i++) {
+    final source = parseCreatorVisualSource(
+      File('${visualsDirectory.path}/${names[i]}').readAsStringSync(),
+    );
+    expressions.add(
+      source.native
+          ? "  metadata_$i.metadata.withNative(visual_$i.nativeSource, shaderSources: ${source.materials.isEmpty ? 'const {}' : 'visual_$i.shaderSources'}, sourceFile: '${names[i]}', sourceLine: ${source.line}),"
+          : '  metadata_$i.metadata.withShader(visual_$i.shaderSource),',
+    );
+  }
   return '''// Generated from lib/visuals/*.dart. Do not edit.
 import 'package:scene_compositor/authoring.dart';
 ${[for (var i = 0; i < names.length; i++) "import '../visuals/${names[i]}' as visual_$i;\nimport '../visuals/${names[i].replaceFirst('.dart', '_metadata.dart')}' as metadata_$i;"].join('\n')}
 
 final creatorSourceVisuals = <CreatorVisualDefinition>[
-${[for (var i = 0; i < names.length; i++) '  metadata_$i.metadata.withShader(visual_$i.shaderSource),'].join('\n')}
+${expressions.join('\n')}
 ];
 ''';
 }
