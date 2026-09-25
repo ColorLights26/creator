@@ -56,6 +56,12 @@ junto a esa versión del visual; el límite de admisión es 4 MB.
 
 ## Datos musicales y rendimiento
 
+`CreatorReactivity.none` impide activar la reacción; `.music` impide desactivarla;
+`.optional` ofrece el interruptor. El estado de render aplica estas reglas en
+ambas plataformas. Los valores musicales quedan en cero al desactivar la
+reacción o faltar autorización musical; el tiempo de ambiente es independiente.
+Esto controla la entrada, pero el shader debe usarla para producir una reacción.
+
 La demo incluida está identificada como **sintética**. Usa el contrato binario
 real de 520 bytes, pero no es una grabación del sensor. No se entrega una captura
 real ni audio. Para probar una captura existente, coloca `signals.bin` y
@@ -90,6 +96,17 @@ dart run tool/creator_review.dart validate olas
 La validación comprueba el par seleccionado, la metadata, el shader combinado
 con los aprobados y su compilación Metal/GLES/GLES3/Vulkan; también renderiza
 el candidato con Metal en la Mac. Requiere macOS, Xcode y el Dart de Flutter.
+También compara píxeles manteniendo fijo el tiempo: tres instantes y dos
+intensidades sintéticas del contrato real. Comprueba música, silencio, señal no
+disponible y apagado opcional. Un visual `.none` debe conservar la misma imagen;
+uno `.music` u `.optional` debe demostrar algún cambio con música y conservar
+el resultado ambiental cuando la señal no está autorizada. Si no demuestra
+reacción, bloquea la aprobación con un mensaje para corregir el dibujo o
+declararlo ambiental. El recibo exige `reactivityProbed`; los recibos antiguos
+requieren repetir `validate`. Las versiones ya aprobadas no se modifican.
+Estas muestras no certifican todas las canciones, controles o condiciones,
+ni la calidad perceptual de la reacción.
+
 La aprobación se hace mediante comandos; no hay un botón «Aprobar» en Studio.
 Devuelve una revisión exacta y el comando `approve … --revision … --reviewed`.
 El responsable lo ejecuta **después de revisar aspecto, transparencia, música
@@ -163,5 +180,6 @@ ruby packages/scene_compositor/ios/Tests/check_creator_catalog.rb \
   packages/visual_catalog/assets/creator_catalog.json
 ```
 
-Esa prueba compila los shaders reales y examina sus píxeles. No equivale a una
+Esa prueba compila los shaders reales, examina sus píxeles y ejecuta las mismas
+comparaciones de reacción. No equivale a una
 prueba térmica ni garantiza igualdad de píxeles entre iOS y Android.

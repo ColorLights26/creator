@@ -93,6 +93,47 @@ void main() {
   });
 
   test(
+    'metadata modes are enforced even when a caller asks for the opposite',
+    () {
+      for (final mode in CreatorReactivity.values) {
+        for (final enabled in [false, true]) {
+          final allowed =
+              mode == CreatorReactivity.optional ||
+              (mode == CreatorReactivity.music) == enabled;
+          if (!allowed) {
+            expect(
+              () => _state(mode: mode, reactive: enabled),
+              throwsArgumentError,
+            );
+            continue;
+          }
+          final state = _state(mode: mode, reactive: enabled)
+            ..consume(_frame());
+          final values = _uniforms(state);
+          if (enabled) {
+            expect(values[5], greaterThan(0));
+          } else {
+            expect(values.sublist(5, 13), everyElement(0));
+            expect(
+              _uniforms(state, time: .1)[2],
+              greaterThan(0),
+              reason: 'Turning music off preserves ambient animation.',
+            );
+          }
+        }
+      }
+    },
+  );
+
+  test('loss of music authority clears a pending hit before presentation', () {
+    final state = _state()..consume(_frame(strength: 1));
+    state.consume(_frame(serial: 4, music: false));
+    expect(_uniforms(state).sublist(5, 13), everyElement(0));
+    state.consume(_frame(serial: 5, strength: .3));
+    expect(_uniforms(state)[10], closeTo(.3, 1e-6));
+  });
+
+  test(
     'raster budget caps actual target edge while preserving aspect ratio',
     () {
       final highDpi = AndroidCreatorSession.rasterSize(const Size(390, 844), 3);
@@ -114,25 +155,29 @@ void main() {
   );
 }
 
-CreatorShaderFrame _state({int seed = 42, bool reactive = true}) =>
-    CreatorShaderFrame(
-      visual: const CreatorVisualDefinition(
-        id: 'test_visual',
-        name: 'Test visual',
-        shaderSource:
-            'vec4 paintVisual(vec2 uv, CreatorFrame f) { return f.color0; }',
-        controls: CreatorControls(
-          intensity: .4,
-          speed: .7,
-          detail: .8,
-          glow: .9,
-        ),
-        colors: [0x80112233, 0xff000000, 0xffffffff, 0x00ffffff],
-      ),
-      visualIndex: 7,
-      reactive: reactive,
-      seed: seed,
-    );
+CreatorShaderFrame _state({
+  int seed = 42,
+  bool reactive = true,
+  CreatorReactivity mode = CreatorReactivity.optional,
+}) => CreatorShaderFrame(
+  visual: CreatorVisualDefinition(
+    id: 'test_visual',
+    name: 'Test visual',
+    reactivity: mode,
+    shaderSource:
+        'vec4 paintVisual(vec2 uv, CreatorFrame f) { return f.color0; }',
+    controls: const CreatorControls(
+      intensity: .4,
+      speed: .7,
+      detail: .8,
+      glow: .9,
+    ),
+    colors: [0x80112233, 0xff000000, 0xffffffff, 0x00ffffff],
+  ),
+  visualIndex: 7,
+  reactive: reactive,
+  seed: seed,
+);
 
 List<double> _uniforms(
   CreatorShaderFrame state, {

@@ -120,11 +120,17 @@ Elige cómo usa la música:
 
 | Lo que quieres | Línea de la metadata |
 | --- | --- |
-| Activar o desactivar la reacción en el estudio | `reactivity: CreatorReactivity.optional,` |
-| Que use las señales musicales cuando estén disponibles | `reactivity: CreatorReactivity.music,` |
+| Poder encender o apagar la reacción musical | `reactivity: CreatorReactivity.optional,` |
+| Mantener la reacción activada cuando haya señal musical | `reactivity: CreatorReactivity.music,` |
 | Que se mueva por sí solo, sin reaccionar a la música | `reactivity: CreatorReactivity.none,` |
 
-Para empezar puedes conservar `.optional`. La IA debe haber usado las señales
+**Para empezar conserva `.optional`.** En el estudio puedes probar ambos estados
+con el interruptor **Reaccionar a la señal**. Al apagarlo, el motor entrega los
+valores musicales en cero; la animación propia del dibujo puede continuar.
+También entrega ceros si no hay señal musical válida. Con `.none` la reacción
+queda siempre apagada; con `.music` queda siempre activada cuando hay señal.
+
+La IA debe haber usado las señales
 de la plantilla para que el dibujo reaccione; la metadata por sí sola no crea
 esa animación. **Tanto un fondo como una transparencia pueden ser reactivos.**
 
@@ -174,6 +180,7 @@ existente; para crear Fuego, añade otra pareja. Puedes conservar los ejemplos.
 | Veo la versión anterior | Usa **Stop → Run**, no Hot Reload ni Hot Restart. |
 | Elegí transparente, pero sigue mostrando un fondo negro | Pide a la IA transparencia real en el código del dibujo; revisa que la metadata use `.overlay`. |
 | No reacciona a la música que pongo en mi habitación | El estudio usa señales de demostración y no escucha el micrófono. Prueba la Demo sintética y revisa la opción de reacción. |
+| Me indican que «figura como reactivo pero no cambia» | Si quieres reacción, adjunta el mensaje, la plantilla y tu código a la IA. Si el visual debe ser ambiental, elige `.none` en la metadata. |
 | El código de la IA no compila | Copia el primer error completo, el contenido de tu visual y la plantilla a la IA. Usa el mensaje de abajo. |
 
 ```text
@@ -200,6 +207,10 @@ corto ayuda a mostrar qué resultado esperabas.
 **Tu parte termina al crear, probar y entregar.** El responsable valida y aprueba
 una versión; luego recompila Color Lights para incorporarla. Cambiar `draft` por
 `published` o subir un archivo a GitHub no hace que aparezca en la app principal.
+
+La revisión también compara imágenes del mismo instante con y sin señales de
+prueba: si declaraste un visual musical y no demuestra ningún cambio, bloquea
+su aprobación. Son pruebas concretas; sigue siendo necesario mirar el resultado.
 
 Si algo sale mal en un borrador, no sustituye la versión aprobada que ya tenga
 Color Lights. Comenta cualquier tirón o calentamiento que notes al probar: que

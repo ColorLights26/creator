@@ -25,9 +25,18 @@ enum CreatorCatalogTests {
     func data(_ entries: [[String: Any]]) throws -> Data {
       try JSONSerialization.data(withJSONObject: ["schemaVersion": 1, "visuals": entries])
     }
-    let encoded = try data([entry])
+    var inert = entry
+    inert["id"] = "inert"; inert["programId"] = "creator_inert"
+    inert["shaderSource"] = "vec4 paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.2, 0.4, 0.6, 1.0); }"
+    var ambientEntry = inert
+    ambientEntry["id"] = "ambient"; ambientEntry["programId"] = "creator_ambient"
+    ambientEntry["reactivity"] = "none"
+    var musicEntry = entry
+    musicEntry["id"] = "music"; musicEntry["programId"] = "creator_music"
+    musicEntry["reactivity"] = "music"
+    let encoded = try data([entry, inert, ambientEntry, musicEntry])
     let parsed = try SceneCreatorCatalog.decode(encoded)
-    precondition(parsed.count == 1 && parsed["creator_test"]?.shader.floatCount == 32)
+    precondition(parsed.count == 4 && parsed["creator_test"]?.shader.floatCount == 32)
     do { _ = try SceneCreatorCatalog.decode(data([entry, entry])); preconditionFailure("Duplicate accepted") }
     catch {}
     var invalid = entry
@@ -83,6 +92,16 @@ enum CreatorCatalogTests {
     precondition(abs(Int(pixel[0]) - 204) <= 1 && abs(Int(pixel[1]) - 102) <= 1 && abs(Int(pixel[2]) - 51) <= 1 && pixel[3] == 255,
       "CreatorFrame Metal ABI or output color is incorrect")
     print("PASS creator catalog validation, exact signal mapping, event deduplication, pause, nonreactive state, Metal uniform ABI and output pixels")
+    for id in ["creator_test", "creator_music", "creator_ambient"] {
+      try verifyReactivity(programID: id, program: parsed[id]!, renderer: renderer, device: device)
+    }
+    do {
+      try verifyReactivity(programID: "creator_inert", program: parsed["creator_inert"]!, renderer: renderer, device: device)
+      preconditionFailure("A shader that ignores music was accepted as reactive")
+    } catch let error as SceneCreatorCatalog.CatalogError {
+      precondition(error.code.hasPrefix("reaction_not_demonstrated"), error.code)
+      print("PASS rejects a visual falsely declared reactive")
+    }
   }
 
   static func smokeAuthoredCatalog(path: String) throws {
@@ -123,8 +142,67 @@ enum CreatorCatalogTests {
         }
         print("PASS authored \(programID): \(Int(size.width))x\(Int(size.height)), \(visiblePixels) visible pixels, \(distinctColors.count) distinct BGRA values")
       }
+      try verifyReactivity(programID: programID, program: program, renderer: renderer, device: device)
     }
     print("PASS all \(catalog.count) bundled authored shaders compile and render Metal output")
+  }
+
+  /// Synthetic contract inputs, never advertised as recordings of a sensor.
+  /// Freeze shader time so ambient motion cannot masquerade as music response.
+  static func verifyReactivity(programID: String, program: SceneCreatorCatalog.Program,
+      renderer: SceneCatalogShaderRenderer, device: MTLDevice) throws {
+    try renderer.prepare(program: programID)
+    let size = CGSize(width: 96, height: 128)
+    let reactive = program.reactivity != "none"
+    let idle = SceneRenderSignalEventV2(serial: 0, active: false, timestampMicros: 0, strength: 0, band: .none)
+    func signal(_ strength: Float, available: Bool = true, music: Bool = true) -> SceneRenderSignalFrameV2 {
+      let hit = SceneRenderSignalEventV2(serial: 1, active: true, timestampMicros: 1,
+        strength: strength, band: .low)
+      return SceneRenderSignalFrameV2(sessionId: 1, sequence: 1, audioTimestampMicros: 1,
+        available: available, fresh: true, musicActive: music, tonalAvailable: false,
+        dynamics: [strength, strength, strength, strength, strength, 0],
+        channels: [strength, strength * 0.8, strength * 0.6, strength * 0.9],
+        spectrumSummary: [Float](repeating: 0, count: 7), instantSpectrum: [Float](repeating: 0, count: 31),
+        smoothedSpectrum: [Float](repeating: 0, count: 31), semantics: [Float](repeating: 0, count: 6),
+        rhythm: [90 + 60 * strength, strength, strength, strength], onsets: [0, 0, 0, 0],
+        tonal: [0, 0, 0], impact: hit, accent: idle, beat: idle, flash: idle)
+    }
+    func pixels(time: Float, input: SceneRenderSignalFrameV2?, enabled: Bool) throws -> [UInt8] {
+      guard let state = SceneCreatorShaderState(program: programID, options: [:], mode: nil,
+        reactive: enabled) else { throw SceneCreatorCatalog.CatalogError("reactivity_mode_rejected: \(programID)") }
+      if let input { precondition(state.consume(input)) }
+      var values = state.uniforms(size: size, hostTime: 0, reducedMotion: false)
+      // This is a controlled render probe, not a second playback clock.
+      values[2] = time
+      if !enabled || input?.available != true || input?.musicActive != true {
+        precondition(values[4..<12].allSatisfy { $0 == 0 }, "Music gate leaked signal values")
+      }
+      let texture = try renderer.render(program: programID, uniforms: values,
+        width: Int(size.width), height: Int(size.height))
+      return readPixels(texture: texture, device: device)
+    }
+    var changedWithMusic = false
+    for time: Float in [0, 2.5, 7] {
+      let neutral = try pixels(time: time, input: nil, enabled: reactive)
+      for strength: Float in [0.25, 0.8] {
+        let music = try pixels(time: time, input: signal(strength), enabled: reactive)
+        if reactive { changedWithMusic = changedWithMusic || music != neutral }
+        else { precondition(music == neutral, "Nonreactive visual changed with music") }
+        let silence = try pixels(time: time, input: signal(strength, music: false), enabled: reactive)
+        let unavailable = try pixels(time: time, input: signal(strength, available: false), enabled: reactive)
+        precondition(silence == neutral && unavailable == neutral, "Unauthorized audio affected the visual")
+        if program.reactivity == "optional" {
+          let disabled = try pixels(time: time, input: signal(strength), enabled: false)
+          precondition(disabled == neutral, "Disabling music did not restore ambient behavior")
+        }
+      }
+    }
+    if reactive && !changedWithMusic {
+      throw SceneCreatorCatalog.CatalogError(
+        "reaction_not_demonstrated: \(programID): figura como reactivo pero no cambia en las pruebas musicales. " +
+        "Haz que el dibujo use las señales de la plantilla, o elige reactivity: none si es ambiental.")
+    }
+    print("PASS behavior \(programID): \(program.reactivity), synthetic same-time music/silence/unavailable/off probes")
   }
 
   static func readPixels(texture: MTLTexture, device: MTLDevice) -> [UInt8] {
