@@ -6,10 +6,11 @@ const metadata = CreatorVisualMetadata(
   id: 'aurora_ribbons',
   name: 'Aurora · cintas de luz',
   publication: CreatorPublication.draft,
-  description: 'Cintas de aurora suaves que se expanden con la música.',
-  purposes: ['relax', 'visualizer'],
+  description:
+      'Cortinas de aurora cinematográficas con rayos finos sobre cielo estrellado.',
+  purposes: ['relax', 'visualizer', 'ambient'],
   moods: ['calm', 'dreamy'],
-  concepts: ['aurora', 'light', 'ribbons'],
+  concepts: ['aurora', 'light', 'ribbons', 'night'],
   credits: CreatorCredits(
     author: 'Chic Apps',
     license: 'Proprietary',
@@ -18,6 +19,6 @@ const metadata = CreatorVisualMetadata(
   thumbnail: CreatorThumbnailSpec(timeSeconds: 2.5),
   role: CreatorRole.background,
   reactivity: CreatorReactivity.optional,
-  colors: [0xff030918, 0xff20d7ba, 0xff6562eb, 0xffffb9de],
+  colors: [0xff01030c, 0xff0a5c46, 0xff2ee6a8, 0xff9d7bff],
   controls: CreatorControls(intensity: 1, speed: .6, detail: 1, glow: .8),
 );

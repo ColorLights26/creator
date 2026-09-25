@@ -14,7 +14,7 @@
 //
 // Usa float/int/vec2/vec3/vec4/mat2/mat3/mat4 y funciones matemáticas
 // comunes GLSL (sin uint, bool, structs propios, globals, inout ni pointers).
-// atan admite solo un argumento. No uses funciones de textura/derivadas.
+// atan admite solo un argumento. No usa funciones de textura/derivadas.
 // CreatorFrame (ya lo declara el motor; NO lo vuelvas a declarar):
 //   vec2 size;             // resolución efectiva en píxeles
 //   float time;              // segundos activos; pausa y Reduced Motion nativos
@@ -40,70 +40,80 @@
 //
 
 const shaderSource = r'''
-float hash12(vec2 p) {
-  vec3 p3 = fract(vec3(p.x, p.y, p.x) * 0.1031);
-  p3 += dot(p3, p3.yzx + 33.33);
-  return fract((p3.x + p3.y) * p3.z);
+float hash13(vec2 p) {
+  vec3 q = fract(vec3(p.x, p.y, p.x) * 0.1031);
+  q += dot(q, q.zyx + 31.32);
+  return fract((q.x + q.y) * q.z);
 }
-vec2 hash22(vec2 p) {
-  vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));
-  p3 += dot(p3, p3.yzx + 33.33);
-  return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));
+vec2 hash23(vec2 p) {
+  vec3 q = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));
+  q += dot(q, q.zyx + 31.32);
+  return fract(vec2((q.x + q.y) * q.z, (q.x + q.z) * q.y));
 }
 float vnoise(vec2 p) {
   vec2 i = floor(p);
   vec2 u = fract(p);
-  u = u * u * (3.0 - 2.0 * u);
-  return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),
-             mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);
+  u = u * u * u * (u * (u * 6.0 - 15.0) + 10.0);
+  float a = hash13(i);
+  float b = hash13(i + vec2(1.0, 0.0));
+  float c = hash13(i + vec2(0.0, 1.0));
+  float d = hash13(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
 }
 float fbm4(vec2 p) {
   float v = 0.0;
   float a = 0.5;
   for (int i = 0; i < 4; i++) {
     v += a * vnoise(p);
-    p = p * 2.03 + vec2(11.7, 5.3);
+    p = mat2(0.8, 0.6, -0.6, 0.8) * p * 2.02 + vec2(3.1, 7.7);
     a *= 0.5;
   }
   return v;
+}
+vec3 grade(vec3 c) {
+  c = max(c, vec3(0.0));
+  c = (c * (2.51 * c + 0.03)) / (c * (2.43 * c + 0.59) + 0.14);
+  return clamp(c, 0.0, 1.0);
 }
 vec4 paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = f.size.x / max(f.size.y, 1.0);
   vec2 p = vec2((uv.x - 0.5) * aspect, uv.y);
   float t = f.time * f.speed;
   float seed = mod(f.seedLow + f.seedHigh, 65535.0) * 0.019;
-  float rise = t * (0.9 + 1.0 * f.flow) + seed;
-  float n = fbm4(vec2(p.x * (5.5 * f.detail) + seed, uv.y * 3.2 - rise));
-  n = pow(clamp(n * 1.55 - 0.08, 0.0, 1.0), 1.9);
-  float lift = uv.y / (0.34 + 0.15 * f.bass);
-  float heat = clamp(n * 1.85 - lift * 1.05 + 0.30, 0.0, 1.25);
-  heat *= 0.50 + 0.50 * smoothstep(-0.03, 0.10, uv.y);
-  vec3 fireCol = f.color1.rgb;
-  fireCol = mix(fireCol, f.color2.rgb, clamp(heat * 1.55, 0.0, 1.0));
-  fireCol = mix(fireCol, f.color3.rgb, pow(clamp(heat * 1.5 - 0.85, 0.0, 1.0), 1.6));
-  vec3 col = mix(f.color0.rgb * 0.55, f.color0.rgb * 0.25, smoothstep(0.25, 1.0, uv.y));
+  float px = 1.0 / max(f.size.y, 1.0);
+  vec3 col = mix(f.color0.rgb * 0.50, f.color0.rgb * 0.22, smoothstep(0.25, 1.0, uv.y));
+  float rise = t * (0.85 + 0.95 * f.flow) + seed;
+  float n = fbm4(vec2(p.x * (5.0 * f.detail) + seed, uv.y * 3.0 - rise));
+  n = pow(clamp(n * 1.52 - 0.06, 0.0, 1.0), 1.8);
+  float lift = uv.y / (0.33 + 0.15 * f.bass + 0.02 * f.energy);
+  float heat = clamp(n * 1.90 - lift * 1.06 + 0.30, 0.0, 1.25);
+  heat *= 0.52 + 0.48 * smoothstep(-0.03, 0.10, uv.y);
+  vec3 fireCol = mix(f.color1.rgb, f.color2.rgb, clamp(heat * 1.45, 0.0, 1.0));
+  fireCol = mix(fireCol, f.color3.rgb, pow(clamp(heat * 1.45 - 0.80, 0.0, 1.0), 1.7));
   col += fireCol * heat * (0.85 + 0.40 * f.energy + 0.30 * f.pulse);
-  float bed = exp(-(1.0 - uv.y) * 5.5);
-  float bedNoise = fbm4(vec2(p.x * (5.0 * f.detail) + seed, rise * 1.2));
-  col += mix(f.color1.rgb, f.color2.rgb, bedNoise) * bed * (0.30 + 0.30 * f.bass) * (0.55 + 0.45 * bedNoise);
+  float bed = exp(-(1.0 - uv.y) * 5.0);
+  float pockets = pow(clamp(vnoise(vec2(p.x * (6.5 * f.detail) + seed, t * 0.35)) * 1.45 - 0.30, 0.0, 1.0), 2.2);
+  col += mix(f.color1.rgb, f.color2.rgb, pockets) * bed * (0.34 + 0.42 * f.bass) * (0.35 + 0.85 * pockets);
   for (int i = 0; i < 3; i++) {
     float k = float(i);
-    float cols = 6.0 + k * 5.0;
+    float cols = 7.0 + k * 6.0;
     vec2 gp = vec2(p.x * cols + seed * 7.0 + k * 19.0,
-                   (uv.y + t * (0.10 + 0.08 * k) * (1.0 + 0.5 * f.flow)) * (cols * 0.62));
-    gp.x += 0.5 * sin(t * 0.5 + k * 2.0 + uv.y * 4.0);
+                   (uv.y + t * (0.09 + 0.07 * k) * (1.0 + 0.5 * f.flow)) * (cols * 0.60));
+    gp.x += 0.6 * sin(t * 0.5 + k * 2.0 + uv.y * 5.0);
     vec2 cell = floor(gp);
-    vec2 h = hash22(cell + k * 41.0);
-    float on = step(0.30, h.y);
+    vec2 h = hash23(cell + k * 41.0);
+    float on = step(0.72, h.y);
     vec2 pos = cell + 0.25 + 0.50 * h;
     vec2 dd = gp - pos;
     float d2 = dot(dd, dd);
-    float flick = pow(0.5 + 0.5 * sin(t * (2.0 + 3.0 * h.x) + h.y * 6.2831853), 2.0);
-    float ember = on * exp(-d2 * (700.0 - k * 140.0)) * flick * (0.45 + 1.25 * f.spark);
+    float flick = pow(0.5 + 0.5 * sin(t * (1.8 + 2.6 * h.x) + h.y * 6.2831853), 2.2);
+    float ember = on * exp(-d2 * (620.0 - k * 120.0)) * flick * (0.40 + 1.20 * f.spark);
     vec3 emberCol = mix(f.color3.rgb, f.color2.rgb, smoothstep(1.0, 0.30, uv.y));
-    col += emberCol * ember * 0.75 * (0.7 + 0.5 * f.bass);
+    col += emberCol * ember * 0.72 * (0.7 + 0.5 * f.bass);
   }
-  float vig = clamp(1.10 - dot(p, p) * 0.40, 0.40, 1.0);
-  return vec4(col * vig * f.intensity, 1.0);
+  col = grade(col * f.intensity);
+  col += (hash13(uv * f.size + seed) - 0.5) * 0.008;
+  float vig = clamp(1.08 - dot(p, p) * 0.34, 0.42, 1.0);
+  return vec4(col * vig, 1.0);
 }
 ''';

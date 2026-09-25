@@ -40,68 +40,108 @@
 //
 
 const shaderSource = r'''
-float hash12(vec2 p) {
-  vec3 p3 = fract(vec3(p.x, p.y, p.x) * 0.1031);
-  p3 += dot(p3, p3.yzx + 33.33);
-  return fract((p3.x + p3.y) * p3.z);
+float hash13(vec2 p) {
+  vec3 q = fract(vec3(p.x, p.y, p.x) * 0.1031);
+  q += dot(q, q.zyx + 31.32);
+  return fract((q.x + q.y) * q.z);
 }
-vec2 hash22(vec2 p) {
-  vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));
-  p3 += dot(p3, p3.yzx + 33.33);
-  return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));
+vec2 hash23(vec2 p) {
+  vec3 q = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));
+  q += dot(q, q.zyx + 31.32);
+  return fract(vec2((q.x + q.y) * q.z, (q.x + q.z) * q.y));
+}
+float vnoise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 u = fract(p);
+  u = u * u * u * (u * (u * 6.0 - 15.0) + 10.0);
+  float a = hash13(i);
+  float b = hash13(i + vec2(1.0, 0.0));
+  float c = hash13(i + vec2(0.0, 1.0));
+  float d = hash13(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+float fbm4(vec2 p) {
+  float v = 0.0;
+  float a = 0.5;
+  for (int i = 0; i < 4; i++) {
+    v += a * vnoise(p);
+    p = mat2(0.8, 0.6, -0.6, 0.8) * p * 2.02 + vec2(3.1, 7.7);
+    a *= 0.5;
+  }
+  return v;
+}
+vec3 grade(vec3 c) {
+  c = max(c, vec3(0.0));
+  c = (c * (2.51 * c + 0.03)) / (c * (2.43 * c + 0.59) + 0.14);
+  return clamp(c, 0.0, 1.0);
 }
 vec4 paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = f.size.x / max(f.size.y, 1.0);
   vec2 p = vec2((uv.x - 0.5) * aspect, uv.y);
   float t = f.time * f.speed;
   float seed = mod(f.seedLow + f.seedHigh, 65535.0) * 0.011;
-  float drive = 0.85 + 0.40 * f.energy + 0.30 * f.pulse + 0.20 * f.bass;
+  float px = 1.0 / max(f.size.y, 1.0);
   float horizon = 0.46;
+  float drive = 0.88 + 0.34 * f.energy + 0.26 * f.pulse;
   float skyMask = smoothstep(1.0, horizon, uv.y);
-  vec3 sky = mix(f.color0.rgb * 0.22, f.color0.rgb, skyMask);
-  sky += f.color2.rgb * pow(skyMask, 3.0) * 0.16 * f.glow;
+  vec3 col = mix(f.color0.rgb * 0.16, f.color0.rgb, skyMask);
+  col += f.color2.rgb * pow(skyMask, 3.2) * 0.10 * f.glow;
   for (int i = 0; i < 2; i++) {
     float k = float(i);
-    vec2 gp = vec2(p.x, uv.y) * (11.0 + k * 9.0) + vec2(seed * 3.1 + k * 7.3, k * 5.9);
-    gp.y += t * (0.06 + 0.05 * k);
+    vec2 gp = vec2(p.x, uv.y) * (13.0 + k * 11.0) + vec2(seed * 3.1 + k * 7.3, k * 5.9);
     vec2 cell = floor(gp);
-    vec2 h = hash22(cell + k * 17.0);
-    float on = step(0.86 - 0.05 * k, h.x);
+    vec2 h = hash23(cell + k * 17.0);
+    float on = step(0.955 - 0.02 * k, h.x);
     vec2 pos = cell + 0.25 + 0.5 * h;
+    float tw = 0.55 + 0.45 * sin(t * (0.9 + 1.8 * h.y) + h.x * 6.2831853);
     vec2 dd = gp - pos;
-    float d2 = dot(dd, dd);
-    float tw = 0.45 + 0.55 * sin(t * (1.2 + 2.4 * h.y) + h.x * 6.2831853);
-    float star = on * exp(-d2 * 700.0) * tw * (0.35 + 0.85 * f.spark);
-    sky += vec3(0.85, 0.90, 1.0) * star * skyMask * 0.30;
+    float d = sqrt(dot(dd, dd));
+    float r0 = 0.026 + 0.020 * h.y;
+    float core = 1.0 - smoothstep(r0 - px * 1.5, r0 + px * 1.5, d);
+    col += vec3(0.82, 0.87, 1.0) * core * on * tw * (0.22 + 0.14 * k) * (0.35 + 0.85 * f.spark);
   }
-  vec2 sp = vec2(p.x * 1.06, uv.y - (horizon - 0.155));
-  float sd = length(sp) - 0.245;
-  float disc = smoothstep(0.010, -0.010, sd);
-  float stripes = fract(sp.y * 21.0 - t * 0.05 + seed);
-  float gap = mix(1.0, smoothstep(0.28, 0.52, stripes), smoothstep(-0.02, 0.16, sp.y));
+  vec2 sp = vec2(p.x * 1.06, uv.y - (horizon - 0.115));
+  float sd = length(sp) - 0.185;
+  float disc = 1.0 - smoothstep(-px * 1.2, px * 1.2, sd);
+  float stripes = fract(sp.y * 22.0 - t * 0.05 + seed);
+  float band = smoothstep(0.02, -0.05, sp.y);
+  float gap = mix(1.0, smoothstep(0.30, 0.55, stripes), band);
   disc *= gap;
-  vec3 sun = mix(f.color1.rgb, f.color2.rgb, smoothstep(-0.24, 0.24, sp.y));
-  float halo = exp(-max(sd, 0.0) * 7.0) * 0.40 * f.glow;
-  vec3 col = sky + sun * disc * (0.85 + 0.35 * f.bass) * drive + sun * halo;
-  float ground = smoothstep(horizon - 0.0025, horizon + 0.0025, uv.y);
-  float gz = max(uv.y - horizon, 0.0018);
-  float persp = 0.62 / gz;
-  vec3 groundCol = f.color0.rgb * 0.42;
-  float rowCoord = persp * 0.85 + t * (1.1 + 1.2 * f.flow) + seed * 2.0;
+  vec3 sun = mix(f.color1.rgb, f.color3.rgb, smoothstep(0.20, -0.17, sp.y));
+  float halo = exp(-max(sd, 0.0) * 11.0) * 0.30 * f.glow;
+  col += sun * disc * (0.95 + 0.30 * f.bass) * drive;
+  col += sun * halo;
+  for (int i = 0; i < 2; i++) {
+    float k = float(i);
+    float scale = 2.6 + k * 2.4;
+    float ridge = fbm4(vec2(p.x * scale + seed * 3.0 + k * 11.0, k * 4.7));
+    float skyline = horizon - 0.006 - ridge * 0.040 * (1.0 - 0.45 * k);
+    float m = smoothstep(skyline - px * 1.6, skyline + px * 1.6, uv.y);
+    vec3 mCol = mix(f.color0.rgb * 0.50, f.color0.rgb * 0.28, k);
+    mCol += sun * exp(-abs(uv.y - skyline) * 90.0) * 0.10 * (1.0 - k * 0.5);
+    col = mix(col, mCol, m);
+  }
+  float ground = smoothstep(horizon - px, horizon + px, uv.y);
+  float gz = max(uv.y - horizon, 0.0016);
+  float persp = 0.60 / gz;
+  vec3 groundCol = f.color0.rgb * 0.40;
+  float rowCoord = persp * 0.80 + t * (1.0 + 1.1 * f.flow) + seed * 2.0;
   float rowFr = abs(fract(rowCoord) - 0.5);
-  float rowPix = 0.85 * 0.62 / max(gz * gz * f.size.y, 1.0);
+  float rowPix = 0.80 * 0.60 / max(gz * gz * f.size.y, 1.0);
   float rowLine = exp(-rowFr * rowFr / max(2.2 * rowPix * rowPix, 0.000001));
-  float vx = p.x * persp * 1.35;
+  float vx = p.x * persp * 1.30;
   float vFr = abs(fract(vx + 0.5) - 0.5);
-  float vPix = 1.35 * 0.62 / max(gz * f.size.x, 1.0);
+  float vPix = 1.30 * 0.60 / max(gz * f.size.x, 1.0);
   float vLine = exp(-vFr * vFr / max(2.2 * vPix * vPix, 0.000001));
-  float gridFade = smoothstep(0.0, 0.045, gz) * (0.35 + 0.65 * smoothstep(horizon, 0.95, uv.y));
-  vec3 gridCol = mix(f.color3.rgb, f.color1.rgb, 0.25 + 0.30 * smoothstep(horizon, 1.0, uv.y));
-  float grid = (rowLine + vLine * 0.85) * gridFade * (0.55 + 0.45 * f.bass) * (0.40 + 0.60 * f.glow);
+  float gridFade = smoothstep(0.0, 0.04, gz) * (0.30 + 0.70 * smoothstep(horizon, 0.92, uv.y));
+  vec3 gridCol = mix(f.color3.rgb, f.color1.rgb, 0.30 + 0.30 * smoothstep(horizon, 1.0, uv.y));
+  float grid = (rowLine * 1.15 + vLine * 0.95) * gridFade * (0.50 + 0.50 * f.bass) * (0.48 + 0.62 * f.glow);
   col = mix(col, groundCol + gridCol * grid * drive, ground);
-  float hb = (uv.y - horizon) * 26.0;
-  col += gridCol * exp(-hb * hb) * 0.22 * (0.5 + f.glow * 0.5);
-  float vig = clamp(1.0 - dot(p, p) * 0.28, 0.35, 1.0);
-  return vec4(col * vig * f.intensity, 1.0);
+  float hb = (uv.y - horizon) * 30.0;
+  col += gridCol * exp(-hb * hb) * 0.16 * (0.5 + 0.5 * f.glow);
+  col = grade(col * f.intensity);
+  col += (hash13(uv * f.size + seed) - 0.5) * 0.007;
+  float vig = clamp(1.05 - dot(p, p) * 0.24, 0.45, 1.0);
+  return vec4(col * vig, 1.0);
 }
 ''';

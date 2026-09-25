@@ -14,7 +14,7 @@
 //
 // Usa float/int/vec2/vec3/vec4/mat2/mat3/mat4 y funciones matemáticas
 // comunes GLSL (sin uint, bool, structs propios, globals, inout ni pointers).
-// atan admite solo un argumento. No uses funciones de textura/derivadas.
+// atan admite solo un argumento. No usa funciones de textura/derivadas.
 // CreatorFrame (ya lo declara el motor; NO lo vuelvas a declarar):
 //   vec2 size;             // resolución efectiva en píxeles
 //   float time;              // segundos activos; pausa y Reduced Motion nativos
@@ -40,12 +40,12 @@
 //
 
 const shaderSource = r'''
-vec2 hash22(vec2 p) {
-  vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));
-  p3 += dot(p3, p3.yzx + 33.33);
-  return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));
+vec2 hash23(vec2 p) {
+  vec3 q = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));
+  q += dot(q, q.zyx + 31.32);
+  return fract(vec2((q.x + q.y) * q.z, (q.x + q.z) * q.y));
 }
-mat2 rot2(float a) {
+mat2 rot2r(float a) {
   float c = cos(a);
   float s = sin(a);
   return mat2(c, -s, s, c);
@@ -55,45 +55,47 @@ vec4 paintVisual(vec2 uv, CreatorFrame f) {
   vec2 p = vec2((uv.x - 0.5) * aspect, uv.y - 0.5);
   float t = f.time * f.speed;
   float seed = mod(f.seedLow + f.seedHigh, 65535.0);
+  float px = 1.0 / max(f.size.y, 1.0);
   vec3 acc = vec3(0.0);
   float aAcc = 0.0;
   for (int i = 0; i < 5; i++) {
     float k = float(i);
-    vec2 h = hash22(vec2(k * 7.7 + seed * 0.11, k * 3.3 + 1.0));
-    float orbR = 0.10 + 0.15 * h.y;
-    float orbA = t * (0.08 + 0.07 * h.x) * (1.0 + 0.6 * f.flow) + h.x * 6.2831853;
-    float orbB = t * (0.06 + 0.05 * h.y) + h.y * 6.2831853;
-    vec2 c = vec2(cos(orbA) * orbR * min(aspect * 1.05, 1.3), sin(orbB) * orbR * 0.85);
+    vec2 h = hash23(vec2(k * 7.7 + seed * 0.11, k * 3.3 + 1.0));
+    float ring = 0.105 + 0.042 * k;
+    float orbA = k * 1.2566371 + t * (0.085 + 0.030 * h.y) * (1.0 + 0.6 * f.flow);
+    float bob = 0.010 * sin(t * 0.45 + k * 2.1);
+    vec2 c = vec2(cos(orbA) * ring * min(aspect, 1.15), sin(orbA) * ring * 0.88 + bob);
     float spin = t * (0.30 + 0.45 * h.y) * (1.0 + 0.4 * f.flow) + h.x * 6.2831853 + k;
-    vec2 lp = rot2(spin) * (p - c);
-    float s = (0.05 + 0.055 * h.x) * (1.0 + 0.18 * f.bass);
-    float shape = 0.9 + 0.18 * sin(k * 2.1 + t * 0.35 + seed);
-    float d = (abs(lp.x) * 0.60 + abs(lp.y) * 1.0) / shape - s;
-    d *= 0.85;
-    float fill = smoothstep(0.004, -0.004, d);
-    float facet = 0.5 + 0.5 * sin(lp.x * (40.0 + 14.0 * h.y) + lp.y * 26.0 + k * 3.1 + t * 0.10);
+    vec2 lp = rot2r(spin) * (p - c);
+    float s = (0.030 + 0.028 * h.x) * (1.0 + 0.16 * f.bass);
+    float shape = 0.9 + 0.16 * sin(k * 2.1 + t * 0.32 + seed);
+    float d = (abs(lp.x) * 0.58 + abs(lp.y) * 1.0) / shape - s;
+    float fill = 1.0 - smoothstep(-px * 1.4, px * 1.4, d);
+    float facet = 0.5 + 0.5 * sin(lp.x * (38.0 + 14.0 * h.y) + lp.y * 24.0 + k * 3.1 + t * 0.09);
     vec2 nl = lp / max(length(lp), 0.0001);
-    float sheen = pow(clamp(0.5 + 0.5 * dot(vec2(0.55, 0.83), nl), 0.0, 1.0), 3.0);
-    float eR = exp(-abs(d + 0.005) * 150.0);
-    float eG = exp(-abs(d) * 160.0);
-    float eB = exp(-abs(d - 0.005) * 150.0);
+    float sheen = pow(clamp(0.5 + 0.5 * dot(vec2(0.55, 0.83), nl), 0.0, 1.0), 3.2);
+    float ew = px * 1.6;
+    float eR = exp(-abs(d + 0.0045) / max(ew * 1.6, 0.0008));
+    float eG = exp(-abs(d) / max(ew * 1.4, 0.0008));
+    float eB = exp(-abs(d - 0.0045) / max(ew * 1.6, 0.0008));
     float kick = 0.55 + 0.30 * f.pulse + 0.15 * f.bass;
-    acc += vec3(1.0, 0.30, 0.52) * eR * 0.38 * kick;
-    acc += vec3(1.0) * eG * 0.55 * kick * (0.7 + 0.6 * facet);
-    acc += vec3(0.32, 0.78, 1.0) * eB * 0.38 * kick;
+    acc += vec3(1.0, 0.30, 0.50) * eR * 0.27 * kick;
+    acc += vec3(1.0) * eG * 0.46 * kick * (0.65 + 0.55 * facet);
+    acc += vec3(0.32, 0.78, 1.0) * eB * 0.27 * kick;
     vec3 glass = mix(f.color1.rgb, f.color2.rgb, facet);
     glass = mix(glass, f.color3.rgb, sheen * 0.55);
-    acc += glass * fill * (0.10 + 0.20 * sheen + 0.06 * facet);
-    aAcc += fill * (0.13 + 0.20 * sheen + 0.05 * facet) * (0.75 + 0.5 * f.glow);
-    aAcc += (eR + eG + eB) * 0.42 * kick;
-    float ty = s * shape * 1.12;
+    acc += glass * fill * (0.20 + 0.24 * sheen + 0.07 * facet);
+    aAcc += fill * (0.17 + 0.20 * sheen + 0.05 * facet) * (0.75 + 0.5 * f.glow);
+    aAcc += (eR + eG + eB) * 0.40 * kick;
+    float ty = s * shape * 1.15;
     float tdx = lp.x;
     float tdy = abs(lp.y) - ty;
     float td2 = tdx * tdx + tdy * tdy;
-    float glint = exp(-td2 * 5200.0) * (0.25 + 0.75 * f.spark);
-    acc += vec3(1.0, 0.95, 0.85) * glint * 0.5;
-    aAcc += glint * 0.30;
+    float tw2 = pow(0.5 + 0.5 * sin(t * (0.9 + 1.4 * h.x) + k * 4.0), 3.0);
+    float glint = exp(-td2 * 3000.0) * (0.18 + 0.82 * tw2) * (0.30 + 0.70 * f.spark);
+    acc += vec3(1.0, 0.95, 0.85) * glint * 0.38;
+    aAcc += glint * 0.22;
   }
-  return vec4(acc * f.intensity, clamp(aAcc * (0.55 + 0.45 * f.glow), 0.0, 0.9));
+  return vec4(acc * f.intensity, clamp(aAcc * (0.55 + 0.45 * f.glow), 0.0, 0.90));
 }
 ''';

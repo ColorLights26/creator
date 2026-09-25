@@ -40,57 +40,68 @@
 //
 
 const shaderSource = r'''
-float hash12(vec2 p) {
-  vec3 p3 = fract(vec3(p.x, p.y, p.x) * 0.1031);
-  p3 += dot(p3, p3.yzx + 33.33);
-  return fract((p3.x + p3.y) * p3.z);
-}
-vec2 hash22(vec2 p) {
-  vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));
-  p3 += dot(p3, p3.yzx + 33.33);
-  return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));
+float hash13(vec2 p) {
+  vec3 q = fract(vec3(p.x, p.y, p.x) * 0.1031);
+  q += dot(q, q.zyx + 31.32);
+  return fract((q.x + q.y) * q.z);
 }
 float vnoise(vec2 p) {
   vec2 i = floor(p);
   vec2 u = fract(p);
-  u = u * u * (3.0 - 2.0 * u);
-  return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),
-             mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);
+  u = u * u * u * (u * (u * 6.0 - 15.0) + 10.0);
+  float a = hash13(i);
+  float b = hash13(i + vec2(1.0, 0.0));
+  float c = hash13(i + vec2(0.0, 1.0));
+  float d = hash13(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
 }
 float fbm4(vec2 p) {
   float v = 0.0;
   float a = 0.5;
   for (int i = 0; i < 4; i++) {
     v += a * vnoise(p);
-    p = p * 2.03 + vec2(11.7, 5.3);
+    p = mat2(0.8, 0.6, -0.6, 0.8) * p * 2.02 + vec2(3.1, 7.7);
     a *= 0.5;
   }
   return v;
+}
+vec3 grade(vec3 c) {
+  c = max(c, vec3(0.0));
+  c = (c * (2.51 * c + 0.03)) / (c * (2.43 * c + 0.59) + 0.14);
+  return clamp(c, 0.0, 1.0);
 }
 vec4 paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = f.size.x / max(f.size.y, 1.0);
   vec2 p = vec2((uv.x - 0.5) * aspect, uv.y);
   float t = f.time * f.speed;
   float seed = mod(f.seedLow + f.seedHigh, 65535.0) * 0.013;
-  vec2 drift = vec2(t * 0.045, -t * 0.030) * (1.0 + 1.6 * f.flow);
-  vec2 q = vec2(fbm4(p * 1.7 + drift + seed),
-                fbm4(p * 1.7 + vec2(5.2, 1.3) - drift + seed));
-  float freq = 1.5 + 0.9 * f.detail;
-  vec2 r = vec2(fbm4(p * freq + 2.4 * q + vec2(1.7, 9.2) + vec2(t * 0.06, -t * 0.05)),
-                fbm4(p * freq + 2.4 * q + vec2(8.3, 2.8) + vec2(-t * 0.04, t * 0.055)));
-  float ridge = fbm4(p * (2.1 + f.detail * 0.4) + 3.0 * r + seed);
-  float bands = 0.5 + 0.5 * sin((p.y * 3.4 + p.x * 1.2) * (0.8 + 0.6 * f.detail)
-                + ridge * 7.0 + t * 0.4 + seed);
-  float silk = pow(bands, 2.6);
-  float sheen = pow(clamp(ridge * 1.5 - 0.42, 0.0, 1.0), 2.6);
-  vec3 col = mix(f.color0.rgb, f.color0.rgb * 1.9, smoothstep(1.0, 0.0, uv.y));
-  col = mix(col, f.color1.rgb, clamp(silk * 0.9, 0.0, 1.0));
-  col = mix(col, f.color2.rgb, sheen * (0.50 + 0.35 * f.bass));
-  float glintN = vnoise(p * (70.0 + 60.0 * f.detail) + vec2(0.0, t * 0.6) + seed);
-  float glint = pow(clamp(glintN * 1.25 - 0.28, 0.0, 1.0), 8.0);
-  col += f.color3.rgb * glint * (0.25 + 1.4 * f.spark) * (0.35 + sheen);
-  col *= 0.90 + 0.18 * f.energy + 0.22 * f.pulse;
-  float vig = clamp(1.15 - dot(p, p) * 0.5, 0.4, 1.05);
-  return vec4(col * vig * f.intensity, 1.0);
+  vec2 flowV = vec2(t * 0.040, -t * 0.026) * (1.0 + 1.2 * f.flow);
+  vec2 q = vec2(fbm4(p * 1.35 + flowV + seed),
+                fbm4(p * 1.35 + vec2(4.7, 1.9) - flowV));
+  vec2 w = p * (1.8 + 0.7 * f.detail) + 2.2 * q + seed;
+  vec2 drift = vec2(t * 0.055, -t * 0.045);
+  float e = 0.055;
+  float h = fbm4(w + drift);
+  float hx = fbm4(w + vec2(e, 0.0) + drift);
+  float hy = fbm4(w + vec2(0.0, e) + drift);
+  float gain = 7.0;
+  vec3 n = normalize(vec3((h - hx) * gain, (h - hy) * gain, 1.0));
+  vec3 L = normalize(vec3(-0.42, 0.58, 0.70));
+  float diff = clamp(dot(n, L), 0.0, 1.0);
+  vec3 V = vec3(0.0, 0.0, 1.0);
+  vec3 Rv = reflect(-L, n);
+  float spec = pow(clamp(dot(Rv, V), 0.0, 1.0), 34.0);
+  float bands = 0.5 + 0.5 * sin(h * (7.5 + 2.0 * f.detail) + t * 0.32 + seed);
+  float sheen = pow(diff, 2.2);
+  vec3 col = mix(f.color0.rgb * 1.35, f.color1.rgb, diff * 0.75 + bands * 0.18);
+  col = mix(col, f.color2.rgb, sheen * (0.52 + 0.30 * f.bass));
+  float glintN = vnoise(p * (80.0 + 50.0 * f.detail) + vec2(0.0, t * 0.55) + seed);
+  float glint = pow(clamp(glintN * 1.30 - 0.42, 0.0, 1.0), 7.0);
+  col += f.color3.rgb * (glint * (0.30 + 1.30 * f.spark) * (0.30 + sheen) + spec * (0.38 + 0.55 * f.spark));
+  col *= 0.94 + 0.14 * f.energy + 0.18 * f.pulse;
+  col = grade(col * f.intensity);
+  col += (hash13(uv * f.size + seed) - 0.5) * 0.007;
+  float vig = clamp(1.12 - dot(p, p) * 0.42, 0.45, 1.02);
+  return vec4(col * vig, 1.0);
 }
 ''';

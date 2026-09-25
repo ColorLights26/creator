@@ -7,10 +7,10 @@ const metadata = CreatorVisualMetadata(
   name: 'Órbitas · sin música',
   publication: CreatorPublication.draft,
   description:
-      'Órbitas luminosas de movimiento continuo, independientes del audio.',
-  purposes: ['relax', 'focus'],
+      'Sistema orbital elegante con estela luminosa, calibrado para relajación.',
+  purposes: ['relax', 'focus', 'sleep'],
   moods: ['calm', 'meditative'],
-  concepts: ['orbits', 'space', 'light'],
+  concepts: ['orbits', 'space', 'light', 'planets'],
   credits: CreatorCredits(
     author: 'Chic Apps',
     license: 'Proprietary',
@@ -19,6 +19,6 @@ const metadata = CreatorVisualMetadata(
   thumbnail: CreatorThumbnailSpec(timeSeconds: 2.5),
   role: CreatorRole.background,
   reactivity: CreatorReactivity.none,
-  colors: [0xff080b15, 0xff63bfd6, 0xffae79d9, 0xffffcfac],
+  colors: [0xff03040a, 0xff233c66, 0xff7fb8ff, 0xffd9e6ff],
   controls: CreatorControls(speed: .5, glow: .8),
 );

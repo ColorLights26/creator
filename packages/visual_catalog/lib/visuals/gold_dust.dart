@@ -14,7 +14,7 @@
 //
 // Usa float/int/vec2/vec3/vec4/mat2/mat3/mat4 y funciones matemáticas
 // comunes GLSL (sin uint, bool, structs propios, globals, inout ni pointers).
-// atan admite solo un argumento. No uses funciones de textura/derivadas.
+// atan admite solo un argumento. No usa funciones de textura/derivadas.
 // CreatorFrame (ya lo declara el motor; NO lo vuelvas a declarar):
 //   vec2 size;             // resolución efectiva en píxeles
 //   float time;              // segundos activos; pausa y Reduced Motion nativos
@@ -40,50 +40,56 @@
 //
 
 const shaderSource = r'''
-float hash12(vec2 p) {
-  vec3 p3 = fract(vec3(p.x, p.y, p.x) * 0.1031);
-  p3 += dot(p3, p3.yzx + 33.33);
-  return fract((p3.x + p3.y) * p3.z);
+float hash13(vec2 p) {
+  vec3 q = fract(vec3(p.x, p.y, p.x) * 0.1031);
+  q += dot(q, q.zyx + 31.32);
+  return fract((q.x + q.y) * q.z);
 }
-vec2 hash22(vec2 p) {
-  vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));
-  p3 += dot(p3, p3.yzx + 33.33);
-  return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));
+vec2 hash23(vec2 p) {
+  vec3 q = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));
+  q += dot(q, q.zyx + 31.32);
+  return fract(vec2((q.x + q.y) * q.z, (q.x + q.z) * q.y));
 }
 vec4 paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = f.size.x / max(f.size.y, 1.0);
   vec2 p = vec2((uv.x - 0.5) * aspect, uv.y);
   float t = f.time * f.speed;
   float seed = mod(f.seedLow + f.seedHigh, 65535.0) * 0.011;
+  float px = 1.0 / max(f.size.y, 1.0);
   vec3 acc = vec3(0.0);
   float aAcc = 0.0;
   for (int i = 0; i < 4; i++) {
     float k = float(i);
-    float scale = 4.5 + k * 3.5;
+    float scale = 4.0 + k * 3.6;
     vec2 gp = vec2(p.x, uv.y) * scale;
     gp.y += t * (0.10 + 0.06 * k) * (1.0 + 0.7 * f.flow);
-    gp.x += seed + 0.4 * sin(t * 0.20 + k * 2.3) + k * 13.7;
+    gp.x += seed + 0.45 * sin(t * 0.18 + k * 2.3 + uv.y * 1.5) + k * 13.7;
     vec2 cell = floor(gp);
-    vec2 h = hash22(cell + k * 31.0);
-    float on = step(h.y, 0.72 - 0.06 * k);
+    vec2 h = hash23(cell + k * 31.0);
+    float on = step(h.y, 0.70 - 0.05 * k);
     vec2 pos = cell + 0.25 + 0.50 * h;
     vec2 dv = gp - pos;
     float d2 = dot(dv, dv);
-    float tw = 0.5 + 0.5 * sin(t * (0.7 + 2.4 * h.y) + h.x * 6.2831853);
-    tw = pow(clamp(tw + 0.35 * f.spark - 0.18, 0.0, 1.0), 1.5 + 2.0 * h.x);
-    float rad = (0.16 + 0.10 * h.x) * (1.0 + 0.25 * f.bass);
-    float core = exp(-d2 / (rad * rad));
-    float halo = exp(-sqrt(d2) * (9.0 + k * 3.0)) * 0.35;
-    float fx = exp(-abs(dv.x) * 90.0) * exp(-abs(dv.y) * 12.0)
-             + exp(-abs(dv.y) * 90.0) * exp(-abs(dv.x) * 12.0);
-    float flare = fx * step(2.5, k) * 0.30;
+    float twRaw = 0.5 + 0.5 * sin(t * (0.6 + 2.1 * h.y) + h.x * 6.2831853);
+    float eased = twRaw * twRaw * (3.0 - 2.0 * twRaw);
+    float tw = 0.10 + 0.90 * pow(clamp(eased + 0.30 * f.spark - 0.14, 0.0, 1.0), 1.6);
     vec3 tint = mix(f.color1.rgb, f.color2.rgb, h.x);
-    tint = mix(tint, f.color3.rgb, pow(core, 3.0) * 0.7);
-    float a = on * (core * (0.30 + 0.45 * tw) + halo * tw * (0.4 + 0.6 * f.glow) + flare * tw)
-            * (0.34 - 0.05 * k) * f.intensity * (0.65 + 0.5 * f.bass + 0.45 * f.pulse * tw);
-    acc += tint * a;
-    aAcc += a;
+    float big = step(1.5, k);
+    float small = 1.0 - big;
+    float rad = (0.10 + 0.08 * h.x) * (1.0 + 0.25 * f.bass);
+    float core = exp(-d2 / max(rad * rad, 0.0001)) * small;
+    float disc = 1.0 - smoothstep(0.55, 0.62, sqrt(d2)) * big;
+    float halo = exp(-sqrt(d2) * (7.0 + k * 2.5)) * 0.30 * small;
+    float fx = exp(-abs(dv.x) * 120.0) * exp(-abs(dv.y) * 16.0)
+             + exp(-abs(dv.y) * 120.0) * exp(-abs(dv.x) * 16.0);
+    float flare = fx * step(2.5, k) * 0.38;
+    float bodyA = core + halo * tw * (0.35 + 0.65 * f.glow) + flare * tw;
+    float discA = disc * big * (0.045 + 0.035 * tw) * (0.6 + 0.4 * f.glow);
+    vec3 discTint = mix(f.color1.rgb, f.color2.rgb, 0.6 + 0.3 * h.y);
+    acc += (tint * bodyA + discTint * discA) * f.intensity
+         * (0.60 + 0.50 * f.bass + 0.40 * f.pulse * tw);
+    aAcc += (bodyA * (0.34 - 0.05 * k) + discA * 0.8) * (0.55 + 0.45 * f.glow);
   }
-  return vec4(acc, clamp(aAcc * (0.55 + 0.45 * f.glow), 0.0, 0.80));
+  return vec4(acc, clamp(aAcc, 0.0, 0.82));
 }
 ''';

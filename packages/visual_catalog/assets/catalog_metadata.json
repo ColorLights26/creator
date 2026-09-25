@@ -4,10 +4,11 @@
     {
       "id": "aurora_ribbons",
       "name": "Aurora · cintas de luz",
-      "description": "Cintas de aurora suaves que se expanden con la música.",
+      "description": "Cortinas de aurora cinematográficas con rayos finos sobre cielo estrellado.",
       "purposes": [
         "relax",
-        "visualizer"
+        "visualizer",
+        "ambient"
       ],
       "moods": [
         "calm",
@@ -16,7 +17,8 @@
       "concepts": [
         "aurora",
         "light",
-        "ribbons"
+        "ribbons",
+        "night"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -315,19 +317,21 @@
     {
       "id": "prismatic_halo",
       "name": "Halo · capa de luz",
-      "description": "Un halo de luz transparente que acompaña los acentos musicales.",
+      "description": "Anillo iridiscente con dispersión cromática y brillo que respira; capa sutil.",
       "purposes": [
+        "decor",
         "visualizer",
-        "party"
+        "relax"
       ],
       "moods": [
-        "dreamy",
-        "energetic"
+        "elegant",
+        "dreamy"
       ],
       "concepts": [
         "halo",
-        "prism",
-        "light"
+        "ring",
+        "iridescent",
+        "overlay"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -335,7 +339,7 @@
         "source": "Visual Studio examples"
       },
       "thumbnail": {
-        "timeSeconds": 3.0
+        "timeSeconds": 2.5
       },
       "publication": "draft",
       "role": "overlay",
@@ -344,10 +348,11 @@
     {
       "id": "quiet_orbits",
       "name": "Órbitas · sin música",
-      "description": "Órbitas luminosas de movimiento continuo, independientes del audio.",
+      "description": "Sistema orbital elegante con estela luminosa, calibrado para relajación.",
       "purposes": [
         "relax",
-        "focus"
+        "focus",
+        "sleep"
       ],
       "moods": [
         "calm",
@@ -356,7 +361,8 @@
       "concepts": [
         "orbits",
         "space",
-        "light"
+        "light",
+        "planets"
       ],
       "credits": {
         "author": "Chic Apps",

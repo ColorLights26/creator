@@ -19,6 +19,6 @@ const metadata = CreatorVisualMetadata(
   thumbnail: CreatorThumbnailSpec(timeSeconds: 2.5),
   role: CreatorRole.overlay,
   reactivity: CreatorReactivity.optional,
-  colors: [0xff140d02, 0xffb97e1e, 0xfff5c04a, 0xfffff3d0],
+  colors: [0xff120c04, 0xffc08a20, 0xfff5c455, 0xfffff4d6],
   controls: CreatorControls(intensity: 1, speed: .5, detail: 1, glow: .9),
 );
