@@ -14,6 +14,12 @@ No añadas dependencias de `minibase`, `base`, `skeleton`, `metadata`,
 - `templates/visual_template.dart`: código completo para copiar a una IA.
 - `templates/visual_template_metadata.dart`: metadata separada del visual.
 
+El README principal y `studio/README.md` están dirigidos a colaboradores que
+saben compilar Flutter y usar una IA. Conserva instrucciones concretas con un
+ejemplo completo; la aprobación, arquitectura y comprobaciones avanzadas viven
+en `MAINTAINER.md`. No mezcles los comandos del responsable de Color Lights con
+los pasos necesarios para crear un visual en el estudio independiente.
+
 Revisa el estado Git antes de editar y conserva cambios de otros colaboradores.
 No publiques, hagas push ni cambies el estado de publicación de un visual sin
 autorización para esa acción.

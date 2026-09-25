@@ -1,3 +1,5 @@
+> Para: importar grabaciones de señales preparadas por el responsable. Para tu primer visual puedes usar la Demo sintética y seguir la [guía de creación](../../README.md).
+
 Las grabaciones opcionales van en `<nombre>/signals.bin` y
 `<nombre>/timeline.json`, en el formato del grabador de referencias de la app.
 El build las valida y las ofrece en el selector sin modificar sus señales.

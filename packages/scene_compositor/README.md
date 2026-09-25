@@ -1,3 +1,5 @@
+> Para: mantener el compositor. Para crear un visual con una IA, empieza por la [guía de creación](../../README.md).
+
 # Scene compositor SDK
 
 This package hosts the existing iOS SceneSurface compositor and the reusable
@@ -8,8 +10,9 @@ Firebase, purchases, or another audio pipeline.
 
 `authoring.dart` is a pure Dart definition/build API. A visual declares its
 identity, four colors, bounded controls, 30 FPS budget, and reactivity policy:
-`none`, `music`, or `optional`. The creator automatically lists definitions
-returned from its template entrypoint. Shader source is bundled during the
+`none`, `music`, or `optional`. Creator automatically pairs each visual source
+file with its separate metadata file and lists the resulting definitions.
+Shader source is bundled during the
 build and compiled when preparing its native GPU pipeline; source is never
 sent through the scene channel or downloaded as scene data. Adding or changing
 a shader requires rebuilding. The portable shader body feeds both platforms.

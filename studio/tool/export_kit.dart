@@ -34,7 +34,7 @@ Future<void> main() async {
     Directory('${audiovisual.path}/templates'),
     Directory('${export.path}/templates'),
   );
-  for (final name in ['README.md', 'AGENTS.md', '.gitignore']) {
+  for (final name in ['README.md', 'MAINTAINER.md', 'AGENTS.md', '.gitignore']) {
     final file = File('${audiovisual.path}/$name');
     if (file.existsSync()) file.copySync('${export.path}/$name');
   }

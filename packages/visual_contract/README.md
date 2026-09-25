@@ -1,3 +1,5 @@
+> Para: mantener el contrato de señales. Para crear un visual con una IA, empieza por la [guía de creación](../../README.md).
+
 # Visual contract
 
 The exact production `SceneRenderSignalFrameV2` codec, extracted without changing
