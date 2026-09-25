@@ -24,6 +24,204 @@
       "shaderSource": "vec4 paintVisual(vec2 uv, CreatorFrame f) {\nvec2 p = uv - 0.5;\np.x *= f.size.x / max(f.size.y, 1.0);\nfloat t = f.time * f.speed * 0.32;\nfloat seed = mod(f.seedLow + f.seedHigh, 10000.0) * 0.001;\nvec3 c = f.color0.rgb * (0.7 + 0.3 * uv.y);\nfor (int i = 0; i < 4; i++) {\n  float k = float(i);\n  float center = 0.14 * sin(p.x * (2.0 + k * 0.32) + t + seed + k)\n               + 0.08 * cos(p.x * 5.0 * f.detail - t * 0.6 + k)\n               + (k - 1.5) * 0.105;\n  float d = abs(p.y - center);\n  float width = 0.014 + 0.013 * f.bass;\n  float core = exp(-d * d / (width * width));\n  float halo = exp(-d * 12.0) * 0.13 * f.glow;\n  vec3 ink = mix(f.color1.rgb, f.color2.rgb, k / 3.0);\n  ink = mix(ink, f.color3.rgb, 0.15 * (0.5 + 0.5 * sin(t + p.x * 2.0 + k)));\n  c += ink * (core * 0.30 + halo) * f.intensity * (0.75 + 0.3 * f.energy + 0.15 * f.pulse);\n}\nfloat vignette = clamp(1.0 - dot(p, p) * 0.65, 0.25, 1.0);\nreturn vec4(c * vignette, 1.0);\n}\n"
     },
     {
+      "id": "crystal_prisms",
+      "name": "Prismas de cristal",
+      "programId": "creator_crystal_prisms",
+      "role": "overlay",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4279044634,
+        4286570751,
+        4290022655,
+        4293981439
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.5,
+        "detail": 1.0,
+        "glow": 0.85
+      },
+      "shaderSource": "vec2 hash22(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));\n}\nmat2 rot2(float a) {\n  float c = cos(a);\n  float s = sin(a);\n  return mat2(c, -s, s, c);\n}\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = f.size.x / max(f.size.y, 1.0);\n  vec2 p = vec2((uv.x - 0.5) * aspect, uv.y - 0.5);\n  float t = f.time * f.speed;\n  float seed = mod(f.seedLow + f.seedHigh, 65535.0);\n  vec3 acc = vec3(0.0);\n  float aAcc = 0.0;\n  for (int i = 0; i < 5; i++) {\n    float k = float(i);\n    vec2 h = hash22(vec2(k * 7.7 + seed * 0.11, k * 3.3 + 1.0));\n    float orbR = 0.10 + 0.15 * h.y;\n    float orbA = t * (0.08 + 0.07 * h.x) * (1.0 + 0.6 * f.flow) + h.x * 6.2831853;\n    float orbB = t * (0.06 + 0.05 * h.y) + h.y * 6.2831853;\n    vec2 c = vec2(cos(orbA) * orbR * min(aspect * 1.05, 1.3), sin(orbB) * orbR * 0.85);\n    float spin = t * (0.30 + 0.45 * h.y) * (1.0 + 0.4 * f.flow) + h.x * 6.2831853 + k;\n    vec2 lp = rot2(spin) * (p - c);\n    float s = (0.05 + 0.055 * h.x) * (1.0 + 0.18 * f.bass);\n    float shape = 0.9 + 0.18 * sin(k * 2.1 + t * 0.35 + seed);\n    float d = (abs(lp.x) * 0.60 + abs(lp.y) * 1.0) / shape - s;\n    d *= 0.85;\n    float fill = smoothstep(0.004, -0.004, d);\n    float facet = 0.5 + 0.5 * sin(lp.x * (40.0 + 14.0 * h.y) + lp.y * 26.0 + k * 3.1 + t * 0.10);\n    vec2 nl = lp / max(length(lp), 0.0001);\n    float sheen = pow(clamp(0.5 + 0.5 * dot(vec2(0.55, 0.83), nl), 0.0, 1.0), 3.0);\n    float eR = exp(-abs(d + 0.005) * 150.0);\n    float eG = exp(-abs(d) * 160.0);\n    float eB = exp(-abs(d - 0.005) * 150.0);\n    float kick = 0.55 + 0.30 * f.pulse + 0.15 * f.bass;\n    acc += vec3(1.0, 0.30, 0.52) * eR * 0.38 * kick;\n    acc += vec3(1.0) * eG * 0.55 * kick * (0.7 + 0.6 * facet);\n    acc += vec3(0.32, 0.78, 1.0) * eB * 0.38 * kick;\n    vec3 glass = mix(f.color1.rgb, f.color2.rgb, facet);\n    glass = mix(glass, f.color3.rgb, sheen * 0.55);\n    acc += glass * fill * (0.10 + 0.20 * sheen + 0.06 * facet);\n    aAcc += fill * (0.13 + 0.20 * sheen + 0.05 * facet) * (0.75 + 0.5 * f.glow);\n    aAcc += (eR + eG + eB) * 0.42 * kick;\n    float ty = s * shape * 1.12;\n    float tdx = lp.x;\n    float tdy = abs(lp.y) - ty;\n    float td2 = tdx * tdx + tdy * tdy;\n    float glint = exp(-td2 * 5200.0) * (0.25 + 0.75 * f.spark);\n    acc += vec3(1.0, 0.95, 0.85) * glint * 0.5;\n    aAcc += glint * 0.30;\n  }\n  return vec4(acc * f.intensity, clamp(aAcc * (0.55 + 0.45 * f.glow), 0.0, 0.9));\n}\n"
+    },
+    {
+      "id": "deep_space",
+      "name": "Espacio · nebulosa",
+      "programId": "creator_deep_space",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278321938,
+        4280262287,
+        4288368089,
+        4294113023
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.45,
+        "detail": 1.0,
+        "glow": 0.8
+      },
+      "shaderSource": "float hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\nvec2 hash22(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));\n}\nfloat vnoise(vec2 p) {\n  vec2 i = floor(p);\n  vec2 u = fract(p);\n  u = u * u * (3.0 - 2.0 * u);\n  return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),\n             mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);\n}\nfloat fbm4(vec2 p) {\n  float v = 0.0;\n  float a = 0.5;\n  for (int i = 0; i < 4; i++) {\n    v += a * vnoise(p);\n    p = p * 2.03 + vec2(11.7, 5.3);\n    a *= 0.5;\n  }\n  return v;\n}\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = f.size.x / max(f.size.y, 1.0);\n  vec2 p = vec2((uv.x - 0.5) * aspect, uv.y);\n  float t = f.time * f.speed;\n  float seed = mod(f.seedLow + f.seedHigh, 65535.0) * 0.017;\n  vec3 col = mix(f.color0.rgb * 0.5, f.color0.rgb * 1.25, smoothstep(0.0, 1.0, uv.y));\n  vec2 w = vec2(t * 0.012 + seed, -t * 0.009) * (1.0 + f.flow * 0.8);\n  float n1 = fbm4(p * 2.4 + w + seed);\n  float n2 = fbm4(p * 3.2 - w * 1.3 + 1.8 * n1 + 4.7);\n  float neb1 = pow(clamp(n1 * 1.65 - 0.42, 0.0, 1.0), 1.7);\n  float neb2 = pow(clamp(n2 * 1.5 - 0.45, 0.0, 1.0), 2.0);\n  col += f.color1.rgb * neb1 * (0.36 + 0.38 * f.bass);\n  col += f.color2.rgb * neb2 * (0.30 + 0.30 * f.body);\n  float dust = pow(clamp(fbm4(p * 4.6 + n2 * 1.5 - w + 9.1), 0.0, 1.0), 2.2);\n  col *= 1.0 - 0.38 * dust;\n  for (int i = 0; i < 3; i++) {\n    float k = float(i);\n    vec2 gp = vec2(p.x, uv.y) * (10.0 + k * 10.0) + vec2(seed * 2.3 + k * 9.7, k * 4.3)\n            - vec2(0.0, t * (0.035 + 0.02 * k));\n    vec2 cell = floor(gp);\n    vec2 h = hash22(cell + k * 23.0);\n    float on = step(0.88 - 0.04 * k, h.x);\n    vec2 pos = cell + 0.30 + 0.40 * h;\n    vec2 dd = gp - pos;\n    float d2 = dot(dd, dd);\n    float tw = 0.5 + 0.5 * sin(t * (1.0 + 2.6 * h.y) + h.x * 6.2831853);\n    float star = on * exp(-d2 * 620.0) * tw * (0.40 + 0.90 * f.spark);\n    col += vec3(0.82, 0.88, 1.0) * star * 0.52 * (0.6 + 0.6 * f.glow);\n  }\n  float ct = floor(t / 9.0 + seed);\n  float cx2 = fract(t / 9.0 + seed);\n  vec2 sh = hash22(vec2(ct * 3.7, ct * 1.9) + seed);\n  vec2 head = vec2(mix(-0.25, 0.60, sh.x) + cx2 * mix(0.70, 1.00, sh.y),\n                   mix(0.02, 0.35, sh.y) + cx2 * mix(0.25, 0.55, sh.x));\n  float life = smoothstep(0.0, 0.10, cx2) * smoothstep(0.50, 0.22, cx2);\n  vec2 q2 = vec2(p.x, uv.y) - head;\n  float along = dot(q2, vec2(0.82, 0.57));\n  float perp2 = dot(q2, vec2(-0.57, 0.82));\n  float tail = exp(-max(-along, 0.0) * 14.0) * 0.5 + exp(-max(along, 0.0) * 55.0);\n  float shoot = life * exp(-perp2 * perp2 * 2600.0) * tail;\n  col += vec3(1.0) * clamp(shoot, 0.0, 1.0) * 0.8;\n  float vig = clamp(1.05 - dot(p, p) * 0.35, 0.45, 1.0);\n  return vec4(col * vig * f.intensity, 1.0);\n}\n"
+    },
+    {
+      "id": "ember_glow",
+      "name": "Fuego · ascuas vivas",
+      "programId": "creator_ember_glow",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278912002,
+        4288290304,
+        4294933018,
+        4294957450
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.6,
+        "detail": 1.0,
+        "glow": 0.9
+      },
+      "shaderSource": "float hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\nvec2 hash22(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));\n}\nfloat vnoise(vec2 p) {\n  vec2 i = floor(p);\n  vec2 u = fract(p);\n  u = u * u * (3.0 - 2.0 * u);\n  return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),\n             mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);\n}\nfloat fbm4(vec2 p) {\n  float v = 0.0;\n  float a = 0.5;\n  for (int i = 0; i < 4; i++) {\n    v += a * vnoise(p);\n    p = p * 2.03 + vec2(11.7, 5.3);\n    a *= 0.5;\n  }\n  return v;\n}\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = f.size.x / max(f.size.y, 1.0);\n  vec2 p = vec2((uv.x - 0.5) * aspect, uv.y);\n  float t = f.time * f.speed;\n  float seed = mod(f.seedLow + f.seedHigh, 65535.0) * 0.019;\n  float rise = t * (0.9 + 1.0 * f.flow) + seed;\n  float n = fbm4(vec2(p.x * (5.5 * f.detail) + seed, uv.y * 3.2 - rise));\n  n = pow(clamp(n * 1.55 - 0.08, 0.0, 1.0), 1.9);\n  float lift = uv.y / (0.34 + 0.15 * f.bass);\n  float heat = clamp(n * 1.85 - lift * 1.05 + 0.30, 0.0, 1.25);\n  heat *= 0.50 + 0.50 * smoothstep(-0.03, 0.10, uv.y);\n  vec3 fireCol = f.color1.rgb;\n  fireCol = mix(fireCol, f.color2.rgb, clamp(heat * 1.55, 0.0, 1.0));\n  fireCol = mix(fireCol, f.color3.rgb, pow(clamp(heat * 1.5 - 0.85, 0.0, 1.0), 1.6));\n  vec3 col = mix(f.color0.rgb * 0.55, f.color0.rgb * 0.25, smoothstep(0.25, 1.0, uv.y));\n  col += fireCol * heat * (0.85 + 0.40 * f.energy + 0.30 * f.pulse);\n  float bed = exp(-(1.0 - uv.y) * 5.5);\n  float bedNoise = fbm4(vec2(p.x * (5.0 * f.detail) + seed, rise * 1.2));\n  col += mix(f.color1.rgb, f.color2.rgb, bedNoise) * bed * (0.30 + 0.30 * f.bass) * (0.55 + 0.45 * bedNoise);\n  for (int i = 0; i < 3; i++) {\n    float k = float(i);\n    float cols = 6.0 + k * 5.0;\n    vec2 gp = vec2(p.x * cols + seed * 7.0 + k * 19.0,\n                   (uv.y + t * (0.10 + 0.08 * k) * (1.0 + 0.5 * f.flow)) * (cols * 0.62));\n    gp.x += 0.5 * sin(t * 0.5 + k * 2.0 + uv.y * 4.0);\n    vec2 cell = floor(gp);\n    vec2 h = hash22(cell + k * 41.0);\n    float on = step(0.30, h.y);\n    vec2 pos = cell + 0.25 + 0.50 * h;\n    vec2 dd = gp - pos;\n    float d2 = dot(dd, dd);\n    float flick = pow(0.5 + 0.5 * sin(t * (2.0 + 3.0 * h.x) + h.y * 6.2831853), 2.0);\n    float ember = on * exp(-d2 * (700.0 - k * 140.0)) * flick * (0.45 + 1.25 * f.spark);\n    vec3 emberCol = mix(f.color3.rgb, f.color2.rgb, smoothstep(1.0, 0.30, uv.y));\n    col += emberCol * ember * 0.75 * (0.7 + 0.5 * f.bass);\n  }\n  float vig = clamp(1.10 - dot(p, p) * 0.40, 0.40, 1.0);\n  return vec4(col * vig * f.intensity, 1.0);\n}\n"
+    },
+    {
+      "id": "gold_dust",
+      "name": "Polvo de oro",
+      "programId": "creator_gold_dust",
+      "role": "overlay",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4279504130,
+        4290346526,
+        4294295626,
+        4294964176
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.5,
+        "detail": 1.0,
+        "glow": 0.9
+      },
+      "shaderSource": "float hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\nvec2 hash22(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));\n}\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = f.size.x / max(f.size.y, 1.0);\n  vec2 p = vec2((uv.x - 0.5) * aspect, uv.y);\n  float t = f.time * f.speed;\n  float seed = mod(f.seedLow + f.seedHigh, 65535.0) * 0.011;\n  vec3 acc = vec3(0.0);\n  float aAcc = 0.0;\n  for (int i = 0; i < 4; i++) {\n    float k = float(i);\n    float scale = 4.5 + k * 3.5;\n    vec2 gp = vec2(p.x, uv.y) * scale;\n    gp.y += t * (0.10 + 0.06 * k) * (1.0 + 0.7 * f.flow);\n    gp.x += seed + 0.4 * sin(t * 0.20 + k * 2.3) + k * 13.7;\n    vec2 cell = floor(gp);\n    vec2 h = hash22(cell + k * 31.0);\n    float on = step(h.y, 0.72 - 0.06 * k);\n    vec2 pos = cell + 0.25 + 0.50 * h;\n    vec2 dv = gp - pos;\n    float d2 = dot(dv, dv);\n    float tw = 0.5 + 0.5 * sin(t * (0.7 + 2.4 * h.y) + h.x * 6.2831853);\n    tw = pow(clamp(tw + 0.35 * f.spark - 0.18, 0.0, 1.0), 1.5 + 2.0 * h.x);\n    float rad = (0.16 + 0.10 * h.x) * (1.0 + 0.25 * f.bass);\n    float core = exp(-d2 / (rad * rad));\n    float halo = exp(-sqrt(d2) * (9.0 + k * 3.0)) * 0.35;\n    float fx = exp(-abs(dv.x) * 90.0) * exp(-abs(dv.y) * 12.0)\n             + exp(-abs(dv.y) * 90.0) * exp(-abs(dv.x) * 12.0);\n    float flare = fx * step(2.5, k) * 0.30;\n    vec3 tint = mix(f.color1.rgb, f.color2.rgb, h.x);\n    tint = mix(tint, f.color3.rgb, pow(core, 3.0) * 0.7);\n    float a = on * (core * (0.30 + 0.45 * tw) + halo * tw * (0.4 + 0.6 * f.glow) + flare * tw)\n            * (0.34 - 0.05 * k) * f.intensity * (0.65 + 0.5 * f.bass + 0.45 * f.pulse * tw);\n    acc += tint * a;\n    aAcc += a;\n  }\n  return vec4(acc, clamp(aAcc * (0.55 + 0.45 * f.glow), 0.0, 0.80));\n}\n"
+    },
+    {
+      "id": "hyperspace",
+      "name": "Hiperespacio",
+      "programId": "creator_hyperspace",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278256394,
+        4282305535,
+        4287259647,
+        4293851135
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.8,
+        "detail": 1.0,
+        "glow": 0.9
+      },
+      "shaderSource": "float hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\nvec2 hash22(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));\n}\nfloat vnoise(vec2 p) {\n  vec2 i = floor(p);\n  vec2 u = fract(p);\n  u = u * u * (3.0 - 2.0 * u);\n  return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),\n             mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);\n}\nfloat fbm4(vec2 p) {\n  float v = 0.0;\n  float a = 0.5;\n  for (int i = 0; i < 4; i++) {\n    v += a * vnoise(p);\n    p = p * 2.03 + vec2(11.7, 5.3);\n    a *= 0.5;\n  }\n  return v;\n}\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = f.size.x / max(f.size.y, 1.0);\n  vec2 p = vec2((uv.x - 0.5) * aspect, uv.y - 0.5);\n  float r = length(p) + 0.0001;\n  vec2 dir = p / r;\n  float ang = acos(clamp(dir.x, -1.0, 1.0));\n  if (dir.y < 0.0) {\n    ang = 6.2831853 - ang;\n  }\n  float t = f.time * f.speed;\n  float seed = mod(f.seedLow + f.seedHigh, 65535.0) * 0.007;\n  float warp = t * 0.5 + seed + 0.30 * f.flow + 0.22 * f.bass;\n  vec3 col = f.color0.rgb * (0.75 - 0.35 * clamp(r, 0.0, 1.0));\n  float n = fbm4(dir * 2.2 + vec2(seed, r * 3.0 - warp * 0.8));\n  col += f.color2.rgb * pow(clamp(n * 1.4 - 0.45, 0.0, 1.0), 2.2) * 0.40;\n  for (int i = 0; i < 3; i++) {\n    float k = float(i);\n    float ci = 30.0 + k * 22.0;\n    float ac = ang / 6.2831853 * ci;\n    float ai = floor(ac);\n    float af = fract(ac);\n    vec2 h = hash22(vec2(ai + k * 57.0, k * 13.7 + seed * 3.0));\n    float dAng = abs(af - 0.5 - (h.x - 0.5) * 0.62);\n    float z = fract(h.y * 7.31 + warp * (0.55 + 0.30 * k));\n    float rr = 0.02 + 1.55 * z * z;\n    float sw = 0.03 + 0.30 * z;\n    float dr = (r - rr) / sw;\n    float aw = 0.05 + 0.10 * z;\n    float streak = exp(-dAng * dAng / (aw * aw)) * exp(-dr * dr);\n    vec3 tint = mix(f.color1.rgb, f.color2.rgb, h.x);\n    tint = mix(tint, f.color3.rgb, z * z * 0.65);\n    col += tint * streak * smoothstep(0.02, 0.20, z) * (0.35 + 0.65 * z)\n         * (0.55 + 0.75 * f.energy + 0.30 * f.pulse);\n  }\n  col += f.color3.rgb * exp(-r * (7.5 - 2.4 * f.bass)) * (0.35 + 0.55 * f.bass + 0.35 * f.pulse);\n  float vig = clamp(1.10 - dot(p, p) * 0.30, 0.35, 1.0);\n  return vec4(col * vig * f.intensity, 1.0);\n}\n"
+    },
+    {
+      "id": "liquid_gold",
+      "name": "Oro líquido",
+      "programId": "creator_liquid_gold",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4279503618,
+        4288702996,
+        4293965122,
+        4294963663
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.5,
+        "detail": 1.0,
+        "glow": 0.75
+      },
+      "shaderSource": "float hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\nvec2 hash22(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));\n}\nfloat vnoise(vec2 p) {\n  vec2 i = floor(p);\n  vec2 u = fract(p);\n  u = u * u * (3.0 - 2.0 * u);\n  return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),\n             mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);\n}\nfloat fbm4(vec2 p) {\n  float v = 0.0;\n  float a = 0.5;\n  for (int i = 0; i < 4; i++) {\n    v += a * vnoise(p);\n    p = p * 2.03 + vec2(11.7, 5.3);\n    a *= 0.5;\n  }\n  return v;\n}\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = f.size.x / max(f.size.y, 1.0);\n  vec2 p = vec2((uv.x - 0.5) * aspect, uv.y);\n  float t = f.time * f.speed;\n  float seed = mod(f.seedLow + f.seedHigh, 65535.0) * 0.013;\n  vec2 drift = vec2(t * 0.045, -t * 0.030) * (1.0 + 1.6 * f.flow);\n  vec2 q = vec2(fbm4(p * 1.7 + drift + seed),\n                fbm4(p * 1.7 + vec2(5.2, 1.3) - drift + seed));\n  float freq = 1.5 + 0.9 * f.detail;\n  vec2 r = vec2(fbm4(p * freq + 2.4 * q + vec2(1.7, 9.2) + vec2(t * 0.06, -t * 0.05)),\n                fbm4(p * freq + 2.4 * q + vec2(8.3, 2.8) + vec2(-t * 0.04, t * 0.055)));\n  float ridge = fbm4(p * (2.1 + f.detail * 0.4) + 3.0 * r + seed);\n  float bands = 0.5 + 0.5 * sin((p.y * 3.4 + p.x * 1.2) * (0.8 + 0.6 * f.detail)\n                + ridge * 7.0 + t * 0.4 + seed);\n  float silk = pow(bands, 2.6);\n  float sheen = pow(clamp(ridge * 1.5 - 0.42, 0.0, 1.0), 2.6);\n  vec3 col = mix(f.color0.rgb, f.color0.rgb * 1.9, smoothstep(1.0, 0.0, uv.y));\n  col = mix(col, f.color1.rgb, clamp(silk * 0.9, 0.0, 1.0));\n  col = mix(col, f.color2.rgb, sheen * (0.50 + 0.35 * f.bass));\n  float glintN = vnoise(p * (70.0 + 60.0 * f.detail) + vec2(0.0, t * 0.6) + seed);\n  float glint = pow(clamp(glintN * 1.25 - 0.28, 0.0, 1.0), 8.0);\n  col += f.color3.rgb * glint * (0.25 + 1.4 * f.spark) * (0.35 + sheen);\n  col *= 0.90 + 0.18 * f.energy + 0.22 * f.pulse;\n  float vig = clamp(1.15 - dot(p, p) * 0.5, 0.4, 1.05);\n  return vec4(col * vig * f.intensity, 1.0);\n}\n"
+    },
+    {
+      "id": "neon_grid",
+      "name": "Neón · horizonte retro",
+      "programId": "creator_neon_grid",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278649618,
+        4294913646,
+        4286528511,
+        4280935167
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.55,
+        "detail": 1.0,
+        "glow": 0.85
+      },
+      "shaderSource": "float hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\nvec2 hash22(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));\n}\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = f.size.x / max(f.size.y, 1.0);\n  vec2 p = vec2((uv.x - 0.5) * aspect, uv.y);\n  float t = f.time * f.speed;\n  float seed = mod(f.seedLow + f.seedHigh, 65535.0) * 0.011;\n  float drive = 0.85 + 0.40 * f.energy + 0.30 * f.pulse + 0.20 * f.bass;\n  float horizon = 0.46;\n  float skyMask = smoothstep(1.0, horizon, uv.y);\n  vec3 sky = mix(f.color0.rgb * 0.22, f.color0.rgb, skyMask);\n  sky += f.color2.rgb * pow(skyMask, 3.0) * 0.16 * f.glow;\n  for (int i = 0; i < 2; i++) {\n    float k = float(i);\n    vec2 gp = vec2(p.x, uv.y) * (11.0 + k * 9.0) + vec2(seed * 3.1 + k * 7.3, k * 5.9);\n    gp.y += t * (0.06 + 0.05 * k);\n    vec2 cell = floor(gp);\n    vec2 h = hash22(cell + k * 17.0);\n    float on = step(0.86 - 0.05 * k, h.x);\n    vec2 pos = cell + 0.25 + 0.5 * h;\n    vec2 dd = gp - pos;\n    float d2 = dot(dd, dd);\n    float tw = 0.45 + 0.55 * sin(t * (1.2 + 2.4 * h.y) + h.x * 6.2831853);\n    float star = on * exp(-d2 * 700.0) * tw * (0.35 + 0.85 * f.spark);\n    sky += vec3(0.85, 0.90, 1.0) * star * skyMask * 0.30;\n  }\n  vec2 sp = vec2(p.x * 1.06, uv.y - (horizon - 0.155));\n  float sd = length(sp) - 0.245;\n  float disc = smoothstep(0.010, -0.010, sd);\n  float stripes = fract(sp.y * 21.0 - t * 0.05 + seed);\n  float gap = mix(1.0, smoothstep(0.28, 0.52, stripes), smoothstep(-0.02, 0.16, sp.y));\n  disc *= gap;\n  vec3 sun = mix(f.color1.rgb, f.color2.rgb, smoothstep(-0.24, 0.24, sp.y));\n  float halo = exp(-max(sd, 0.0) * 7.0) * 0.40 * f.glow;\n  vec3 col = sky + sun * disc * (0.85 + 0.35 * f.bass) * drive + sun * halo;\n  float ground = smoothstep(horizon - 0.0025, horizon + 0.0025, uv.y);\n  float gz = max(uv.y - horizon, 0.0018);\n  float persp = 0.62 / gz;\n  vec3 groundCol = f.color0.rgb * 0.42;\n  float rowCoord = persp * 0.85 + t * (1.1 + 1.2 * f.flow) + seed * 2.0;\n  float rowFr = abs(fract(rowCoord) - 0.5);\n  float rowPix = 0.85 * 0.62 / max(gz * gz * f.size.y, 1.0);\n  float rowLine = exp(-rowFr * rowFr / max(2.2 * rowPix * rowPix, 0.000001));\n  float vx = p.x * persp * 1.35;\n  float vFr = abs(fract(vx + 0.5) - 0.5);\n  float vPix = 1.35 * 0.62 / max(gz * f.size.x, 1.0);\n  float vLine = exp(-vFr * vFr / max(2.2 * vPix * vPix, 0.000001));\n  float gridFade = smoothstep(0.0, 0.045, gz) * (0.35 + 0.65 * smoothstep(horizon, 0.95, uv.y));\n  vec3 gridCol = mix(f.color3.rgb, f.color1.rgb, 0.25 + 0.30 * smoothstep(horizon, 1.0, uv.y));\n  float grid = (rowLine + vLine * 0.85) * gridFade * (0.55 + 0.45 * f.bass) * (0.40 + 0.60 * f.glow);\n  col = mix(col, groundCol + gridCol * grid * drive, ground);\n  float hb = (uv.y - horizon) * 26.0;\n  col += gridCol * exp(-hb * hb) * 0.22 * (0.5 + f.glow * 0.5);\n  float vig = clamp(1.0 - dot(p, p) * 0.28, 0.35, 1.0);\n  return vec4(col * vig * f.intensity, 1.0);\n}\n"
+    },
+    {
+      "id": "neon_rain",
+      "name": "Lluvia de neón",
+      "programId": "creator_neon_rain",
+      "role": "overlay",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278849310,
+        4282376447,
+        4288703487,
+        4293590271
+      ],
+      "controls": {
+        "intensity": 0.9,
+        "speed": 0.55,
+        "detail": 1.15,
+        "glow": 0.9
+      },
+      "shaderSource": "float hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\nvec2 hash22(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));\n}\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = f.size.x / max(f.size.y, 1.0);\n  vec2 p = vec2((uv.x - 0.5) * aspect, uv.y);\n  float t = f.time * f.speed;\n  float seed = mod(f.seedLow + f.seedHigh, 65535.0) * 0.013;\n  vec3 acc = vec3(0.0);\n  float aAcc = 0.0;\n  for (int i = 0; i < 3; i++) {\n    float k = float(i);\n    float cols = (16.0 + k * 22.0) * f.detail;\n    float cx = p.x * cols + k * 23.7 + seed * 5.0;\n    float ci = floor(cx);\n    float fx = fract(cx) - 0.5;\n    vec2 h = hash22(vec2(ci, k * 47.0 + seed));\n    float spd = 0.42 + 0.45 * h.y + 0.30 * f.flow + 0.22 * f.bass;\n    float len = 0.10 + 0.13 * h.x + 0.02 * k;\n    float head = fract(h.x * 11.3 + t * spd);\n    float rel = uv.y - head;\n    float inTrail = smoothstep(-len - 0.012, -len + 0.03, rel) * (1.0 - smoothstep(-0.016, 0.004, rel));\n    float lat = exp(-fx * fx * (22.0 - k * 4.0));\n    float along = clamp(-rel / max(len, 0.001), 0.0, 1.0);\n    float fade = 1.0 - 0.75 * along;\n    vec3 tint = mix(f.color1.rgb, f.color2.rgb, h.y);\n    tint = mix(tint, f.color3.rgb, 0.30 + 0.25 * h.x);\n    float a = inTrail * lat * fade * (0.62 - 0.12 * k) * (0.6 + 0.6 * f.spark + 0.3 * f.energy);\n    float hx2 = fx * fx * 700.0;\n    float hy2 = rel * rel * 900.0;\n    a += exp(-(hx2 + hy2)) * 0.38 * (0.7 + 0.6 * f.spark);\n    acc += tint * a;\n    aAcc += a;\n  }\n  for (int j = 0; j < 2; j++) {\n    float k = float(j);\n    vec2 gp = vec2(p.x, uv.y) * 4.5 + vec2(seed * 3.0 + k * 11.0, -t * 0.05 - k * 0.02);\n    vec2 cell = floor(gp);\n    vec2 h = hash22(cell + k * 29.0 + seed);\n    float on = step(0.45, h.x);\n    vec2 pos = cell + 0.25 + 0.50 * h;\n    vec2 dd = gp - pos;\n    float d2 = dot(dd, dd);\n    float bob = 0.5 + 0.5 * sin(t * (0.3 + 0.4 * h.y) + h.x * 6.2831853);\n    float g = exp(-d2 * (26.0 - k * 8.0));\n    vec3 tint = mix(f.color1.rgb, f.color2.rgb, h.y);\n    float a = on * g * bob * (0.13 - 0.04 * k) * (0.7 + 0.5 * f.glow);\n    acc += tint * a;\n    aAcc += a;\n  }\n  return vec4(acc * f.intensity, clamp(aAcc * (0.62 + 0.38 * f.glow), 0.0, 0.90));\n}\n"
+    },
+    {
+      "id": "ocean_caustics",
+      "name": "Océano · luz sumergida",
+      "programId": "creator_ocean_caustics",
+      "role": "background",
+      "reactivity": "none",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278391839,
+        4278799200,
+        4282506434,
+        4293591035
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.5,
+        "detail": 1.0,
+        "glow": 0.7
+      },
+      "shaderSource": "float hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\nvec2 hash22(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));\n}\nfloat vnoise(vec2 p) {\n  vec2 i = floor(p);\n  vec2 u = fract(p);\n  u = u * u * (3.0 - 2.0 * u);\n  return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),\n             mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);\n}\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = f.size.x / max(f.size.y, 1.0);\n  vec2 p = vec2((uv.x - 0.5) * aspect, uv.y);\n  float t = f.time * f.speed * 0.8;\n  float seed = mod(f.seedLow + f.seedHigh, 65535.0) * 0.017;\n  vec2 q = p * (2.6 + 1.4 * f.detail) + seed;\n  float ca = 0.0;\n  vec2 wv = vec2(0.0);\n  for (int i = 0; i < 3; i++) {\n    float k = float(i) + 1.0;\n    wv = vec2(sin(q.y * 5.9 * k + t * (0.50 + 0.20 * k) + wv.x * 1.2 + seed),\n              sin(q.x * 5.1 * k - t * (0.42 + 0.18 * k) + wv.y * 1.2));\n    ca += 0.5 + 0.5 * sin(q.x * (3.0 + 1.6 * k) + wv.x * 2.2 + t * 0.6 * k)\n              * sin(q.y * (4.2 - 0.8 * k) + wv.y * 2.0 - t * 0.5 * k);\n  }\n  ca /= 3.0;\n  float fil = pow(clamp(ca * 1.45 - 0.30, 0.0, 1.0), 5.0);\n  float depth = smoothstep(0.0, 1.0, uv.y);\n  vec3 col = mix(f.color1.rgb * 0.75, f.color0.rgb, depth);\n  col += f.color2.rgb * fil * (0.26 + 0.62 * exp(-uv.y * 2.6));\n  col += f.color1.rgb * pow(clamp(ca, 0.0, 1.0), 2.0) * 0.14 * (0.4 + 0.6 * (1.0 - depth));\n  float bend = vnoise(vec2(p.x * 1.8 - t * 0.11, uv.y * 1.4)) * 1.8;\n  float rays = pow(clamp(0.5 + 0.5 * sin(p.x * (5.5 + 2.0 * f.detail) + bend + t * 0.16 + seed), 0.0, 1.0), 4.0);\n  col += mix(f.color2.rgb, f.color3.rgb, 0.4) * rays * exp(-uv.y * 3.1) * 0.20 * (0.4 + 0.6 * f.glow);\n  vec2 gp = vec2(p.x, uv.y) * 13.0 + vec2(seed * 5.0, -t * 0.12);\n  vec2 cell = floor(gp);\n  vec2 h = hash22(cell + 7.7);\n  float on = step(0.90, h.x);\n  vec2 pos = cell + 0.30 + 0.40 * h;\n  float tw = 0.5 + 0.5 * sin(t * (0.8 + 1.6 * h.y) + h.x * 6.2831853);\n  vec2 dd = gp - pos;\n  float d2 = dot(dd, dd);\n  col += f.color3.rgb * on * exp(-d2 * 420.0) * tw * 0.16 * (0.5 + 0.5 * f.glow);\n  float vig = clamp(1.12 - dot(p, p) * 0.42, 0.42, 1.0);\n  return vec4(col * vig * f.intensity, 1.0);\n}\n"
+    },
+    {
       "id": "prismatic_halo",
       "name": "Halo · capa de luz",
       "programId": "creator_prismatic_halo",
@@ -66,6 +264,28 @@
         "glow": 0.8
       },
       "shaderSource": "vec4 paintVisual(vec2 uv, CreatorFrame f) {\nvec2 p = (uv - 0.5) * vec2(f.size.x / max(f.size.y, 1.0), 1.0);\nfloat t = f.time * f.speed * 0.2;\nvec3 c = f.color0.rgb;\nfor (int i = 0; i < 3; i++) {\n  float k = float(i);\n  vec2 center = 0.08 * vec2(cos(t + k * 2.1), sin(t * 0.7 + k * 2.1));\n  float r = length(p - center);\n  float ring = abs(r - (0.15 + k * 0.085));\n  float beam = exp(-ring * ring * 18000.0) * 0.5;\n  float halo = exp(-ring * 30.0) * 0.13 * f.glow;\n  vec3 ink = mix(f.color1.rgb, f.color3.rgb, k * 0.5);\n  c += ink * (beam + halo) * f.intensity;\n}\nreturn vec4(c, 1.0);\n}\n"
+    },
+    {
+      "id": "radial_spectrum",
+      "name": "Radar · espectro",
+      "programId": "creator_radial_spectrum",
+      "role": "background",
+      "reactivity": "music",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278453773,
+        4278248356,
+        4281302015,
+        4292111359
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.7,
+        "detail": 1.0,
+        "glow": 0.85
+      },
+      "shaderSource": "float hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\nvec2 hash22(vec2 p) {\n  vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));\n}\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = f.size.x / max(f.size.y, 1.0);\n  vec2 p = vec2((uv.x - 0.5) * aspect, uv.y - 0.5);\n  float r = length(p) + 0.0001;\n  float ang = acos(clamp(p.x / r, -1.0, 1.0));\n  if (p.y < 0.0) {\n    ang = 6.2831853 - ang;\n  }\n  float t = f.time * f.speed;\n  float seed = mod(f.seedLow + f.seedHigh, 65535.0);\n  float n = floor(40.0 + 40.0 * f.detail);\n  float ac = ang / 6.2831853 * n;\n  float ai = floor(ac);\n  float af = fract(ac);\n  vec2 h = hash22(vec2(ai, seed * 0.37));\n  float kick = exp(-f.phase * 3.2);\n  float wave = 0.5 + 0.5 * sin(t * 0.9 + ai * 1.7 + h.y * 6.2831853);\n  float wB = 0.5 + 0.5 * sin((ai / n) * 12.56637 + t * 0.5);\n  float wM = 0.5 + 0.5 * cos((ai / n) * 18.84956 - t * 0.37);\n  float wH = 0.5 + 0.5 * sin((ai / n) * 31.41593 + t * 0.61);\n  float spec = (f.bass * wB + f.body * wM + f.spark * wH) / max(wB + wM + wH, 0.35);\n  float flowMod = 0.10 * f.flow * sin(t * 1.3 + h.x * 6.2831853);\n  float level = clamp(0.10 + wave * 0.07 + spec * (0.52 + 0.30 * kick) + flowMod, 0.05, 1.0);\n  float r0 = 0.145;\n  float len = level * 0.26;\n  float barWin = smoothstep(0.02, 0.18, af) * smoothstep(0.98, 0.82, af);\n  float rr = r - r0;\n  float tip = 1.0 - smoothstep(len * 0.82, len, rr);\n  float bar = barWin * smoothstep(-0.010, 0.002, rr) * tip;\n  float glowTip = exp(-max(rr - len, 0.0) * 30.0) * barWin * (0.12 + 0.25 * level);\n  vec3 barCol = mix(f.color1.rgb, f.color2.rgb, clamp(level * 1.3, 0.0, 1.0));\n  barCol = mix(barCol, f.color3.rgb, pow(clamp(level * 1.5 - 0.65, 0.0, 1.0), 1.6));\n  vec3 col = mix(f.color0.rgb * 0.85, f.color0.rgb * 0.4, smoothstep(0.0, 0.55, r));\n  col += barCol * bar * (0.55 + 0.60 * f.energy + 0.30 * kick * f.bass);\n  col += barCol * glowTip * f.glow;\n  float rd2 = r - r0;\n  col += f.color1.rgb * exp(-rd2 * rd2 * 5200.0) * 0.20 * (0.5 + 0.5 * f.glow);\n  col += f.color2.rgb * exp(-r * 6.5) * (0.10 + 0.25 * f.bass * kick);\n  float vig = clamp(1.08 - dot(p, p) * 0.30, 0.40, 1.0);\n  return vec4(col * vig * f.intensity, 1.0);\n}\n"
     }
   ]
 }

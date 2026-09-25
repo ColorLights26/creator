@@ -31,6 +31,288 @@
       "reactivity": "optional"
     },
     {
+      "id": "crystal_prisms",
+      "name": "Prismas de cristal",
+      "description": "Cristales flotantes con dispersión cromática en los bordes; capa sutil.",
+      "purposes": [
+        "ambient",
+        "decor",
+        "relax"
+      ],
+      "moods": [
+        "elegant",
+        "dreamy"
+      ],
+      "concepts": [
+        "crystal",
+        "prism",
+        "glass",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "Proprietary",
+        "source": "Creator Studio collection"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "deep_space",
+      "name": "Espacio · nebulosa",
+      "description": "Nebulosas profundas con estrellas titilantes y fugaces ocasionales.",
+      "purposes": [
+        "relax",
+        "sleep",
+        "ambient"
+      ],
+      "moods": [
+        "calm",
+        "dreamy",
+        "mysterious"
+      ],
+      "concepts": [
+        "space",
+        "nebula",
+        "stars",
+        "galaxy"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "Proprietary",
+        "source": "Creator Studio collection"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "ember_glow",
+      "name": "Fuego · ascuas vivas",
+      "description": "Hogar de brasas con llamas suaves y chispas que suben con la música.",
+      "purposes": [
+        "relax",
+        "ambient",
+        "decor"
+      ],
+      "moods": [
+        "warm",
+        "cozy"
+      ],
+      "concepts": [
+        "fire",
+        "embers",
+        "glow",
+        "hearth"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "Proprietary",
+        "source": "Creator Studio collection"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "gold_dust",
+      "name": "Polvo de oro",
+      "description": "Partículas doradas flotantes con destellos que titilan sobre tu fondo.",
+      "purposes": [
+        "relax",
+        "ambient",
+        "decor"
+      ],
+      "moods": [
+        "elegant",
+        "warm",
+        "dreamy"
+      ],
+      "concepts": [
+        "gold",
+        "dust",
+        "bokeh",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "Proprietary",
+        "source": "Creator Studio collection"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "hyperspace",
+      "name": "Hiperespacio",
+      "description": "Túnel de estrellas que se acelera con los graves y estalla en cada beat.",
+      "purposes": [
+        "party",
+        "visualizer",
+        "ambient"
+      ],
+      "moods": [
+        "energetic",
+        "futuristic"
+      ],
+      "concepts": [
+        "warp",
+        "stars",
+        "tunnel",
+        "speed"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "Proprietary",
+        "source": "Creator Studio collection"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "liquid_gold",
+      "name": "Oro líquido",
+      "description": "Seda de oro fundido que fluye con brillos chispeantes al ritmo.",
+      "purposes": [
+        "relax",
+        "ambient",
+        "decor"
+      ],
+      "moods": [
+        "elegant",
+        "warm",
+        "dreamy"
+      ],
+      "concepts": [
+        "gold",
+        "silk",
+        "liquid",
+        "luxury"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "Proprietary",
+        "source": "Creator Studio collection"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "neon_grid",
+      "name": "Neón · horizonte retro",
+      "description": "Sol retro de neón sobre una rejilla que avanza latiendo con la música.",
+      "purposes": [
+        "party",
+        "ambient",
+        "decor"
+      ],
+      "moods": [
+        "energetic",
+        "nostalgic"
+      ],
+      "concepts": [
+        "retrowave",
+        "grid",
+        "sun",
+        "neon"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "Proprietary",
+        "source": "Creator Studio collection"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "neon_rain",
+      "name": "Lluvia de neón",
+      "description": "Capa transparente de lluvia luminosa con destellos de ciudad al fondo.",
+      "purposes": [
+        "ambient",
+        "decor",
+        "sleep"
+      ],
+      "moods": [
+        "mysterious",
+        "calm"
+      ],
+      "concepts": [
+        "rain",
+        "neon",
+        "overlay",
+        "city"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "Proprietary",
+        "source": "Creator Studio collection"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "ocean_caustics",
+      "name": "Océano · luz sumergida",
+      "description": "Caústicas submarinas con rayos de luz descendentes; movimiento ambiental.",
+      "purposes": [
+        "relax",
+        "sleep",
+        "focus"
+      ],
+      "moods": [
+        "calm",
+        "meditative"
+      ],
+      "concepts": [
+        "ocean",
+        "caustics",
+        "underwater",
+        "light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "Proprietary",
+        "source": "Creator Studio collection"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "none"
+    },
+    {
       "id": "prismatic_halo",
       "name": "Halo · capa de luz",
       "description": "Un halo de luz transparente que acompaña los acentos musicales.",
@@ -87,6 +369,36 @@
       "publication": "draft",
       "role": "background",
       "reactivity": "none"
+    },
+    {
+      "id": "radial_spectrum",
+      "name": "Radar · espectro",
+      "description": "Corona radial de barras que dibuja el espectro y late con el tempo.",
+      "purposes": [
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "energetic",
+        "focused"
+      ],
+      "concepts": [
+        "spectrum",
+        "radial",
+        "music",
+        "visualizer"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "Proprietary",
+        "source": "Creator Studio collection"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "music"
     }
   ]
 }
