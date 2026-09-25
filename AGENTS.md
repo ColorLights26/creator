@@ -17,7 +17,10 @@ No añadas dependencias de `minibase`, `base`, `skeleton`, `metadata`,
 El README principal y `studio/README.md` están dirigidos a colaboradores que
 saben compilar Flutter y usar una IA. Conserva instrucciones concretas con un
 ejemplo completo; la aprobación, arquitectura y comprobaciones avanzadas viven
-en `MAINTAINER.md`. No mezcles los comandos del responsable de Color Lights con
+en `MAINTAINER.md`. Las instrucciones técnicas para la IA viven dentro de la
+plantilla; al colaborador sólo se le pide describir el efecto. La validación
+previa del SDK debe seguir compartida entre Studio y la revisión de la app.
+No mezcles los comandos del responsable de Color Lights con
 los pasos necesarios para crear un visual en el estudio independiente.
 
 Revisa el estado Git antes de editar y conserva cambios de otros colaboradores.

@@ -32,6 +32,10 @@ olas_metadata.dart  → nombre, tipo, reacción musical y miniatura
 ```
 
 Copia ambas plantillas de [templates/](../templates/) y renombra las copias.
+Para pedir el dibujo, pega la plantilla en la IA y describe tu idea:
+«Crea un fondo de olas azules que reaccionen a la música». La propia plantilla
+incluye las instrucciones técnicas. El código que recibas reemplaza `olas.dart`.
+
 Pon un `id` diferente a cada visual. Los tipos disponibles son fondo
 (`CreatorRole.background`) y transparencia (`CreatorRole.overlay`); ambos pueden
 usar música. La [guía completa](../README.md#4-ponle-nombre-y-elige-su-comportamiento)

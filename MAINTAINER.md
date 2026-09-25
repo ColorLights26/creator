@@ -13,6 +13,17 @@ Xcode y CocoaPods; el destino mínimo es iOS 15. Los paquetes declaran Dart >=3.
 y el SDK gráfico Flutter >=3.29; esos límites no certifican el proyecto nativo
 completo en versiones anteriores.
 
+La plantilla incorpora el contrato de respuesta para la IA: el colaborador
+sólo añade una descripción creativa. Esto orienta al modelo, no garantiza que
+obedezca. Antes de importar archivos de autor, `compile_visuals.dart` aplica la
+misma validación de envoltorio Dart que la revisión de entrada a la app, desde
+`scene_compositor/lib/src/creator_source_admission.dart`. Rechaza declaraciones
+extra y formatos ajenos con el nombre del archivo; no ejecuta una respuesta
+rechazada. Después se verifican metadata, restricciones del shader y compilación
+para la plataforma. No es una certificación estética, térmica ni un sandbox GPU.
+Los errores de validación de la generación no reemplazan parcialmente los
+assets runtime. El fallo sigue bloqueando el build: corregir y volver a ejecutar.
+
 El par de autoría mantiene `const shaderSource` en el archivo de código y
 `const metadata = CreatorVisualMetadata(...)` en el archivo de datos. El dibujo
 es GLSL portable dentro de Dart; no es un widget Flutter arbitrario. Los archivos

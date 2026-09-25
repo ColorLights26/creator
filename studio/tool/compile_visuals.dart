@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:scene_compositor/authoring.dart';
 
 /// Bootstrap discovery before importing any generated library. Dart cannot
 /// discover new source files at runtime; this runs before the application build.
@@ -73,6 +74,25 @@ String generateCreatorRegistry(Directory visualsDirectory) {
     throw const FormatException(
       'Añade entre 1 y 64 pares de visual y metadata.',
     );
+  }
+  for (final name in names) {
+    final metadataName = name.replaceFirst('.dart', '_metadata.dart');
+    for (final entry
+        in {
+          name: validateCreatorVisualSource,
+          metadataName: validateCreatorMetadataSource,
+        }.entries) {
+      try {
+        entry.value(
+          File('${visualsDirectory.path}/${entry.key}').readAsStringSync(),
+        );
+      } on FormatException catch (error) {
+        throw FormatException(
+          '${entry.key}: ${error.message}\n'
+          'El visual no se ha aceptado. Vuelve a enviar la plantilla y este error a la IA.',
+        );
+      }
+    }
   }
   return '''// Generated from lib/visuals/*.dart. Do not edit.
 import 'package:scene_compositor/authoring.dart';

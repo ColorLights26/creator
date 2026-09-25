@@ -69,23 +69,23 @@ Editar sólo una plantilla allí no añade nada a la lista.
 ## 3. Pídele el dibujo a la IA
 
 Copia todo el contenido de [visual_template.dart](templates/visual_template.dart)
-y pégalo en la conversación con tu IA. Añade este mensaje, cambiando la
-primera frase por el efecto que quieres:
+y pégalo en la conversación con tu IA. La plantilla ya incluye las instrucciones
+sobre qué devolver y cómo trabajar dentro del proyecto. **Tú sólo describes
+el efecto que quieres**, por ejemplo:
 
 ```text
-Quiero un fondo de olas suaves azules, que se muevan despacio y reaccionen
-suavemente a la música.
-
-Usa el archivo de plantilla que te pegué. Devuélveme el archivo completo
-para guardarlo como olas.dart, listo para reemplazar su contenido.
-
-Conserva const shaderSource, paintVisual y todas las reglas de la plantilla.
-El tipo será CreatorRole.background y la reacción CreatorReactivity.optional.
-El fondo debe ser opaco (alpha 1) y seguir viéndose bien sin música.
-Mantén el efecto ligero y respeta el presupuesto de la plantilla.
-No añadas widgets, sensores, archivos, dependencias ni cambios al proyecto.
-La metadata va en otro archivo: en esta respuesta entrega sólo olas.dart.
+Crea un fondo de olas azules suaves que reaccionen a la música.
 ```
+
+Para una capa transparente puedes decir:
+
+```text
+Crea partículas doradas sobre fondo transparente que reaccionen a la música.
+```
+
+No necesitas escribir nombres de funciones ni instrucciones técnicas en tu
+mensaje. Al pedir mejoras, vuelve a adjuntar la plantilla y el archivo actual,
+y describe el cambio: «Haz las olas más lentas y de color violeta».
 
 Copia **todo el código** que devuelva y reemplaza el contenido de `olas.dart`.
 Si la IA lo muestra entre marcas como ` ```dart ` y ` ``` `, copia únicamente
@@ -113,9 +113,8 @@ Después elige el tipo. La plantilla ya viene como fondo:
 | Un efecto que deja ver lo que hay detrás | `role: CreatorRole.overlay,` |
 
 **Cambiar esta línea no borra el fondo del dibujo.** Para un efecto transparente,
-dile también a la IA: «Será un overlay. Deja las zonas vacías transparentes
-(alpha 0), sin un rectángulo negro de fondo». Cambia el tipo en el mensaje
-del paso 3 para que coincida con la metadata.
+pide a la IA «un efecto sobre fondo transparente». Así la descripción del
+paso 3 y el tipo que elijas aquí se refieren a lo mismo.
 
 Elige cómo usa la música:
 
@@ -178,12 +177,16 @@ existente; para crear Fuego, añade otra pareja. Puedes conservar los ejemplos.
 | El código de la IA no compila | Copia el primer error completo, el contenido de tu visual y la plantilla a la IA. Usa el mensaje de abajo. |
 
 ```text
-Este visual no compila. Te paso el primer error, mi archivo actual y la plantilla.
-Corrige el visual respetando las reglas de la plantilla y devuélveme su archivo
-completo. Conserva la separación entre código y metadata. No modifiques el motor,
-main.dart, pubspec.yaml ni añadas paquetes. Si el error señala la metadata,
-indica qué cambio necesita ese archivo por separado.
+Corrige este error usando la plantilla. Te adjunto el error y el archivo actual.
 ```
+
+**La IA puede equivocarse aunque reciba la plantilla.** Al ejecutar, Creator
+comprueba el formato de lo que pegaste antes de incorporarlo: detecta, por
+ejemplo, HTML, una app Flutter completa, código sin su envoltorio y las marcas
+Markdown copiadas por error. El mensaje identifica el archivo. Después se
+validan los datos y se compila el dibujo; cualquier error bloquea ese build.
+Copia el error junto con la plantilla y el archivo para que la IA lo corrija.
+Estas comprobaciones no deciden si el resultado es bonito o consume poca batería.
 
 Si el error aparece antes de crear un visual, al ejecutar los ejemplos originales,
 comparte ese error con el responsable del proyecto para revisar la instalación.

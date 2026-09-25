@@ -1,5 +1,23 @@
-// CÓDIGO DEL VISUAL — copia este archivo completo a la IA.
-// Pide el efecto conservando const shaderSource, paintVisual y estas reglas.
+// PARA EL CREADOR: copia este archivo completo a la IA y describe tu idea.
+// Ejemplo: "Quiero un fondo de olas azules suaves que reaccionen a la música".
+// No necesitas copiar ni explicar por separado las instrucciones técnicas.
+//
+// PARA LA IA — CONTRATO DE RESPUESTA:
+// Este archivo es la plantilla completa de un visual para Creator.
+// La petición del creador describe su aspecto; conserva este contrato técnico.
+// Devuelve un único archivo Dart completo: este encabezado de instrucciones y
+// const shaderSource = r'''...'''; con el dibujo solicitado dentro del string.
+// Devuelve sólo el contenido del archivo, sin explicación ni marcas Markdown.
+// No omitas partes con "...". No devuelvas HTML, main(), widgets ni un proyecto.
+// Conserva este encabezado para que también acompañe las siguientes revisiones.
+// La metadata existe en otro archivo: no la mezcles ni la incluyas en la respuesta.
+// Si se pide un fondo, devuelve alpha 1; si se pide una capa transparente,
+// las zonas vacías deben devolver alpha 0. Si no se indica tipo, usa un fondo.
+// Usa las señales de CreatorFrame si se pide música; con todas a cero el efecto
+// debe seguir siendo válido. No inventes APIs ni nombres de señales.
+// Antes de responder, revisa formato completo, paintVisual, transparencia,
+// compatibilidad de tipos y coste acotado según las reglas que siguen.
+//
 // Guarda la respuesta en packages/visual_catalog/lib/visuals/olas.dart.
 // Sus datos van APARTE en olas_metadata.dart (const metadata).
 // El generador empareja ambos nombres; no se importan uno al otro.

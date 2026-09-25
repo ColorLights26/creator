@@ -16,12 +16,12 @@ void main() {
   tearDown(() => catalog.deleteSync(recursive: true));
 
   void writePair(String name) {
-    File(
-      '${visuals.path}/$name.dart',
-    ).writeAsStringSync('const shaderSource = \'paintVisual\';');
-    File(
-      '${visuals.path}/${name}_metadata.dart',
-    ).writeAsStringSync('const metadata = null;');
+    File('${visuals.path}/$name.dart').writeAsStringSync(
+      "const shaderSource = r'''vec4 paintVisual(vec2 uv, CreatorFrame f) { return vec4(1.0); }''';",
+    );
+    File('${visuals.path}/${name}_metadata.dart').writeAsStringSync(
+      "import 'package:scene_compositor/authoring.dart';\nconst metadata = CreatorVisualMetadata(id: '$name', name: '$name');",
+    );
   }
 
   test(
@@ -110,5 +110,72 @@ void main() {
       ..writeAsStringSync('source');
     Link('${visuals.path}/external.dart').createSync(source.path);
     expect(() => generateCreatorRegistry(visuals), throwsFormatException);
+  });
+
+  test('common AI paste mistakes fail before replacing the registry', () {
+    writePair('valid');
+    writeCreatorRegistry(catalog);
+    final registry = File('${catalog.path}/lib/src/registry.g.dart');
+    final previous = registry.readAsStringSync();
+    writePair('olas');
+    final source = File('${visuals.path}/olas.dart');
+    final good = source.readAsStringSync();
+    for (final bad in [
+      '```dart\n$good\n```',
+      '<html><canvas></canvas></html>',
+      'import "package:flutter/material.dart"; void main() {}',
+      'vec4 paintVisual(vec2 uv, CreatorFrame f) { return vec4(1.0); }',
+      '$good\nfinal extra = 1;',
+    ]) {
+      source.writeAsStringSync(bad);
+      expect(
+        () => writeCreatorRegistry(catalog),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('olas.dart'),
+          ),
+        ),
+      );
+      expect(registry.readAsStringSync(), previous);
+    }
+  });
+
+  test('metadata mixed with executable code identifies the separate file', () {
+    writePair('olas');
+    final file = File('${visuals.path}/olas_metadata.dart');
+    file.writeAsStringSync('${file.readAsStringSync()}\nvoid main() {}');
+    expect(
+      () => generateCreatorRegistry(visuals),
+      throwsA(
+        isA<FormatException>().having(
+          (e) => e.message,
+          'message',
+          contains('olas_metadata.dart'),
+        ),
+      ),
+    );
+  });
+
+  test('the complete copyable templates pass the same admission gate', () {
+    final root = Directory.current.parent;
+    File('${visuals.path}/olas.dart').writeAsStringSync(
+      File('${root.path}/templates/visual_template.dart').readAsStringSync(),
+    );
+    File('${visuals.path}/olas_metadata.dart').writeAsStringSync(
+      File(
+        '${root.path}/templates/visual_template_metadata.dart',
+      ).readAsStringSync(),
+    );
+    expect(() => generateCreatorRegistry(visuals), returnsNormally);
+    final source = File('${visuals.path}/olas.dart');
+    source.writeAsStringSync(
+      source.readAsStringSync().replaceFirst(
+        RegExp(r'^const shaderSource =', multiLine: true),
+        'const shaderSource =\n',
+      ),
+    );
+    expect(() => generateCreatorRegistry(visuals), returnsNormally);
   });
 }

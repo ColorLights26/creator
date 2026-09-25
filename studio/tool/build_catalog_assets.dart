@@ -27,21 +27,19 @@ void main() {
         throw FormatException('${visual.id}: no existe la miniatura $path.');
       }
     }
-    _writeIfChanged(
-      File('${catalogRoot.path}/assets/creator_catalog.json'),
-      '${encodeCreatorCatalog(visuals)}\n',
-    );
-    _writeIfChanged(
-      File('${catalogRoot.path}/shaders/creator_programs.frag'),
-      compilePortableShader(visuals),
-    );
-    _writeIfChanged(
-      File('${catalogRoot.path}/assets/catalog_metadata.json'),
-      '${const JsonEncoder.withIndent('  ').convert({
-        'schemaVersion': 1,
-        'visuals': [for (final visual in visuals) visual.toMetadata()],
-      })}\n',
-    );
+    // Prepare every output before writing: a validation failure must not replace
+    // runtime assets with a mixture of the previous and rejected catalogs.
+    final outputs = {
+      '${catalogRoot.path}/assets/creator_catalog.json':
+          '${encodeCreatorCatalog(visuals)}\n',
+      '${catalogRoot.path}/shaders/creator_programs.frag':
+          compilePortableShader(visuals),
+      '${catalogRoot.path}/assets/catalog_metadata.json':
+          '${const JsonEncoder.withIndent('  ').convert({
+            'schemaVersion': 1,
+            'visuals': [for (final visual in visuals) visual.toMetadata()],
+          })}\n',
+    };
     final recordings = <Map<String, Object>>[];
     final directory = Directory('${root.path}/recordings');
     if (directory.existsSync()) {
@@ -78,10 +76,11 @@ void main() {
         });
       }
     }
-    _writeIfChanged(
-      File('${root.path}/assets/recordings.json'),
-      '${jsonEncode(recordings)}\n',
-    );
+    outputs['${root.path}/assets/recordings.json'] =
+        '${jsonEncode(recordings)}\n';
+    for (final entry in outputs.entries) {
+      _writeIfChanged(File(entry.key), entry.value);
+    }
     stdout.writeln(
       'Visual Studio: ${visuals.length} visuales, ${recordings.length} grabaciones.',
     );
