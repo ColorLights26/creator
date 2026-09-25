@@ -1,0 +1,2409 @@
+{
+  "formatVersion": 1,
+  "kind": "scene_timeline_reference_v1",
+  "qaSessionSeed": 26,
+  "authoredFramesPerSecond": 30.0,
+  "observedFramesPerSecond": 30.0,
+  "samples": [
+    {
+      "hostTimeMicros": 0,
+      "mediaPtsMicros": 1000000,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 33333,
+      "mediaPtsMicros": 1033333,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 66667,
+      "mediaPtsMicros": 1066667,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 100000,
+      "mediaPtsMicros": 1100000,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 133333,
+      "mediaPtsMicros": 1133333,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 166667,
+      "mediaPtsMicros": 1166667,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 200000,
+      "mediaPtsMicros": 1200000,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 233333,
+      "mediaPtsMicros": 1233333,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 266667,
+      "mediaPtsMicros": 1266667,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 300000,
+      "mediaPtsMicros": 1300000,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 333333,
+      "mediaPtsMicros": 1333333,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 366667,
+      "mediaPtsMicros": 1366667,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 400000,
+      "mediaPtsMicros": 1400000,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 433333,
+      "mediaPtsMicros": 1433333,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 466667,
+      "mediaPtsMicros": 1466667,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 500000,
+      "mediaPtsMicros": 1500000,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 533333,
+      "mediaPtsMicros": 1533333,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 566667,
+      "mediaPtsMicros": 1566667,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 600000,
+      "mediaPtsMicros": 1600000,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 633333,
+      "mediaPtsMicros": 1633333,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 666667,
+      "mediaPtsMicros": 1666667,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 700000,
+      "mediaPtsMicros": 1700000,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 733333,
+      "mediaPtsMicros": 1733333,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 766667,
+      "mediaPtsMicros": 1766667,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 800000,
+      "mediaPtsMicros": 1800000,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 833333,
+      "mediaPtsMicros": 1833333,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 866667,
+      "mediaPtsMicros": 1866667,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 900000,
+      "mediaPtsMicros": 1900000,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 933333,
+      "mediaPtsMicros": 1933333,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 966667,
+      "mediaPtsMicros": 1966667,
+      "eventSerials": {
+        "impact": 0,
+        "accent": 0,
+        "beat": 0,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1000000,
+      "mediaPtsMicros": 2000000,
+      "eventSerials": {
+        "impact": 1,
+        "accent": 0,
+        "beat": 1,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1033333,
+      "mediaPtsMicros": 2033333,
+      "eventSerials": {
+        "impact": 1,
+        "accent": 0,
+        "beat": 1,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1066667,
+      "mediaPtsMicros": 2066667,
+      "eventSerials": {
+        "impact": 1,
+        "accent": 0,
+        "beat": 1,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1100000,
+      "mediaPtsMicros": 2100000,
+      "eventSerials": {
+        "impact": 1,
+        "accent": 0,
+        "beat": 1,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1133333,
+      "mediaPtsMicros": 2133333,
+      "eventSerials": {
+        "impact": 1,
+        "accent": 0,
+        "beat": 1,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1166667,
+      "mediaPtsMicros": 2166667,
+      "eventSerials": {
+        "impact": 1,
+        "accent": 0,
+        "beat": 1,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1200000,
+      "mediaPtsMicros": 2200000,
+      "eventSerials": {
+        "impact": 1,
+        "accent": 0,
+        "beat": 1,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1233333,
+      "mediaPtsMicros": 2233333,
+      "eventSerials": {
+        "impact": 1,
+        "accent": 0,
+        "beat": 1,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1266667,
+      "mediaPtsMicros": 2266667,
+      "eventSerials": {
+        "impact": 1,
+        "accent": 0,
+        "beat": 1,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1300000,
+      "mediaPtsMicros": 2300000,
+      "eventSerials": {
+        "impact": 1,
+        "accent": 0,
+        "beat": 1,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1333333,
+      "mediaPtsMicros": 2333333,
+      "eventSerials": {
+        "impact": 1,
+        "accent": 0,
+        "beat": 1,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1366667,
+      "mediaPtsMicros": 2366667,
+      "eventSerials": {
+        "impact": 1,
+        "accent": 0,
+        "beat": 1,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1400000,
+      "mediaPtsMicros": 2400000,
+      "eventSerials": {
+        "impact": 1,
+        "accent": 0,
+        "beat": 1,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1433333,
+      "mediaPtsMicros": 2433333,
+      "eventSerials": {
+        "impact": 1,
+        "accent": 0,
+        "beat": 1,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1466667,
+      "mediaPtsMicros": 2466667,
+      "eventSerials": {
+        "impact": 1,
+        "accent": 0,
+        "beat": 1,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1500000,
+      "mediaPtsMicros": 2500000,
+      "eventSerials": {
+        "impact": 2,
+        "accent": 0,
+        "beat": 2,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1533333,
+      "mediaPtsMicros": 2533333,
+      "eventSerials": {
+        "impact": 2,
+        "accent": 0,
+        "beat": 2,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1566667,
+      "mediaPtsMicros": 2566667,
+      "eventSerials": {
+        "impact": 2,
+        "accent": 0,
+        "beat": 2,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1600000,
+      "mediaPtsMicros": 2600000,
+      "eventSerials": {
+        "impact": 2,
+        "accent": 0,
+        "beat": 2,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1633333,
+      "mediaPtsMicros": 2633333,
+      "eventSerials": {
+        "impact": 2,
+        "accent": 0,
+        "beat": 2,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1666667,
+      "mediaPtsMicros": 2666667,
+      "eventSerials": {
+        "impact": 2,
+        "accent": 0,
+        "beat": 2,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1700000,
+      "mediaPtsMicros": 2700000,
+      "eventSerials": {
+        "impact": 2,
+        "accent": 0,
+        "beat": 2,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1733333,
+      "mediaPtsMicros": 2733333,
+      "eventSerials": {
+        "impact": 2,
+        "accent": 0,
+        "beat": 2,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1766667,
+      "mediaPtsMicros": 2766667,
+      "eventSerials": {
+        "impact": 2,
+        "accent": 0,
+        "beat": 2,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1800000,
+      "mediaPtsMicros": 2800000,
+      "eventSerials": {
+        "impact": 2,
+        "accent": 0,
+        "beat": 2,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1833333,
+      "mediaPtsMicros": 2833333,
+      "eventSerials": {
+        "impact": 2,
+        "accent": 0,
+        "beat": 2,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1866667,
+      "mediaPtsMicros": 2866667,
+      "eventSerials": {
+        "impact": 2,
+        "accent": 0,
+        "beat": 2,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1900000,
+      "mediaPtsMicros": 2900000,
+      "eventSerials": {
+        "impact": 2,
+        "accent": 0,
+        "beat": 2,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1933333,
+      "mediaPtsMicros": 2933333,
+      "eventSerials": {
+        "impact": 2,
+        "accent": 0,
+        "beat": 2,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 1966667,
+      "mediaPtsMicros": 2966667,
+      "eventSerials": {
+        "impact": 2,
+        "accent": 0,
+        "beat": 2,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2000000,
+      "mediaPtsMicros": 3000000,
+      "eventSerials": {
+        "impact": 3,
+        "accent": 0,
+        "beat": 3,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2033333,
+      "mediaPtsMicros": 3033333,
+      "eventSerials": {
+        "impact": 3,
+        "accent": 0,
+        "beat": 3,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2066667,
+      "mediaPtsMicros": 3066667,
+      "eventSerials": {
+        "impact": 3,
+        "accent": 0,
+        "beat": 3,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2100000,
+      "mediaPtsMicros": 3100000,
+      "eventSerials": {
+        "impact": 3,
+        "accent": 0,
+        "beat": 3,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2133333,
+      "mediaPtsMicros": 3133333,
+      "eventSerials": {
+        "impact": 3,
+        "accent": 0,
+        "beat": 3,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2166667,
+      "mediaPtsMicros": 3166667,
+      "eventSerials": {
+        "impact": 3,
+        "accent": 0,
+        "beat": 3,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2200000,
+      "mediaPtsMicros": 3200000,
+      "eventSerials": {
+        "impact": 3,
+        "accent": 0,
+        "beat": 3,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2233333,
+      "mediaPtsMicros": 3233333,
+      "eventSerials": {
+        "impact": 3,
+        "accent": 0,
+        "beat": 3,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2266667,
+      "mediaPtsMicros": 3266667,
+      "eventSerials": {
+        "impact": 3,
+        "accent": 0,
+        "beat": 3,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2300000,
+      "mediaPtsMicros": 3300000,
+      "eventSerials": {
+        "impact": 3,
+        "accent": 0,
+        "beat": 3,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2333333,
+      "mediaPtsMicros": 3333333,
+      "eventSerials": {
+        "impact": 3,
+        "accent": 0,
+        "beat": 3,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2366667,
+      "mediaPtsMicros": 3366667,
+      "eventSerials": {
+        "impact": 3,
+        "accent": 0,
+        "beat": 3,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2400000,
+      "mediaPtsMicros": 3400000,
+      "eventSerials": {
+        "impact": 3,
+        "accent": 0,
+        "beat": 3,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2433333,
+      "mediaPtsMicros": 3433333,
+      "eventSerials": {
+        "impact": 3,
+        "accent": 0,
+        "beat": 3,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2466667,
+      "mediaPtsMicros": 3466667,
+      "eventSerials": {
+        "impact": 3,
+        "accent": 0,
+        "beat": 3,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2500000,
+      "mediaPtsMicros": 3500000,
+      "eventSerials": {
+        "impact": 4,
+        "accent": 0,
+        "beat": 4,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2533333,
+      "mediaPtsMicros": 3533333,
+      "eventSerials": {
+        "impact": 4,
+        "accent": 0,
+        "beat": 4,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2566667,
+      "mediaPtsMicros": 3566667,
+      "eventSerials": {
+        "impact": 4,
+        "accent": 0,
+        "beat": 4,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2600000,
+      "mediaPtsMicros": 3600000,
+      "eventSerials": {
+        "impact": 4,
+        "accent": 0,
+        "beat": 4,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2633333,
+      "mediaPtsMicros": 3633333,
+      "eventSerials": {
+        "impact": 4,
+        "accent": 0,
+        "beat": 4,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2666667,
+      "mediaPtsMicros": 3666667,
+      "eventSerials": {
+        "impact": 4,
+        "accent": 0,
+        "beat": 4,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2700000,
+      "mediaPtsMicros": 3700000,
+      "eventSerials": {
+        "impact": 4,
+        "accent": 0,
+        "beat": 4,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2733333,
+      "mediaPtsMicros": 3733333,
+      "eventSerials": {
+        "impact": 4,
+        "accent": 0,
+        "beat": 4,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2766667,
+      "mediaPtsMicros": 3766667,
+      "eventSerials": {
+        "impact": 4,
+        "accent": 0,
+        "beat": 4,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2800000,
+      "mediaPtsMicros": 3800000,
+      "eventSerials": {
+        "impact": 4,
+        "accent": 0,
+        "beat": 4,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2833333,
+      "mediaPtsMicros": 3833333,
+      "eventSerials": {
+        "impact": 4,
+        "accent": 0,
+        "beat": 4,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2866667,
+      "mediaPtsMicros": 3866667,
+      "eventSerials": {
+        "impact": 4,
+        "accent": 0,
+        "beat": 4,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2900000,
+      "mediaPtsMicros": 3900000,
+      "eventSerials": {
+        "impact": 4,
+        "accent": 0,
+        "beat": 4,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2933333,
+      "mediaPtsMicros": 3933333,
+      "eventSerials": {
+        "impact": 4,
+        "accent": 0,
+        "beat": 4,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 2966667,
+      "mediaPtsMicros": 3966667,
+      "eventSerials": {
+        "impact": 4,
+        "accent": 0,
+        "beat": 4,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3000000,
+      "mediaPtsMicros": 4000000,
+      "eventSerials": {
+        "impact": 5,
+        "accent": 0,
+        "beat": 5,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3033333,
+      "mediaPtsMicros": 4033333,
+      "eventSerials": {
+        "impact": 5,
+        "accent": 0,
+        "beat": 5,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3066667,
+      "mediaPtsMicros": 4066667,
+      "eventSerials": {
+        "impact": 5,
+        "accent": 0,
+        "beat": 5,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3100000,
+      "mediaPtsMicros": 4100000,
+      "eventSerials": {
+        "impact": 5,
+        "accent": 0,
+        "beat": 5,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3133333,
+      "mediaPtsMicros": 4133333,
+      "eventSerials": {
+        "impact": 5,
+        "accent": 0,
+        "beat": 5,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3166667,
+      "mediaPtsMicros": 4166667,
+      "eventSerials": {
+        "impact": 5,
+        "accent": 0,
+        "beat": 5,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3200000,
+      "mediaPtsMicros": 4200000,
+      "eventSerials": {
+        "impact": 5,
+        "accent": 0,
+        "beat": 5,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3233333,
+      "mediaPtsMicros": 4233333,
+      "eventSerials": {
+        "impact": 5,
+        "accent": 0,
+        "beat": 5,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3266667,
+      "mediaPtsMicros": 4266667,
+      "eventSerials": {
+        "impact": 5,
+        "accent": 0,
+        "beat": 5,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3300000,
+      "mediaPtsMicros": 4300000,
+      "eventSerials": {
+        "impact": 5,
+        "accent": 0,
+        "beat": 5,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3333333,
+      "mediaPtsMicros": 4333333,
+      "eventSerials": {
+        "impact": 5,
+        "accent": 0,
+        "beat": 5,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3366667,
+      "mediaPtsMicros": 4366667,
+      "eventSerials": {
+        "impact": 5,
+        "accent": 0,
+        "beat": 5,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3400000,
+      "mediaPtsMicros": 4400000,
+      "eventSerials": {
+        "impact": 5,
+        "accent": 0,
+        "beat": 5,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3433333,
+      "mediaPtsMicros": 4433333,
+      "eventSerials": {
+        "impact": 5,
+        "accent": 0,
+        "beat": 5,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3466667,
+      "mediaPtsMicros": 4466667,
+      "eventSerials": {
+        "impact": 5,
+        "accent": 0,
+        "beat": 5,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3500000,
+      "mediaPtsMicros": 4500000,
+      "eventSerials": {
+        "impact": 6,
+        "accent": 0,
+        "beat": 6,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3533333,
+      "mediaPtsMicros": 4533333,
+      "eventSerials": {
+        "impact": 6,
+        "accent": 0,
+        "beat": 6,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3566667,
+      "mediaPtsMicros": 4566667,
+      "eventSerials": {
+        "impact": 6,
+        "accent": 0,
+        "beat": 6,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3600000,
+      "mediaPtsMicros": 4600000,
+      "eventSerials": {
+        "impact": 6,
+        "accent": 0,
+        "beat": 6,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3633333,
+      "mediaPtsMicros": 4633333,
+      "eventSerials": {
+        "impact": 6,
+        "accent": 0,
+        "beat": 6,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3666667,
+      "mediaPtsMicros": 4666667,
+      "eventSerials": {
+        "impact": 6,
+        "accent": 0,
+        "beat": 6,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3700000,
+      "mediaPtsMicros": 4700000,
+      "eventSerials": {
+        "impact": 6,
+        "accent": 0,
+        "beat": 6,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3733333,
+      "mediaPtsMicros": 4733333,
+      "eventSerials": {
+        "impact": 6,
+        "accent": 0,
+        "beat": 6,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3766667,
+      "mediaPtsMicros": 4766667,
+      "eventSerials": {
+        "impact": 6,
+        "accent": 0,
+        "beat": 6,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3800000,
+      "mediaPtsMicros": 4800000,
+      "eventSerials": {
+        "impact": 6,
+        "accent": 0,
+        "beat": 6,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3833333,
+      "mediaPtsMicros": 4833333,
+      "eventSerials": {
+        "impact": 6,
+        "accent": 0,
+        "beat": 6,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3866667,
+      "mediaPtsMicros": 4866667,
+      "eventSerials": {
+        "impact": 6,
+        "accent": 0,
+        "beat": 6,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3900000,
+      "mediaPtsMicros": 4900000,
+      "eventSerials": {
+        "impact": 6,
+        "accent": 0,
+        "beat": 6,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3933333,
+      "mediaPtsMicros": 4933333,
+      "eventSerials": {
+        "impact": 6,
+        "accent": 0,
+        "beat": 6,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 3966667,
+      "mediaPtsMicros": 4966667,
+      "eventSerials": {
+        "impact": 6,
+        "accent": 0,
+        "beat": 6,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4000000,
+      "mediaPtsMicros": 5000000,
+      "eventSerials": {
+        "impact": 7,
+        "accent": 0,
+        "beat": 7,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4033333,
+      "mediaPtsMicros": 5033333,
+      "eventSerials": {
+        "impact": 7,
+        "accent": 0,
+        "beat": 7,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4066667,
+      "mediaPtsMicros": 5066667,
+      "eventSerials": {
+        "impact": 7,
+        "accent": 0,
+        "beat": 7,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4100000,
+      "mediaPtsMicros": 5100000,
+      "eventSerials": {
+        "impact": 7,
+        "accent": 0,
+        "beat": 7,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4133333,
+      "mediaPtsMicros": 5133333,
+      "eventSerials": {
+        "impact": 7,
+        "accent": 0,
+        "beat": 7,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4166667,
+      "mediaPtsMicros": 5166667,
+      "eventSerials": {
+        "impact": 7,
+        "accent": 0,
+        "beat": 7,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4200000,
+      "mediaPtsMicros": 5200000,
+      "eventSerials": {
+        "impact": 7,
+        "accent": 0,
+        "beat": 7,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4233333,
+      "mediaPtsMicros": 5233333,
+      "eventSerials": {
+        "impact": 7,
+        "accent": 0,
+        "beat": 7,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4266667,
+      "mediaPtsMicros": 5266667,
+      "eventSerials": {
+        "impact": 7,
+        "accent": 0,
+        "beat": 7,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4300000,
+      "mediaPtsMicros": 5300000,
+      "eventSerials": {
+        "impact": 7,
+        "accent": 0,
+        "beat": 7,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4333333,
+      "mediaPtsMicros": 5333333,
+      "eventSerials": {
+        "impact": 7,
+        "accent": 0,
+        "beat": 7,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4366667,
+      "mediaPtsMicros": 5366667,
+      "eventSerials": {
+        "impact": 7,
+        "accent": 0,
+        "beat": 7,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4400000,
+      "mediaPtsMicros": 5400000,
+      "eventSerials": {
+        "impact": 7,
+        "accent": 0,
+        "beat": 7,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4433333,
+      "mediaPtsMicros": 5433333,
+      "eventSerials": {
+        "impact": 7,
+        "accent": 0,
+        "beat": 7,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4466667,
+      "mediaPtsMicros": 5466667,
+      "eventSerials": {
+        "impact": 7,
+        "accent": 0,
+        "beat": 7,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4500000,
+      "mediaPtsMicros": 5500000,
+      "eventSerials": {
+        "impact": 8,
+        "accent": 0,
+        "beat": 8,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4533333,
+      "mediaPtsMicros": 5533333,
+      "eventSerials": {
+        "impact": 8,
+        "accent": 0,
+        "beat": 8,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4566667,
+      "mediaPtsMicros": 5566667,
+      "eventSerials": {
+        "impact": 8,
+        "accent": 0,
+        "beat": 8,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4600000,
+      "mediaPtsMicros": 5600000,
+      "eventSerials": {
+        "impact": 8,
+        "accent": 0,
+        "beat": 8,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4633333,
+      "mediaPtsMicros": 5633333,
+      "eventSerials": {
+        "impact": 8,
+        "accent": 0,
+        "beat": 8,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4666667,
+      "mediaPtsMicros": 5666667,
+      "eventSerials": {
+        "impact": 8,
+        "accent": 0,
+        "beat": 8,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4700000,
+      "mediaPtsMicros": 5700000,
+      "eventSerials": {
+        "impact": 8,
+        "accent": 0,
+        "beat": 8,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4733333,
+      "mediaPtsMicros": 5733333,
+      "eventSerials": {
+        "impact": 8,
+        "accent": 0,
+        "beat": 8,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4766667,
+      "mediaPtsMicros": 5766667,
+      "eventSerials": {
+        "impact": 8,
+        "accent": 0,
+        "beat": 8,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4800000,
+      "mediaPtsMicros": 5800000,
+      "eventSerials": {
+        "impact": 8,
+        "accent": 0,
+        "beat": 8,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4833333,
+      "mediaPtsMicros": 5833333,
+      "eventSerials": {
+        "impact": 8,
+        "accent": 0,
+        "beat": 8,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4866667,
+      "mediaPtsMicros": 5866667,
+      "eventSerials": {
+        "impact": 8,
+        "accent": 0,
+        "beat": 8,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4900000,
+      "mediaPtsMicros": 5900000,
+      "eventSerials": {
+        "impact": 8,
+        "accent": 0,
+        "beat": 8,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4933333,
+      "mediaPtsMicros": 5933333,
+      "eventSerials": {
+        "impact": 8,
+        "accent": 0,
+        "beat": 8,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 4966667,
+      "mediaPtsMicros": 5966667,
+      "eventSerials": {
+        "impact": 8,
+        "accent": 0,
+        "beat": 8,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5000000,
+      "mediaPtsMicros": 6000000,
+      "eventSerials": {
+        "impact": 9,
+        "accent": 0,
+        "beat": 9,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5033333,
+      "mediaPtsMicros": 6033333,
+      "eventSerials": {
+        "impact": 9,
+        "accent": 0,
+        "beat": 9,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5066667,
+      "mediaPtsMicros": 6066667,
+      "eventSerials": {
+        "impact": 9,
+        "accent": 0,
+        "beat": 9,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5100000,
+      "mediaPtsMicros": 6100000,
+      "eventSerials": {
+        "impact": 9,
+        "accent": 0,
+        "beat": 9,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5133333,
+      "mediaPtsMicros": 6133333,
+      "eventSerials": {
+        "impact": 9,
+        "accent": 0,
+        "beat": 9,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5166667,
+      "mediaPtsMicros": 6166667,
+      "eventSerials": {
+        "impact": 9,
+        "accent": 0,
+        "beat": 9,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5200000,
+      "mediaPtsMicros": 6200000,
+      "eventSerials": {
+        "impact": 9,
+        "accent": 0,
+        "beat": 9,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5233333,
+      "mediaPtsMicros": 6233333,
+      "eventSerials": {
+        "impact": 9,
+        "accent": 0,
+        "beat": 9,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5266667,
+      "mediaPtsMicros": 6266667,
+      "eventSerials": {
+        "impact": 9,
+        "accent": 0,
+        "beat": 9,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5300000,
+      "mediaPtsMicros": 6300000,
+      "eventSerials": {
+        "impact": 9,
+        "accent": 0,
+        "beat": 9,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5333333,
+      "mediaPtsMicros": 6333333,
+      "eventSerials": {
+        "impact": 9,
+        "accent": 0,
+        "beat": 9,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5366667,
+      "mediaPtsMicros": 6366667,
+      "eventSerials": {
+        "impact": 9,
+        "accent": 0,
+        "beat": 9,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5400000,
+      "mediaPtsMicros": 6400000,
+      "eventSerials": {
+        "impact": 9,
+        "accent": 0,
+        "beat": 9,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5433333,
+      "mediaPtsMicros": 6433333,
+      "eventSerials": {
+        "impact": 9,
+        "accent": 0,
+        "beat": 9,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5466667,
+      "mediaPtsMicros": 6466667,
+      "eventSerials": {
+        "impact": 9,
+        "accent": 0,
+        "beat": 9,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5500000,
+      "mediaPtsMicros": 6500000,
+      "eventSerials": {
+        "impact": 10,
+        "accent": 0,
+        "beat": 10,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5533333,
+      "mediaPtsMicros": 6533333,
+      "eventSerials": {
+        "impact": 10,
+        "accent": 0,
+        "beat": 10,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5566667,
+      "mediaPtsMicros": 6566667,
+      "eventSerials": {
+        "impact": 10,
+        "accent": 0,
+        "beat": 10,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5600000,
+      "mediaPtsMicros": 6600000,
+      "eventSerials": {
+        "impact": 10,
+        "accent": 0,
+        "beat": 10,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5633333,
+      "mediaPtsMicros": 6633333,
+      "eventSerials": {
+        "impact": 10,
+        "accent": 0,
+        "beat": 10,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5666667,
+      "mediaPtsMicros": 6666667,
+      "eventSerials": {
+        "impact": 10,
+        "accent": 0,
+        "beat": 10,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5700000,
+      "mediaPtsMicros": 6700000,
+      "eventSerials": {
+        "impact": 10,
+        "accent": 0,
+        "beat": 10,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5733333,
+      "mediaPtsMicros": 6733333,
+      "eventSerials": {
+        "impact": 10,
+        "accent": 0,
+        "beat": 10,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5766667,
+      "mediaPtsMicros": 6766667,
+      "eventSerials": {
+        "impact": 10,
+        "accent": 0,
+        "beat": 10,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5800000,
+      "mediaPtsMicros": 6800000,
+      "eventSerials": {
+        "impact": 10,
+        "accent": 0,
+        "beat": 10,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5833333,
+      "mediaPtsMicros": 6833333,
+      "eventSerials": {
+        "impact": 10,
+        "accent": 0,
+        "beat": 10,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5866667,
+      "mediaPtsMicros": 6866667,
+      "eventSerials": {
+        "impact": 10,
+        "accent": 0,
+        "beat": 10,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5900000,
+      "mediaPtsMicros": 6900000,
+      "eventSerials": {
+        "impact": 10,
+        "accent": 0,
+        "beat": 10,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5933333,
+      "mediaPtsMicros": 6933333,
+      "eventSerials": {
+        "impact": 10,
+        "accent": 0,
+        "beat": 10,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 5966667,
+      "mediaPtsMicros": 6966667,
+      "eventSerials": {
+        "impact": 10,
+        "accent": 0,
+        "beat": 10,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6000000,
+      "mediaPtsMicros": 7000000,
+      "eventSerials": {
+        "impact": 11,
+        "accent": 0,
+        "beat": 11,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6033333,
+      "mediaPtsMicros": 7033333,
+      "eventSerials": {
+        "impact": 11,
+        "accent": 0,
+        "beat": 11,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6066667,
+      "mediaPtsMicros": 7066667,
+      "eventSerials": {
+        "impact": 11,
+        "accent": 0,
+        "beat": 11,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6100000,
+      "mediaPtsMicros": 7100000,
+      "eventSerials": {
+        "impact": 11,
+        "accent": 0,
+        "beat": 11,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6133333,
+      "mediaPtsMicros": 7133333,
+      "eventSerials": {
+        "impact": 11,
+        "accent": 0,
+        "beat": 11,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6166667,
+      "mediaPtsMicros": 7166667,
+      "eventSerials": {
+        "impact": 11,
+        "accent": 0,
+        "beat": 11,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6200000,
+      "mediaPtsMicros": 7200000,
+      "eventSerials": {
+        "impact": 11,
+        "accent": 0,
+        "beat": 11,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6233333,
+      "mediaPtsMicros": 7233333,
+      "eventSerials": {
+        "impact": 11,
+        "accent": 0,
+        "beat": 11,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6266667,
+      "mediaPtsMicros": 7266667,
+      "eventSerials": {
+        "impact": 11,
+        "accent": 0,
+        "beat": 11,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6300000,
+      "mediaPtsMicros": 7300000,
+      "eventSerials": {
+        "impact": 11,
+        "accent": 0,
+        "beat": 11,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6333333,
+      "mediaPtsMicros": 7333333,
+      "eventSerials": {
+        "impact": 11,
+        "accent": 0,
+        "beat": 11,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6366667,
+      "mediaPtsMicros": 7366667,
+      "eventSerials": {
+        "impact": 11,
+        "accent": 0,
+        "beat": 11,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6400000,
+      "mediaPtsMicros": 7400000,
+      "eventSerials": {
+        "impact": 11,
+        "accent": 0,
+        "beat": 11,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6433333,
+      "mediaPtsMicros": 7433333,
+      "eventSerials": {
+        "impact": 11,
+        "accent": 0,
+        "beat": 11,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6466667,
+      "mediaPtsMicros": 7466667,
+      "eventSerials": {
+        "impact": 11,
+        "accent": 0,
+        "beat": 11,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6500000,
+      "mediaPtsMicros": 7500000,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6533333,
+      "mediaPtsMicros": 7533333,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6566667,
+      "mediaPtsMicros": 7566667,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6600000,
+      "mediaPtsMicros": 7600000,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6633333,
+      "mediaPtsMicros": 7633333,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6666667,
+      "mediaPtsMicros": 7666667,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6700000,
+      "mediaPtsMicros": 7700000,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6733333,
+      "mediaPtsMicros": 7733333,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6766667,
+      "mediaPtsMicros": 7766667,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6800000,
+      "mediaPtsMicros": 7800000,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6833333,
+      "mediaPtsMicros": 7833333,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6866667,
+      "mediaPtsMicros": 7866667,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6900000,
+      "mediaPtsMicros": 7900000,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6933333,
+      "mediaPtsMicros": 7933333,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 6966667,
+      "mediaPtsMicros": 7966667,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7000000,
+      "mediaPtsMicros": 8000000,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7033333,
+      "mediaPtsMicros": 8033333,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7066667,
+      "mediaPtsMicros": 8066667,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7100000,
+      "mediaPtsMicros": 8100000,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7133333,
+      "mediaPtsMicros": 8133333,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7166667,
+      "mediaPtsMicros": 8166667,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7200000,
+      "mediaPtsMicros": 8200000,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7233333,
+      "mediaPtsMicros": 8233333,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7266667,
+      "mediaPtsMicros": 8266667,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7300000,
+      "mediaPtsMicros": 8300000,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7333333,
+      "mediaPtsMicros": 8333333,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7366667,
+      "mediaPtsMicros": 8366667,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7400000,
+      "mediaPtsMicros": 8400000,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7433333,
+      "mediaPtsMicros": 8433333,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7466667,
+      "mediaPtsMicros": 8466667,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7500000,
+      "mediaPtsMicros": 8500000,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7533333,
+      "mediaPtsMicros": 8533333,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7566667,
+      "mediaPtsMicros": 8566667,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7600000,
+      "mediaPtsMicros": 8600000,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7633333,
+      "mediaPtsMicros": 8633333,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7666667,
+      "mediaPtsMicros": 8666667,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7700000,
+      "mediaPtsMicros": 8700000,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7733333,
+      "mediaPtsMicros": 8733333,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7766667,
+      "mediaPtsMicros": 8766667,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7800000,
+      "mediaPtsMicros": 8800000,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7833333,
+      "mediaPtsMicros": 8833333,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7866667,
+      "mediaPtsMicros": 8866667,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7900000,
+      "mediaPtsMicros": 8900000,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7933333,
+      "mediaPtsMicros": 8933333,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    },
+    {
+      "hostTimeMicros": 7966667,
+      "mediaPtsMicros": 8966667,
+      "eventSerials": {
+        "impact": 12,
+        "accent": 0,
+        "beat": 12,
+        "flash": 0
+      }
+    }
+  ]
+}

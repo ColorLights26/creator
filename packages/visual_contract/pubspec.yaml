@@ -1,0 +1,6 @@
+name: visual_contract
+description: The production scene signal wire contract and deterministic recording replay.
+version: 1.0.0
+publish_to: none
+environment:
+  sdk: '>=3.7.0 <4.0.0'

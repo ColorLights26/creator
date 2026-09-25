@@ -1,0 +1,99 @@
+name: Check creator
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      native_metal:
+        description: Run the native Metal pixel checks (requires a GPU-capable macOS runner)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: creator-check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.44.5'
+
+jobs:
+  contracts-and-studio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Keep local dependencies inside the repository
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          root = Path.cwd().resolve()
+          pubspecs = [root / 'studio/pubspec.yaml', *(root / 'packages').glob('*/pubspec.yaml')]
+          for pubspec in pubspecs:
+              for path in re.findall(r'^\s*path:\s*["\']?([^\n"\']+)', pubspec.read_text(), re.MULTILINE):
+                  dependency = (pubspec.parent / path.strip()).resolve()
+                  if not dependency.is_relative_to(root) or not (dependency / 'pubspec.yaml').is_file():
+                      raise SystemExit(f'External or missing local dependency: {pubspec}: {path}')
+          PY
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Resolve studio dependencies
+        working-directory: studio
+        run: flutter pub get
+      - name: Generate the canonical catalog
+        working-directory: studio
+        run: dart run tool/compile_visuals.dart
+      - name: Reject stale generated files
+        shell: bash
+        run: |
+          generated=(
+            packages/visual_catalog/lib/src/registry.g.dart
+            packages/visual_catalog/assets/creator_catalog.json
+            packages/visual_catalog/assets/catalog_metadata.json
+            packages/visual_catalog/shaders/creator_programs.frag
+            studio/assets/recordings.json
+          )
+          git diff --exit-code -- "${generated[@]}"
+          untracked=$(git ls-files --others --exclude-standard -- "${generated[@]}")
+          if [[ -n "$untracked" ]]; then
+            printf 'Generated files must be committed:\n%s\n' "$untracked"
+            exit 1
+          fi
+      - name: Studio tests, including the compiled portable shader
+        working-directory: studio
+        run: flutter test --no-pub
+      - name: Resolve compositor test dependencies
+        working-directory: packages/scene_compositor
+        run: flutter pub get
+      - name: Authoring contract
+        working-directory: packages/scene_compositor
+        run: dart run test/creator_visual_definition_test.dart
+      - name: Compositor state and controller tests
+        working-directory: packages/scene_compositor
+        run: flutter test --no-pub test/creator_shader_frame_test.dart test/scene_compositor_controller_test.dart
+      - name: Resolve pure Dart contract
+        working-directory: packages/visual_contract
+        run: dart pub get
+      - name: Wire format and replay
+        working-directory: packages/visual_contract
+        run: dart run test/contract_test.dart
+
+  native-metal:
+    if: github.event_name == 'workflow_dispatch' && inputs.native_metal
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile native programs and verify actual output pixels
+        run: >-
+          ruby packages/scene_compositor/ios/Tests/check_creator_catalog.rb
+          packages/visual_catalog/assets/creator_catalog.json
+      # A runner without Metal fails this explicitly requested job. There is no
+      # silent skip or continue-on-error that could report unverified pixels.

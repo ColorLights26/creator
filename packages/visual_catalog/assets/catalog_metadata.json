@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "visuals": [
+    {
+      "id": "aurora_ribbons",
+      "name": "Aurora · cintas de luz",
+      "description": "Cintas de aurora suaves que se expanden con la música.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "calm",
+        "dreamy"
+      ],
+      "concepts": [
+        "aurora",
+        "light",
+        "ribbons"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "Proprietary",
+        "source": "Visual Studio examples"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "prismatic_halo",
+      "name": "Halo · capa de luz",
+      "description": "Un halo de luz transparente que acompaña los acentos musicales.",
+      "purposes": [
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "dreamy",
+        "energetic"
+      ],
+      "concepts": [
+        "halo",
+        "prism",
+        "light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "Proprietary",
+        "source": "Visual Studio examples"
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "quiet_orbits",
+      "name": "Órbitas · sin música",
+      "description": "Órbitas luminosas de movimiento continuo, independientes del audio.",
+      "purposes": [
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "calm",
+        "meditative"
+      ],
+      "concepts": [
+        "orbits",
+        "space",
+        "light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "Proprietary",
+        "source": "Visual Studio examples"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "none"
+    }
+  ]
+}

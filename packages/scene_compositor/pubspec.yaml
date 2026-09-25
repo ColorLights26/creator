@@ -1,0 +1,15 @@
+name: scene_compositor
+description: Standalone authoring host for the shared native scene compositor.
+version: 1.0.0
+publish_to: none
+environment:
+  sdk: '>=3.7.0 <4.0.0'
+  flutter: '>=3.29.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  visual_contract:
+    path: ../visual_contract
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

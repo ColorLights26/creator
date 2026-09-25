@@ -1,0 +1,21 @@
+name: visual_catalog
+description: Shared authored visual definitions and bundled GPU programs.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: '>=3.7.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  scene_compositor:
+    path: ../scene_compositor
+
+flutter:
+  assets:
+    - assets/creator_catalog.json
+    - assets/catalog_metadata.json
+    - assets/thumbnails/
+  shaders:
+    - shaders/creator_programs.frag

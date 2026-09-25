@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "visuals": [
+    {
+      "id": "aurora_ribbons",
+      "name": "Aurora · cintas de luz",
+      "programId": "creator_aurora_ribbons",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278389016,
+        4280342458,
+        4284834539,
+        4294949342
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.6,
+        "detail": 1.0,
+        "glow": 0.8
+      },
+      "shaderSource": "vec4 paintVisual(vec2 uv, CreatorFrame f) {\nvec2 p = uv - 0.5;\np.x *= f.size.x / max(f.size.y, 1.0);\nfloat t = f.time * f.speed * 0.32;\nfloat seed = mod(f.seedLow + f.seedHigh, 10000.0) * 0.001;\nvec3 c = f.color0.rgb * (0.7 + 0.3 * uv.y);\nfor (int i = 0; i < 4; i++) {\n  float k = float(i);\n  float center = 0.14 * sin(p.x * (2.0 + k * 0.32) + t + seed + k)\n               + 0.08 * cos(p.x * 5.0 * f.detail - t * 0.6 + k)\n               + (k - 1.5) * 0.105;\n  float d = abs(p.y - center);\n  float width = 0.014 + 0.013 * f.bass;\n  float core = exp(-d * d / (width * width));\n  float halo = exp(-d * 12.0) * 0.13 * f.glow;\n  vec3 ink = mix(f.color1.rgb, f.color2.rgb, k / 3.0);\n  ink = mix(ink, f.color3.rgb, 0.15 * (0.5 + 0.5 * sin(t + p.x * 2.0 + k)));\n  c += ink * (core * 0.30 + halo) * f.intensity * (0.75 + 0.3 * f.energy + 0.15 * f.pulse);\n}\nfloat vignette = clamp(1.0 - dot(p, p) * 0.65, 0.25, 1.0);\nreturn vec4(c * vignette, 1.0);\n}\n"
+    },
+    {
+      "id": "prismatic_halo",
+      "name": "Halo · capa de luz",
+      "programId": "creator_prismatic_halo",
+      "role": "overlay",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278454034,
+        4283034332,
+        4289822207,
+        4294954461
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.5,
+        "detail": 1.0,
+        "glow": 0.8
+      },
+      "shaderSource": "vec4 paintVisual(vec2 uv, CreatorFrame f) {\n  vec2 p = (uv - 0.5) * vec2(f.size.x / max(f.size.y, 1.0), 1.0);\n  float radius = 0.27 + 0.015 * sin(f.time * f.speed) + 0.025 * f.bass;\n  float distance = abs(length(p) - radius);\n  float beam = exp(-distance * distance * 17000.0);\n  float halo = exp(-distance * 24.0) * 0.25 * f.glow;\n  float alpha = clamp((beam * 0.62 + halo) * f.intensity * (0.8 + 0.2 * f.pulse), 0.0, 1.0);\n  vec3 ink = mix(f.color1.rgb, f.color2.rgb, 0.5 + 0.5 * sin(p.x * 7.0 + f.time * 0.2));\n  return vec4(ink, alpha);\n}\n"
+    },
+    {
+      "id": "quiet_orbits",
+      "name": "Órbitas · sin música",
+      "programId": "creator_quiet_orbits",
+      "role": "background",
+      "reactivity": "none",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278717205,
+        4284727254,
+        4289624537,
+        4294954924
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.5,
+        "detail": 1.0,
+        "glow": 0.8
+      },
+      "shaderSource": "vec4 paintVisual(vec2 uv, CreatorFrame f) {\nvec2 p = (uv - 0.5) * vec2(f.size.x / max(f.size.y, 1.0), 1.0);\nfloat t = f.time * f.speed * 0.2;\nvec3 c = f.color0.rgb;\nfor (int i = 0; i < 3; i++) {\n  float k = float(i);\n  vec2 center = 0.08 * vec2(cos(t + k * 2.1), sin(t * 0.7 + k * 2.1));\n  float r = length(p - center);\n  float ring = abs(r - (0.15 + k * 0.085));\n  float beam = exp(-ring * ring * 18000.0) * 0.5;\n  float halo = exp(-ring * 30.0) * 0.13 * f.glow;\n  vec3 ink = mix(f.color1.rgb, f.color3.rgb, k * 0.5);\n  c += ink * (beam + halo) * f.intensity;\n}\nreturn vec4(c, 1.0);\n}\n"
+    }
+  ]
+}

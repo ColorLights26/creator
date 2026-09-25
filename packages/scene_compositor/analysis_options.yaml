@@ -1,0 +1,6 @@
+# The reusable SDK must not inherit lint-package dependencies from the old lab.
+linter:
+  rules:
+    - avoid_relative_lib_imports
+    - cancel_subscriptions
+    - close_sinks

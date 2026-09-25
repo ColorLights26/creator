@@ -1,0 +1,28 @@
+name: audiovisual_creator
+description: A standalone visual studio using the Color Lights scene compositor.
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.7.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  scene_compositor:
+    path: ../packages/scene_compositor
+  scene_compositor_host:
+    path: ../packages/scene_compositor_host
+  visual_contract:
+    path: ../packages/visual_contract
+  visual_catalog:
+    path: ../packages/visual_catalog
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/recordings.json
