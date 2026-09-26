@@ -211,6 +211,56 @@ class SceneRenderSignalFrameV2 {
   final SceneRenderSignalEventV2 accent;
   final SceneRenderSignalEventV2 beat;
   final SceneRenderSignalEventV2 flash;
+  /// Returns a silenced copy of this frame where playback clock and sequence
+  /// are preserved, but all musical signals, spectrums and events are zeroed.
+  SceneRenderSignalFrameV2 toSilent() {
+    return SceneRenderSignalFrameV2(
+      sessionId: sessionId,
+      sequence: sequence,
+      audioTimestampMicros: audioTimestampMicros,
+      available: available,
+      fresh: fresh,
+      musicActive: false,
+      dynamics: List.filled(dynamicsFieldCount, 0.0),
+      channels: List.filled(channelsFieldCount, 0.0),
+      spectrumSummary: List.filled(spectrumSummaryFieldCount, 0.0),
+      instantSpectrum: List.filled(spectrumBandCount, 0.0),
+      smoothedSpectrum: List.filled(spectrumBandCount, 0.0),
+      semantics: List.filled(semanticsFieldCount, 0.0),
+      rhythm: List.filled(rhythmFieldCount, 0.0),
+      onsets: List.filled(onsetsFieldCount, 0.0),
+      tonalAvailable: false,
+      tonal: List.filled(tonalFieldCount, 0.0),
+      impact: const SceneRenderSignalEventV2(
+        serial: 0,
+        active: false,
+        timestampMicros: 0,
+        strength: 0,
+        band: SceneRenderSignalEventBandV2.none,
+      ),
+      accent: const SceneRenderSignalEventV2(
+        serial: 0,
+        active: false,
+        timestampMicros: 0,
+        strength: 0,
+        band: SceneRenderSignalEventBandV2.none,
+      ),
+      beat: const SceneRenderSignalEventV2(
+        serial: 0,
+        active: false,
+        timestampMicros: 0,
+        strength: 0,
+        band: SceneRenderSignalEventBandV2.none,
+      ),
+      flash: const SceneRenderSignalEventV2(
+        serial: 0,
+        active: false,
+        timestampMicros: 0,
+        strength: 0,
+        band: SceneRenderSignalEventBandV2.none,
+      ),
+    );
+  }
 
   Uint8List toBytes() {
     final bytes = Uint8List(byteLength);

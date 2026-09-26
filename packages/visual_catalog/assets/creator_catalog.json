@@ -89,6 +89,94 @@
       }
     },
     {
+      "id": "ciber_reticula",
+      "name": "Ciber Retícula 3D",
+      "programId": "creator_ciber_reticula",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278519064,
+        4294131096,
+        4281917951,
+        4294958848
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.1
+      },
+      "shaderSource": "vec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.0;\n\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float energy = clamp(f.energy, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n  float flow = clamp(f.flow, 0.0, 1.0);\n\n  float t = f.time * f.speed * 0.5;\n\n  float horizonY = -0.05;\n  vec3 col = vec3(0.0);\n\n  // Background deep sky gradient\n  vec3 skyTop = vec3(0.02, 0.02, 0.08);\n  vec3 skyHorizon = vec3(0.35, 0.05, 0.35);\n  float skyGradient = smoothstep(horizonY, 1.2, p.y);\n  col = mix(skyHorizon, skyTop, skyGradient);\n\n  // Retro horizon glowing synth sun\n  vec2 sunPos = vec2(0.0, horizonY + 0.32);\n  float sunDist = length(p - sunPos);\n  float sunRadius = 0.38 + 0.05 * bass;\n  if (p.y > horizonY) {\n    if (sunDist < sunRadius) {\n      // Horizontal laser stripes cut through the sun\n      float sunStripe = sin(p.y * 36.0);\n      float stripeMask = smoothstep(0.2, 0.4, sunStripe);\n      if (p.y < sunPos.y) {\n        stripeMask = mix(1.0, stripeMask, smoothstep(sunPos.y - sunRadius, sunPos.y, p.y));\n      } else {\n        stripeMask = 1.0;\n      }\n      vec3 sunTopCol = vec3(1.0, 0.9, 0.2);\n      vec3 sunBotCol = vec3(1.0, 0.15, 0.55);\n      float sunY = (p.y - (sunPos.y - sunRadius)) / (sunRadius * 2.0);\n      vec3 sunColor = mix(sunBotCol, sunTopCol, sunY);\n      col = mix(col, sunColor, stripeMask);\n    }\n  }\n\n  // Soft atmospheric sun corona glow\n  float sunGlow = (0.04 + 0.06 * bass) / (sunDist * sunDist * 10.0 + 0.1);\n  col += vec3(1.0, 0.25, 0.6) * sunGlow;\n\n  // Infinite Perspective Cyber Grid (below horizon)\n  if (p.y < horizonY) {\n    // 3D ray projection onto the ground plane\n    float py = horizonY - p.y;\n    float depth = 1.0 / (py + 0.03);\n\n    // Ground plane coordinates (x: sideways, z: forward depth)\n    float worldX = p.x * depth * 0.85;\n    float worldZ = depth * 1.5 + t * (2.5 + 2.5 * energy);\n\n    // Topographical terrain elevation modulated by sound waves\n    float mountainFreq = worldX * 0.35;\n    float mountainH = sin(mountainFreq) * cos(worldZ * 0.15) * (0.8 + 0.5 * flow);\n    // Shockwave ripple surging from the beat\n    float ripple = sin(worldZ * 0.8 - t * 4.5) * (0.3 + 0.8 * bass);\n    worldX += mountainH * 0.2;\n\n    // Grid lines with antialiased inverse-distance glow\n    float gridX = abs(fract(worldX) - 0.5) * 2.0;\n    float gridZ = abs(fract(worldZ * 0.4) - 0.5) * 2.0;\n\n    float lineX = 1.0 - smoothstep(0.0, 0.08 * (1.0 + depth * 0.05), gridX);\n    float lineZ = 1.0 - smoothstep(0.0, 0.08 * (1.0 + depth * 0.05), gridZ);\n\n    float gridLines = max(lineX, lineZ);\n    // Sparkle points at grid vertices\n    float vertices = pow(lineX * lineZ, 0.5) * (1.0 + 3.0 * spark);\n\n    // Grid color ramp: Neon cyan near, hot magenta towards the horizon\n    float fog = smoothstep(22.0, 2.0, depth);\n    vec3 nearColor = vec3(0.15, 0.95, 1.0);\n    vec3 farColor = vec3(1.0, 0.15, 0.75);\n    vec3 gridColor = mix(farColor, nearColor, fog);\n\n    vec3 groundSurface = gridColor * (gridLines * 1.2 + vertices * 2.0);\n    // Dark metallic reflective ground under the grid lines\n    vec3 groundBase = vec3(0.015, 0.01, 0.03) + sunGlow * vec3(0.2, 0.05, 0.15);\n\n    vec3 finalGround = groundBase + groundSurface;\n    col = mix(skyHorizon, finalGround, fog);\n  }\n\n  // Horizon laser separator line\n  float horizonLine = exp(-abs(p.y - horizonY) * 65.0) * (0.6 + 0.8 * bass);\n  col += vec3(0.3, 0.9, 1.0) * horizonLine;\n\n  // Soft tone mapping and subtle vignette\n  col = col / (col + vec3(0.85));\n  float vignette = 1.0 - smoothstep(0.6, 1.5, length(p));\n  col *= vignette;\n\n  return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);\n}\n"
+    },
+    {
+      "id": "cristal_prismatico",
+      "name": "Cristal Prismático",
+      "programId": "creator_cristal_prismatico",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278519058,
+        4281917951,
+        4294131096,
+        4294958848
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.2
+      },
+      "shaderSource": "vec2 rotate2D(vec2 p, float a) {\n  float c = cos(a);\n  float s = sin(a);\n  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);\n}\n\nfloat crystalFacet(vec2 p, float size, float t, float bass) {\n  vec2 q = abs(p);\n  // Octahedral and dodecahedral folding planes\n  float d1 = dot(q, normalize(vec2(1.0, 1.0))) - size;\n  float d2 = dot(q, normalize(vec2(1.732, 1.0))) - size;\n  float d3 = dot(q, normalize(vec2(1.0, 1.732))) - size;\n  float d4 = max(q.x, q.y) - size * 0.92;\n  return max(max(d1, d2), max(d3, d4));\n}\n\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;\n\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float energy = clamp(f.energy, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n  float flow = clamp(f.flow, 0.0, 1.0);\n\n  float t = f.time * f.speed * 0.42;\n\n  vec3 col = vec3(0.0);\n  float crystalBaseSize = 0.52 + 0.08 * bass;\n\n  // 3-channel Chromatic Dispersion (Abbe number split)\n  for (int ch = 0; ch < 3; ch++) {\n    float dispersion = float(ch - 1) * (0.016 + 0.035 * spark);\n    vec2 cp = p * (1.0 + dispersion);\n\n    // Slowly rotating crystal body\n    vec2 rotP = rotate2D(cp, t * 0.35 + bass * 0.25);\n\n    // External crystal facets\n    float dExt = crystalFacet(rotP, crystalBaseSize, t, bass);\n    float edgeGlow = (0.018 + 0.025 * spark) / (abs(dExt) * 18.0 + 0.008);\n\n    // Internal refracted layers / nested smaller crystal shells\n    vec2 innerP1 = rotate2D(rotP * 1.55, -t * 0.55 + float(ch) * 0.2);\n    float dInt1 = crystalFacet(innerP1, crystalBaseSize * 0.85, t, bass);\n    float innerGlow1 = (0.012 + 0.02 * bass) / (abs(dInt1) * 22.0 + 0.012);\n\n    vec2 innerP2 = rotate2D(rotP * 2.4, t * 0.75 + float(ch) * 0.4);\n    float dInt2 = crystalFacet(innerP2, crystalBaseSize * 0.7, t, bass);\n    float innerGlow2 = (0.008 + 0.015 * energy) / (abs(dInt2) * 28.0 + 0.015);\n\n    // Caustic light rays radiating through the crystal faces\n    float angle = atan(rotP.y / (rotP.x + 0.00001)) + (rotP.x < 0.0 ? 3.14159 : 0.0);\n    float causticRays = pow(abs(cos(angle * 6.0 + t * 0.8)), 8.0) * (0.3 + 0.7 * bass);\n    float rayFalloff = exp(-length(cp) * 2.2);\n    float caustics = causticRays * rayFalloff;\n\n    // Center radiant hyper-core\n    float core = (0.08 + 0.32 * bass) / (length(cp) * length(cp) * 16.0 + 0.12);\n\n    // Rainbow spectral palette\n    vec3 palColor;\n    if (ch == 0) {\n      palColor = vec3(1.0, 0.15, 0.45); // Ruby / Magenta\n    } else if (ch == 1) {\n      palColor = vec3(0.15, 1.0, 0.65); // Emerald / Cyan\n    } else {\n      palColor = vec3(0.25, 0.55, 1.0); // Sapphire / Violet\n    }\n\n    float channelTotal = (edgeGlow * 0.45 + innerGlow1 * 0.35 + innerGlow2 * 0.25 + caustics * 0.5 + core * 0.7);\n\n    col += palColor * channelTotal;\n  }\n\n  // Specular facet glints (sharp diamond flare)\n  vec2 flareP = rotate2D(p, t * 0.35);\n  float starX = exp(-abs(flareP.x) * 45.0) * exp(-abs(flareP.y) * 4.0);\n  float starY = exp(-abs(flareP.y) * 45.0) * exp(-abs(flareP.x) * 4.0);\n  float diamondFlare = (starX + starY) * (0.2 + 1.8 * spark);\n  col += vec3(1.0, 0.98, 0.92) * diamondFlare;\n\n  // Background velvet depth and cinematic vignette\n  vec3 bg = vec3(0.012, 0.015, 0.03) * (1.0 - 0.4 * length(p));\n  col = mix(bg, col, smoothstep(0.0, 0.15, length(col)));\n\n  // Soft tone mapping\n  col = col / (col + vec3(0.88));\n  float vignette = 1.0 - smoothstep(0.45, 1.45, length(p));\n  col *= vignette;\n\n  return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);\n}\n"
+    },
+    {
+      "id": "flor_cosmica",
+      "name": "Flor Cósmica",
+      "programId": "creator_flor_cosmica",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278714900,
+        4294958848,
+        4294131096,
+        4281917951
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.2
+      },
+      "shaderSource": "vec2 rotate2D(vec2 p, float a) {\n  float c = cos(a);\n  float s = sin(a);\n  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);\n}\n\nfloat getAngle(vec2 p) {\n  float r = length(p);\n  if (r < 0.00001) { return 0.0; }\n  float a = asin(clamp(p.y / r, -1.0, 1.0));\n  if (p.x < 0.0) {\n    a = 3.14159265 - a;\n  }\n  if (a < 0.0) {\n    a = a + 6.2831853;\n  }\n  return a;\n}\n\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;\n\n  float r = length(p);\n  float a = getAngle(p);\n\n  float beat = clamp(f.pulse, 0.0, 1.0);\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n  float flow = clamp(f.flow, 0.0, 1.0);\n  float t = f.time * 0.42 * f.speed;\n\n  // Background deep sacred cosmic aura\n  vec3 bgCol = mix(vec3(0.02, 0.008, 0.06), vec3(0.06, 0.015, 0.14), r * 0.8);\n  bgCol = bgCol + vec3(0.1, 0.02, 0.18) * sin(r * 4.0 - t * 1.5) * 0.3;\n\n  vec3 col = bgCol;\n\n  // Fibonacci Petal Ring 1 (Inner 5 petals)\n  float a1 = a + t * 0.6;\n  float pet1 = cos(5.0 * a1);\n  float r1 = 0.18 + 0.08 * pet1 + bass * 0.06;\n  float d1 = abs(r - r1);\n  float edge1 = 0.012 / (d1 + 0.012);\n  vec3 col1 = mix(vec3(1.0, 0.85, 0.2), vec3(1.0, 0.25, 0.6), 0.5 + 0.5 * pet1);\n  col = col + col1 * edge1 * 0.7;\n\n  // Fibonacci Petal Ring 2 (Middle 8 petals, counter-rotating)\n  float a2 = a - t * 0.4;\n  float pet2 = cos(8.0 * a2);\n  float r2 = 0.35 + 0.12 * pet2 + beat * 0.08;\n  float d2 = abs(r - r2);\n  float edge2 = 0.015 / (d2 + 0.018);\n  vec3 col2 = mix(vec3(0.2, 0.85, 1.0), vec3(0.9, 0.1, 0.7), 0.5 + 0.5 * pet2);\n  col = col + col2 * edge2 * 0.65;\n\n  // Fibonacci Petal Ring 3 (Outer 13 petals)\n  float a3 = a + t * 0.25;\n  float pet3 = cos(13.0 * a3);\n  float r3 = 0.58 + 0.15 * pet3 + bass * 0.1;\n  float d3 = abs(r - r3);\n  float edge3 = 0.018 / (d3 + 0.022);\n  vec3 col3 = mix(vec3(0.95, 0.3, 0.8), vec3(1.0, 0.7, 0.2), 0.5 + 0.5 * pet3);\n  col = col + col3 * edge3 * 0.6;\n\n  // Fibonacci Petal Ring 4 (Ethereal 21 filaments)\n  float a4 = a - t * 0.15;\n  float pet4 = cos(21.0 * a4);\n  float r4 = 0.82 + 0.14 * pet4 + beat * 0.06;\n  float d4 = abs(r - r4);\n  float edge4 = 0.012 / (d4 + 0.025);\n  vec3 col4 = mix(vec3(0.4, 0.3, 1.0), vec3(0.2, 0.95, 0.8), 0.5 + 0.5 * pet4);\n  col = col + col4 * edge4 * (0.4 + 0.3 * spark);\n\n  // Sacred golden spiral rays\n  float spiral1 = sin(log(r + 0.02) * 5.0 - a * 3.0 + t * 1.2);\n  float spiral2 = sin(log(r + 0.02) * 5.0 + a * 3.0 - t * 1.2);\n  float spiralGrid = smoothstep(0.85, 0.98, spiral1) + smoothstep(0.85, 0.98, spiral2);\n  col = col + vec3(1.0, 0.8, 0.3) * spiralGrid * 0.35 * exp(-r * 1.8);\n\n  // Radiant Golden Core / Lotus Stamen\n  float coreDist = r;\n  float coreGlow = 0.04 / (coreDist * coreDist * 6.0 + 0.04);\n  float corePulse = 1.0 + 0.4 * sin(t * 4.0) + bass * 0.8;\n  vec3 coreColor = mix(vec3(1.0, 0.95, 0.5), vec3(1.0, 0.4, 0.1), clamp(r * 5.0, 0.0, 1.0));\n  col = col + coreColor * coreGlow * corePulse * 1.2;\n\n  // Stardust / Pollen particles swirling around the flower\n  for (int i = 0; i < 6; i++) {\n    float fi = float(i);\n    float pAngle = fi * 1.047 + t * (0.8 + 0.2 * fi);\n    float pRad = 0.25 + 0.15 * sin(fi * 2.1 + t * 1.5) + bass * 0.1;\n    vec2 pPos = vec2(cos(pAngle), sin(pAngle)) * pRad;\n    float pDist = length(p - pPos);\n    float pGlow = 0.003 / (pDist * pDist * 25.0 + 0.003);\n    col = col + vec3(1.0, 0.9, 0.4) * pGlow * (0.8 + 0.8 * spark);\n  }\n\n  // Soft tone mapping and cinematic vignette\n  col = col / (col + vec3(0.85));\n  float vig = 1.0 - smoothstep(0.5, 1.5, r);\n  col = col * vig * f.intensity * f.glow;\n\n  return vec4(clamp(col, 0.0, 1.0), 1.0);\n}\n"
+    },
+    {
+      "id": "furia_estelar",
+      "name": "Furia Estelar",
+      "programId": "creator_furia_estelar",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278517760,
+        4294910464,
+        4294940928,
+        4294967278
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.3
+      },
+      "shaderSource": "vec2 rotate2D(vec2 p, float a) {\n  float c = cos(a);\n  float s = sin(a);\n  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);\n}\n\nfloat getAngle(vec2 p) {\n  float r = length(p);\n  if (r < 0.00001) { return 0.0; }\n  float a = asin(clamp(p.y / r, -1.0, 1.0));\n  if (p.x < 0.0) {\n    a = 3.14159265 - a;\n  }\n  if (a < 0.0) {\n    a = a + 6.2831853;\n  }\n  return a;\n}\n\n// Multi-octave convective solar plasma noise\nfloat solarNoise(vec2 p, float t) {\n  float n = 0.0;\n  n = n + sin(p.x * 6.0 + t * 1.2) * cos(p.y * 6.0 - t * 0.9);\n  n = n + sin(p.x * 14.0 - t * 1.8 + p.y * 5.0) * 0.5;\n  n = n + cos(p.y * 24.0 + t * 3.1 - p.x * 10.0) * 0.25;\n  n = n + sin((p.x + p.y) * 36.0 + t * 4.5) * 0.12;\n  return n * 0.53;\n}\n\n// Blackbody thermal incandescent ramp (0=dark vacuum, 1=blinding white)\nvec3 blackbody(float heat) {\n  vec3 col = vec3(0.0);\n  col = mix(col, vec3(0.65, 0.03, 0.0), smoothstep(0.0, 0.32, heat));\n  col = mix(col, vec3(1.0, 0.32, 0.02), smoothstep(0.24, 0.62, heat));\n  col = mix(col, vec3(1.0, 0.88, 0.18), smoothstep(0.52, 0.82, heat));\n  col = mix(col, vec3(1.0, 1.0, 0.98), smoothstep(0.78, 1.05, heat));\n  return col;\n}\n\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;\n\n  float t = f.time * 0.55 * f.speed;\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float beat = clamp(f.pulse, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n\n  float r = length(p);\n  float a = getAngle(p);\n\n  // Stellar core radius with bass pulsation\n  float coreRadius = 0.34 + bass * 0.09 + beat * 0.04;\n\n  // Background deep space with hot ambient nebula dust\n  vec3 col = vec3(0.015, 0.003, 0.008) + vec3(0.14, 0.018, 0.0) * exp(-r * 1.6);\n\n  // Shockwave blast rings propagating outward\n  float wavePhase = mod(r * 2.8 - t * 2.0, 2.0);\n  float shock = exp(-abs(wavePhase - 1.0) * 14.0) * exp(-r * 0.9);\n  col = col + vec3(1.0, 0.45, 0.08) * shock * (0.6 + 0.9 * bass);\n\n  // Solar Prominences / coronal mass ejections (flares radiating outward)\n  float flares = 0.0;\n  for (int i = 0; i < 6; i++) {\n    float fi = float(i);\n    float flareAngle = fi * 1.047 + sin(t * 0.4 + fi * 1.2) * 0.35;\n    float da = abs(mod(a - flareAngle + 3.14159, 6.28318) - 3.14159);\n    float flareDist = abs(r - (coreRadius + 0.18 + 0.16 * sin(t * 2.2 + fi * 2.0) + bass * 0.18));\n    float flareIntensity = exp(-da * 8.5) * exp(-flareDist * 9.0);\n    flares = flares + flareIntensity;\n  }\n  col = col + vec3(1.0, 0.38, 0.06) * flares * 2.0;\n\n  // Ethereal coronal streamers (solar wind filaments)\n  float rays = sin(a * 16.0 + t * 2.2 + sin(r * 6.0 - t * 3.5)) * 0.5 + 0.5;\n  rays = rays * smoothstep(coreRadius * 0.8, 1.3, r) * exp(-r * 2.0);\n  col = col + vec3(1.0, 0.55, 0.12) * rays * (0.8 + 0.8 * beat);\n\n  // Magnetic coronal loops (toroidal magnetic flux arches)\n  for (int m = 0; m < 5; m++) {\n    float fm = float(m);\n    vec2 loopCenter = vec2(cos(fm * 1.256 + t * 0.35), sin(fm * 1.256 + t * 0.35)) * (coreRadius * 0.92);\n    float dLoop = length(p - loopCenter);\n    float loopRadius = 0.13 + 0.05 * sin(t * 1.6 + fm * 1.8);\n    float loopRing = abs(dLoop - loopRadius);\n    float loopGlow = 0.0035 / (loopRing * loopRing * 22.0 + 0.004);\n    col = col + vec3(1.0, 0.75, 0.25) * loopGlow * (0.7 + 0.6 * spark);\n  }\n\n  // Solar photosphere surface with boiling convective granulation\n  if (r < coreRadius * 1.25) {\n    vec2 surfCoord = rotate2D(p, t * 0.18);\n    float granulation = solarNoise(surfCoord * 5.0, t * 1.5);\n    \n    // Radial darkening towards the limb, searing nuclear interior\n    float radialFactor = clamp((coreRadius - r) / coreRadius, 0.0, 1.0);\n    float heat = radialFactor * 0.92 + granulation * 0.32 + bass * 0.35;\n    vec3 sunSurface = blackbody(clamp(heat, 0.0, 1.25));\n\n    // Crisp limb transition with solar atmosphere rim\n    float diskAlpha = smoothstep(coreRadius + 0.02, coreRadius - 0.02, r);\n    col = mix(col, sunSurface, diskAlpha);\n  }\n\n  // Radiant nuclear core glow\n  float coreGlow = 0.06 / (r * r * 8.5 + 0.06);\n  col = col + vec3(1.0, 0.92, 0.75) * coreGlow * (0.9 + 1.1 * bass);\n\n  // High-energy relativistic plasma sparks\n  for (int s = 0; s < 8; s++) {\n    float fs = float(s);\n    float spAngle = fs * 0.785 + t * (1.3 + 0.25 * fs);\n    float spRad = coreRadius + 0.10 + 0.28 * fract(sin(fs * 43.12) * 532.1 + t * 0.45);\n    vec2 spPos = vec2(cos(spAngle), sin(spAngle)) * spRad;\n    float spDist = length(p - spPos);\n    float sparkGlow = 0.002 / (spDist * spDist * 32.0 + 0.002);\n    col = col + vec3(1.0, 0.9, 0.4) * sparkGlow * (1.0 + 1.3 * spark);\n  }\n\n  // Soft tone mapping and subtle vignette\n  col = col / (col + vec3(0.82));\n  float vig = 1.0 - smoothstep(0.5, 1.5, r);\n  col = col * vig * f.intensity * f.glow;\n\n  return vec4(clamp(col, 0.0, 1.0), 1.0);\n}\n"
+    },
+    {
       "id": "galaxy_scene",
       "name": "Spiral Galaxy",
       "programId": "creator_galaxy_scene",
@@ -155,6 +243,28 @@
       }
     },
     {
+      "id": "mercurio_liquido",
+      "name": "Mercurio Líquido",
+      "programId": "creator_mercurio_liquido",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278519824,
+        4287146700,
+        4294967295,
+        4281917951
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "shaderSource": "float liquidField(vec2 p, float t, float bass, float spark, float flow) {\n  float r = length(p);\n  // Concentric liquid ripples expanding from center\n  float ripple = sin(r * (14.0 + 3.0 * flow) - t * 3.8) * (0.035 + 0.055 * bass);\n\n  // Cross-interfering droplet orbits\n  vec2 c1 = vec2(sin(t * 0.7) * 0.42, cos(t * 0.8) * 0.35);\n  vec2 c2 = vec2(cos(t * 0.9 + 1.8) * 0.38, sin(t * 0.6) * 0.42);\n  float wave1 = sin(length(p - c1) * 16.0 - t * 4.2) * (0.025 + 0.035 * bass);\n  float wave2 = sin(length(p - c2) * 18.0 - t * 3.6) * (0.020 + 0.030 * spark);\n\n  // High-frequency surface sizzle from spark / hi-hats\n  float sizzle = sin(p.x * 32.0 + t * 4.5) * cos(p.y * 32.0 + t * 4.0) * (0.006 + 0.018 * spark);\n\n  // Base organic dome\n  float dome = exp(-r * r * 2.2) * 0.16;\n\n  return dome + ripple + wave1 + wave2 + sizzle;\n}\n\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.1;\n\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float energy = clamp(f.energy, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n  float flow = clamp(f.flow, 0.0, 1.0);\n\n  float t = f.time * f.speed * 0.48;\n\n  // Surface Normal via finite differences\n  float eps = 0.0035;\n  float hC = liquidField(p, t, bass, spark, flow);\n  float hR = liquidField(p + vec2(eps, 0.0), t, bass, spark, flow);\n  float hU = liquidField(p + vec2(0.0, eps), t, bass, spark, flow);\n\n  vec3 normal = normalize(vec3((hC - hR) / eps, (hC - hU) / eps, 0.32));\n\n  // Environmental reflection vector\n  vec3 view = normalize(vec3(p * 0.22, 1.0));\n  vec3 ref = reflect(-view, normal);\n\n  // Studio lighting environment ramp (chrome horizon, deep velvet zenith)\n  float horizon = smoothstep(-0.25, 0.25, ref.y);\n  float stripe = sin(ref.y * 12.0 + ref.x * 6.0 + t * 0.25);\n  float studioStripe = smoothstep(0.35, 0.75, stripe);\n\n  vec3 deepMetal = vec3(0.02, 0.035, 0.07);\n  vec3 silver = vec3(0.85, 0.90, 0.98);\n  vec3 neonCyan = vec3(0.20, 0.85, 1.0);\n  vec3 neonMagenta = vec3(0.95, 0.20, 0.65);\n\n  vec3 chrome = mix(deepMetal, silver, horizon * 0.8 + studioStripe * 0.25);\n\n  // Directional specular glints\n  vec3 lightDir1 = normalize(vec3(-0.45, 0.7, 0.6));\n  float spec1 = pow(max(dot(ref, lightDir1), 0.0), 36.0) * (1.6 + 2.4 * spark);\n  vec3 lightDir2 = normalize(vec3(0.55, -0.5, 0.55));\n  float spec2 = pow(max(dot(ref, lightDir2), 0.0), 22.0) * (0.8 + 1.4 * bass);\n\n  // Fresnel rim glow with subtle chromatic sheen\n  float fresnel = pow(1.0 - max(dot(normal, view), 0.0), 2.6);\n  vec3 rimColor = mix(neonCyan, neonMagenta, 0.5 + 0.5 * sin(t * 0.35 + p.y * 2.2));\n\n  // Combine chrome surface\n  vec3 surface = chrome + (spec1 + spec2) * vec3(1.0, 0.98, 0.93) + fresnel * rimColor * (0.65 + 0.85 * energy);\n\n  // Smooth dropoff into deep velvet background\n  float fluidAlpha = smoothstep(1.4, 0.85, length(p));\n  vec3 bg = vec3(0.015, 0.02, 0.035) * (1.0 - 0.45 * length(p));\n  vec3 finalColor = mix(bg, surface, fluidAlpha);\n\n  return vec4(clamp(finalColor * f.intensity * f.glow, 0.0, 1.0), 1.0);\n}\n"
+    },
+    {
       "id": "olas",
       "name": "Olas",
       "programId": "creator_olas",
@@ -175,6 +285,117 @@
         "glow": 0.8
       },
       "shaderSource": "vec4 paintVisual(vec2 uv, CreatorFrame f) {\nvec2 q = uv - 0.5;\nvec2 p = q;\np.x *= max(f.size.x, 1.0) / max(f.size.y, 1.0);\n\nfloat intensity = clamp(f.intensity, 0.0, 2.0);\nfloat speed = clamp(f.speed, 0.0, 3.0);\nfloat detail = clamp(f.detail, 0.0, 2.0);\nfloat glow = clamp(f.glow, 0.0, 2.0);\n\nfloat t = f.time * speed * 0.28;\nfloat seed = mod(\nf.seedLow * 0.0174533 + f.seedHigh * 0.0137137,\n6.2831853\n);\n\nvec3 deepBlue = mix(\nvec3(0.006, 0.022, 0.070),\nf.color0.rgb * 0.35,\n0.20\n);\nvec3 oceanBlue = mix(\nvec3(0.018, 0.115, 0.290),\nf.color1.rgb,\n0.20\n);\nvec3 waveBlue = mix(\nvec3(0.045, 0.310, 0.590),\nf.color2.rgb,\n0.22\n);\nvec3 lightBlue = mix(\nvec3(0.240, 0.590, 0.820),\nf.color3.rgb,\n0.20\n);\n\nfloat depth = smoothstep(0.0, 1.0, uv.y);\nvec3 c = mix(deepBlue, oceanBlue, 0.22 + 0.28 * depth);\n\nvec2 lightPosition = vec2(\n0.18 * sin(t * 0.23 + seed),\n-0.12 + 0.06 * sin(t * 0.19 + seed * 0.71)\n);\nvec2 lightDistance = p - lightPosition;\nfloat ambientLight = exp(-dot(lightDistance, lightDistance) * 1.65);\nc += oceanBlue * ambientLight * 0.14;\n\nfloat density = 1.70 + 0.60 * detail;\nfloat amplitude = 0.075 + 0.055 * f.bass + 0.018 * f.energy;\nfloat luminosity = 0.78 + 0.22 * f.energy;\n\nfor (int i = 0; i < 6; i++) {\nfloat k = float(i);\nfloat layer = k / 5.0;\nfloat offset = seed + k * 0.92;\n\nfloat primary = sin(\n  p.x * density - t * (0.68 + 0.035 * k) + offset\n);\nfloat secondary = sin(\n  p.x * (2.30 + 0.75 * detail)\n  + t * 0.44\n  + offset * 1.70\n);\n\nfloat center = (k - 2.5) * 0.17\n  + p.x * 0.07\n  + amplitude * primary\n  + (0.032 + 0.014 * f.flow) * secondary;\n\nfloat d = p.y - center;\nfloat width = 0.067 + 0.006 * k + 0.020 * f.body;\nfloat normalizedDistance = d / width;\nfloat wave = exp(-normalizedDistance * normalizedDistance);\n\nfloat crestDistance = (d + width * 0.30)\n  / (0.024 + 0.009 * f.body);\nfloat crest = exp(-crestDistance * crestDistance);\n\nfloat faceLight = 1.0 - smoothstep(-width, width * 1.60, d);\nvec3 ink = mix(oceanBlue, waveBlue, 0.28 + 0.60 * layer);\nvec3 face = ink * (0.64 + 0.30 * faceLight);\n\nfloat opacity = wave * (0.25 + 0.07 * f.energy) * intensity;\nc = mix(c, face, opacity);\n\nc += ink * wave\n  * (0.065 + 0.035 * f.energy)\n  * glow * intensity;\n\nfloat reflection = 0.027 + 0.026 * f.spark + 0.008 * f.pulse;\nc += lightBlue * crest * reflection\n  * luminosity * glow * intensity;\n\n}\n\nfloat vignette = 1.0\n- 0.26 * smoothstep(0.05, 0.50, dot(q, q));\n\nreturn vec4(clamp(c * vignette, 0.0, 1.0), 1.0);\n}\n"
+    },
+    {
+      "id": "plasma_scene",
+      "name": "Campo de Plasma",
+      "programId": "creator_plasma_scene",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278194975,
+        4278239922,
+        4294957373,
+        4294913977
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.8,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  float smoothBass = 0.0f;\n  float smoothEnergy = 0.0f;\n  float smoothSpark = 0.0f;\n  float plasmaTime = 0.0f;\n  float ripplePhase = 0.0f;\n  float colorPhase = 0.0f;\n\n public:\n  void reset(uint32_t) override {\n    smoothBass = 0.0f;\n    smoothEnergy = 0.0f;\n    smoothSpark = 0.0f;\n    plasmaTime = 0.0f;\n    ripplePhase = 0.0f;\n    colorPhase = 0.0f;\n  }\n\n  void update(const Frame& f) override {\n    float dt = float(f.delta);\n    if (dt > 0.1f) dt = 0.1f;\n\n    // Filtro exponencial asimétrico para respuesta musical orgánica sin tirones\n    float targetBass = f.music.active ? f.music.bass : 0.0f;\n    float targetEnergy = f.music.active ? f.music.energy : 0.0f;\n    float targetSpark = f.music.active ? f.music.spark : 0.0f;\n\n    float bassRate = targetBass > smoothBass ? 16.0f : 4.5f;\n    smoothBass += (targetBass - smoothBass) * (1.0f - std::exp(-dt * bassRate));\n    smoothEnergy += (targetEnergy - smoothEnergy) * (1.0f - std::exp(-dt * 5.0f));\n    smoothSpark += (targetSpark - smoothSpark) * (1.0f - std::exp(-dt * 10.0f));\n\n    // Integración continua: la música modula la velocidad de flujo, nunca resetea la fase\n    float speedMod = (1.0f + smoothEnergy * 0.75f + smoothBass * 0.5f) * f.speed;\n    plasmaTime += dt * speedMod * 0.85f;\n    ripplePhase += dt * (1.2f + smoothBass * 2.8f);\n    colorPhase += dt * (0.04f + smoothBass * 0.10f + smoothEnergy * 0.06f);\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    c.material(\"plasma\", {0, 0, f.width, f.height},\n               {plasmaTime, ripplePhase, colorPhase, smoothBass, smoothEnergy, smoothSpark});\n  }\n};\n",
+      "shaderSources": {
+        "plasma": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform float uTime;\nuniform float uRipple;\nuniform float uColorPhase;\nuniform float uBass;\nuniform float uEnergy;\nuniform float uSpark;\nout vec4 fragColor;\n\nvec3 plasmaColor(float x) {\n  float s = fract(x) * 8.0;\n  int i = int(floor(s));\n  float f = fract(s);\n  f = f * f * (3.0 - 2.0 * f);\n\n  vec3 c0 = vec3(0.005, 0.040, 0.120);\n  vec3 c1 = vec3(0.000, 0.380, 0.580);\n  vec3 c2 = vec3(0.000, 0.880, 0.760);\n  vec3 c3 = vec3(0.500, 1.000, 0.380);\n  vec3 c4 = vec3(1.000, 0.860, 0.220);\n  vec3 c5 = vec3(1.000, 0.320, 0.300);\n  vec3 c6 = vec3(0.960, 0.120, 0.680);\n  vec3 c7 = vec3(0.240, 0.030, 0.380);\n\n  vec3 colA = c0;\n  vec3 colB = c1;\n  if (i == 1) { colA = c1; colB = c2; }\n  else if (i == 2) { colA = c2; colB = c3; }\n  else if (i == 3) { colA = c3; colB = c4; }\n  else if (i == 4) { colA = c4; colB = c5; }\n  else if (i == 5) { colA = c5; colB = c6; }\n  else if (i == 6) { colA = c6; colB = c7; }\n  else if (i == 7) { colA = c7; colB = c0; }\n\n  return mix(colA, colB, f);\n}\n\nvoid main() {\n  vec2 uv = FlutterFragCoord().xy / uSize;\n  float aspect = uSize.x / uSize.y;\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 6.5;\n\n  vec2 c1 = vec2(sin(uTime * 0.45), cos(uTime * 0.38)) * 1.5;\n  vec2 c2 = vec2(cos(uTime * 0.33 + 1.8), sin(uTime * 0.52)) * 1.4;\n\n  float d1 = length(p - c1);\n  float d2 = length(p - c2);\n\n  float w1 = sin(p.x * 1.8 + uTime * 1.1);\n  float w2 = sin(p.y * 2.1 + uTime * 0.95);\n  float w3 = sin((p.x + p.y) * 1.5 + uTime * 0.75);\n  float w4 = sin(d1 * 2.8 - uRipple * 2.2);\n  float w5 = sin(d2 * 2.4 - uRipple * 1.7);\n\n  vec2 warp = vec2(w1 + w5 * 0.4, w2 + w4 * 0.4) * (0.45 + uBass * 0.25);\n  float w6 = sin(length(p + warp) * 2.6 - uTime * 1.2);\n\n  float v = (w1 + w2 + w3 + w4 + w5 * 0.8 + w6 * 1.1) / 5.7;\n\n  float phase = v * 0.85 + uColorPhase;\n  vec3 col = plasmaColor(phase);\n\n  float crest = pow(max(0.0, sin(v * 3.14159 * 2.0)), 6.0);\n  vec3 filamentColor = mix(vec3(0.4, 0.8, 1.0), vec3(1.0, 0.9, 0.5), smoothstep(0.0, 1.0, uBass));\n  col += filamentColor * (crest * (0.35 + uBass * 0.45 + uSpark * 0.4));\n\n  col = mix(col, col * col * 1.4, uEnergy * 0.25);\n\n  float vig = 1.0 - smoothstep(0.55, 1.4, length(uv - 0.5) * 1.35);\n  col *= vig;\n\n  fragColor = vec4(col, 1.0);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "44d54245e4d785dd678bc22b0eaea74f5c71b9ff5ff9b86c067ed40fe0f5ecc0",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
+        "materials": {
+          "plasma": {
+            "compilerHash": "5c78a363c73b0e7db77083262d7777d542d5fd8c49bd56a66ca07f2523be8e75",
+            "asset": "packages/visual_catalog/assets/native/plasma_scene_plasma.iplr",
+            "assetHash": "26004046081685a9cfb3f85c342b69dc8ea666bddf40bfdb07726effcd61ffb1",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct plasma_scene_plasma_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct plasma_scene_plasma_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment plasma_scene_plasma_fragment_main_out plasma_scene_plasma_fragment_main(plasma_scene_plasma_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float& uTime [[buffer(1)]], constant float& uRipple [[buffer(2)]], constant float& uColorPhase [[buffer(3)]], constant float& uBass [[buffer(4)]], constant float& uEnergy [[buffer(5)]], constant float& uSpark [[buffer(6)]])\n{\n    plasma_scene_plasma_fragment_main_out out = {};\n    float2 _169 = (in._fragCoord / uSize) - float2(0.5);\n    float2 _174 = (_169 * float2(uSize.x / uSize.y, 1.0)) * 6.5;\n    float _213 = _174.x;\n    float _219 = sin((_213 * 1.7999999523162841796875) + (uTime * 1.10000002384185791015625));\n    float _222 = _174.y;\n    float _229 = sin((_222 * 2.099999904632568359375) + (uTime * 0.949999988079071044921875));\n    float _251 = sin((length(_174 - (float2(sin(uTime * 0.449999988079071044921875), cos(uTime * 0.37999999523162841796875)) * 1.5)) * 2.7999999523162841796875) - (uRipple * 2.2000000476837158203125));\n    float _260 = sin((length(_174 - (float2(cos((uTime * 0.3300000131130218505859375) + 1.7999999523162841796875), sin(uTime * 0.519999980926513671875)) * 1.39999997615814208984375)) * 2.400000095367431640625) - (uRipple * 1.7000000476837158203125));\n    float _304 = ((((_219 + _229) + sin(((_213 + _222) * 1.5) + (uTime * 0.75))) + _251) + (_260 * 0.800000011920928955078125)) + (sin((length(_174 + (float2(_219 + (_260 * 0.4000000059604644775390625), _229 + (_251 * 0.4000000059604644775390625)) * (0.449999988079071044921875 + (uBass * 0.25)))) * 2.599999904632568359375) - (uTime * 1.2000000476837158203125)) * 1.10000002384185791015625);\n    float _400 = fract((_304 * 0.14912281930446624755859375) + uColorPhase) * 8.0;\n    int _403 = int(floor(_400));\n    float _405 = fract(_400);\n    float3 _472;\n    float3 _479;\n    if (_403 == 1)\n    {\n        _479 = float3(0.0, 0.87999999523162841796875, 0.7599999904632568359375);\n        _472 = float3(0.0, 0.37999999523162841796875, 0.579999983310699462890625);\n    }\n    else\n    {\n        float3 _473;\n        float3 _480;\n        if (_403 == 2)\n        {\n            _480 = float3(0.5, 1.0, 0.37999999523162841796875);\n            _473 = float3(0.0, 0.87999999523162841796875, 0.7599999904632568359375);\n        }\n        else\n        {\n            float3 _474;\n            float3 _481;\n            if (_403 == 3)\n            {\n                _481 = float3(1.0, 0.86000001430511474609375, 0.2199999988079071044921875);\n                _474 = float3(0.5, 1.0, 0.37999999523162841796875);\n            }\n            else\n            {\n                float3 _475;\n                float3 _482;\n                if (_403 == 4)\n                {\n                    _482 = float3(1.0, 0.319999992847442626953125, 0.300000011920928955078125);\n                    _475 = float3(1.0, 0.86000001430511474609375, 0.2199999988079071044921875);\n                }\n                else\n                {\n                    float3 _476;\n                    float3 _483;\n                    if (_403 == 5)\n                    {\n                        _483 = float3(0.959999978542327880859375, 0.119999997317790985107421875, 0.680000007152557373046875);\n                        _476 = float3(1.0, 0.319999992847442626953125, 0.300000011920928955078125);\n                    }\n                    else\n                    {\n                        float3 _477;\n                        float3 _484;\n                        if (_403 == 6)\n                        {\n                            _484 = float3(0.23999999463558197021484375, 0.02999999932944774627685546875, 0.37999999523162841796875);\n                            _477 = float3(0.959999978542327880859375, 0.119999997317790985107421875, 0.680000007152557373046875);\n                        }\n                        else\n                        {\n                            bool3 _492 = bool3(_403 == 7);\n                            _484 = select(float3(0.0, 0.37999999523162841796875, 0.579999983310699462890625), float3(0.004999999888241291046142578125, 0.039999999105930328369140625, 0.119999997317790985107421875), _492);\n                            _477 = select(float3(0.004999999888241291046142578125, 0.039999999105930328369140625, 0.119999997317790985107421875), float3(0.23999999463558197021484375, 0.02999999932944774627685546875, 0.37999999523162841796875), _492);\n                        }\n                        _483 = _484;\n                        _476 = _477;\n                    }\n                    _482 = _483;\n                    _475 = _476;\n                }\n                _481 = _482;\n                _474 = _475;\n            }\n            _480 = _481;\n            _473 = _474;\n        }\n        _479 = _480;\n        _472 = _473;\n    }\n    float3 _348 = mix(_472, _479, float3((_405 * _405) * (3.0 - (2.0 * _405)))) + (mix(float3(0.4000000059604644775390625, 0.800000011920928955078125, 1.0), float3(1.0, 0.89999997615814208984375, 0.5), float3(smoothstep(0.0, 1.0, uBass))) * (powr(fast::max(0.0, sin(_304 * 1.1023123264312744140625)), 6.0) * ((0.3499999940395355224609375 + (uBass * 0.449999988079071044921875)) + (uSpark * 0.4000000059604644775390625))));\n    out.fragColor = float4(mix(_348, (_348 * _348) * 1.39999997615814208984375, float3(uEnergy * 0.25)) * (1.0 - smoothstep(0.550000011920928955078125, 1.39999997615814208984375, length(_169) * 1.35000002384185791015625)), 1.0);\n    return out;\n}\n\n",
+            "entryPoint": "plasma_scene_plasma_fragment_main",
+            "floatCount": 8,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uTime",
+                "offset": 2,
+                "count": 1,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uRipple",
+                "offset": 3,
+                "count": 1,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uColorPhase",
+                "offset": 4,
+                "count": 1,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uBass",
+                "offset": 5,
+                "count": 1,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uEnergy",
+                "offset": 6,
+                "count": 1,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uSpark",
+                "offset": 7,
+                "count": 1,
+                "bufferIndex": 6
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
+    },
+    {
+      "id": "portal_cuantico",
+      "name": "Portal Cuántico",
+      "programId": "creator_portal_cuantico",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278519061,
+        4281917951,
+        4294131096,
+        4294958848
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.2
+      },
+      "shaderSource": "vec2 rotate2D(vec2 p, float a) {\n  float c = cos(a);\n  float s = sin(a);\n  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);\n}\n\nvec3 paletteCos(float t, vec3 a, vec3 b, vec3 c, vec3 d) {\n  return a + b * cos(6.28318 * (c * t + d));\n}\n\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;\n\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float energy = clamp(f.energy, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n  float flow = clamp(f.flow, 0.0, 1.0);\n\n  float t = f.time * f.speed * 0.42;\n  vec3 col = vec3(0.0);\n\n  // Split into 3 chromatic channels for subtle optical dispersion\n  for (int ch = 0; ch < 3; ch++) {\n    float dispersion = float(ch - 1) * (0.012 + 0.022 * spark);\n    vec2 cp = p * (1.0 + dispersion);\n\n    float r = length(cp);\n    // Logarithmic tunnel coordinate moving into the screen\n    float z = 1.0 / (r + 0.06);\n    float tunnelDepth = z * 0.55 - t * (1.1 + 0.9 * energy);\n\n    // Dynamic rotation modulated by sub-bass and flow\n    vec2 q = rotate2D(cp, t * 0.25 + z * 0.12 + bass * 0.35);\n\n    // Iterated Sacred Geometry / Kaleidoscope Folding\n    float accum = 0.0;\n    vec2 k = q * (1.8 + 0.4 * flow);\n    for (int i = 0; i < 4; i++) {\n      float fi = float(i);\n      k = abs(k) - vec2(0.32 + 0.12 * sin(t * 0.6 + fi * 1.3), 0.22 + 0.08 * cos(t * 0.45));\n      k = rotate2D(k, 0.785398 + 0.25 * bass + fi * 0.3);\n      accum += 1.0 / (length(k) * 22.0 + 1.0);\n    }\n\n    // Glowing harmonic tunnel rings\n    float ringPattern = abs(sin(tunnelDepth * 3.14159));\n    float ringGlow = (0.025 + 0.035 * bass) / (ringPattern * ringPattern + 0.007);\n\n    // Center singularity core radiance\n    float core = (0.10 + 0.35 * bass) / (r * r * 18.0 + 0.12);\n\n    // Color ramp: electric cyan, deep magenta, warm gold\n    vec3 pal = paletteCos(\n      tunnelDepth * 0.16 + float(ch) * 0.06 + t * 0.05,\n      vec3(0.5, 0.5, 0.5),\n      vec3(0.5, 0.5, 0.5),\n      vec3(1.0, 1.0, 1.0),\n      vec3(0.05, 0.33, 0.67)\n    );\n\n    float intensity = (accum * 0.42 + ringGlow * 0.48 + core * 0.6) * f.intensity * f.glow;\n\n    if (ch == 0) col.r += intensity * pal.r;\n    else if (ch == 1) col.g += intensity * pal.g;\n    else if (ch == 2) col.b += intensity * pal.b;\n  }\n\n  // Soft tone mapping and subtle cinematic vignette\n  col = col / (col + vec3(0.85));\n  float vignette = 1.0 - smoothstep(0.45, 1.45, length(p));\n  col *= vignette;\n\n  return vec4(col, 1.0);\n}\n"
     },
     {
       "id": "prismatic_halo",
@@ -221,6 +442,28 @@
       "shaderSource": "vec4 paintVisual(vec2 uv, CreatorFrame f) {\nvec2 p = (uv - 0.5) * vec2(f.size.x / max(f.size.y, 1.0), 1.0);\nfloat t = f.time * f.speed * 0.2;\nvec3 c = f.color0.rgb;\nfor (int i = 0; i < 3; i++) {\n  float k = float(i);\n  vec2 center = 0.08 * vec2(cos(t + k * 2.1), sin(t * 0.7 + k * 2.1));\n  float r = length(p - center);\n  float ring = abs(r - (0.15 + k * 0.085));\n  float beam = exp(-ring * ring * 18000.0) * 0.5;\n  float halo = exp(-ring * 30.0) * 0.13 * f.glow;\n  vec3 ink = mix(f.color1.rgb, f.color3.rgb, k * 0.5);\n  c += ink * (beam + halo) * f.intensity;\n}\nreturn vec4(c, 1.0);\n}\n"
     },
     {
+      "id": "seda_bioluminiscente",
+      "name": "Seda Bioluminiscente",
+      "programId": "creator_seda_bioluminiscente",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278322706,
+        4279563674,
+        4281917951,
+        4288545023
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.1
+      },
+      "shaderSource": "vec2 rotate2D(vec2 p, float a) {\n  float c = cos(a);\n  float s = sin(a);\n  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);\n}\n\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;\n\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float energy = clamp(f.energy, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n  float flow = clamp(f.flow, 0.0, 1.0);\n\n  float t = f.time * f.speed * 0.38;\n\n  // Multi-frequency fluid domain warping\n  vec2 q = vec2(\n    sin(p.x * 1.8 + t * 0.45 + bass * 0.2),\n    cos(p.y * 1.8 + t * 0.38 + flow * 0.3)\n  );\n\n  vec2 r = vec2(\n    sin(p.x * 2.8 + q.y * 2.4 + t * 0.52),\n    cos(p.y * 2.8 + q.x * 2.4 + t * 0.44)\n  );\n\n  // Sheer silk ribbon folds\n  vec2 warpedP = p + r * (0.35 + 0.15 * flow);\n  warpedP = rotate2D(warpedP, t * 0.12 + bass * 0.2);\n\n  float ribbon1 = sin(warpedP.y * 4.2 + warpedP.x * 2.1 + t * 1.2);\n  float ribbon2 = cos(warpedP.y * 5.6 - warpedP.x * 2.8 - t * 0.95);\n  float ribbon3 = sin(length(warpedP) * 5.0 - t * 1.6);\n\n  float sheet1 = 1.0 / (abs(ribbon1) * 14.0 + 1.0);\n  float sheet2 = 1.0 / (abs(ribbon2) * 16.0 + 1.0);\n  float sheet3 = 1.0 / (abs(ribbon3) * 12.0 + 1.0);\n\n  // Bioluminescent deep-ocean palette\n  vec3 deepNavy = vec3(0.008, 0.024, 0.070);\n  vec3 bioEmerald = vec3(0.08, 0.96, 0.60);\n  vec3 bioCyan = vec3(0.15, 0.85, 1.0);\n  vec3 bioViolet = vec3(0.62, 0.10, 0.95);\n  vec3 warmSparkle = vec3(1.0, 0.95, 0.80);\n\n  // Layered transmission & rim light\n  vec3 col = deepNavy;\n  col += bioCyan * sheet1 * (0.75 + 0.55 * bass);\n  col += bioEmerald * sheet2 * (0.65 + 0.65 * energy);\n  col += bioViolet * sheet3 * (0.55 + 0.45 * flow);\n\n  // Bioluminescent micro-spores dancing on the crests\n  float sporeGrid = sin(warpedP.x * 32.0 + t * 4.0) * cos(warpedP.y * 32.0 - t * 3.5);\n  float spores = smoothstep(0.72, 0.98, sporeGrid) * (sheet1 + sheet2);\n  col += warmSparkle * spores * (0.4 + 2.2 * spark);\n\n  // Soft caustics / volumetric underwater rays\n  float rays = sin(p.x * 6.0 + p.y * 3.0 + t * 0.8) * 0.5 + 0.5;\n  col += bioCyan * rays * 0.12 * (1.0 + bass * 0.6);\n\n  // Tone mapping and gentle vignette\n  col = col / (col + vec3(0.9));\n  float vignette = 1.0 - smoothstep(0.5, 1.45, length(p));\n  col *= vignette;\n\n  return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);\n}\n"
+    },
+    {
       "id": "synthwave_scene",
       "name": "Midnight Highway",
       "programId": "creator_synthwave_scene",
@@ -252,6 +495,28 @@
         "materials": {},
         "imageHashes": {}
       }
+    },
+    {
+      "id": "vortice_cosmico",
+      "name": "Vórtice Cósmico",
+      "programId": "creator_vortice_cosmico",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278386954,
+        4294932258,
+        4281917951,
+        4294967295
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.2
+      },
+      "shaderSource": "vec2 rotate2D(vec2 p, float a) {\n  float c = cos(a);\n  float s = sin(a);\n  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);\n}\n\nfloat hash21(vec2 p) {\n  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);\n}\n\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.3;\n\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float energy = clamp(f.energy, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n  float flow = clamp(f.flow, 0.0, 1.0);\n\n  float t = f.time * f.speed * 0.44;\n\n  float r = length(p);\n  float eventHorizon = 0.26 + 0.05 * bass;\n\n  // Gravitational deflection / Einstein ring lensing\n  vec2 lensP = p;\n  if (r > eventHorizon) {\n    float defl = (eventHorizon * eventHorizon) / (r * r + 0.001);\n    lensP = p * (1.0 - defl * 0.42);\n  }\n\n  // Accretion disk coordinate with tilt and logarithmic spiral\n  vec2 diskP = lensP;\n  diskP.y *= 2.35; // 3D orbital inclination tilt\n  diskP = rotate2D(diskP, 0.38);\n\n  float diskR = length(diskP);\n  // Analytical polar angle\n  float diskAngle = atan(diskP.y / (diskP.x + 0.00001)) + (diskP.x < 0.0 ? 3.14159 : 0.0);\n\n  // Swirling plasma arms in relativistic accretion disk\n  float spiral = diskAngle * 2.0 - log(diskR + 0.001) * 3.4 - t * (2.2 + 1.4 * flow + 1.8 * energy);\n  float arm1 = sin(spiral) * 0.5 + 0.5;\n  float arm2 = sin(spiral * 2.0 + 1.3) * 0.5 + 0.5;\n  float arms = arm1 * 0.7 + arm2 * 0.3;\n\n  // Accretion disk radial bounds\n  float diskMask = smoothstep(eventHorizon * 0.88, eventHorizon * 1.32, diskR) *\n                   smoothstep(1.65, eventHorizon * 1.5, diskR);\n\n  // Doppler boosting: approaching plasma orbital side is brighter and hotter\n  float doppler = 1.0 - clamp(diskP.x * 0.65, -0.65, 0.65);\n\n  // Photon ring radiance directly surrounding event horizon boundary\n  float photonDist = abs(r - eventHorizon);\n  float photonRing = (0.012 + 0.025 * bass) / (photonDist * photonDist + 0.0028);\n\n  // Color temperature ramp: from fiery volcanic orange to burning electric cyan\n  vec3 hotOrange = vec3(1.0, 0.45, 0.12);\n  vec3 electricCyan = vec3(0.25, 0.85, 1.0);\n  vec3 pureWhite = vec3(1.0, 0.98, 0.92);\n\n  vec3 diskColor = mix(hotOrange, electricCyan, arms * 0.5 + energy * 0.45);\n  diskColor = mix(diskColor, pureWhite, pow(arms, 3.0) * (0.45 + spark * 0.8));\n\n  vec3 col = diskColor * arms * diskMask * doppler * (1.6 + bass * 0.85);\n  col += vec3(0.28, 0.72, 1.0) * photonRing * (0.85 + energy * 0.65);\n\n  // Background starfield distorted by gravity\n  vec2 starGrid = floor(lensP * 28.0);\n  float starHash = hash21(starGrid);\n  if (starHash > 0.962) {\n    if (r > eventHorizon * 1.15) {\n      vec2 starFrac = fract(lensP * 28.0) - 0.5;\n      float starDist = length(starFrac);\n      float starTwinkle = 0.5 + 0.5 * sin(t * 3.0 + starHash * 30.0);\n      float starBright = (0.018 * starTwinkle + 0.028 * spark) / (starDist * starDist * 60.0 + 0.05);\n      col += vec3(0.85, 0.92, 1.0) * starBright;\n    }\n  }\n\n  // Black hole pitch black core shadow\n  float shadow = smoothstep(eventHorizon * 0.85, eventHorizon * 1.05, r);\n  col *= shadow;\n\n  // Relativistic polar jet radiance\n  float jetY = abs(p.y);\n  float jetX = abs(p.x);\n  float jet = exp(-jetX * 36.0) * smoothstep(0.18, 1.25, jetY) * (0.15 + 0.85 * bass);\n  col += electricCyan * jet * 0.55;\n\n  // Cinematic tone mapping and soft vignette\n  col = col / (col + vec3(0.92));\n  float vignette = 1.0 - smoothstep(0.55, 1.45, length(p));\n  col *= vignette;\n\n  return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);\n}\n"
     }
   ]
 }

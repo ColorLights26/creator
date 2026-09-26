@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -63,11 +64,73 @@ class _CreatorStudioState extends State<CreatorStudio>
   bool _ready = false;
   bool _playing = true;
   bool _reactive = true;
+  bool _muted = false;
   bool _foreground = true;
   bool _sending = false;
   bool _replayPrimed = false;
   bool _disposed = false;
   int _revision = 0;
+  final ValueNotifier<SceneRenderSignalFrameV2?> _latestSignal =
+      ValueNotifier<SceneRenderSignalFrameV2?>(null);
+  final Map<String, VisualCurationStatus> _curationStatus = {};
+
+  void _toggleMuted() {
+    setState(() => _muted = !_muted);
+    if (_muted && _latestSignal.value != null) {
+      final silent = _latestSignal.value!.toSilent();
+      _enqueue(() async {
+        await _controller.sendSignal(silent);
+        _latestSignal.value = silent;
+      });
+    }
+  }
+
+  void _setCurationStatus(String id, VisualCurationStatus status) {
+    setState(() {
+      _curationStatus[id] = status;
+    });
+    _saveCuration();
+  }
+
+  void _saveCuration() {
+    try {
+      final jsonMap = {
+        for (final entry in _curationStatus.entries)
+          entry.key: entry.value.name,
+      };
+      final file = File('${Directory.systemTemp.path}/creator_curation_review.json');
+      file.writeAsStringSync(jsonEncode(jsonMap));
+      developer.log(
+        'Saved visual curation review to ${file.path}: $jsonMap',
+        name: 'audiovisual_creator',
+      );
+    } catch (_) {
+      // non-blocking
+    }
+  }
+
+  void _loadCuration() {
+    try {
+      final file = File('${Directory.systemTemp.path}/creator_curation_review.json');
+      if (file.existsSync()) {
+        final decoded = jsonDecode(file.readAsStringSync());
+        if (decoded is Map) {
+          for (final entry in decoded.entries) {
+            final status = VisualCurationStatus.values.firstWhere(
+              (s) => s.name == entry.value,
+              orElse: () => VisualCurationStatus.pending,
+            );
+            _curationStatus[entry.key as String] = status;
+          }
+        }
+      }
+    } catch (_) {
+      // non-blocking
+    }
+    if (!_curationStatus.containsKey('plasma_scene')) {
+      _curationStatus['plasma_scene'] = VisualCurationStatus.approved;
+    }
+  }
 
   CreatorVisualDefinition? get _selected {
     for (final visual in _catalog) {
@@ -104,12 +167,43 @@ class _CreatorStudioState extends State<CreatorStudio>
       StudioRecording(
         name: 'Demo sintética',
         description:
-            'Demo de 32 s con partes suaves, subidas, pausas y acentos. Señales sintéticas; no reproduce audio.',
+            'Showcase dinámico de 32 s: Ambient → Build-up acelerado → Drop EDM contundente → Trap 808 → Clímax espectral.',
+        recording: createDynamicShowcaseSignalRecording(),
+      ),
+      StudioRecording(
+        name: 'EDM & Club Drop (128 BPM)',
+        description:
+            'Bombo 4-on-the-floor, subgraves masivos, eventos de beat en cada golpe y cajas a contratiempo.',
+        recording: createEdmClubDropSignalRecording(),
+      ),
+      StudioRecording(
+        name: 'Trap 808 & Hi-Hats (140 BPM)',
+        description:
+            'Sub-bass 808 profundo y sostenido, rolls rápidos de hi-hats (32 notas) en agudos y clap seco.',
+        recording: createTrap808SignalRecording(),
+      ),
+      StudioRecording(
+        name: 'Ambient & Chillout (75 BPM)',
+        description:
+            'Pads armónicos fluidos y respiración etérea. Flujo orgánico sin percusión agresiva.',
+        recording: createAmbientChilloutSignalRecording(),
+      ),
+      StudioRecording(
+        name: 'Barrido Espectral (20Hz - 20kHz)',
+        description:
+            'Barrido analítico banda por banda para auditar la respuesta del shader a cada frecuencia.',
+        recording: createSpectralSweepSignalRecording(),
+      ),
+      StudioRecording(
+        name: 'Demo clásica (32s)',
+        description:
+            'Pista de referencia clásica de 32 s con partes suaves y acentos.',
         recording: createSyntheticSceneSignalRecording(),
       ),
     ];
     _replay = SceneSignalReplay(_recordings.first.recording);
     _readCatalog();
+    _loadCuration();
     unawaited(_loadRecordings());
   }
 
@@ -137,9 +231,11 @@ class _CreatorStudioState extends State<CreatorStudio>
         _selectedId =
             catalog.isEmpty
                 ? null
-                : catalog
-                    .firstWhere((v) => v.isNative, orElse: () => catalog.first)
-                    .id;
+                : (catalog.any((v) => v.id == 'furia_estelar')
+                    ? 'furia_estelar'
+                    : catalog
+                        .firstWhere((v) => v.isNative, orElse: () => catalog.first)
+                        .id);
       }
       _error = null;
     } on Object catch (error, stack) {
@@ -299,6 +395,7 @@ class _CreatorStudioState extends State<CreatorStudio>
 
   void _stopReplay() {
     if (_ticker.isActive) _ticker.stop();
+    _latestSignal.value = null;
   }
 
   void _pumpReplay() {
@@ -337,7 +434,9 @@ class _CreatorStudioState extends State<CreatorStudio>
     _replayPrimed = true;
     for (final sample in batch.samples) {
       if (!_isCurrent(revision)) return;
-      await _controller.sendSignal(sample.frame);
+      final frame = _muted ? sample.frame.toSilent() : sample.frame;
+      await _controller.sendSignal(frame);
+      _latestSignal.value = frame;
     }
   }
 
@@ -389,6 +488,7 @@ class _CreatorStudioState extends State<CreatorStudio>
     WidgetsBinding.instance.removeObserver(this);
     _controller.removeListener(_controllerChanged);
     _ticker.dispose();
+    _latestSignal.dispose();
     unawaited(
       _commands
           .then((_) => _controller.close())
@@ -440,6 +540,8 @@ class _CreatorStudioState extends State<CreatorStudio>
       playing: _playing,
       reactive: _effectiveReaction,
       reactionEnabled: _selected?.reactivity == CreatorReactivity.optional,
+      muted: _muted,
+      onToggleMuted: _toggleMuted,
       loading: _loading,
       error: _error,
       onSelectVisual: _selectVisual,
@@ -449,6 +551,9 @@ class _CreatorStudioState extends State<CreatorStudio>
       onReload: _reload,
       onViewportChanged: _viewportChanged,
       pictureInPictureActive: _controller.pictureInPictureActive,
+      curationStatus: _curationStatus,
+      onCurationChanged: _setCurationStatus,
+      signalListenable: _latestSignal,
       onPictureInPicture:
           defaultTargetPlatform == TargetPlatform.iOS
               ? () => _enqueue(() async {

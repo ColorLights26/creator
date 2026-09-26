@@ -83,7 +83,7 @@ void main() {
   f.color0=uColor0; f.color1=uColor1; f.color2=uColor2; f.color3=uColor3;
   vec2 uv=FlutterFragCoord().xy / max(f.size,vec2(1.0));
   vec4 color=vec4(0.0);
-${[for (var i = 0; i < visuals.length; i++) '  ${i == 0 ? 'if' : 'else if'} (abs(uVisualIndex - $i.0) < 0.5) color=creator_${i}_paintVisual(uv,f);'].join('\n')}
+${[for (var i = 0; i < visuals.length; i++) '  if (abs(uVisualIndex - $i.0) < 0.5) color=creator_${i}_paintVisual(uv,f);'].join('\n')}
   if (any(isnan(color)) || any(isinf(color))) color=vec4(0.0);
   color=clamp(color,0.0,1.0);
   fragColor=vec4(color.rgb*color.a,color.a);
