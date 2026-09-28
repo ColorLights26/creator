@@ -61,7 +61,15 @@ vec4 creator_5_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_6_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_7_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_8_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_9_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_9_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_10_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_11_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_12_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_13_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_14_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_15_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_16_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_17_paintVisual(vec2 uv, CreatorFrame f) {
   vec2 p = (uv - 0.5) * vec2(f.size.x / max(f.size.y, 1.0), 1.0);
   float radius = 0.27 + 0.015 * sin(f.time * f.speed) + 0.025 * f.bass;
   float distance = abs(length(p) - radius);
@@ -72,9 +80,11 @@ vec4 creator_9_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(ink, alpha);
 }
 
-vec4 creator_10_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_11_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_12_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_18_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_19_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_20_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_21_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_22_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 void main() {
   CreatorFrame f;
   f.size=uSize; f.time=uTime; f.seedLow=uSeedLow; f.seedHigh=uSeedHigh;
@@ -97,6 +107,16 @@ void main() {
   if (abs(uVisualIndex - 10.0) < 0.5) color=creator_10_paintVisual(uv,f);
   if (abs(uVisualIndex - 11.0) < 0.5) color=creator_11_paintVisual(uv,f);
   if (abs(uVisualIndex - 12.0) < 0.5) color=creator_12_paintVisual(uv,f);
+  if (abs(uVisualIndex - 13.0) < 0.5) color=creator_13_paintVisual(uv,f);
+  if (abs(uVisualIndex - 14.0) < 0.5) color=creator_14_paintVisual(uv,f);
+  if (abs(uVisualIndex - 15.0) < 0.5) color=creator_15_paintVisual(uv,f);
+  if (abs(uVisualIndex - 16.0) < 0.5) color=creator_16_paintVisual(uv,f);
+  if (abs(uVisualIndex - 17.0) < 0.5) color=creator_17_paintVisual(uv,f);
+  if (abs(uVisualIndex - 18.0) < 0.5) color=creator_18_paintVisual(uv,f);
+  if (abs(uVisualIndex - 19.0) < 0.5) color=creator_19_paintVisual(uv,f);
+  if (abs(uVisualIndex - 20.0) < 0.5) color=creator_20_paintVisual(uv,f);
+  if (abs(uVisualIndex - 21.0) < 0.5) color=creator_21_paintVisual(uv,f);
+  if (abs(uVisualIndex - 22.0) < 0.5) color=creator_22_paintVisual(uv,f);
   if (any(isnan(color)) || any(isinf(color))) color=vec4(0.0);
   color=clamp(color,0.0,1.0);
   fragColor=vec4(color.rgb*color.a,color.a);

@@ -60,6 +60,35 @@
       "reactivity": "optional"
     },
     {
+      "id": "campo_flujo",
+      "name": "Campo de Flujo",
+      "description": "Mil cuatrocientas partículas siguiendo un campo de flujo sinusoidal, con estelas y remolino central.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "fluid",
+        "calm"
+      ],
+      "concepts": [
+        "particles",
+        "flow field",
+        "trails"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "campo_plasma",
       "name": "Campo de Plasma",
       "description": "Niebla de color turquesa, lima y rosa en movimiento continuo.",
@@ -89,6 +118,93 @@
       "reactivity": "optional"
     },
     {
+      "id": "cintas_seda",
+      "name": "Cintas de Seda",
+      "description": "Siete curvas de Lissajous convertidas en cintas rellenas con degradado y bordes luminosos.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "silky",
+        "dreamy"
+      ],
+      "concepts": [
+        "ribbons",
+        "lissajous",
+        "gradient"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "constelacion_viva",
+      "name": "Constelación Táctil",
+      "description": "Grafo de vecindad con rejilla espacial: los nodos se repelen del centro y las aristas brillan por cercanía.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "dreamy",
+        "calm"
+      ],
+      "concepts": [
+        "graph",
+        "nodes",
+        "network"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "corona_solar",
+      "name": "Corona Solar",
+      "description": "Limbo solar deformado por siete armónicos, con filamentos de corona y gránulos de plasma.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "fiery",
+        "energetic"
+      ],
+      "concepts": [
+        "sun",
+        "corona",
+        "plasma"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "cromo_liquido",
       "name": "Cromo Líquido",
       "description": "Gotas de metal fundido en violeta y rosa flotando sobre fondo oscuro.",
@@ -104,6 +220,35 @@
         "chrome",
         "liquid",
         "blobs"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "deriva_julia",
+      "name": "Deriva de Julia",
+      "description": "Conjunto de Julia iterado por píxel en la GPU, con paleta coseno y coloración suave.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "dreamy",
+        "hypnotic"
+      ],
+      "concepts": [
+        "fractal",
+        "julia",
+        "iteration"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -185,6 +330,35 @@
       "reactivity": "optional"
     },
     {
+      "id": "horizonte_sucesos",
+      "name": "Horizonte de Sucesos",
+      "description": "Agujero negro con disco de acreción diferencial, anillo fotónico, arco de Einstein y estrellas desviadas.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "cosmic",
+        "dramatic"
+      ],
+      "concepts": [
+        "black hole",
+        "accretion",
+        "lensing"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "horizonte_synthwave",
       "name": "Horizonte Synthwave",
       "description": "Sol retro con rejilla infinita y montañas de neón estilo años 80.",
@@ -243,6 +417,64 @@
       "reactivity": "optional"
     },
     {
+      "id": "malla_topografica",
+      "name": "Malla Topográfica",
+      "description": "Terreno en perspectiva con rejilla proyectada, sol en el horizonte y scroll continuo.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "calm",
+        "retro"
+      ],
+      "concepts": [
+        "terrain",
+        "grid",
+        "perspective"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "neon_lluvia",
+      "name": "Neón bajo la Lluvia",
+      "description": "Ciudad de neón en cuatro capas con ventanas encendidas, reflejo mojado y lluvia arrastrada por el viento.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "nocturnal",
+        "melancholic"
+      ],
+      "concepts": [
+        "city",
+        "rain",
+        "neon"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "prismatic_halo",
       "name": "Halo · capa de luz",
       "description": "Un halo de luz transparente que acompaña los acentos musicales.",
@@ -269,6 +501,35 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "salto_hiperespacial",
+      "name": "Salto Hiperespacial",
+      "description": "Túnel de aros hexagonales y octogonales con 260 estelas estelares que se aceleran con los graves.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "hypnotic",
+        "cosmic"
+      ],
+      "concepts": [
+        "tunnel",
+        "warp",
+        "rings"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -309,6 +570,35 @@
       "concepts": [],
       "credits": {
         "author": "Creator SDK",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "tinta_agua",
+      "name": "Tinta en Agua",
+      "description": "Doce metaballs de tinta fundiéndose en agua, con vetas y espuma en el frente.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "fluid",
+        "calm"
+      ],
+      "concepts": [
+        "metaballs",
+        "ink",
+        "water"
+      ],
+      "credits": {
+        "author": "Chic Apps",
         "license": "",
         "source": ""
       },

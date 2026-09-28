@@ -57,6 +57,39 @@
       }
     },
     {
+      "id": "campo_flujo",
+      "name": "Campo de Flujo",
+      "programId": "creator_campo_flujo",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278520076,
+        4282374309,
+        4291225679,
+        4284008435
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.6,
+        "detail": 1.0,
+        "glow": 0.8
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  static const int kTail = 5;\n  int count = 0, done = 0;\n  std::vector<float> x, y, life, trail;\n  void step(float size_w, float size_h, float time) {\n    for (int i = 0; i < count; i++) {\n      if (life[i] <= 0.0f) {\n        x[i] = hash11(float(i) * 1.37f + float(done) * 0.017f) * size_w;\n        y[i] = hash11(float(i) * 2.71f + float(done) * 0.029f) * size_h;\n        for (int k = 0; k < kTail; k++) {\n          int o = (i * kTail + k) * 4;\n          trail[o] = x[i]; trail[o + 1] = y[i];\n          trail[o + 2] = x[i]; trail[o + 3] = y[i];\n        }\n        life[i] = 1.0f;\n      }\n      float px = x[i], py = y[i];\n      float a = std::sin(px * 0.0031f + time * 0.16f) * 1.5f\n        + std::cos(py * 0.0027f - time * 0.13f) * 1.5f\n        + std::sin((px + py) * 0.0014f + time * 0.07f) * 1.1f;\n      float vx = std::cos(a) * 1.5f, vy = std::sin(a) * 1.5f;\n      // Remolino central: sustituye al dedo, con la música como energía.\n      float dx = px - size_w * 0.5f, dy = py - size_h * 0.5f;\n      float d2 = dx * dx + dy * dy;\n      float radius2 = 15000.0f + 12000.0f * fenergy;\n      if (d2 < radius2 && d2 > 1.0f) {\n        float inv = 1.0f / std::sqrt(d2);\n        float k = (1.0f - d2 / radius2) * 2.4f;\n        vx += -dy * inv * k; vy += dx * inv * k;\n      }\n      float nx = px + vx, ny = py + vy;\n      x[i] = nx; y[i] = ny;\n      life[i] -= 0.0016f;\n      int base = i * kTail * 4;\n      for (int k = kTail - 1; k > 0; k--) {\n        int o = base + k * 4;\n        trail[o] = trail[o - 4]; trail[o + 1] = trail[o - 3];\n        trail[o + 2] = nx; trail[o + 3] = ny;\n      }\n      trail[base] = px; trail[base + 1] = py;\n      trail[base + 2] = nx; trail[base + 3] = ny;\n      if (nx < -30.0f || nx > size_w + 30.0f || ny < -30.0f || ny > size_h + 30.0f)\n        life[i] = 0.0f;\n    }\n    done++;\n  }\n  float fenergy = 0.0f;\n  float lastw = 0.0f, lasth = 0.0f;\n  static float hash11(float p) {\n    float s = std::sin(p * 12.9898f) * 43758.5453f;\n    return s - std::floor(s);\n  }\n public:\n  void reset(uint32_t seed) override {\n    (void)seed;\n    count = 1400; done = 0;\n    x.assign(count, 0.0f); y.assign(count, 0.0f);\n    life.assign(count, 0.0f);\n    trail.assign(count * kTail * 4, 0.0f);\n    lastw = 0.0f; lasth = 0.0f; fenergy = 0.0f;\n  }\n  void update(const Frame& f) override {\n    if (f.width != lastw || f.height != lasth) {\n      // Reconstruye la rejilla con el tamaño real: la escena se previsualiza\n      // primero en miniatura y luego a pantalla completa.\n      count = int(1400.0f * (0.5f + 0.5f * std::min(1.0f, std::max(0.0f, (f.detail - 0.25f) / 0.75f))));\n      x.assign(count, 0.0f); y.assign(count, 0.0f);\n      life.assign(count, 0.0f);\n      trail.assign(count * kTail * 4, 0.0f);\n      lastw = f.width; lasth = f.height; done = 0;\n    }\n    fenergy = f.music.energy;\n    float rate = f.reducedMotion ? 0.25f : 1.0f;\n    float clock = float(f.time) * f.speed * rate;\n    float time = clock * 6.2831853f;\n    int target = int(clock * 60.0f + 0.001f);\n    int guard = 0;\n    while (done < target && guard < 16) { step(f.width, f.height, time); guard++; }\n  }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    Paint bg; bg.color = Color::argb(0xff05090c);\n    c.rect({0, 0, w, h}, bg);\n    const uint32_t cols[3] = {0xff3fd8a5, 0xffc6e84f, 0xff58c7f3};\n    const float alphas[3] = {0.4f, 0.267f, 0.267f};\n    int third = (count / 3) * kTail;\n    for (int b = 0; b < 3; b++) {\n      Path p;\n      int from = b * third, to = (b == 2) ? count * kTail : (b + 1) * third;\n      for (int i = from; i < to; i++) {\n        int base = i * kTail * 4;\n        for (int k = 0; k < kTail; k++) {\n          int o = base + k * 4;\n          p.moveTo(trail[o], trail[o + 1]);\n          p.lineTo(trail[o + 2], trail[o + 3]);\n        }\n      }\n      Color cc = Color::argb(cols[b]);\n      Paint q; q.blend = Blend::plus;\n      q.color = {cc.r, cc.g, cc.b, alphas[b] * f.intensity};\n      q.strokeWidth = 1.1f; q.strokeCap = 1; q.strokeJoin = 1;\n      c.path(p, q);\n    }\n  }\n};\n",
+      "shaderSources": {},
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "38f47187b7870b33d288da433ec73fcef5b27c3acadb4042a82c107e8e5e22a7",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {},
+        "imageHashes": {}
+      }
+    },
+    {
       "id": "campo_plasma",
       "name": "Campo de Plasma",
       "programId": "creator_campo_plasma",
@@ -118,6 +151,105 @@
             ]
           }
         },
+        "imageHashes": {}
+      }
+    },
+    {
+      "id": "cintas_seda",
+      "name": "Cintas de Seda",
+      "programId": "creator_cintas_seda",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278781200,
+        4294081462,
+        4289104895,
+        4293715674
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.6,
+        "detail": 1.0,
+        "glow": 0.8
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  static const int ribbons = 7;\n  static const int seg = 72;\n public:\n  void reset(uint32_t seed) override { (void)seed; }\n  void update(const Frame& f) override { (void)f; }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    float time = t * 6.2831853f;\n    float drift = std::sin(time * 0.13f) * 0.12f * f.intensity;\n    float cx = w * (0.5f + drift), cy = h * (0.5f + drift);\n    float amp = std::min(w, h) * 0.38f;\n    float boost = (0.85f + 0.3f * f.music.energy) * f.intensity;\n    Paint solid; solid.color = Color::argb(0xf2090510);\n    c.rect({0, 0, w, h}, solid);\n\n    const float cfg[7][5] = {\n      {2, 3, 0.0f, 0.18f, 22}, {3, 4, 1.1f, 0.24f, 16}, {4, 5, 2.2f, 0.30f, 26},\n      {1, 4, 3.3f, 0.14f, 12}, {3, 7, 4.4f, 0.27f, 30}, {5, 6, 5.5f, 0.21f, 18},\n      {2, 5, 6.6f, 0.33f, 24}};\n    const uint32_t cols[7] = {0xfff27bb6, 0xffa68bff, 0xff58c7f3, 0xffff6a55,\n      0xffffd166, 0xff3fd8a5, 0xffece6da};\n    for (int r = 0; r < ribbons; r++) {\n      float f1 = cfg[r][0], f2 = cfg[r][1], ph = cfg[r][2];\n      float rate = cfg[r][3], wid = cfg[r][4];\n      float tt = time * rate;\n      Color col = Color::argb(cols[r]);\n      Path ribbon;\n      for (int s = 0; s <= seg; s++) {\n        float u = float(s) / float(seg) * 6.2831853f;\n        float x = cx + amp * std::sin(f1 * u + tt + ph)\n          * (0.72f + 0.28f * std::cos(u * 2.0f + tt));\n        float y = cy + amp * 0.86f * std::sin(f2 * u + tt * 1.31f + ph);\n        float nx = std::cos(u * 3.0f + tt * 2.0f) * wid\n          * (0.35f + 0.65f * std::sin(float(s) / float(seg) * 3.14159265f));\n        float ny = std::sin(u * 2.0f - tt) * wid * 0.6f;\n        if (s == 0) ribbon.moveTo(x + ny, y + nx);\n        else ribbon.lineTo(x + ny, y + nx);\n      }\n      for (int s = seg; s >= 0; s--) {\n        float u = float(s) / float(seg) * 6.2831853f;\n        float x = cx + amp * std::sin(f1 * u + tt + ph)\n          * (0.72f + 0.28f * std::cos(u * 2.0f + tt));\n        float y = cy + amp * 0.86f * std::sin(f2 * u + tt * 1.31f + ph);\n        float nx = std::cos(u * 3.0f + tt * 2.0f) * wid\n          * (0.35f + 0.65f * std::sin(float(s) / float(seg) * 3.14159265f));\n        float ny = std::sin(u * 2.0f - tt) * wid * 0.6f;\n        ribbon.lineTo(x - ny, y - nx);\n      }\n      ribbon.close();\n      Paint fill = Paint::linear({cx - amp, cy - amp}, {cx + amp, cy + amp},\n        {{col.r, col.g, col.b, 0}, {col.r, col.g, col.b, 0.42f * boost},\n         {1, 1, 1, 0.26f * boost}, {col.r, col.g, col.b, 0}}, {0.0f, 0.45f, 0.55f, 1.0f});\n      fill.blend = Blend::screen;\n      c.path(ribbon, fill);\n      Paint edge; edge.blend = Blend::screen;\n      edge.color = {0.925f, 0.902f, 0.855f, 0.22f * boost};\n      edge.strokeWidth = 0.6f;\n      c.path(ribbon, edge);\n    }\n  }\n};\n",
+      "shaderSources": {},
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "4a57da166bd4033e30d5bd86d061dbd9f04a2d536281c974243923bc79ee6b05",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {},
+        "imageHashes": {}
+      }
+    },
+    {
+      "id": "constelacion_viva",
+      "name": "Constelación Táctil",
+      "programId": "creator_constelacion_viva",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4279373604,
+        4289104895,
+        4291541247,
+        4278716176
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.6,
+        "detail": 1.0,
+        "glow": 0.8
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  static const float kCell = 74.0f;\n  struct Node { float x, y, vx, vy, r, phase; };\n  std::vector<Node> nodes;\n  std::vector<int> head, next;\n  int cols = 1, rows = 1, done = 0;\n  float lastw = 0, lasth = 0, lastDetail = -1.0f, pull = 0.0f;\n  void build(int count, float w, float h) {\n    nodes.clear(); nodes.reserve(count);\n    Random rng(41);\n    for (int i = 0; i < count; i++) {\n      Node n;\n      n.x = rng.unit() * w; n.y = rng.unit() * h;\n      float a = rng.unit() * 6.2831853f;\n      float sp = 8.0f + rng.unit() * 22.0f;\n      n.vx = std::cos(a) * sp; n.vy = std::sin(a) * sp;\n      n.r = 0.9f + rng.unit() * 2.2f;\n      n.phase = rng.unit() * 6.2831853f;\n      nodes.push_back(n);\n    }\n    cols = int(std::ceil(w / kCell)); if (cols < 1) cols = 1; if (cols > 512) cols = 512;\n    rows = int(std::ceil(h / kCell)); if (rows < 1) rows = 1; if (rows > 1024) rows = 1024;\n    head.assign(cols * rows, -1);\n    next.assign(nodes.size(), -1);\n    done = 0;\n  }\n  void step(float w, float h) {\n    const float dt = 1.0f / 60.0f;\n    float force = 12000.0f + pull * 14000.0f;\n    float fx = w * 0.5f, fy = h * 0.5f;\n    for (size_t i = 0; i < nodes.size(); i++) {\n      Node& n = nodes[i];\n      float dx = n.x - fx, dy = n.y - fy;\n      float d2 = dx * dx + dy * dy;\n      if (d2 < force && d2 > 4.0f) {\n        float inv = 1.0f / std::sqrt(d2);\n        float k = (1.0f - d2 / force) * 140.0f * dt * 8.0f;\n        n.vx += dx * inv * k; n.vy += dy * inv * k;\n      }\n      n.x += n.vx * dt; n.y += n.vy * dt;\n      n.vx *= 1.0f - dt * 0.55f; n.vy *= 1.0f - dt * 0.55f;\n      if (n.x < 0) { n.x = 0; n.vx = -n.vx; }\n      if (n.x > w) { n.x = w; n.vx = -n.vx; }\n      if (n.y < 0) { n.y = 0; n.vy = -n.vy; }\n      if (n.y > h) { n.y = h; n.vy = -n.vy; }\n    }\n    done++;\n  }\n public:\n  void reset(uint32_t seed) override {\n    (void)seed;\n    nodes.clear(); head.clear(); next.clear();\n    lastw = 0; lasth = 0; lastDetail = -1.0f; done = 0; pull = 0.0f;\n  }\n  void update(const Frame& f) override {\n    float density = std::min(1.0f, std::max(0.0f, (f.detail - 0.25f) / 1.75f));\n    if (f.width != lastw || f.height != lasth || f.detail != lastDetail) {\n      int count = int(190.0f * (0.6f + 0.4f * density));\n      if (count < 24) count = 24;\n      build(count, f.width, f.height);\n      lastw = f.width; lasth = f.height; lastDetail = f.detail;\n    }\n    pull = f.music.energy;\n    float rate = f.reducedMotion ? 0.2f : 1.0f;\n    int target = int(float(f.time) * f.speed * rate * 60.0f + 0.001f);\n    int guard = 0;\n    while (done < target && guard < 16) { step(f.width, f.height); guard++; }\n  }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float boost = (0.8f + 0.4f * f.music.energy) * f.intensity;\n    Paint bg = Paint::radial({w * 0.5f, h * 0.5f}, std::max(w, h) * 0.75f,\n      {Color::argb(0xff120f24), Color::argb(0xff080710), Color::argb(0xff04040a)},\n      {0.0f, 0.6f, 1.0f});\n    c.rect({0, 0, w, h}, bg);\n\n    // Rejilla espacial: cabecera + lista enlazada, cero reservas.\n    std::fill(head.begin(), head.end(), -1);\n    for (size_t i = 0; i < nodes.size(); i++) {\n      int c0 = int(nodes[i].x / kCell);\n      int r0 = int(nodes[i].y / kCell);\n      if (c0 < 0) c0 = 0; if (c0 > cols - 1) c0 = cols - 1;\n      if (r0 < 0) r0 = 0; if (r0 > rows - 1) r0 = rows - 1;\n      int idx = r0 * cols + c0;\n      next[i] = head[idx];\n      head[idx] = int(i);\n    }\n\n    // Aristas en cuatro cubos de alpha.\n    Path buckets[4];\n    const float cell2 = kCell * kCell;\n    for (int r = 0; r < rows; r++) {\n      for (int cc = 0; cc < cols; cc++) {\n        for (int i = head[r * cols + cc]; i != -1; i = next[i]) {\n          for (int dr = 0; dr <= 1; dr++) {\n            for (int dc = (dr == 0 ? 0 : -1); dc <= 1; dc++) {\n              int rr = r + dr, cx = cc + dc;\n              if (rr < 0 || rr >= rows || cx < 0 || cx >= cols) continue;\n              for (int j = head[rr * cols + cx]; j != -1; j = next[j]) {\n                if (j <= i) continue;\n                float ddx = nodes[i].x - nodes[j].x, ddy = nodes[i].y - nodes[j].y;\n                float d2 = ddx * ddx + ddy * ddy;\n                if (d2 > cell2) continue;\n                int b = int((1.0f - d2 / cell2) * 3.99f);\n                if (b < 0) b = 0; if (b > 3) b = 3;\n                buckets[b].moveTo(nodes[i].x, nodes[i].y);\n                buckets[b].lineTo(nodes[j].x, nodes[j].y);\n              }\n            }\n          }\n        }\n      }\n    }\n    Paint line;\n    line.strokeWidth = 0.8f; line.blend = Blend::plus;\n    for (int b = 0; b < 4; b++) {\n      line.color = {0.651f, 0.545f, 1, (0.08f + float(b) * 0.11f) * boost};\n      c.path(buckets[b], line);\n    }\n\n    // Nodos: puntos agrupados, con un segundo lote más grande cerca del centro.\n    std::vector<Vec2> dim, hot;\n    dim.reserve(nodes.size()); hot.reserve(nodes.size());\n    float fx = w * 0.5f, fy = h * 0.5f;\n    for (const auto& n : nodes) {\n      dim.push_back({n.x, n.y});\n      float dx = n.x - fx, dy = n.y - fy;\n      if (dx * dx + dy * dy < 36100.0f) hot.push_back({n.x, n.y});\n    }\n    Paint dp; dp.blend = Blend::plus;\n    dp.color = {0.796f, 0.722f, 1, 0.55f * boost};\n    c.points(dim, 1.1f, dp);\n    if (!hot.empty()) {\n      Paint hp; hp.blend = Blend::plus;\n      hp.color = {0.651f, 0.545f, 1, 0.12f * boost};\n      c.points(hot, 6.0f, hp);\n    }\n  }\n};\n",
+      "shaderSources": {},
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "eb1eb89557dc1b7ff63daf37ac18d0fd07ff2f560f94353349ab813d3058a791",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {},
+        "imageHashes": {}
+      }
+    },
+    {
+      "id": "corona_solar",
+      "name": "Corona Solar",
+      "programId": "creator_corona_solar",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4279962885,
+        4294288676,
+        16738901,
+        4294964952
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.6,
+        "detail": 1.0,
+        "glow": 0.9
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n public:\n  void reset(uint32_t seed) override { (void)seed; }\n  void update(const Frame& f) override { (void)f; }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    float time = t * 6.2831853f;\n    float energy = std::min(1.4f, f.music.energy * 1.6f + f.music.bass * 0.8f) * f.intensity;\n    float cx = w * 0.5f, cy = h * 0.5f;\n    float rad = std::min(w, h) * 0.24f;\n    Paint bg = Paint::radial({cx, cy}, std::max(w, h) * 1.1f,\n      {Color::argb(0xff1b0d05), Color::argb(0xff0a0608), Color::argb(0xff04040a)},\n      {0.0f, 0.5f, 1.0f});\n    c.rect({0, 0, w, h}, bg);\n\n    // ── Filamentos de corona: un Path, 96 rayos ──\n    Path rays;\n    for (int i = 0; i < 96; i++) {\n      float a = float(i) / 96.0f * 6.2831853f;\n      float n = std::sin(a * 9.0f + time * 1.4f) * 0.5f + std::sin(a * 23.0f - time * 0.9f) * 0.5f;\n      float len = rad * (1.25f + std::abs(n) * (1.5f + energy));\n      rays.moveTo(cx + std::cos(a) * rad * 1.02f, cy + std::sin(a) * rad * 1.02f);\n      rays.lineTo(cx + std::cos(a + 0.01f) * len, cy + std::sin(a + 0.01f) * len);\n    }\n    Paint add; add.blend = Blend::plus;\n    add.color = {1, 0.416f, 0.333f, 0.102f};\n    add.strokeWidth = 1.6f; add.strokeCap = 1; add.strokeJoin = 1;\n    c.path(rays, add);\n\n    // ── Halo en tres pasadas (bloom falso, sin saveLayer) ──\n    for (int i = 3; i >= 1; i--) {\n      Paint hp; hp.blend = Blend::plus;\n      hp.color = {0.961f, 0.647f, 0.141f, 0.043f};\n      c.circle({cx, cy}, rad * (1.0f + float(i) * 0.42f + energy * 0.1f), hp);\n    }\n\n    // ── limbo ──\n    static const float harm[7][3] = {\n      {5, 0.055f, 0.90f}, {8, 0.032f, -1.40f}, {13, 0.022f, 2.10f},\n      {3, 0.048f, -0.60f}, {21, 0.012f, 3.00f}, {2, 0.050f, 0.45f},\n      {34, 0.008f, -2.40f}};\n    Path limb;\n    const int steps = 128;\n    for (int i = 0; i <= steps; i++) {\n      float a = float(i) / float(steps) * 6.2831853f;\n      float d = 1.0f;\n      for (int k = 0; k < 7; k++)\n        d += harm[k][1] * std::sin(a * harm[k][0] + time * harm[k][2]) * (1.0f + energy * 0.8f);\n      float r = rad * d * (1.0f + std::sin(time * 2.2f) * 0.012f);\n      float x = cx + std::cos(a) * r, y = cy + std::sin(a) * r;\n      if (i == 0) limb.moveTo(x, y); else limb.lineTo(x, y);\n    }\n    limb.close();\n    Paint limbPaint = Paint::radial({cx - rad * 0.25f, cy - rad * 0.3f}, rad * 1.3f,\n      {Color::argb(0xfffff6d8), Color::argb(0xfff5a524),\n       Color::argb(0xe6e8541f), Color::argb(0xe65a0a1e)},\n      {0.0f, 0.35f, 0.78f, 1.0f});\n    c.path(limb, limbPaint);\n\n    // ── Gránulos de plasma recortados al limbo ──\n    c.save();\n    c.clip(limb);\n    for (int i = 0; i < 26; i++) {\n      float a = time * 0.35f + float(i) * 2.399f;\n      float rr = rad * (0.25f + float((i * 37) % 70) / 100.0f);\n      Paint gp;\n      if (i % 3 == 0) gp.color = {1, 0.941f, 0.753f, 0.22f};\n      else gp.color = {1, 0.353f, 0.157f, 0.188f};\n      c.circle({cx + std::cos(a) * rr, cy + std::sin(a * 1.3f) * rr},\n        rad * (0.10f + float(i % 5) * 0.035f), gp);\n    }\n    c.restore();\n  }\n};\n",
+      "shaderSources": {},
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "18788e6fa48194d3cb74c5c4efcf277dd817e088f072204b261f5c48c04e67b8",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {},
         "imageHashes": {}
       }
     },
@@ -283,6 +415,83 @@
       }
     },
     {
+      "id": "deriva_julia",
+      "name": "Deriva de Julia",
+      "programId": "creator_deriva_julia",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278715662,
+        4294938475,
+        4284142056,
+        4294288676
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.5,
+        "detail": 1.0,
+        "glow": 0.7
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n public:\n  void reset(uint32_t seed) override { (void)seed; }\n  void update(const Frame& f) override { (void)f; }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    float time = t * 6.2831853f;\n    float pull = f.music.energy;\n    std::vector<float> u;\n    u.reserve(8);\n    u.push_back(0.7885f * std::cos(time * 0.17f) + pull * 0.09f);\n    u.push_back(0.7885f * std::sin(time * 0.23f) - pull * 0.09f);\n    u.push_back(time);\n    u.push_back(1.35f + std::sin(time * 0.11f) * 0.22f);\n    // Iteraciones adaptativas: menos pasos cuanto más densa es la pantalla.\n    float px = w * h;\n    u.push_back(px > 3.0e6f ? 48.0f : (px > 1.0e6f ? 72.0f : 96.0f));\n    c.material(\"julia\", {0, 0, w, h}, u);\n  }\n};\n",
+      "shaderSources": {
+        "julia": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec2 uC;\nuniform float uTime;\nuniform float uZoom;\nuniform float uMaxIter;\nout vec4 fragColor;\nvec3 palette(float t) {\n  return 0.5 + 0.5 * cos(6.28318 * (vec3(1.0, 0.9, 0.8) * t + vec3(0.02, 0.18, 0.34)));\n}\nvoid main() {\n  vec2 uv = FlutterFragCoord().xy / uSize.xy;\n  float aspect = uSize.x / uSize.y;\n  vec2 z = (uv * 2.0 - 1.0) * vec2(uZoom * aspect, uZoom);\n  float i = 0.0;\n  float m2 = 0.0;\n  for (int k = 0; k < 96; k++) {\n    if (float(k) >= uMaxIter || m2 > 6.0) break;\n    z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + uC;\n    m2 = dot(z, z);\n    i += 1.0;\n  }\n  if (i >= uMaxIter) {\n    fragColor = vec4(0.02, 0.015, 0.04, 1.0);\n    return;\n  }\n  float sl = i - log2(max(1e-4, log2(max(1.0, m2))));\n  vec3 col = palette(sl * 0.012 + uTime * 0.02);\n  float d = length(uv - 0.5);\n  col *= smoothstep(0.95, 0.25, d);\n  fragColor = vec4(pow(col, vec3(0.85)), 1.0);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "81250dfe15ce057819f68dda854e6d6a940f77fcd36cbf252df978e0f2271571",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {
+          "julia": {
+            "compilerHash": "6195aeca28f68c85dbb9bca3192c516c404969baad7437d9ebd6aa4d27c106f2",
+            "asset": "packages/visual_catalog/assets/native/deriva_julia_julia.iplr",
+            "assetHash": "1c75e918dda30c67ddfd9ea775caf7ef64d801cf37292b0712ac5ea4af7b11c7",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct deriva_julia_julia_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct deriva_julia_julia_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment deriva_julia_julia_fragment_main_out deriva_julia_julia_fragment_main(deriva_julia_julia_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float2& uC [[buffer(1)]], constant float& uTime [[buffer(2)]], constant float& uZoom [[buffer(3)]], constant float& uMaxIter [[buffer(4)]])\n{\n    deriva_julia_julia_fragment_main_out out = {};\n    do\n    {\n        float2 _50 = in._fragCoord / uSize;\n        float _208;\n        float2 _209;\n        float _210;\n        _210 = 0.0;\n        _209 = ((_50 * 2.0) - float2(1.0)) * float2(uZoom * (uSize.x / uSize.y), uZoom);\n        _208 = 0.0;\n        float2 _122;\n        float _125;\n        float _127;\n        for (int _207 = 0; _207 < 96; _210 = _127, _209 = _122, _208 = _125, _207++)\n        {\n            if ((float(_207) >= uMaxIter) || (_208 > 6.0))\n            {\n                break;\n            }\n            _122 = float2((_209.x * _209.x) - (_209.y * _209.y), (2.0 * _209.x) * _209.y) + uC;\n            _125 = dot(_122, _122);\n            _127 = _210 + 1.0;\n        }\n        if (_210 >= uMaxIter)\n        {\n            out.fragColor = float4(0.0199999995529651641845703125, 0.014999999664723873138427734375, 0.039999999105930328369140625, 1.0);\n            break;\n        }\n        out.fragColor = float4(powr((float3(0.5) + (cos(((float3(1.0, 0.89999997615814208984375, 0.800000011920928955078125) * (((_210 - log2(fast::max(9.9999997473787516355514526367188e-05, log2(fast::max(1.0, _208))))) * 0.01200000010430812835693359375) + (uTime * 0.0199999995529651641845703125))) + float3(0.0199999995529651641845703125, 0.180000007152557373046875, 0.3400000035762786865234375)) * 6.28318023681640625) * 0.5)) * smoothstep(0.949999988079071044921875, 0.25, length(_50 - float2(0.5))), float3(0.85000002384185791015625)), 1.0);\n        break;\n    } while(false);\n    return out;\n}\n\n",
+            "entryPoint": "deriva_julia_julia_fragment_main",
+            "floatCount": 7,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uC",
+                "offset": 2,
+                "count": 2,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uTime",
+                "offset": 4,
+                "count": 1,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uZoom",
+                "offset": 5,
+                "count": 1,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uMaxIter",
+                "offset": 6,
+                "count": 1,
+                "bufferIndex": 4
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
+    },
+    {
       "id": "galaxy_scene",
       "name": "Spiral Galaxy",
       "programId": "creator_galaxy_scene",
@@ -382,6 +591,39 @@
       }
     },
     {
+      "id": "horizonte_sucesos",
+      "name": "Horizonte de Sucesos",
+      "programId": "creator_horizonte_sucesos",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278387464,
+        4294955366,
+        4291380010,
+        4292667647
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.6,
+        "detail": 1.0,
+        "glow": 0.9
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  struct Part { float r, a0, spd, w; };\n  struct Star { float x, y, m; };\n  std::vector<Part> parts;\n  std::vector<Star> stars;\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed);\n    parts.clear(); stars.clear();\n    int np = 620;\n    parts.reserve(np);\n    for (int i = 0; i < np; i++) {\n      Part p;\n      float u = rng.unit();\n      p.r = 1.55f + std::pow(u, 0.62f) * 3.6f;\n      p.a0 = rng.unit() * 6.2831853f;\n      // Kepler: la velocidad angular cae con r^1.5 => rotación diferencial real.\n      p.spd = 1.0f / (p.r * std::sqrt(p.r));\n      p.w = 0.5f + rng.unit() * 2.2f;\n      parts.push_back(p);\n    }\n    stars.reserve(320);\n    for (int i = 0; i < 320; i++) {\n      Star s; s.x = rng.unit(); s.y = rng.unit(); s.m = rng.unit();\n      stars.push_back(s);\n    }\n  }\n  void update(const Frame& f) override { (void)f; }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    float cx = w * 0.5f, cy = h * 0.5f;\n    float rs = std::min(w, h) * 0.13f;\n    float yaw = std::sin(t * 0.09f) * 0.22f * (1.0f + f.music.energy * 0.3f);\n    float squash = 0.24f + std::cos(t * 0.07f) * 0.14f;\n    float boost = (0.85f + 0.35f * f.music.energy) * f.intensity;\n    float spin = t * 0.06f * (f.reducedMotion ? 0.3f : 1.0f);\n    Paint bg; bg.color = Color::argb(0xff030308);\n    c.rect({0, 0, w, h}, bg);\n\n    // ── Estrellas con deflexión gravitatoria ──\n    std::vector<Vec2> field;\n    field.reserve(stars.size());\n    for (const auto& s : stars) {\n      float bx = s.x * w, by = s.y * h;\n      float dx = bx - cx, dy = by - cy;\n      float d = std::sqrt(dx * dx + dy * dy) + 1.0f;\n      if (d < rs * 1.25f) continue; // devoradas por la sombra\n      float k = 1.0f + (rs * rs * 5.2f) / (d * d);\n      field.push_back({cx + dx * k, cy + dy * k});\n    }\n    Paint sp; sp.blend = Blend::plus;\n    sp.color = {0.863f, 0.910f, 1, 0.69f * boost};\n    c.points(field, 1.1f, sp);\n\n    const uint32_t ramp[4] = {0xffc9432a, 0xffff8f4a, 0xffffd166, 0xfffff3d0};\n\n    // Disco: cuatro bandas de calor, dos pasadas para el orden.\n    for (int pass = 0; pass < 2; pass++) {\n      for (int b = 0; b < 4; b++) {\n        Path disk;\n        for (const auto& p : parts) {\n          float heat = 1.0f - (p.r - 1.55f) / 3.6f;\n          if (heat < 0.0f) heat = 0.0f; if (heat > 1.0f) heat = 1.0f;\n          if (int(heat * 3.999f) != b) continue;\n          float rad = p.r * rs;\n          float a = p.a0 + spin * p.spd + yaw;\n          float sa = std::sin(a);\n          if ((sa < 0.0f ? 0 : 1) != pass) continue;\n          float x = cx + std::cos(a) * rad;\n          float y = cy + sa * rad * squash;\n          float len = p.w * (2.2f + heat * 6.0f);\n          disk.moveTo(x + std::sin(a) * len, y - std::cos(a) * squash * len);\n          disk.lineTo(x, y);\n        }\n        Color cc = Color::argb(ramp[b]);\n        Paint dp; dp.blend = Blend::plus;\n        dp.color = {cc.r, cc.g, cc.b, (0.10f + float(b) * 0.14f) * boost};\n        dp.strokeWidth = 0.7f + float(b) * 0.5f;\n        dp.strokeCap = 1; dp.strokeJoin = 1;\n        c.path(disk, dp);\n      }\n      if (pass == 0) {\n        // ── Anillo fotónico ──\n        float ringR = rs * 1.34f;\n        Paint rp; rp.blend = Blend::plus;\n        for (int i = 3; i >= 1; i--) {\n          rp.color = {1, 0.819f, 0.400f, 0.051f * boost};\n          rp.strokeWidth = rs * 0.16f * float(i);\n          c.circle({cx, cy}, ringR * (1.0f + float(i) * 0.07f), rp);\n        }\n        Paint crisp; crisp.blend = Blend::plus;\n        crisp.color = {1, 0.941f, 0.824f, 0.949f * boost};\n        crisp.strokeWidth = std::max(1.0f, rs * 0.045f);\n        c.circle({cx, cy}, ringR, crisp);\n        // ── Sombra del horizonte ──\n        Paint shadow; shadow.color = {0, 0, 0, 1};\n        c.circle({cx, cy}, rs, shadow);\n      }\n    }\n\n    // ── Arco de Einstein: imagen lensada del disco sobre el horizonte ──\n    Path arc;\n    const int steps = 48;\n    for (int i = 0; i <= steps; i++) {\n      float a = 3.14159265f * 1.06f + float(i) / float(steps) * 3.14159265f * 0.88f;\n      float x = cx + std::cos(a) * rs * 1.16f;\n      float y = cy + std::sin(a) * rs * 1.16f;\n      if (i == 0) arc.moveTo(x, y); else arc.lineTo(x, y);\n    }\n    Paint ap; ap.blend = Blend::plus;\n    ap.color = {1, 0.722f, 0.361f, 0.502f * boost};\n    ap.strokeWidth = rs * 0.2f; ap.strokeCap = 1; ap.strokeJoin = 1;\n    c.path(arc, ap);\n\n    // Resplandor global.\n    Paint glow = Paint::radial({cx, cy}, rs * 6.5f,\n      {{1, 0.667f, 0.314f, 0.141f * boost}, {0.627f, 0.314f, 1, 0.051f * boost}, {0, 0, 0, 0}},\n      {0.0f, 0.4f, 1.0f});\n    glow.blend = Blend::plus;\n    c.rect({0, 0, w, h}, glow);\n  }\n};\n",
+      "shaderSources": {},
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "a27b54efb1e7ce69ed51ca38c0c6fa2f5ae5109b6ab03854422fa1c48948a15b",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {},
+        "imageHashes": {}
+      }
+    },
+    {
       "id": "horizonte_synthwave",
       "name": "Horizonte Synthwave",
       "programId": "creator_horizonte_synthwave",
@@ -448,6 +690,72 @@
       }
     },
     {
+      "id": "malla_topografica",
+      "name": "Malla Topográfica",
+      "programId": "creator_malla_topografica",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278651408,
+        4291225679,
+        4286105720,
+        4293590960
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.6,
+        "detail": 1.0,
+        "glow": 0.7
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  static const int cols = 46;\n  static const int rows = 46;\n public:\n  void reset(uint32_t seed) override { (void)seed; }\n  void update(const Frame& f) override { (void)f; }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    float horizon = h * 0.34f;\n    Paint sky = Paint::linear({0, 0}, {0, h},\n      {Color::argb(0xff070a10), Color::argb(0xff101a18),\n       Color::argb(0xff05070a), Color::argb(0xff04050a)}, {0, 0.33f, 0.36f, 1.0f});\n    c.rect({0, 0, w, h}, sky);\n\n    float lean = std::sin(t * 0.21f) * 0.16f * (1.0f + f.music.bass * 0.5f);\n    float boost = (0.8f + 0.35f * f.music.energy) * f.intensity;\n    float sunX = w * (0.5f + lean);\n    Paint sunPaint = Paint::radial({sunX, horizon}, w * 0.5f,\n      {{0.776f, 0.910f, 0.310f, 0.42f * boost}, {0.471f, 0.784f, 0.471f, 0.12f * boost},\n       {0, 0, 0, 0}}, {0.0f, 0.25f, 1.0f});\n    sunPaint.blend = Blend::plus;\n    c.rect({0, 0, w, h}, sunPaint);\n\n    float scroll = t * 6.2831853f * 0.55f;\n    float f0 = h * 0.95f;\n    const float camH = 2.6f, span = 9.0f;\n    Path row;\n    Paint line;\n    line.strokeCap = 1; line.strokeJoin = 1;\n    // De lejos a cerca: el trazo más próximo tapa al lejano, sin z-buffer.\n    for (int j = rows; j >= 0; j--) {\n      float zt = float(j) / float(rows);\n      float z = 0.75f * std::pow(26.0f, zt);\n      float k = f0 / z;\n      row = Path();\n      for (int i = 0; i <= cols; i++) {\n        float xt = float(i) / float(cols) - 0.5f;\n        float x = xt * span * (1.0f + z * 0.35f) + lean * z * 0.6f;\n        float hgt = noise3(x * 0.42f, z * 0.24f + scroll, 0.0f) * (0.5f + z * 0.07f);\n        float px = w * 0.5f + x * k;\n        float py = horizon + (camH - hgt) * k;\n        if (i == 0) row.moveTo(px, py); else row.lineTo(px, py);\n      }\n      float a = (1.0f - zt) * 1.5f;\n      if (a > 1.0f) a = 1.0f; if (a < 0.0f) a = 0.0f;\n      line.strokeWidth = 0.5f + (1.0f - zt) * 1.4f;\n      if (zt < 0.25f) line.color = {0.918f, 1, 0.690f, a * 0.55f * boost};\n      else line.color = {0.776f, 0.910f, 0.310f, a * 0.55f * boost};\n      c.path(row, line);\n    }\n\n    // Verticales cada cuatro columnas en un único Path.\n    Path wires;\n    for (int i = 0; i <= cols; i += 4) {\n      float xt = float(i) / float(cols) - 0.5f;\n      bool first = true;\n      for (int j = rows; j >= 0; j -= 3) {\n        float zt = float(j) / float(rows);\n        float z = 0.75f * std::pow(26.0f, zt);\n        float k = f0 / z;\n        float x = xt * span * (1.0f + z * 0.35f) + lean * z * 0.6f;\n        float hgt = noise3(x * 0.42f, z * 0.24f + scroll, 0.0f) * (0.5f + z * 0.07f);\n        float px = w * 0.5f + x * k;\n        float py = horizon + (camH - hgt) * k;\n        if (first) { wires.moveTo(px, py); first = false; }\n        else wires.lineTo(px, py);\n      }\n    }\n    line.color = {0.471f, 0.863f, 0.627f, 0.129f * boost};\n    line.strokeWidth = 0.7f;\n    c.path(wires, line);\n  }\n  static float noise3(float x, float y, float t) {\n    return std::sin(x * 0.9f + t * 0.7f) * 0.5f\n      + std::sin(y * 1.1f - t * 0.5f) * 0.34f\n      + std::sin((x + y) * 0.6f + t) * 0.16f;\n  }\n};\n",
+      "shaderSources": {},
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "5151521eef73e2ec6c00cc9e4448b5bd35ef12927a6ec104462cc953efc2827b",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {},
+        "imageHashes": {}
+      }
+    },
+    {
+      "id": "neon_lluvia",
+      "name": "Neón bajo la Lluvia",
+      "programId": "creator_neon_lluvia",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278519308,
+        4294928981,
+        4279441964,
+        4290697215
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.7,
+        "detail": 1.0,
+        "glow": 0.8
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  struct Bld { float x, w, h; };\n  struct Win { float x, y; };\n  struct Layer { std::vector<Bld> blds; std::vector<Win> wins;\n                 float speed, shade, depth, height; };\n  std::vector<Layer> layers;\n  struct Drop { float x, y, v, len; };\n  std::vector<Drop> drops;\n  float lastw = 0, lasth = 0, lastDetail = -1.0f;\n  static float hash01(int i, int salt) {\n    float s = std::sin(float(i) * 12.9898f + float(salt) * 78.233f) * 43758.5453f;\n    return s - std::floor(s);\n  }\n  void build(float w, float h, float detail) {\n    float horizon = h * 0.66f;\n    layers.clear();\n    for (int li = 0; li < 4; li++) {\n      Layer L;\n      L.depth = float(li) / 3.0f;\n      L.speed = 3.0f + L.depth * 22.0f;\n      int sh = 10 + int((1.0f - L.depth) * 22.0f);\n      L.shade = float(sh);\n      L.height = horizon * (0.32f + L.depth * 0.66f);\n      int steps = int(w / 30.0f) + 6;\n      for (int i = 0; i < steps; i++) {\n        Bld b;\n        b.x = (float(i) + hash01(i, li) * 0.6f) * 30.0f;\n        b.w = 14.0f + hash01(i, li + 91) * 54.0f * (0.4f + L.depth);\n        b.h = L.height * (0.28f + hash01(i, li + 173) * 0.72f);\n        L.blds.push_back(b);\n        if (L.depth > 0.35f) {\n          float top = L.height - b.h;\n          for (float wy = 6.0f; wy < b.h - 8.0f; wy += 9.0f) {\n            for (float wx = 3.0f; wx < b.w - 6.0f; wx += 7.0f) {\n              if (hash01(int(wx) * 7 + int(wy) * 13, li + 311) > 0.62f)\n                L.wins.push_back({b.x + wx, top + wy});\n            }\n          }\n        }\n      }\n      layers.push_back(L);\n    }\n    int ndrops = int(380.0f * std::min(1.0f, std::max(0.4f, detail)));\n    drops.clear(); drops.reserve(ndrops);\n    for (int i = 0; i < ndrops; i++)\n      drops.push_back({hash01(i, 7) * w, hash01(i, 29) * h,\n        520.0f + hash01(i, 53) * 620.0f, 8.0f + hash01(i, 71) * 26.0f});\n  }\n public:\n  void reset(uint32_t seed) override {\n    (void)seed;\n    layers.clear(); drops.clear();\n    lastw = 0; lasth = 0; lastDetail = -1.0f;\n  }\n  void update(const Frame& f) override {\n    if (f.width != lastw || f.height != lasth || f.detail != lastDetail) {\n      build(f.width, f.height, f.detail);\n      lastw = f.width; lasth = f.height; lastDetail = f.detail;\n    }\n  }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    float horizon = h * 0.66f;\n    float boost = (0.85f + 0.3f * f.music.energy) * f.intensity;\n    Paint sky = Paint::linear({0, 0}, {0, h},\n      {Color::argb(0xff05060c), Color::argb(0xff131a2c), Color::argb(0xff2a1c2c),\n       Color::argb(0xff0a0c14), Color::argb(0xff04050a)}, {0, 0.42f, 0.63f, 0.67f, 1.0f});\n    c.rect({0, 0, w, h}, sky);\n\n    // Rótulos de neón con parpadeo eléctrico.\n    const uint32_t neon[4] = {0xffff6a55, 0xff58c7f3, 0xff3fd8a5, 0xffffd166};\n    Paint add; add.blend = Blend::plus;\n    for (int i = 0; i < 7; i++) {\n      float ph = float(i) * 1.7f;\n      float flick = 0.55f + 0.45f * std::sin(t * 44.0f + ph) * std::sin(t * 14.0f + ph * 2.0f);\n      if (flick < 0.06f) flick = 0.06f;\n      if (flick > 1.0f) flick = 1.0f;\n      Color cc = Color::argb(neon[i % 4]);\n      add.color = {cc.r, cc.g, cc.b, flick * 0.85f * boost};\n      int sw = int(w) - 90; if (sw < 1) sw = 1;\n      int shh = int(horizon * 0.5f); if (shh < 1) shh = 1;\n      float x = float((i * 137) % sw) + 30.0f;\n      float y = horizon - 40.0f - float((i * 211) % shh);\n      c.rect({x, y, 8.0f + float((i * 7) % 26), 18.0f + float((i * 13) % 54)}, add);\n    }\n\n    // Ciudad en dos pasadas: normal y reflejo mojado invertido.\n    for (size_t li = 0; li < layers.size(); li++) {\n      const Layer& L = layers[li];\n      float period = std::max(w, 1.0f);\n      float off = std::fmod(t * L.speed, period);\n      float alpha = 0.35f + L.depth * 0.65f;\n      for (int pass = 0; pass < 2; pass++) {\n        c.save();\n        Path clip;\n        if (pass == 0) clip.rect({0, 0, w, horizon});\n        else {\n          clip.rect({0, horizon, w, h - horizon});\n          c.clip(clip);\n          c.translate(0, horizon);\n          c.scale(1, -0.42f);\n          c.translate(0, -horizon);\n        }\n        if (pass == 0) c.clip(clip);\n        for (int rep = 0; rep < 2; rep++) {\n          float dx = -off + float(rep) * period;\n          Path body;\n          for (const auto& b : L.blds)\n            body.rect({dx + b.x, L.height - b.h, b.w - 2.0f, b.h});\n          Paint fill;\n          fill.color = {L.shade / 255.0f, (L.shade + 3.0f) / 255.0f,\n            (L.shade + 10.0f) / 255.0f, pass == 0 ? alpha : alpha * 0.2f};\n          c.path(body, fill);\n          if (!L.wins.empty()) {\n            std::vector<Vec2> win;\n            win.reserve(L.wins.size() * 2);\n            for (const auto& p : L.wins) {\n              win.push_back({dx + p.x, p.y});\n              win.push_back({dx + p.x, p.y});\n            }\n            Paint wp; wp.blend = Blend::plus;\n            wp.color = {1, 0.851f, 0.627f, (pass == 0 ? 0.5f : 0.1f) * alpha * boost};\n            c.points(win, 1.7f, wp);\n          }\n        }\n        c.restore();\n      }\n    }\n\n    // Niebla en el horizonte.\n    float fogTop = horizon - h * 0.18f;\n    Paint fog = Paint::linear({0, fogTop}, {0, fogTop + h * 0.22f},\n      {{0.47f, 0.314f, 0.408f, 0}, {0.588f, 0.373f, 0.471f, 0.6f * boost}});\n    c.rect({0, fogTop, w, h * 0.22f}, fog);\n\n    // Lluvia: un solo Path con un segmento por gota.\n    Path rain;\n    float wind = std::sin(t * 0.23f) * 40.0f;\n    for (const auto& d : drops) {\n      float y = std::fmod(d.y + t * d.v, h + 60.0f) - 20.0f;\n      float x = std::fmod(d.x + wind * (y / h), w);\n      if (x < 0) x += w;\n      rain.moveTo(x, y);\n      rain.lineTo(x - wind * 0.02f, y + d.len);\n    }\n    Paint rp; rp.blend = Blend::plus;\n    rp.color = {0.745f, 0.843f, 1, 0.42f * boost};\n    rp.strokeWidth = 1.0f; rp.strokeCap = 1; rp.strokeJoin = 1;\n    c.path(rain, rp);\n  }\n};\n",
+      "shaderSources": {},
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "136aa5e03f5bbccb376c19e898777b9a13ba785eb8f2e76a1c8848ee7e4736cf",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {},
+        "imageHashes": {}
+      }
+    },
+    {
       "id": "prismatic_halo",
       "name": "Halo · capa de luz",
       "programId": "creator_prismatic_halo",
@@ -468,6 +776,39 @@
         "glow": 0.8
       },
       "shaderSource": "vec4 paintVisual(vec2 uv, CreatorFrame f) {\n  vec2 p = (uv - 0.5) * vec2(f.size.x / max(f.size.y, 1.0), 1.0);\n  float radius = 0.27 + 0.015 * sin(f.time * f.speed) + 0.025 * f.bass;\n  float distance = abs(length(p) - radius);\n  float beam = exp(-distance * distance * 17000.0);\n  float halo = exp(-distance * 24.0) * 0.25 * f.glow;\n  float alpha = clamp((beam * 0.62 + halo) * f.intensity * (0.8 + 0.2 * f.pulse), 0.0, 1.0);\n  vec3 ink = mix(f.color1.rgb, f.color2.rgb, 0.5 + 0.5 * sin(p.x * 7.0 + f.time * 0.2));\n  return vec4(ink, alpha);\n}\n"
+    },
+    {
+      "id": "salto_hiperespacial",
+      "name": "Salto Hiperespacial",
+      "programId": "creator_salto_hiperespacial",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278453773,
+        4284008435,
+        4289104895,
+        4292667903
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.8,
+        "detail": 1.0,
+        "glow": 0.9
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  struct Ring { float z0, rot0, sides; };\n  struct Star { float x, y, z0; };\n  std::vector<Ring> rings;\n  std::vector<Star> stars;\n  static float hash11(float p) {\n    float s = std::sin(p * 12.9898f) * 43758.5453f;\n    return s - std::floor(s);\n  }\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed);\n    rings.clear(); stars.clear();\n    rings.reserve(90); stars.reserve(260);\n    for (int i = 0; i < 90; i++) {\n      float side = 6.0f;\n      float h = hash11(float(i) * 1.37f + float(seed % 997) * 0.013f);\n      if (h > 0.5f) side = 8.0f;\n      rings.push_back({0.12f + float(i) / 90.0f * 1.9f,\n        hash11(float(i) * 3.71f) * 6.2831853f, side});\n    }\n    for (int i = 0; i < 260; i++)\n      stars.push_back({rng.unit() * 2.0f - 1.0f, rng.unit() * 2.0f - 1.0f,\n        rng.unit() * 1.6f + 0.1f});\n  }\n  void update(const Frame& f) override { (void)f; }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    float fmin = std::min(w, h);\n    float cx = w * 0.5f + std::sin(t * 1.3f) * 8.0f * f.intensity;\n    float cy = h * 0.5f + std::cos(t * 1.1f) * 8.0f * f.intensity;\n    float f0 = fmin * 0.62f;\n    float boost = (0.85f + 0.35f * f.music.energy + 0.3f * f.music.bass) * f.intensity;\n    float rate = (0.36f + f.music.energy * 0.55f) * (f.reducedMotion ? 0.35f : 1.0f);\n    float travel = t * rate;\n    Paint bg; bg.color = Color::argb(0xff04060d);\n    c.rect({0, 0, w, h}, bg);\n\n    // ── Estelas: un solo Path, 260 segmentos ──\n    Path streaks;\n    float streakSpan = 1.7f - 0.08f;\n    for (size_t i = 0; i < stars.size(); i++) {\n      const Star& s = stars[i];\n      float z = std::fmod(s.z0 - travel * 1.3333f, streakSpan);\n      if (z < 0.08f) z += streakSpan;\n      float k1 = f0 / z;\n      float k2 = f0 / (z + 0.05f * (1.0f + rate));\n      streaks.moveTo(cx + s.x * k2, cy + s.y * k2);\n      streaks.lineTo(cx + s.x * k1, cy + s.y * k1);\n    }\n    Paint sp; sp.blend = Blend::plus;\n    sp.color = {0.863f, 0.914f, 1, 0.498f * boost};\n    sp.strokeWidth = 1.1f; sp.strokeCap = 1; sp.strokeJoin = 1;\n    c.path(streaks, sp);\n\n    // ── Aros del túnel ──\n    float ringSpan = 2.0f;\n    for (size_t i = 0; i < rings.size(); i++) {\n      const Ring& r = rings[i];\n      float z = std::fmod(r.z0 - travel, ringSpan);\n      if (z < 0.1f) z += ringSpan;\n      float rad = f0 * 0.62f / z;\n      if (rad > std::max(w, h) * 1.6f) continue;\n      float zt = (1.75f - z) / 1.75f;\n      if (zt < 0.0f) zt = 0.0f; if (zt > 1.0f) zt = 1.0f;\n      float a = zt * (z * 2.2f < 1.0f ? z * 2.2f : 1.0f);\n      int n = int(r.sides);\n      // Nueva orientación por cada vuelta completada: derivado del tiempo, no del frame.\n      float cycles = std::floor((r.z0 - travel) / ringSpan);\n      float base = r.rot0 + t * 6.2831853f * (0.5f + (1.0f - z) * 0.6f)\n        + hash11(cycles + float(i) * 0.5f) * 6.2831853f;\n      Path ring;\n      for (int sd = 0; sd <= n; sd++) {\n        float ang = base + float(sd) / float(n) * 6.2831853f;\n        float px = cx + std::cos(ang) * rad;\n        float py = cy + std::sin(ang) * rad * 0.94f;\n        if (sd == 0) ring.moveTo(px, py); else ring.lineTo(px, py);\n      }\n      ring.close();\n      Paint p; p.blend = Blend::plus;\n      if (n == 6) p.color = {0.345f, 0.780f, 0.953f, a * 0.6f * boost};\n      else p.color = {0.651f, 0.545f, 1, a * 0.6f * boost};\n      p.strokeWidth = 0.6f + a * 3.0f; p.strokeCap = 1; p.strokeJoin = 1;\n      c.path(ring, p);\n    }\n\n    // ── Núcleo: degradado radial en vez de blur real ──\n    float gr = f0 * 0.5f;\n    Paint glow = Paint::radial({cx, cy}, gr,\n      {{1, 1, 1, (0.45f + 0.2f * f.music.spark) * boost},\n       {0.345f, 0.780f, 0.953f, 0.16f * boost}, {0, 0, 0, 0}}, {0.0f, 0.35f, 1.0f});\n    glow.blend = Blend::plus;\n    c.circle({cx, cy}, gr, glow);\n  }\n};\n",
+      "shaderSources": {},
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "8b8f31e4828f9dca7d5c64838617e89f449794d2a70ca3fe1481f3685841be09",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {},
+        "imageHashes": {}
+      }
     },
     {
       "id": "selva_bioluminiscente",
@@ -532,6 +873,215 @@
         "hash": "6d5eae02e2cd074900641ce016eeb11e2ac79264f0bfede262075d7d6d02691e",
         "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
         "materials": {},
+        "imageHashes": {}
+      }
+    },
+    {
+      "id": "tinta_agua",
+      "name": "Tinta en Agua",
+      "programId": "creator_tinta_agua",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278588444,
+        4279078046,
+        4287427311,
+        4278856755
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.6,
+        "detail": 1.0,
+        "glow": 0.8
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  static const int nb = 12;\n  struct Blob { float ang, spd, rad; };\n  std::vector<Blob> blobs;\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed);\n    blobs.clear(); blobs.reserve(nb);\n    for (int i = 0; i < nb; i++) {\n      Blob b;\n      b.ang = rng.unit() * 6.2831853f;\n      b.spd = 0.12f + rng.unit() * 0.3f;\n      b.rad = 0.06f + rng.unit() * 0.12f;\n      blobs.push_back(b);\n    }\n  }\n  void update(const Frame& f) override { (void)f; }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    float time = t * 6.2831853f;\n    float pull = 1.0f + f.music.energy * 0.9f + f.music.bass * 0.5f;\n    std::vector<float> u;\n    u.reserve(40);\n    u.push_back(time);\n    u.push_back(pull);\n    for (int i = 0; i < nb; i++) {\n      const Blob& b = blobs[i];\n      float a = b.ang + time * b.spd * (i % 2 == 0 ? 1.0f : -1.0f);\n      float rr = b.rad * (1.0f + 0.28f * std::sin(time * 0.6f + float(i)));\n      u.push_back(w * (0.5f + std::cos(a) * (0.26f + rr)));\n      u.push_back(h * (0.5f + std::sin(a * 1.27f + float(i)) * (0.3f + rr)));\n      u.push_back(rr * (1.0f + (pull - 1.0f) * 0.22f) * std::min(w, h));\n    }\n    c.material(\"ink\", {0, 0, w, h}, u);\n  }\n};\n",
+      "shaderSources": {
+        "ink": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform float uTime;\nuniform float uPull;\nuniform vec2 uB0;\nuniform vec2 uB1;\nuniform vec2 uB2;\nuniform vec2 uB3;\nuniform vec2 uB4;\nuniform vec2 uB5;\nuniform vec2 uB6;\nuniform vec2 uB7;\nuniform vec2 uB8;\nuniform vec2 uB9;\nuniform vec2 uB10;\nuniform vec2 uB11;\nuniform float uR0;\nuniform float uR1;\nuniform float uR2;\nuniform float uR3;\nuniform float uR4;\nuniform float uR5;\nuniform float uR6;\nuniform float uR7;\nuniform float uR8;\nuniform float uR9;\nuniform float uR10;\nuniform float uR11;\nout vec4 fragColor;\nfloat field(vec2 d, float r) { return (r * r) / (dot(d, d) + 0.0006); }\nvoid main() {\n  vec2 uv = FlutterFragCoord().xy / uSize.xy;\n  float aspect = uSize.x / uSize.y;\n  vec2 p = vec2(uv.x * aspect, uv.y);\n  float f = 0.0;\n  f += field(p - uB0, uR0);\n  f += field(p - uB1, uR1);\n  f += field(p - uB2, uR2);\n  f += field(p - uB3, uR3);\n  f += field(p - uB4, uR4);\n  f += field(p - uB5, uR5);\n  f += field(p - uB6, uR6);\n  f += field(p - uB7, uR7);\n  f += field(p - uB8, uR8);\n  f += field(p - uB9, uR9);\n  f += field(p - uB10, uR10);\n  f += field(p - uB11, uR11);\n  float k = clamp((f * (0.02 * uPull) - 0.55) * 1.5, 0.0, 1.0);\n  float veins = 0.5 + 0.5 * sin(f * 26.0 + uTime * 1.4);\n  vec3 deep = vec3(0.02, 0.05, 0.11);\n  vec3 midc = vec3(0.05, 0.55, 0.62);\n  vec3 bright = vec3(0.55, 0.95, 0.94);\n  vec3 col = mix(mix(deep, midc, smoothstep(0.0, 0.55, k)), bright, smoothstep(0.6, 1.0, k));\n  col *= 0.82 + 0.18 * veins;\n  float edge = smoothstep(0.42, 0.6, k) * (1.0 - smoothstep(0.6, 0.82, k));\n  col += vec3(0.9, 1.0, 1.0) * edge * 0.25;\n  fragColor = vec4(col, 1.0);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "68073997e76eccd045002de6d27753f1ca0faf741c45ded4046f81546864e450",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {
+          "ink": {
+            "compilerHash": "01f503ddd6aee830748ac4011c7ac25bb659db4e4a71623b0de75cd24f947af9",
+            "asset": "packages/visual_catalog/assets/native/tinta_agua_ink.iplr",
+            "assetHash": "5f77ad994fcb5992ace999b947059d1e35b52fd6f59b74772b19ac7683f3e04f",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct tinta_agua_ink_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct tinta_agua_ink_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment tinta_agua_ink_fragment_main_out tinta_agua_ink_fragment_main(tinta_agua_ink_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float& uTime [[buffer(1)]], constant float& uPull [[buffer(2)]], constant float2& uB0 [[buffer(3)]], constant float2& uB1 [[buffer(4)]], constant float2& uB2 [[buffer(5)]], constant float2& uB3 [[buffer(6)]], constant float2& uB4 [[buffer(7)]], constant float2& uB5 [[buffer(8)]], constant float2& uB6 [[buffer(9)]], constant float2& uB7 [[buffer(10)]], constant float2& uB8 [[buffer(11)]], constant float2& uB9 [[buffer(12)]], constant float2& uB10 [[buffer(13)]], constant float2& uB11 [[buffer(14)]], constant float& uR0 [[buffer(15)]], constant float& uR1 [[buffer(16)]], constant float& uR2 [[buffer(17)]], constant float& uR3 [[buffer(18)]], constant float& uR4 [[buffer(19)]], constant float& uR5 [[buffer(20)]], constant float& uR6 [[buffer(21)]], constant float& uR7 [[buffer(22)]], constant float& uR8 [[buffer(23)]], constant float& uR9 [[buffer(24)]], constant float& uR10 [[buffer(25)]], constant float& uR11 [[buffer(26)]])\n{\n    tinta_agua_ink_fragment_main_out out = {};\n    float2 _41 = in._fragCoord / uSize;\n    float2 _59 = float2(_41.x * (uSize.x / uSize.y), _41.y);\n    float2 _65 = _59 - uB0;\n    float2 _76 = _59 - uB1;\n    float2 _87 = _59 - uB2;\n    float2 _98 = _59 - uB3;\n    float2 _109 = _59 - uB4;\n    float2 _120 = _59 - uB5;\n    float2 _131 = _59 - uB6;\n    float2 _142 = _59 - uB7;\n    float2 _153 = _59 - uB8;\n    float2 _164 = _59 - uB9;\n    float2 _175 = _59 - uB10;\n    float _182 = (((((((((((uR0 * uR0) / (dot(_65, _65) + 0.000600000028498470783233642578125)) + ((uR1 * uR1) / (dot(_76, _76) + 0.000600000028498470783233642578125))) + ((uR2 * uR2) / (dot(_87, _87) + 0.000600000028498470783233642578125))) + ((uR3 * uR3) / (dot(_98, _98) + 0.000600000028498470783233642578125))) + ((uR4 * uR4) / (dot(_109, _109) + 0.000600000028498470783233642578125))) + ((uR5 * uR5) / (dot(_120, _120) + 0.000600000028498470783233642578125))) + ((uR6 * uR6) / (dot(_131, _131) + 0.000600000028498470783233642578125))) + ((uR7 * uR7) / (dot(_142, _142) + 0.000600000028498470783233642578125))) + ((uR8 * uR8) / (dot(_153, _153) + 0.000600000028498470783233642578125))) + ((uR9 * uR9) / (dot(_164, _164) + 0.000600000028498470783233642578125))) + ((uR10 * uR10) / (dot(_175, _175) + 0.000600000028498470783233642578125));\n    float2 _186 = _59 - uB11;\n    float _193 = _182 + ((uR11 * uR11) / (dot(_186, _186) + 0.000600000028498470783233642578125));\n    float _206 = fast::clamp(((_193 * (0.0199999995529651641845703125 * uPull)) - 0.550000011920928955078125) * 1.5, 0.0, 1.0);\n    out.fragColor = float4((mix(mix(float3(0.0199999995529651641845703125, 0.0500000007450580596923828125, 0.10999999940395355224609375), float3(0.0500000007450580596923828125, 0.550000011920928955078125, 0.62000000476837158203125), float3(smoothstep(0.0, 0.550000011920928955078125, _206))), float3(0.550000011920928955078125, 0.949999988079071044921875, 0.939999997615814208984375), float3(smoothstep(0.60000002384185791015625, 1.0, _206))) * (0.819999992847442626953125 + (0.180000007152557373046875 * (0.5 + (0.5 * sin((_193 * 26.0) + (uTime * 1.39999997615814208984375))))))) + ((float3(0.89999997615814208984375, 1.0, 1.0) * (smoothstep(0.4199999868869781494140625, 0.60000002384185791015625, _206) * (1.0 - smoothstep(0.60000002384185791015625, 0.819999992847442626953125, _206)))) * 0.25), 1.0);\n    return out;\n}\n\n",
+            "entryPoint": "tinta_agua_ink_fragment_main",
+            "floatCount": 40,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uTime",
+                "offset": 2,
+                "count": 1,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uPull",
+                "offset": 3,
+                "count": 1,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uB0",
+                "offset": 4,
+                "count": 2,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uB1",
+                "offset": 6,
+                "count": 2,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uB2",
+                "offset": 8,
+                "count": 2,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uB3",
+                "offset": 10,
+                "count": 2,
+                "bufferIndex": 6
+              },
+              {
+                "name": "uB4",
+                "offset": 12,
+                "count": 2,
+                "bufferIndex": 7
+              },
+              {
+                "name": "uB5",
+                "offset": 14,
+                "count": 2,
+                "bufferIndex": 8
+              },
+              {
+                "name": "uB6",
+                "offset": 16,
+                "count": 2,
+                "bufferIndex": 9
+              },
+              {
+                "name": "uB7",
+                "offset": 18,
+                "count": 2,
+                "bufferIndex": 10
+              },
+              {
+                "name": "uB8",
+                "offset": 20,
+                "count": 2,
+                "bufferIndex": 11
+              },
+              {
+                "name": "uB9",
+                "offset": 22,
+                "count": 2,
+                "bufferIndex": 12
+              },
+              {
+                "name": "uB10",
+                "offset": 24,
+                "count": 2,
+                "bufferIndex": 13
+              },
+              {
+                "name": "uB11",
+                "offset": 26,
+                "count": 2,
+                "bufferIndex": 14
+              },
+              {
+                "name": "uR0",
+                "offset": 28,
+                "count": 1,
+                "bufferIndex": 15
+              },
+              {
+                "name": "uR1",
+                "offset": 29,
+                "count": 1,
+                "bufferIndex": 16
+              },
+              {
+                "name": "uR2",
+                "offset": 30,
+                "count": 1,
+                "bufferIndex": 17
+              },
+              {
+                "name": "uR3",
+                "offset": 31,
+                "count": 1,
+                "bufferIndex": 18
+              },
+              {
+                "name": "uR4",
+                "offset": 32,
+                "count": 1,
+                "bufferIndex": 19
+              },
+              {
+                "name": "uR5",
+                "offset": 33,
+                "count": 1,
+                "bufferIndex": 20
+              },
+              {
+                "name": "uR6",
+                "offset": 34,
+                "count": 1,
+                "bufferIndex": 21
+              },
+              {
+                "name": "uR7",
+                "offset": 35,
+                "count": 1,
+                "bufferIndex": 22
+              },
+              {
+                "name": "uR8",
+                "offset": 36,
+                "count": 1,
+                "bufferIndex": 23
+              },
+              {
+                "name": "uR9",
+                "offset": 37,
+                "count": 1,
+                "bufferIndex": 24
+              },
+              {
+                "name": "uR10",
+                "offset": 38,
+                "count": 1,
+                "bufferIndex": 25
+              },
+              {
+                "name": "uR11",
+                "offset": 39,
+                "count": 1,
+                "bufferIndex": 26
+              }
+            ]
+          }
+        },
         "imageHashes": {}
       }
     },
