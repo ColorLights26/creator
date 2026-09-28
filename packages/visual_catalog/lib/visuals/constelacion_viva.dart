@@ -54,7 +54,12 @@ class Visual final : public Scene {
  public:
   void reset(uint32_t seed) override {
     (void)seed;
-    nodes.clear(); head.clear(); next.clear();
+    nodes.clear();
+    // La rejilla arranca con una celda: render puede ejecutarse antes que el
+    // primer update y nunca debe leer un vector vacío.
+    cols = 1; rows = 1;
+    head.assign(1, -1);
+    next.assign(1, -1);
     lastw = 0; lasth = 0; lastDetail = -1.0f; done = 0; pull = 0.0f;
   }
   void update(const Frame& f) override {
@@ -90,6 +95,9 @@ class Visual final : public Scene {
       {Color::argb(0xff120f24), Color::argb(0xff080710), Color::argb(0xff04040a)},
       {0.0f, 0.6f, 1.0f});
     c.rect({0, 0, w, h}, bg);
+
+    // Sin nodos todavía: sólo el fondo. La rejilla se consulta ya construida.
+    if (nodes.empty() || head.empty()) return;
 
     // Rejilla espacial construida en update: aquí sólo se consulta.
     // Aristas en cuatro cubos de alpha.

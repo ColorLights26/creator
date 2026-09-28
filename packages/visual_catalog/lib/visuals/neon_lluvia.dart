@@ -27,16 +27,25 @@ class Visual final : public Scene {
       L.shade = float(sh);
       L.height = horizon * (0.32f + L.depth * 0.66f);
       int steps = int(w / 30.0f) + 6;
+      if (steps > 48) steps = 48;
+      // El paso de la ventana escala con la altura de la capa: en pantallas
+      // grandes el número de puntos se disparaba y reventaba el presupuesto
+      // de 1 MiB de comandos del motor.
+      float wyStep = std::max(9.0f, L.height / 40.0f);
+      // El paso horizontal sigue a la pantalla para que el skyline siempre la
+      // cubra entera, tenga el ancho que tenga.
+      float xStep = w / float(steps);
       for (int i = 0; i < steps; i++) {
         Bld b;
-        b.x = (float(i) + hash01(i, li) * 0.6f) * 30.0f;
-        b.w = 14.0f + hash01(i, li + 91) * 54.0f * (0.4f + L.depth);
+        b.x = (float(i) + hash01(i, li) * 0.6f) * xStep;
+        b.w = xStep * (0.5f + hash01(i, li + 91) * 1.5f) * (0.5f + L.depth * 0.5f);
         b.h = L.height * (0.28f + hash01(i, li + 173) * 0.72f);
         L.blds.push_back(b);
         if (L.depth > 0.35f) {
           float top = L.height - b.h;
-          for (float wy = 6.0f; wy < b.h - 8.0f; wy += 9.0f) {
-            for (float wx = 3.0f; wx < b.w - 6.0f; wx += 7.0f) {
+          float wxStep = std::max(7.0f, b.w / 8.0f);
+          for (float wy = 6.0f; wy < b.h - 8.0f; wy += wyStep) {
+            for (float wx = 3.0f; wx < b.w - 6.0f; wx += wxStep) {
               if (hash01(int(wx) * 7 + int(wy) * 13, li + 311) > 0.62f)
                 L.wins.push_back({b.x + wx, top + wy});
             }
