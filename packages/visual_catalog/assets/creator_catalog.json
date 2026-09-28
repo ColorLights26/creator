@@ -45,45 +45,12 @@
       },
       "shaderSource": "",
       "kind": "scene",
-      "nativeSource": "class Visual final : public Scene {\n  struct Star { float x, y, tw; };\n  std::vector<Star> stars;\n  float breath = 0, flash = 0;\n  static float vhash(int x, int y) {\n    uint32_t h = uint32_t(x) * 374761393u + uint32_t(y) * 668265263u;\n    h = (h ^ (h >> 13)) * 1274126177u; h ^= h >> 16;\n    return float(h & 0xffffu) / 65535.0f;\n  }\n  static float vnoise(float x, float y) {\n    int xi = int(std::floor(x)), yi = int(std::floor(y));\n    float xf = x - float(xi), yf = y - float(yi);\n    float u = xf * xf * (3.0f - 2.0f * xf), v = yf * yf * (3.0f - 2.0f * yf);\n    float a = vhash(xi, yi), b = vhash(xi + 1, yi);\n    float c = vhash(xi, yi + 1), d = vhash(xi + 1, yi + 1);\n    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;\n  }\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed); stars.clear(); stars.reserve(110); breath = 0; flash = 0;\n    for (int i = 0; i < 110; i++)\n      stars.push_back({rng.unit(), rng.unit() * 0.62f, rng.unit() * 6.2831853f});\n  }\n  void update(const Frame& f) override {\n    breath += (f.music.energy - breath) * float(1.0 - std::exp(-f.delta * 3.0));\n    for (const auto& band : f.music.events)\n      for (const auto& e : band) flash += e.strength;\n    flash *= float(std::exp(-f.delta * 4.0));\n  }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    float glow = (0.8f + 0.35f * breath + 0.5f * flash) * f.intensity;\n    Paint sky = Paint::linear({0, 0}, {0, h},\n      {Color::argb(0xff01030f), Color::argb(0xff04122b),\n       Color::argb(0xff062033), Color::argb(0xff010409)}, {0, 0.45f, 0.8f, 1.0f});\n    c.rect({0, 0, w, h}, sky);\n    std::vector<Vec2> batch; batch.reserve(stars.size());\n    for (const auto& s : stars) batch.push_back({s.x * w, s.y * h});\n    Paint sp; sp.blend = Blend::plus;\n    sp.color = {1, 1, 1, (0.35f + 0.25f * std::abs(std::sin(t * 0.9f))) * glow};\n    c.points(batch, 1.6f, sp);\n    const float cy[4] = {0.30f, 0.36f, 0.44f, 0.50f};\n    const float am[4] = {0.05f, 0.06f, 0.045f, 0.035f};\n    const float th[4] = {0.20f, 0.16f, 0.13f, 0.09f};\n    const float sp2[4] = {0.18f, -0.25f, 0.33f, -0.40f};\n    const float fr[4] = {1.7f, 2.3f, 3.1f, 4.2f};\n    const uint32_t col[4] = {0xff38ffc4, 0xff4be0ff, 0xff9d6bff, 0xffff5fd2};\n    for (int b = 0; b < 4; b++) {\n      float amp = am[b] * (1.0f + 0.4f * breath);\n      Path ribbon;\n      for (int i = 0; i <= 26; i++) {\n        float x = float(i) / 26.0f * w;\n        float n = vnoise(float(i) * 0.22f + t * sp2[b], float(b) * 5.5f + t * 0.15f);\n        float y = h * cy[b] + std::sin(float(i) * fr[b] * 0.14f + t * sp2[b] * 3.0f) * h * amp\n          + (n - 0.5f) * h * 0.07f;\n        if (i == 0) ribbon.moveTo(x, y); else ribbon.lineTo(x, y);\n      }\n      for (int i = 26; i >= 0; i--) {\n        float x = float(i) / 26.0f * w;\n        float n = vnoise(float(i) * 0.22f + t * sp2[b], float(b) * 5.5f + t * 0.15f);\n        float y = h * cy[b] + std::sin(float(i) * fr[b] * 0.14f + t * sp2[b] * 3.0f) * h * amp\n          + (n - 0.5f) * h * 0.07f + h * th[b] * (0.6f + n * 0.8f);\n        ribbon.lineTo(x, y);\n      }\n      ribbon.close();\n      Color base = Color::argb(col[b]);\n      Paint band = Paint::linear({0, h * (cy[b] - amp - th[b])}, {0, h * (cy[b] + amp + 0.02f)},\n        {{base.r, base.g, base.b, 0}, {base.r, base.g, base.b, 0.40f * glow},\n         {base.r, base.g, base.b, 0}}, {0, 0.45f, 1.0f});\n      band.blend = Blend::plus;\n      c.path(ribbon, band);\n    }\n    Path ridge; ridge.moveTo(0, h);\n    for (int i = 0; i < 42; i++)\n      ridge.lineTo(float(i) / 41.0f * w,\n        h * (0.8f + vnoise(float(i) * 0.35f, 3.0f) * 0.12f) - float(std::abs(i - 20)) * 0.8f);\n    ridge.lineTo(w, h); ridge.close();\n    Paint dk; dk.color = Color::argb(0xff01050c);\n    c.path(ridge, dk);\n  }\n};\n",
+      "nativeSource": "class Visual final : public Scene {\n  struct Star { float x, y, tw; };\n  std::vector<Star> stars;\n  float breath = 0, flash = 0;\n  static float vhash(int x, int y) {\n    uint32_t h = uint32_t(x) * 374761393u + uint32_t(y) * 668265263u;\n    h = (h ^ (h >> 13)) * 1274126177u; h ^= h >> 16;\n    return float(h & 0xffffu) / 65535.0f;\n  }\n  static float vnoise(float x, float y) {\n    int xi = int(std::floor(x)), yi = int(std::floor(y));\n    float xf = x - float(xi), yf = y - float(yi);\n    float u = xf * xf * (3.0f - 2.0f * xf), v = yf * yf * (3.0f - 2.0f * yf);\n    float a = vhash(xi, yi), b = vhash(xi + 1, yi);\n    float c = vhash(xi, yi + 1), d = vhash(xi + 1, yi + 1);\n    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;\n  }\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed); stars.clear(); stars.reserve(110); breath = 0; flash = 0;\n    for (int i = 0; i < 110; i++)\n      stars.push_back({rng.unit(), rng.unit() * 0.62f, rng.unit() * 6.2831853f});\n  }\n  void update(const Frame& f) override {\n    breath += (f.music.energy - breath) * float(1.0 - std::exp(-f.delta * 3.0));\n    for (const auto& band : f.music.events)\n      for (const auto& e : band) flash += e.strength;\n    flash *= float(std::exp(-f.delta * 4.0));\n  }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    float glow = (0.8f + 0.35f * breath + 0.5f * flash) * f.intensity;\n    Paint sky = Paint::linear({0, 0}, {0, h},\n      {Color::argb(0xff01030f), Color::argb(0xff04122b),\n       Color::argb(0xff062033), Color::argb(0xff010409)}, {0, 0.45f, 0.8f, 1.0f});\n    c.rect({0, 0, w, h}, sky);\n    std::vector<Vec2> batch; batch.reserve(stars.size());\n    for (const auto& s : stars) batch.push_back({s.x * w, s.y * h});\n    Paint sp; sp.blend = Blend::plus;\n    sp.color = {1, 1, 1, (0.35f + 0.25f * std::abs(std::sin(t * 0.9f))) * glow};\n    c.points(batch, 0.8f, sp);\n    const float cy[4] = {0.30f, 0.36f, 0.44f, 0.50f};\n    const float am[4] = {0.05f, 0.06f, 0.045f, 0.035f};\n    const float th[4] = {0.20f, 0.16f, 0.13f, 0.09f};\n    const float sp2[4] = {0.18f, -0.25f, 0.33f, -0.40f};\n    const float fr[4] = {1.7f, 2.3f, 3.1f, 4.2f};\n    const uint32_t col[4] = {0xff38ffc4, 0xff4be0ff, 0xff9d6bff, 0xffff5fd2};\n    for (int b = 0; b < 4; b++) {\n      float amp = am[b] * (1.0f + 0.4f * breath);\n      Path ribbon;\n      for (int i = 0; i <= 26; i++) {\n        float x = float(i) / 26.0f * w;\n        float n = vnoise(float(i) * 0.22f + t * sp2[b], float(b) * 5.5f + t * 0.15f);\n        float y = h * cy[b] + std::sin(float(i) * fr[b] * 0.14f + t * sp2[b] * 3.0f) * h * amp\n          + (n - 0.5f) * h * 0.07f;\n        if (i == 0) ribbon.moveTo(x, y); else ribbon.lineTo(x, y);\n      }\n      for (int i = 26; i >= 0; i--) {\n        float x = float(i) / 26.0f * w;\n        float n = vnoise(float(i) * 0.22f + t * sp2[b], float(b) * 5.5f + t * 0.15f);\n        float y = h * cy[b] + std::sin(float(i) * fr[b] * 0.14f + t * sp2[b] * 3.0f) * h * amp\n          + (n - 0.5f) * h * 0.07f + h * th[b] * (0.6f + n * 0.8f);\n        ribbon.lineTo(x, y);\n      }\n      ribbon.close();\n      Color base = Color::argb(col[b]);\n      Paint band = Paint::linear({0, h * (cy[b] - amp - th[b])}, {0, h * (cy[b] + amp + 0.02f)},\n        {{base.r, base.g, base.b, 0}, {base.r, base.g, base.b, 0.40f * glow},\n         {base.r, base.g, base.b, 0}}, {0, 0.45f, 1.0f});\n      band.blend = Blend::plus;\n      c.path(ribbon, band);\n    }\n    Path ridge; ridge.moveTo(0, h);\n    for (int i = 0; i < 42; i++)\n      ridge.lineTo(float(i) / 41.0f * w,\n        h * (0.8f + vnoise(float(i) * 0.35f, 3.0f) * 0.12f) - float(std::abs(i - 20)) * 0.8f);\n    ridge.lineTo(w, h); ridge.close();\n    Paint dk; dk.color = Color::argb(0xff01050c);\n    c.path(ridge, dk);\n  }\n};\n",
       "shaderSources": {},
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "6a7c205a6958ee39be3cbb8bdc70883188e6d5c91124256659e8557c34be775d",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
-        "materials": {},
-        "imageHashes": {}
-      }
-    },
-    {
-      "id": "caleidoscopio",
-      "name": "Caleidoscopio",
-      "programId": "creator_caleidoscopio",
-      "role": "background",
-      "reactivity": "optional",
-      "framesPerSecond": 30,
-      "seed": 42,
-      "colors": [
-        4278649359,
-        4294913690,
-        4282315007,
-        4294946874
-      ],
-      "controls": {
-        "intensity": 1.0,
-        "speed": 0.7,
-        "detail": 1.0,
-        "glow": 0.9
-      },
-      "shaderSource": "",
-      "kind": "scene",
-      "nativeSource": "class Visual final : public Scene {\n  float spin = 0;\n public:\n  void reset(uint32_t seed) override { (void)seed; spin = 0; }\n  void update(const Frame& f) override {\n    spin += float(f.delta) * f.speed * (f.reducedMotion ? 0.05f : 0.12f);\n  }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    float cx = w * 0.5f, cy = h * 0.5f;\n    float r = std::min(w, h) * 0.52f;\n    float boost = (0.7f + 0.5f * f.music.energy) * f.intensity;\n    Paint bg; bg.color = Color::argb(0xff07020f);\n    c.rect({0, 0, w, h}, bg);\n    const uint32_t pet[5] = {0xffff2e9a, 0xffffb03a, 0xff3ef0ff, 0xffa06bff, 0xff7dff9e};\n    for (int s = 0; s < 12; s++) {\n      c.save();\n      c.translate(cx, cy);\n      c.rotate(float(s) / 12.0f * 6.2831853f + spin);\n      float mirror = (s % 2 == 1) ? -1.0f : 1.0f;\n      for (int i = 0; i < 6; i++) {\n        float p = float(i) / 6.0f;\n        float rr = r * (0.18f + p * 0.78f) * (0.85f + std::sin(t * 0.9f + float(i)) * 0.15f);\n        float a = 0.22f + std::sin(t * 0.5f + float(i) * 0.8f) * 0.16f;\n        Color pc = Color::argb(pet[i % 5]);\n        Path petal;\n        petal.moveTo(0, 0);\n        petal.quadraticTo(rr * 0.6f, -rr * a * mirror, rr, 0);\n        petal.quadraticTo(rr * 0.6f, rr * a * 0.35f * mirror, 0, 0);\n        petal.close();\n        Paint fp; fp.blend = Blend::plus;\n        fp.color = {pc.r, pc.g, pc.b, (0.16f + 0.12f * std::abs(std::sin(t + float(i)))) * boost};\n        c.path(petal, fp);\n      }\n      for (int i = 0; i < 5; i++) {\n        float rr = r * (0.2f + float(i) * 0.18f) + std::sin(t * 1.3f + float(i) * 1.1f) * r * 0.05f;\n        Color rc = Color::argb(pet[(i + 2) % 5]);\n        Path arc;\n        for (int k = 0; k <= 16; k++) {\n          float ang = -0.26f + float(k) / 16.0f * 0.52f;\n          float x = std::cos(ang) * rr, y = std::sin(ang) * rr * mirror;\n          if (k == 0) arc.moveTo(x, y); else arc.lineTo(x, y);\n        }\n        Paint rp; rp.blend = Blend::plus;\n        rp.color = {rc.r, rc.g, rc.b, 0.5f * boost};\n        rp.strokeWidth = 1.2f;\n        c.path(arc, rp);\n      }\n      std::vector<Vec2> sparks;\n      for (int i = 0; i < 4; i++) {\n        float rr = r * (0.3f + std::fmod(float(i) * 0.21f + t * 0.14f, 0.68f));\n        sparks.push_back({rr, rr * std::sin(t * 2.0f + float(i) * 2.1f) * 0.18f * mirror});\n      }\n      Paint kp; kp.blend = Blend::plus;\n      kp.color = {1, 1, 1, 0.8f * boost};\n      c.points(sparks, 2.4f, kp);\n      c.restore();\n    }\n    Paint core = Paint::radial({cx, cy}, r * 0.5f,\n      {{1, 1, 1, 0.5f * boost}, {1, 0.47f, 0.86f, 0.12f * boost}, {0, 0, 0, 0}}, {0, 0.4f, 1.0f});\n    core.blend = Blend::plus;\n    c.rect({0, 0, w, h}, core);\n  }\n};\n",
-      "shaderSources": {},
-      "images": {},
-      "nativeBuild": {
-        "abi": 1,
-        "hash": "5bcb1a0d2d5710c597a3e2183a485245503a6c1b75ab45b40b2a2e466f643af9",
+        "hash": "6eddcb5a605fd496198f7a0da5f5e37bf42c7c76f379aa0bf7c548f06fb77d4a",
         "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
         "materials": {},
         "imageHashes": {}
@@ -155,71 +122,6 @@
       }
     },
     {
-      "id": "chrome_scene",
-      "name": "Liquid Chrome",
-      "programId": "creator_chrome_scene",
-      "role": "background",
-      "reactivity": "optional",
-      "framesPerSecond": 30,
-      "seed": 42,
-      "colors": [
-        4278588455,
-        4278244785,
-        4284970239,
-        4293512191
-      ],
-      "controls": {
-        "intensity": 1.0,
-        "speed": 1.0,
-        "detail": 1.0,
-        "glow": 1.0
-      },
-      "shaderSource": "",
-      "kind": "scene",
-      "nativeSource": "class Visual final : public Scene {\n public:\n  void reset(uint32_t) override {}\n  void update(const Frame&) override {}\n  void render(const Frame& f, Canvas& c) const override {\n    c.material(\"chrome\",{0,0,f.width,f.height},{float(f.time)*f.speed,f.music.bass});\n    c.saveLayer(.32f,Blend::screen);\n    Paint p;p.color={.7f,.83f,1,.65f};p.strokeWidth=.8f;\n    for(int i=0;i<4;i++) {\n      float x=f.width*(.16f+i*.23f);\n      Path path;path.moveTo(x,0).cubicTo(x+35,f.height*.28f,x-40,f.height*.75f,x,f.height);\n      c.path(path,p);\n    }\n    c.restore();\n  }\n};\n",
-      "shaderSources": {
-        "chrome": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform float uTime;\nuniform float uBass;\nout vec4 fragColor;\nfloat field(vec2 p) {\n  float sum=0.;\n  for(int i=0;i<7;i++) {\n    float k=float(i);\n    vec2 center=vec2(sin(uTime*.31+k*2.4),cos(uTime*.23+k*1.7))*.47;\n    vec2 d=p-center;\n    sum+=(.026+.006*sin(k+uTime*.2))/(dot(d,d)+.013);\n  }\n  return sum;\n}\nvoid main() {\n  vec2 p=(FlutterFragCoord().xy/uSize-.5)*vec2(uSize.x/uSize.y,1.)*2.;\n  float v=field(p),e=.004;\n  vec2 g=vec2(field(p+vec2(e,0))-field(p-vec2(e,0)),field(p+vec2(0,e))-field(p-vec2(0,e)));\n  vec3 n=normalize(vec3(-g*12.,.45));\n  float rim=pow(1.-max(n.z,0.),2.);\n  float stripe=.5+.5*sin(n.x*8.+n.y*4.+uTime*.09);\n  vec3 metal=mix(vec3(.025,.04,.075),vec3(.77,.86,.94),smoothstep(.35,.7,stripe));\n  metal+=pow(max(dot(n,normalize(vec3(-.5,-.6,1.))),0.),55.)*1.8;\n  metal+=rim*vec3(.18,.35,.5);\n  metal+=vec3(.24,.07,.3)*pow(max(n.y,0.),4.);\n  float shape=smoothstep(.86-uBass*.06,.91-uBass*.06,v);\n  vec3 bg=vec3(.018,.022,.038)+.02*exp(-dot(p,p));\n  fragColor=vec4(mix(bg,metal,shape),1.);\n}\n"
-      },
-      "images": {},
-      "nativeBuild": {
-        "abi": 1,
-        "hash": "9ab0fb88251dd55871198304c393de0944e782533b21b74b74e10a0b01377f0b",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
-        "materials": {
-          "chrome": {
-            "compilerHash": "edb003b4203133bfe25e5ec37723cc0db68444eaa4af2c78a1c46516ca373f55",
-            "asset": "packages/visual_catalog/assets/native/chrome_scene_chrome.iplr",
-            "assetHash": "da7eeb3786858515585cb9fc066ab6bdf4d5f8247bb833c3d48d8701f15ae431",
-            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct chrome_scene_chrome_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct chrome_scene_chrome_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment chrome_scene_chrome_fragment_main_out chrome_scene_chrome_fragment_main(chrome_scene_chrome_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float& uTime [[buffer(1)]], constant float& uBass [[buffer(2)]])\n{\n    chrome_scene_chrome_fragment_main_out out = {};\n    float2 _113 = (((in._fragCoord / uSize) - float2(0.5)) * float2(uSize.x / uSize.y, 1.0)) * 2.0;\n    float _526;\n    _526 = 0.0;\n    for (int _525 = 0; _525 < 7; )\n    {\n        float _284 = float(_525);\n        float2 _301 = _113 - (float2(sin((uTime * 0.310000002384185791015625) + (_284 * 2.400000095367431640625)), cos((uTime * 0.23000000417232513427734375) + (_284 * 1.7000000476837158203125))) * 0.4699999988079071044921875);\n        _526 += ((0.026000000536441802978515625 + (0.006000000052154064178466796875 * sin(_284 + (uTime * 0.20000000298023223876953125)))) / (dot(_301, _301) + 0.0130000002682209014892578125));\n        _525++;\n        continue;\n    }\n    float2 _124 = _113 + float2(0.0040000001899898052215576171875, 0.0);\n    float _528;\n    _528 = 0.0;\n    for (int _527 = 0; _527 < 7; )\n    {\n        float _334 = float(_527);\n        float2 _351 = _124 - (float2(sin((uTime * 0.310000002384185791015625) + (_334 * 2.400000095367431640625)), cos((uTime * 0.23000000417232513427734375) + (_334 * 1.7000000476837158203125))) * 0.4699999988079071044921875);\n        _528 += ((0.026000000536441802978515625 + (0.006000000052154064178466796875 * sin(_334 + (uTime * 0.20000000298023223876953125)))) / (dot(_351, _351) + 0.0130000002682209014892578125));\n        _527++;\n        continue;\n    }\n    float2 _130 = _113 - float2(0.0040000001899898052215576171875, 0.0);\n    float _530;\n    _530 = 0.0;\n    for (int _529 = 0; _529 < 7; )\n    {\n        float _384 = float(_529);\n        float2 _401 = _130 - (float2(sin((uTime * 0.310000002384185791015625) + (_384 * 2.400000095367431640625)), cos((uTime * 0.23000000417232513427734375) + (_384 * 1.7000000476837158203125))) * 0.4699999988079071044921875);\n        _530 += ((0.026000000536441802978515625 + (0.006000000052154064178466796875 * sin(_384 + (uTime * 0.20000000298023223876953125)))) / (dot(_401, _401) + 0.0130000002682209014892578125));\n        _529++;\n        continue;\n    }\n    float2 _137 = _113 + float2(0.0, 0.0040000001899898052215576171875);\n    float _532;\n    _532 = 0.0;\n    for (int _531 = 0; _531 < 7; )\n    {\n        float _434 = float(_531);\n        float2 _451 = _137 - (float2(sin((uTime * 0.310000002384185791015625) + (_434 * 2.400000095367431640625)), cos((uTime * 0.23000000417232513427734375) + (_434 * 1.7000000476837158203125))) * 0.4699999988079071044921875);\n        _532 += ((0.026000000536441802978515625 + (0.006000000052154064178466796875 * sin(_434 + (uTime * 0.20000000298023223876953125)))) / (dot(_451, _451) + 0.0130000002682209014892578125));\n        _531++;\n        continue;\n    }\n    float2 _143 = _113 - float2(0.0, 0.0040000001899898052215576171875);\n    float _534;\n    _534 = 0.0;\n    for (int _533 = 0; _533 < 7; )\n    {\n        float _484 = float(_533);\n        float2 _501 = _143 - (float2(sin((uTime * 0.310000002384185791015625) + (_484 * 2.400000095367431640625)), cos((uTime * 0.23000000417232513427734375) + (_484 * 1.7000000476837158203125))) * 0.4699999988079071044921875);\n        _534 += ((0.026000000536441802978515625 + (0.006000000052154064178466796875 * sin(_484 + (uTime * 0.20000000298023223876953125)))) / (dot(_501, _501) + 0.0130000002682209014892578125));\n        _533++;\n        continue;\n    }\n    float3 _159 = fast::normalize(float3((-float2(_528 - _530, _532 - _534)) * 12.0, 0.449999988079071044921875));\n    float _173 = _159.y;\n    float _234 = uBass * 0.0599999986588954925537109375;\n    out.fragColor = float4(mix(float3(0.017999999225139617919921875, 0.02199999988079071044921875, 0.0379999987781047821044921875) + float3(0.0199999995529651641845703125 * exp(-dot(_113, _113))), ((mix(float3(0.02500000037252902984619140625, 0.039999999105930328369140625, 0.07500000298023223876953125), float3(0.769999980926513671875, 0.86000001430511474609375, 0.939999997615814208984375), float3(smoothstep(0.3499999940395355224609375, 0.699999988079071044921875, 0.5 + (0.5 * sin(((_159.x * 8.0) + (_173 * 4.0)) + (uTime * 0.0900000035762786865234375)))))) + float3(powr(fast::max(dot(_159, float3(-0.3940552175045013427734375, -0.472866237163543701171875, 0.788110435009002685546875)), 0.0), 55.0) * 1.7999999523162841796875)) + (float3(0.180000007152557373046875, 0.3499999940395355224609375, 0.5) * powr(1.0 - fast::max(_159.z, 0.0), 2.0))) + (float3(0.23999999463558197021484375, 0.070000000298023223876953125, 0.300000011920928955078125) * powr(fast::max(_173, 0.0), 4.0)), float3(smoothstep(0.86000001430511474609375 - _234, 0.910000026226043701171875 - _234, _526))), 1.0);\n    return out;\n}\n\n",
-            "entryPoint": "chrome_scene_chrome_fragment_main",
-            "floatCount": 4,
-            "samplerCount": 0,
-            "uniforms": [
-              {
-                "name": "uSize",
-                "offset": 0,
-                "count": 2,
-                "bufferIndex": 0
-              },
-              {
-                "name": "uTime",
-                "offset": 2,
-                "count": 1,
-                "bufferIndex": 1
-              },
-              {
-                "name": "uBass",
-                "offset": 3,
-                "count": 1,
-                "bufferIndex": 2
-              }
-            ]
-          }
-        },
-        "imageHashes": {}
-      }
-    },
-    {
       "id": "cromo_liquido",
       "name": "Cromo Líquido",
       "programId": "creator_cromo_liquido",
@@ -241,47 +143,142 @@
       },
       "shaderSource": "",
       "kind": "scene",
-      "nativeSource": "class Visual final : public Scene {\n  struct Blob { float fx, fy, fr, p1, p2; };\n  std::vector<Blob> blobs;\n  float energy = 0;\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed); blobs.clear(); energy = 0;\n    for (int i = 0; i < 7; i++)\n      blobs.push_back({0.5f, 0.5f, 0.14f + rng.unit() * 0.13f,\n        rng.unit() * 6.2831853f, rng.unit() * 6.2831853f});\n  }\n  void update(const Frame& f) override {\n    energy += (f.music.energy - energy) * float(1.0 - std::exp(-f.delta * 3.0));\n  }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    Paint bg; bg.color = Color::argb(0xff03000c);\n    c.rect({0, 0, w, h}, bg);\n    const uint32_t pal[7] = {0xff3b12a0, 0xff5b1ec4, 0xff8a2be2,\n      0xffb14be4, 0xffff3ea5, 0xffff7ec2, 0xffffd1f3};\n    for (int i = 0; i < 7; i++) {\n      const Blob& b = blobs[i];\n      float bx = w * (0.5f + std::sin(t * (0.23f + float(i) * 0.045f) + b.p1) * 0.33f);\n      float by = h * (0.5f + std::sin(t * (0.19f + float(i) * 0.037f) + b.p2) * 0.36f);\n      float r = b.fr * w * (1.0f + energy * 0.25f);\n      Color hi = Color::argb(pal[i]);\n      Paint blob = Paint::radial({bx, by}, r,\n        {{hi.r, hi.g, hi.b, (0.85f + energy * 0.15f) * f.intensity},\n         {hi.r * 0.45f, hi.g * 0.35f, hi.b * 0.9f, 0.35f * f.intensity},\n         {0.01f, 0.0f, 0.05f, 0}}, {0, 0.55f, 1.0f});\n      blob.blend = Blend::screen;\n      c.circle({bx, by}, r, blob);\n    }\n    Paint shade = Paint::radial({w * 0.5f, h * 0.5f}, std::max(w, h) * 0.75f,\n      {{0, 0, 0, 0}, {0, 0, 0, 0.45f}}, {0.55f, 1.0f});\n    c.rect({0, 0, w, h}, shade);\n  }\n};\n",
-      "shaderSources": {},
-      "images": {},
-      "nativeBuild": {
-        "abi": 1,
-        "hash": "fab1d6a6789739538c554c83200d0790b4007d0a8a3146fc6a4b2af091b4fd38",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
-        "materials": {},
-        "imageHashes": {}
-      }
-    },
-    {
-      "id": "galaxia_espiral",
-      "name": "Galaxia Espiral",
-      "programId": "creator_galaxia_espiral",
-      "role": "background",
-      "reactivity": "optional",
-      "framesPerSecond": 30,
-      "seed": 42,
-      "colors": [
-        4278387210,
-        4294961592,
-        4294941397,
-        4286240767
-      ],
-      "controls": {
-        "intensity": 1.0,
-        "speed": 0.6,
-        "detail": 1.0,
-        "glow": 0.9
+      "nativeSource": "class Visual final : public Scene {\n  struct Blob { float fx, fy, fr, p1, p2; };\n  std::vector<Blob> blobs;\n  float energy = 0;\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed); blobs.clear(); energy = 0;\n    for (int i = 0; i < 7; i++)\n      blobs.push_back({0.5f, 0.5f, 0.14f + rng.unit() * 0.13f,\n        rng.unit() * 6.2831853f, rng.unit() * 6.2831853f});\n  }\n  void update(const Frame& f) override {\n    energy += (f.music.energy - energy) * float(1.0 - std::exp(-f.delta * 3.0));\n  }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    Paint bg; bg.color = Color::argb(0xff03000c);\n    c.rect({0, 0, w, h}, bg);\n    std::vector<float> u;\n    u.reserve(64);\n    u.push_back(t);\n    u.push_back(f.music.bass);\n    u.push_back(energy * f.intensity);\n    u.push_back(f.glow);\n    for (const auto& b : blobs) {\n      u.push_back(w * (0.5f + std::sin(t * (0.23f + b.fx) + b.p1) * 0.33f));\n      u.push_back(h * (0.5f + std::sin(t * (0.19f + b.fy) + b.p2) * 0.36f));\n      u.push_back(b.fr * w * (1.0f + energy * 0.25f));\n    }\n    c.material(\"chrome\", {0, 0, w, h}, u);\n    Paint shade = Paint::radial({w * 0.5f, h * 0.5f}, std::max(w, h) * 0.75f,\n      {{0, 0, 0, 0}, {0, 0, 0, 0.45f}}, {0.55f, 1.0f});\n    c.rect({0, 0, w, h}, shade);\n  }\n};\n",
+      "shaderSources": {
+        "chrome": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform float uTime;\nuniform float uBass;\nuniform float uEnergy;\nuniform float uGlow;\nuniform vec2 uBlob0;\nuniform float uRad0;\nuniform vec2 uBlob1;\nuniform float uRad1;\nuniform vec2 uBlob2;\nuniform float uRad2;\nuniform vec2 uBlob3;\nuniform float uRad3;\nuniform vec2 uBlob4;\nuniform float uRad4;\nuniform vec2 uBlob5;\nuniform float uRad5;\nuniform vec2 uBlob6;\nuniform float uRad6;\nout vec4 fragColor;\nvoid main() {\n  vec2 uv = FlutterFragCoord().xy;\n  float f = 0.0;\n  f += uRad0*uRad0 / (dot(uv-uBlob0, uv-uBlob0) + 24.0);\n  f += uRad1*uRad1 / (dot(uv-uBlob1, uv-uBlob1) + 24.0);\n  f += uRad2*uRad2 / (dot(uv-uBlob2, uv-uBlob2) + 24.0);\n  f += uRad3*uRad3 / (dot(uv-uBlob3, uv-uBlob3) + 24.0);\n  f += uRad4*uRad4 / (dot(uv-uBlob4, uv-uBlob4) + 24.0);\n  f += uRad5*uRad5 / (dot(uv-uBlob5, uv-uBlob5) + 24.0);\n  f += uRad6*uRad6 / (dot(uv-uBlob6, uv-uBlob6) + 24.0);\n  f *= 0.55 * (1.0 + uBass * 0.35);\n  float v = f / (1.0 + f);\n  float k = clamp(v, 0.0, 1.0);\n  vec3 col;\n  if (k < 0.16) col = mix(vec3(0.012, 0.0, 0.047), vec3(0.078, 0.039, 0.227), k / 0.16);\n  else if (k < 0.33) col = mix(vec3(0.078, 0.039, 0.227), vec3(0.231, 0.071, 0.627), (k-0.16)/0.17);\n  else if (k < 0.50) col = mix(vec3(0.231, 0.071, 0.627), vec3(0.541, 0.169, 0.886), (k-0.33)/0.17);\n  else if (k < 0.68) col = mix(vec3(0.541, 0.169, 0.886), vec3(1.0, 0.243, 0.647), (k-0.50)/0.18);\n  else if (k < 0.86) col = mix(vec3(1.0, 0.243, 0.647), vec3(1.0, 0.820, 0.953), (k-0.68)/0.18);\n  else col = mix(vec3(1.0, 0.820, 0.953), vec3(1.0), (k-0.86)/0.14);\n  float spec = pow(max(0.0, k - 0.55) * 2.2, 3.0);\n  col += vec3(0.55, 0.45, 0.60) * spec * uGlow;\n  fragColor = vec4(col * (0.85 + 0.30 * uEnergy), 1.0);\n}\n"
       },
-      "shaderSource": "",
-      "kind": "scene",
-      "nativeSource": "class Visual final : public Scene {\n  struct Star { float radius, angle, speed; int group; };\n  std::vector<Star> stars;\n  float breath = 0, flash = 0;\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed); stars.clear(); stars.reserve(1500); breath = 0; flash = 0;\n    for (int i = 0; i < 1500; i++) {\n      float r = std::pow(rng.unit(), 0.65f);\n      int arm = i % 3;\n      float a = float(arm) / 3.0f * float(pi) * 2.0f + r * 3.4f\n        + (rng.unit() - 0.5f) * (0.5f + (1.0f - r) * 1.6f);\n      stars.push_back({r, a, 0.55f / (0.25f + r * 1.5f), r < 0.3f ? 0 : 1 + int(rng.unit() * 3.0f)});\n    }\n  }\n  void update(const Frame& f) override {\n    breath += (f.music.energy - breath) * float(1.0 - std::exp(-f.delta * 3.0));\n    for (const auto& band : f.music.events)\n      for (const auto& e : band) flash += e.strength;\n    flash *= float(std::exp(-f.delta * 4.0));\n  }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    float cx = w * 0.5f, cy = h * 0.5f;\n    float rMax = std::min(w, h) * 0.46f * (1.0f + breath * 0.05f);\n    Paint bg; bg.color = Color::argb(0xff03020a);\n    c.rect({0, 0, w, h}, bg);\n    Paint core = Paint::radial({cx, cy}, rMax,\n      {Color{1, 0.925f, 0.784f, 0.75f}, Color{1, 0.55f, 0.784f, 0.22f},\n       Color{0.35f, 0.235f, 0.784f, 0.12f}, Color{0, 0, 0, 0}}, {0, 0.18f, 0.55f, 1.0f});\n    core.blend = Blend::plus;\n    c.rect({0, 0, w, h}, core);\n    for (int group = 0; group < 4; group++) {\n      std::vector<Vec2> batch; batch.reserve(400);\n      for (const auto& s : stars) {\n        if (s.group != group) continue;\n        float a = s.angle + t * s.speed * 0.35f;\n        float rr = s.radius * rMax * (1.0f + std::sin(t * 0.6f + s.angle * 7.0f) * 0.012f);\n        batch.push_back({cx + std::cos(a) * rr, cy + std::sin(a) * rr * 0.42f + std::sin(a * 2.0f) * 4.0f});\n      }\n      Paint p; p.blend = Blend::plus;\n      if (group == 0) p.color = {1, 0.914f, 0.722f, (0.75f + 0.25f * flash) * f.intensity};\n      else if (group == 1) p.color = {1, 0.604f, 0.835f, (0.6f + 0.3f * flash) * f.intensity};\n      else if (group == 2) p.color = {0.478f, 0.843f, 1, (0.6f + 0.3f * flash) * f.intensity};\n      else p.color = {0.780f, 0.608f, 1, (0.65f + 0.3f * flash) * f.intensity};\n      c.points(batch, group == 0 ? 2.0f : 1.4f, p);\n    }\n  }\n};\n",
-      "shaderSources": {},
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "a5e48a54900bfb536d25add46808bf606ff6ccab2f674cf0a691773d76e316d7",
+        "hash": "82fdb8b112a0adb656572fdfdc55a52f78d6630a0c551f4df9dadbd3543d6740",
         "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
-        "materials": {},
+        "materials": {
+          "chrome": {
+            "compilerHash": "1ed37bbbefe56bb2cb196109e02aab51eb02a0b66889b20a65315cea9f75ef4d",
+            "asset": "packages/visual_catalog/assets/native/cromo_liquido_chrome.iplr",
+            "assetHash": "3f8fe1fe843b3f49f9cb5a304770acad1c79448941d771daacc6138a9e4ca9b9",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct cromo_liquido_chrome_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct cromo_liquido_chrome_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment cromo_liquido_chrome_fragment_main_out cromo_liquido_chrome_fragment_main(cromo_liquido_chrome_fragment_main_in in [[stage_in]], constant float& uBass [[buffer(2)]], constant float& uEnergy [[buffer(3)]], constant float& uGlow [[buffer(4)]], constant float2& uBlob0 [[buffer(5)]], constant float& uRad0 [[buffer(6)]], constant float2& uBlob1 [[buffer(7)]], constant float& uRad1 [[buffer(8)]], constant float2& uBlob2 [[buffer(9)]], constant float& uRad2 [[buffer(10)]], constant float2& uBlob3 [[buffer(11)]], constant float& uRad3 [[buffer(12)]], constant float2& uBlob4 [[buffer(13)]], constant float& uRad4 [[buffer(14)]], constant float2& uBlob5 [[buffer(15)]], constant float& uRad5 [[buffer(16)]], constant float2& uBlob6 [[buffer(17)]], constant float& uRad6 [[buffer(18)]])\n{\n    cromo_liquido_chrome_fragment_main_out out = {};\n    float2 _33 = in._fragCoord - uBlob0;\n    float2 _50 = in._fragCoord - uBlob1;\n    float2 _66 = in._fragCoord - uBlob2;\n    float2 _82 = in._fragCoord - uBlob3;\n    float2 _98 = in._fragCoord - uBlob4;\n    float2 _114 = in._fragCoord - uBlob5;\n    float2 _130 = in._fragCoord - uBlob6;\n    float _148 = ((((((((uRad0 * uRad0) / (dot(_33, _33) + 24.0)) + ((uRad1 * uRad1) / (dot(_50, _50) + 24.0))) + ((uRad2 * uRad2) / (dot(_66, _66) + 24.0))) + ((uRad3 * uRad3) / (dot(_82, _82) + 24.0))) + ((uRad4 * uRad4) / (dot(_98, _98) + 24.0))) + ((uRad5 * uRad5) / (dot(_114, _114) + 24.0))) + ((uRad6 * uRad6) / (dot(_130, _130) + 24.0))) * (0.550000011920928955078125 * (1.0 + (uBass * 0.3499999940395355224609375)));\n    float _156 = fast::clamp(_148 / (1.0 + _148), 0.0, 1.0);\n    float3 _283;\n    if (_156 < 0.1599999964237213134765625)\n    {\n        _283 = mix(float3(0.01200000010430812835693359375, 0.0, 0.046999998390674591064453125), float3(0.078000001609325408935546875, 0.0390000008046627044677734375, 0.2269999980926513671875), float3(_156 * 6.25));\n    }\n    else\n    {\n        float3 _284;\n        if (_156 < 0.3300000131130218505859375)\n        {\n            _284 = mix(float3(0.078000001609325408935546875, 0.0390000008046627044677734375, 0.2269999980926513671875), float3(0.231000006198883056640625, 0.071000002324581146240234375, 0.62699997425079345703125), float3((_156 - 0.1599999964237213134765625) * 5.8823528289794921875));\n        }\n        else\n        {\n            float3 _285;\n            if (_156 < 0.5)\n            {\n                _285 = mix(float3(0.231000006198883056640625, 0.071000002324581146240234375, 0.62699997425079345703125), float3(0.54100000858306884765625, 0.1689999997615814208984375, 0.885999977588653564453125), float3((_156 - 0.3300000131130218505859375) * 5.8823528289794921875));\n            }\n            else\n            {\n                float3 _286;\n                if (_156 < 0.680000007152557373046875)\n                {\n                    _286 = mix(float3(0.54100000858306884765625, 0.1689999997615814208984375, 0.885999977588653564453125), float3(1.0, 0.2430000007152557373046875, 0.647000014781951904296875), float3((_156 - 0.5) * 5.5555553436279296875));\n                }\n                else\n                {\n                    float3 _287;\n                    if (_156 < 0.86000001430511474609375)\n                    {\n                        _287 = mix(float3(1.0, 0.2430000007152557373046875, 0.647000014781951904296875), float3(1.0, 0.819999992847442626953125, 0.953000009059906005859375), float3((_156 - 0.680000007152557373046875) * 5.5555553436279296875));\n                    }\n                    else\n                    {\n                        _287 = mix(float3(1.0, 0.819999992847442626953125, 0.953000009059906005859375), float3(1.0), float3((_156 - 0.86000001430511474609375) * 7.142857074737548828125));\n                    }\n                    _286 = _287;\n                }\n                _285 = _286;\n            }\n            _284 = _285;\n        }\n        _283 = _284;\n    }\n    out.fragColor = float4((_283 + ((float3(0.550000011920928955078125, 0.449999988079071044921875, 0.60000002384185791015625) * powr(fast::max(0.0, _156 - 0.550000011920928955078125) * 2.2000000476837158203125, 3.0)) * uGlow)) * (0.85000002384185791015625 + (0.300000011920928955078125 * uEnergy)), 1.0);\n    return out;\n}\n\n",
+            "entryPoint": "cromo_liquido_chrome_fragment_main",
+            "floatCount": 27,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 4294967295
+              },
+              {
+                "name": "uTime",
+                "offset": 2,
+                "count": 1,
+                "bufferIndex": 4294967295
+              },
+              {
+                "name": "uBass",
+                "offset": 3,
+                "count": 1,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uEnergy",
+                "offset": 4,
+                "count": 1,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uGlow",
+                "offset": 5,
+                "count": 1,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uBlob0",
+                "offset": 6,
+                "count": 2,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uRad0",
+                "offset": 8,
+                "count": 1,
+                "bufferIndex": 6
+              },
+              {
+                "name": "uBlob1",
+                "offset": 9,
+                "count": 2,
+                "bufferIndex": 7
+              },
+              {
+                "name": "uRad1",
+                "offset": 11,
+                "count": 1,
+                "bufferIndex": 8
+              },
+              {
+                "name": "uBlob2",
+                "offset": 12,
+                "count": 2,
+                "bufferIndex": 9
+              },
+              {
+                "name": "uRad2",
+                "offset": 14,
+                "count": 1,
+                "bufferIndex": 10
+              },
+              {
+                "name": "uBlob3",
+                "offset": 15,
+                "count": 2,
+                "bufferIndex": 11
+              },
+              {
+                "name": "uRad3",
+                "offset": 17,
+                "count": 1,
+                "bufferIndex": 12
+              },
+              {
+                "name": "uBlob4",
+                "offset": 18,
+                "count": 2,
+                "bufferIndex": 13
+              },
+              {
+                "name": "uRad4",
+                "offset": 20,
+                "count": 1,
+                "bufferIndex": 14
+              },
+              {
+                "name": "uBlob5",
+                "offset": 21,
+                "count": 2,
+                "bufferIndex": 15
+              },
+              {
+                "name": "uRad5",
+                "offset": 23,
+                "count": 1,
+                "bufferIndex": 16
+              },
+              {
+                "name": "uBlob6",
+                "offset": 24,
+                "count": 2,
+                "bufferIndex": 17
+              },
+              {
+                "name": "uRad6",
+                "offset": 26,
+                "count": 1,
+                "bufferIndex": 18
+              }
+            ]
+          }
+        },
         "imageHashes": {}
       }
     },
@@ -373,12 +370,12 @@
       },
       "shaderSource": "",
       "kind": "scene",
-      "nativeSource": "class Visual final : public Scene {\n  struct Star { float x, y, z; };\n  std::vector<Star> stars;\n  Random rng_{1234};\n  void seedOne(Star& s, float w, float h, bool far) {\n    s.x = (rng_.unit() - 0.5f) * w * 2.2f;\n    s.y = (rng_.unit() - 0.5f) * h * 2.2f;\n    s.z = far ? 1.0f + rng_.unit() * 1.2f : rng_.unit() * 2.2f + 0.05f;\n  }\n public:\n  void reset(uint32_t seed) override {\n    rng_ = Random(seed ? seed : 1234);\n    stars.clear(); stars.reserve(621);\n    for (int i = 0; i < 621; i++) {\n      Star s; seedOne(s, 400.0f, 700.0f, false);\n      stars.push_back(s);\n    }\n  }\n  void update(const Frame& f) override {\n    float dt = std::min(float(f.delta), 0.05f);\n    float speed = (1.1f + std::sin(float(f.time) * 0.25f) * 0.55f)\n      * (f.reducedMotion ? 0.4f : 1.0f) * (1.0f + f.music.energy * 0.8f) * dt * 0.96f;\n    for (auto& s : stars) {\n      s.z -= speed;\n      if (s.z <= 0.04f) seedOne(s, f.width, f.height, true);\n    }\n  }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float cx = w * 0.5f, cy = h * 0.5f;\n    float boost = (0.7f + 0.5f * f.music.energy + 0.4f * f.music.bass) * f.intensity;\n    Paint bg; bg.color = Color::argb(0xff02020c);\n    c.rect({0, 0, w, h}, bg);\n    std::vector<Vec2> batch[3];\n    for (int i = 0; i < 3; i++) batch[i].reserve(450);\n    for (size_t idx = 0; idx < stars.size(); idx++) {\n      const Star& s = stars[idx];\n      float x1 = cx + (s.x / s.z) * 0.75f;\n      float y1 = cy + (s.y / s.z) * 0.75f;\n      if (x1 < -80 || x1 > w + 80 || y1 < -80 || y1 > h + 80) continue;\n      float tail = s.z + 0.11f;\n      int lane = int(idx % 3);\n      batch[lane].push_back({cx + (s.x / tail) * 0.75f, cy + (s.y / tail) * 0.75f});\n      batch[lane].push_back({x1, y1});\n    }\n    Paint p0; p0.blend = Blend::plus;\n    p0.color = {1, 1, 1, 0.9f * boost};\n    c.points(batch[0], 1.7f, p0);\n    Paint p1; p1.blend = Blend::plus;\n    p1.color = {0.749f, 0.894f, 1, 0.55f * boost};\n    c.points(batch[1], 1.1f, p1);\n    Paint p2; p2.blend = Blend::plus;\n    p2.color = {1, 0.839f, 0.941f, 0.55f * boost};\n    c.points(batch[2], 1.1f, p2);\n    Paint glow = Paint::radial({cx, cy}, std::min(w, h) * 0.45f,\n      {{0.549f, 0.745f, 1, 0.28f * boost}, {0, 0, 0, 0}});\n    glow.blend = Blend::plus;\n    c.rect({0, 0, w, h}, glow);\n  }\n};\n",
+      "nativeSource": "class Visual final : public Scene {\n  struct Star { float x, y, z; };\n  std::vector<Star> stars;\n  Random rng_{1234};\n  void seedOne(Star& s, float w, float h, bool far) {\n    s.x = (rng_.unit() - 0.5f) * w * 2.2f;\n    s.y = (rng_.unit() - 0.5f) * h * 2.2f;\n    s.z = far ? 1.0f + rng_.unit() * 1.2f : rng_.unit() * 2.2f + 0.05f;\n  }\n public:\n  void reset(uint32_t seed) override {\n    rng_ = Random(seed ? seed : 1234);\n    stars.clear(); stars.reserve(621);\n    for (int i = 0; i < 621; i++) {\n      Star s; seedOne(s, 400.0f, 700.0f, false);\n      stars.push_back(s);\n    }\n  }\n  void update(const Frame& f) override {\n    float dt = std::min(float(f.delta), 0.05f);\n    float speed = (1.1f + std::sin(float(f.time) * 0.25f) * 0.55f)\n      * (f.reducedMotion ? 0.4f : 1.0f) * (1.0f + f.music.energy * 0.8f) * dt * 0.96f;\n    for (auto& s : stars) {\n      s.z -= speed;\n      if (s.z <= 0.04f) seedOne(s, f.width, f.height, true);\n    }\n  }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float cx = w * 0.5f, cy = h * 0.5f;\n    float boost = (0.7f + 0.5f * f.music.energy + 0.4f * f.music.bass) * f.intensity;\n    Paint bg; bg.color = Color::argb(0xff02020c);\n    c.rect({0, 0, w, h}, bg);\n    Path lanes[3];\n    std::vector<Vec2> heads[3];\n    for (int i = 0; i < 3; i++) { heads[i].reserve(220); }\n    for (size_t idx = 0; idx < stars.size(); idx++) {\n      const Star& s = stars[idx];\n      float x1 = cx + (s.x / s.z) * 0.75f;\n      float y1 = cy + (s.y / s.z) * 0.75f;\n      if (x1 < -80 || x1 > w + 80 || y1 < -80 || y1 > h + 80) continue;\n      float tail = s.z + 0.11f;\n      int lane = int(idx % 3);\n      lanes[lane].moveTo(cx + (s.x / tail) * 0.75f, cy + (s.y / tail) * 0.75f);\n      lanes[lane].lineTo(x1, y1);\n      heads[lane].push_back({x1, y1});\n    }\n    for (int lane = 0; lane < 3; lane++) {\n      Paint p; p.blend = Blend::plus;\n      if (lane == 0) { p.color = {1, 1, 1, 0.9f * boost}; p.strokeWidth = 1.7f; }\n      else if (lane == 1) { p.color = {0.749f, 0.894f, 1, 0.55f * boost}; p.strokeWidth = 1.1f; }\n      else { p.color = {1, 0.839f, 0.941f, 0.55f * boost}; p.strokeWidth = 1.1f; }\n      p.strokeCap = 1; p.strokeJoin = 1;\n      c.path(lanes[lane], p);\n      if (!heads[lane].empty()) {\n        Paint hp; hp.blend = Blend::plus;\n        hp.color = {1, 1, 1, 0.85f * boost};\n        c.points(heads[lane], 0.85f, hp);\n      }\n    }\n    Paint glow = Paint::radial({cx, cy}, std::min(w, h) * 0.45f,\n      {{0.549f, 0.745f, 1, 0.28f * boost}, {0, 0, 0, 0}});\n    glow.blend = Blend::plus;\n    c.rect({0, 0, w, h}, glow);\n  }\n};\n",
       "shaderSources": {},
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "f07ebd18377b591fd59dc204f16eaaeaa8c8811352599340286cc107fada0938",
+        "hash": "67962acde0f0d3b3b1708ab6924179a46261afad0fcf8769fa224c0544b15034",
         "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
         "materials": {},
         "imageHashes": {}
@@ -439,38 +436,16 @@
       },
       "shaderSource": "",
       "kind": "scene",
-      "nativeSource": "class Visual final : public Scene {\n  std::vector<Vec2> buckets[6];\n  float step = 12.0f, cols = 0, rows = 0, lastW = 0, lastH = 0;\n public:\n  void reset(uint32_t seed) override {\n    (void)seed;\n    for (int i = 0; i < 6; i++) buckets[i].clear();\n    lastW = 0; lastH = 0;\n  }\n  void update(const Frame& f) override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    if (w != lastW || h != lastH) {\n      step = std::max(9.0f, std::min(w, h) / 34.0f);\n      cols = std::ceil(w / step) + 1.0f;\n      rows = std::ceil(h / step) + 1.0f;\n      lastW = w; lastH = h;\n    }\n    float amp = 1.0f + f.music.bass * 0.6f;\n    float s1x = w * (0.5f + std::sin(t * 0.35f) * 0.32f);\n    float s1y = h * (0.35f + std::sin(t * 0.27f + 1.0f) * 0.2f);\n    float s2x = w * (0.5f + std::sin(t * 0.31f + 2.4f) * 0.34f);\n    float s2y = h * (0.68f + std::sin(t * 0.23f + 3.0f) * 0.2f);\n    for (int i = 0; i < 6; i++) buckets[i].clear();\n    for (int j = 0; j < int(rows); j++) {\n      float y = float(j) * step;\n      for (int i = 0; i < int(cols); i++) {\n        float x = float(i) * step;\n        float dx1 = x - s1x, dy1 = y - s1y;\n        float dx2 = x - s2x, dy2 = y - s2y;\n        float d1 = std::sqrt(dx1 * dx1 + dy1 * dy1);\n        float d2 = std::sqrt(dx2 * dx2 + dy2 * dy2);\n        float v = std::sin(d1 * 0.085f - t * 2.4f) + std::sin(d2 * 0.07f - t * 1.9f);\n        float k = (v + 2.0f) * 0.25f;\n        int b = int(k * 5.99f);\n        if (b < 0) b = 0; if (b > 5) b = 5;\n        buckets[b].push_back({x, y + (k - 0.5f) * step * 0.55f * amp});\n      }\n    }\n  }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    Paint bg; bg.color = Color::argb(0xff03071c);\n    c.rect({0, 0, w, h}, bg);\n    const uint32_t pal[6] = {0xff0a1b4a, 0xff123a8a, 0xff1f6fd0,\n      0xff35b3f0, 0xff7fe9ff, 0xffd9fbff};\n    float frac = 0.4f + 0.6f * ((f.detail - 0.25f) / 1.75f);\n    for (int b = 0; b < 6; b++) {\n      if (buckets[b].empty()) continue;\n      size_t n = buckets[b].size();\n      size_t keep = size_t(float(n) * frac);\n      if (keep < 1) keep = 1;\n      Color cc = Color::argb(pal[b]);\n      Paint p; p.blend = Blend::plus;\n      p.color = {cc.r, cc.g, cc.b, (0.55f + 0.45f * f.music.energy) * f.intensity};\n      std::vector<Vec2> view(buckets[b].begin(), buckets[b].begin() + keep);\n      c.points(view, 1.0f + float(b) / 5.0f * step * 0.21f, p);\n    }\n  }\n};\n",
+      "nativeSource": "class Visual final : public Scene {\n  std::vector<Vec2> buckets[6];\n  float step = 12.0f, cols = 0, rows = 0, lastW = 0, lastH = 0, lastDetail = -1.0f;\n  void build(float w, float h, float detail) {\n    step = std::max(9.0f, std::min(w, h) / (18.0f + 16.0f * detail));\n    cols = std::ceil(w / step) + 1.0f;\n    rows = std::ceil(h / step) + 1.0f;\n  }\n public:\n  void reset(uint32_t seed) override {\n    (void)seed;\n    for (int i = 0; i < 6; i++) buckets[i].clear();\n    lastW = 0; lastH = 0; lastDetail = -1.0f;\n  }\n  void update(const Frame& f) override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    if (w != lastW || h != lastH || f.detail != lastDetail) {\n      build(w, h, f.detail);\n      lastW = w; lastH = h; lastDetail = f.detail;\n    }\n    float amp = 1.0f + f.music.bass * 0.6f;\n    float s1x = w * (0.5f + std::sin(t * 0.35f) * 0.32f);\n    float s1y = h * (0.35f + std::sin(t * 0.27f + 1.0f) * 0.2f);\n    float s2x = w * (0.5f + std::sin(t * 0.31f + 2.4f) * 0.34f);\n    float s2y = h * (0.68f + std::sin(t * 0.23f + 3.0f) * 0.2f);\n    for (int i = 0; i < 6; i++) buckets[i].clear();\n    for (int j = 0; j < int(rows); j++) {\n      float y = float(j) * step;\n      for (int i = 0; i < int(cols); i++) {\n        float x = float(i) * step;\n        float dx1 = x - s1x, dy1 = y - s1y;\n        float dx2 = x - s2x, dy2 = y - s2y;\n        float d1 = std::sqrt(dx1 * dx1 + dy1 * dy1);\n        float d2 = std::sqrt(dx2 * dx2 + dy2 * dy2);\n        float v = std::sin(d1 * 0.085f - t * 2.4f) + std::sin(d2 * 0.07f - t * 1.9f);\n        float k = (v + 2.0f) * 0.25f;\n        int b = int(k * 5.99f);\n        if (b < 0) b = 0; if (b > 5) b = 5;\n        buckets[b].push_back({x, y + (k - 0.5f) * step * 0.55f * amp});\n      }\n    }\n  }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    Paint bg; bg.color = Color::argb(0xff03071c);\n    c.rect({0, 0, w, h}, bg);\n    const uint32_t pal[6] = {0xff0a1b4a, 0xff123a8a, 0xff1f6fd0,\n      0xff35b3f0, 0xff7fe9ff, 0xffd9fbff};\n    for (int b = 0; b < 6; b++) {\n      if (buckets[b].empty()) continue;\n      Color cc = Color::argb(pal[b]);\n      Paint p; p.blend = Blend::plus;\n      p.color = {cc.r, cc.g, cc.b, (0.55f + 0.45f * f.music.energy) * f.intensity};\n      c.points(buckets[b], (1.0f + float(b) / 5.0f * step * 0.42f) * 0.5f, p);\n    }\n  }\n};\n",
       "shaderSources": {},
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "a213c057227ddba59fb0d483fb39b559f7559948c2e45f448fedfc8fa4fe54d1",
+        "hash": "2f62e7a873d2a85524047f5b67e0223b036910f94a83406666f69fe695e79d1a",
         "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
         "materials": {},
         "imageHashes": {}
       }
-    },
-    {
-      "id": "olas",
-      "name": "Olas",
-      "programId": "creator_olas",
-      "role": "background",
-      "reactivity": "optional",
-      "framesPerSecond": 30,
-      "seed": 42,
-      "colors": [
-        4278389016,
-        4280342458,
-        4284834539,
-        4294949342
-      ],
-      "controls": {
-        "intensity": 1.0,
-        "speed": 0.6,
-        "detail": 1.0,
-        "glow": 0.8
-      },
-      "shaderSource": "vec4 paintVisual(vec2 uv, CreatorFrame f) {\nvec2 q = uv - 0.5;\nvec2 p = q;\np.x *= max(f.size.x, 1.0) / max(f.size.y, 1.0);\n\nfloat intensity = clamp(f.intensity, 0.0, 2.0);\nfloat speed = clamp(f.speed, 0.0, 3.0);\nfloat detail = clamp(f.detail, 0.0, 2.0);\nfloat glow = clamp(f.glow, 0.0, 2.0);\n\nfloat t = f.time * speed * 0.28;\nfloat seed = mod(\nf.seedLow * 0.0174533 + f.seedHigh * 0.0137137,\n6.2831853\n);\n\nvec3 deepBlue = mix(\nvec3(0.006, 0.022, 0.070),\nf.color0.rgb * 0.35,\n0.20\n);\nvec3 oceanBlue = mix(\nvec3(0.018, 0.115, 0.290),\nf.color1.rgb,\n0.20\n);\nvec3 waveBlue = mix(\nvec3(0.045, 0.310, 0.590),\nf.color2.rgb,\n0.22\n);\nvec3 lightBlue = mix(\nvec3(0.240, 0.590, 0.820),\nf.color3.rgb,\n0.20\n);\n\nfloat depth = smoothstep(0.0, 1.0, uv.y);\nvec3 c = mix(deepBlue, oceanBlue, 0.22 + 0.28 * depth);\n\nvec2 lightPosition = vec2(\n0.18 * sin(t * 0.23 + seed),\n-0.12 + 0.06 * sin(t * 0.19 + seed * 0.71)\n);\nvec2 lightDistance = p - lightPosition;\nfloat ambientLight = exp(-dot(lightDistance, lightDistance) * 1.65);\nc += oceanBlue * ambientLight * 0.14;\n\nfloat density = 1.70 + 0.60 * detail;\nfloat amplitude = 0.075 + 0.055 * f.bass + 0.018 * f.energy;\nfloat luminosity = 0.78 + 0.22 * f.energy;\n\nfor (int i = 0; i < 6; i++) {\nfloat k = float(i);\nfloat layer = k / 5.0;\nfloat offset = seed + k * 0.92;\n\nfloat primary = sin(\n  p.x * density - t * (0.68 + 0.035 * k) + offset\n);\nfloat secondary = sin(\n  p.x * (2.30 + 0.75 * detail)\n  + t * 0.44\n  + offset * 1.70\n);\n\nfloat center = (k - 2.5) * 0.17\n  + p.x * 0.07\n  + amplitude * primary\n  + (0.032 + 0.014 * f.flow) * secondary;\n\nfloat d = p.y - center;\nfloat width = 0.067 + 0.006 * k + 0.020 * f.body;\nfloat normalizedDistance = d / width;\nfloat wave = exp(-normalizedDistance * normalizedDistance);\n\nfloat crestDistance = (d + width * 0.30)\n  / (0.024 + 0.009 * f.body);\nfloat crest = exp(-crestDistance * crestDistance);\n\nfloat faceLight = 1.0 - smoothstep(-width, width * 1.60, d);\nvec3 ink = mix(oceanBlue, waveBlue, 0.28 + 0.60 * layer);\nvec3 face = ink * (0.64 + 0.30 * faceLight);\n\nfloat opacity = wave * (0.25 + 0.07 * f.energy) * intensity;\nc = mix(c, face, opacity);\n\nc += ink * wave\n  * (0.065 + 0.035 * f.energy)\n  * glow * intensity;\n\nfloat reflection = 0.027 + 0.026 * f.spark + 0.008 * f.pulse;\nc += lightBlue * crest * reflection\n  * luminosity * glow * intensity;\n\n}\n\nfloat vignette = 1.0\n- 0.26 * smoothstep(0.05, 0.50, dot(q, q));\n\nreturn vec4(clamp(c * vignette, 0.0, 1.0), 1.0);\n}\n"
     },
     {
       "id": "prismatic_halo",
@@ -495,28 +470,6 @@
       "shaderSource": "vec4 paintVisual(vec2 uv, CreatorFrame f) {\n  vec2 p = (uv - 0.5) * vec2(f.size.x / max(f.size.y, 1.0), 1.0);\n  float radius = 0.27 + 0.015 * sin(f.time * f.speed) + 0.025 * f.bass;\n  float distance = abs(length(p) - radius);\n  float beam = exp(-distance * distance * 17000.0);\n  float halo = exp(-distance * 24.0) * 0.25 * f.glow;\n  float alpha = clamp((beam * 0.62 + halo) * f.intensity * (0.8 + 0.2 * f.pulse), 0.0, 1.0);\n  vec3 ink = mix(f.color1.rgb, f.color2.rgb, 0.5 + 0.5 * sin(p.x * 7.0 + f.time * 0.2));\n  return vec4(ink, alpha);\n}\n"
     },
     {
-      "id": "quiet_orbits",
-      "name": "Órbitas · sin música",
-      "programId": "creator_quiet_orbits",
-      "role": "background",
-      "reactivity": "none",
-      "framesPerSecond": 30,
-      "seed": 42,
-      "colors": [
-        4278717205,
-        4284727254,
-        4289624537,
-        4294954924
-      ],
-      "controls": {
-        "intensity": 1.0,
-        "speed": 0.5,
-        "detail": 1.0,
-        "glow": 0.8
-      },
-      "shaderSource": "vec4 paintVisual(vec2 uv, CreatorFrame f) {\nvec2 p = (uv - 0.5) * vec2(f.size.x / max(f.size.y, 1.0), 1.0);\nfloat t = f.time * f.speed * 0.2;\nvec3 c = f.color0.rgb;\nfor (int i = 0; i < 3; i++) {\n  float k = float(i);\n  vec2 center = 0.08 * vec2(cos(t + k * 2.1), sin(t * 0.7 + k * 2.1));\n  float r = length(p - center);\n  float ring = abs(r - (0.15 + k * 0.085));\n  float beam = exp(-ring * ring * 18000.0) * 0.5;\n  float halo = exp(-ring * 30.0) * 0.13 * f.glow;\n  vec3 ink = mix(f.color1.rgb, f.color3.rgb, k * 0.5);\n  c += ink * (beam + halo) * f.intensity;\n}\nreturn vec4(c, 1.0);\n}\n"
-    },
-    {
       "id": "selva_bioluminiscente",
       "name": "Selva Bioluminiscente",
       "programId": "creator_selva_bioluminiscente",
@@ -538,12 +491,12 @@
       },
       "shaderSource": "",
       "kind": "scene",
-      "nativeSource": "class Visual final : public Scene {\n  struct Seg { float x1, y1, x2, y2; int level; };\n  struct Spore { float x, y, speed, phase; };\n  std::vector<Seg> segs[10];\n  std::vector<Vec2> tips;\n  std::vector<Spore> spores;\n  float motion = 1.0f;\n  void grow(float x, float y, float a, float len, int d, float seed, float t) {\n    float sway = std::sin(seed * 0.7f + t * 0.25f) * float(9 - d) * 0.025f * motion;\n    float na = a + sway;\n    float x2 = x + std::cos(na) * len, y2 = y + std::sin(na) * len;\n    segs[9 - d].push_back({x, y, x2, y2, 9 - d});\n    if (d <= 1) {\n      if (tips.size() < 256) tips.push_back({x2, y2});\n      return;\n    }\n    float spread = 0.42f + std::sin(t * 0.4f + seed) * 0.07f;\n    grow(x2, y2, na - spread, len * 0.74f, d - 1, seed * 2.0f + 1.0f, t);\n    grow(x2, y2, na + spread, len * 0.74f, d - 1, seed * 2.0f + 2.0f, t);\n  }\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed);\n    spores.clear(); motion = 1.0f;\n    for (int i = 0; i < 70; i++)\n      spores.push_back({rng.unit(), rng.unit(), 0.3f + rng.unit() * 1.2f, rng.unit() * 6.2831853f});\n  }\n  void update(const Frame& f) override {\n    float t = float(f.time) * f.speed;\n    motion = f.reducedMotion ? 0.3f : 1.0f;\n    for (int i = 0; i < 10; i++) segs[i].clear();\n    tips.clear();\n    grow(f.width * 0.5f, f.height * 0.94f, -1.5707963f, f.height * 0.17f, 9, 1.0f, t);\n  }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    float boost = (0.8f + 0.4f * f.music.energy) * f.intensity;\n    Paint bg = Paint::radial({w * 0.5f, h * 0.75f}, h * 0.9f,\n      {Color::argb(0xff04231c), Color::argb(0xff021410), Color::argb(0xff000705)}, {0, 0.5f, 1.0f});\n    c.rect({0, 0, w, h}, bg);\n    std::vector<Vec2> sbuf; sbuf.reserve(spores.size());\n    for (const auto& s : spores) {\n      float y = std::fmod(s.y * h - t * s.speed * 9.0f, h);\n      if (y < 0) y += h;\n      sbuf.push_back({s.x * w + std::sin(t * 0.6f + s.phase) * 12.0f, y});\n    }\n    Paint sp; sp.blend = Blend::plus;\n    sp.color = {0.435f, 1, 0.753f, 0.4f * boost};\n    c.points(sbuf, 2.0f, sp);\n    const uint32_t cols[10] = {0xff0b3a2e, 0xff0f5c42, 0xff14855a, 0xff1fb573, 0xff43e08f,\n      0xff7bffb0, 0xffb9ffd6, 0xffe6fff1, 0xffffffff, 0xffffffff};\n    for (int i = 0; i < 10; i++) {\n      Path path;\n      for (const auto& s : segs[i]) {\n        path.moveTo(s.x1, s.y1); path.lineTo(s.x2, s.y2);\n      }\n      Paint p; p.blend = Blend::plus;\n      Color cc = Color::argb(cols[i]);\n      p.color = {cc.r, cc.g, cc.b, 0.85f * boost};\n      p.strokeWidth = std::max(0.6f, float(9 - i) * 0.52f);\n      c.path(path, p);\n    }\n    Paint tp; tp.blend = Blend::plus;\n    tp.color = {0.788f, 1, 0.902f, (0.45f + 0.45f * std::abs(std::sin(t * 2.0f))) * boost};\n    c.points(tips, 3.2f, tp);\n  }\n};\n",
+      "nativeSource": "class Visual final : public Scene {\n  struct Seg { float x1, y1, x2, y2; int level; };\n  struct Spore { float x, y, speed, phase; };\n  std::vector<Seg> segs[10];\n  std::vector<Vec2> tips;\n  std::vector<Spore> spores;\n  float motion = 1.0f;\n  void grow(float x, float y, float a, float len, int d, float seed, float t) {\n    float sway = std::sin(seed * 0.7f + t * 0.25f) * float(9 - d) * 0.025f * motion;\n    float na = a + sway;\n    float x2 = x + std::cos(na) * len, y2 = y + std::sin(na) * len;\n    segs[9 - d].push_back({x, y, x2, y2, 9 - d});\n    if (d <= 1) {\n      if (tips.size() < 256) tips.push_back({x2, y2});\n      return;\n    }\n    float spread = 0.42f + std::sin(t * 0.4f + seed) * 0.07f;\n    grow(x2, y2, na - spread, len * 0.74f, d - 1, seed * 2.0f + 1.0f, t);\n    grow(x2, y2, na + spread, len * 0.74f, d - 1, seed * 2.0f + 2.0f, t);\n  }\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed);\n    spores.clear(); motion = 1.0f;\n    for (int i = 0; i < 70; i++)\n      spores.push_back({rng.unit(), rng.unit(), 0.3f + rng.unit() * 1.2f, rng.unit() * 6.2831853f});\n  }\n  void update(const Frame& f) override {\n    float t = float(f.time) * f.speed;\n    motion = f.reducedMotion ? 0.3f : 1.0f;\n    for (int i = 0; i < 10; i++) segs[i].clear();\n    tips.clear();\n    grow(f.width * 0.5f, f.height * 0.94f, -1.5707963f, f.height * 0.17f, 9, 1.0f, t);\n  }\n  void render(const Frame& f, Canvas& c) const override {\n    float w = f.width, h = f.height;\n    float t = float(f.time) * f.speed;\n    float boost = (0.8f + 0.4f * f.music.energy) * f.intensity;\n    Paint bg = Paint::radial({w * 0.5f, h * 0.75f}, h * 0.9f,\n      {Color::argb(0xff04231c), Color::argb(0xff021410), Color::argb(0xff000705)}, {0, 0.5f, 1.0f});\n    c.rect({0, 0, w, h}, bg);\n    std::vector<Vec2> sbuf; sbuf.reserve(spores.size());\n    for (const auto& s : spores) {\n      float y = std::fmod(s.y * h - t * s.speed * 9.0f, h);\n      if (y < 0) y += h;\n      sbuf.push_back({s.x * w + std::sin(t * 0.6f + s.phase) * 12.0f, y});\n    }\n    Paint sp; sp.blend = Blend::plus;\n    sp.color = {0.435f, 1, 0.753f, 0.4f * boost};\n    c.points(sbuf, 1.0f, sp);\n    const uint32_t cols[10] = {0xff0b3a2e, 0xff0f5c42, 0xff14855a, 0xff1fb573, 0xff43e08f,\n      0xff7bffb0, 0xffb9ffd6, 0xffe6fff1, 0xffffffff, 0xffffffff};\n    for (int i = 0; i < 10; i++) {\n      Path path;\n      for (const auto& s : segs[i]) {\n        path.moveTo(s.x1, s.y1); path.lineTo(s.x2, s.y2);\n      }\n      Paint p; p.blend = Blend::plus;\n      Color cc = Color::argb(cols[i]);\n      p.color = {cc.r, cc.g, cc.b, 0.85f * boost};\n      p.strokeWidth = std::max(0.6f, float(9 - i) * 0.52f);\n      c.path(path, p);\n    }\n    Paint tp; tp.blend = Blend::plus;\n    tp.color = {0.788f, 1, 0.902f, (0.45f + 0.45f * std::abs(std::sin(t * 2.0f))) * boost};\n    c.points(tips, 1.6f, tp);\n  }\n};\n",
       "shaderSources": {},
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "23847e07100af32c9dcdc41759b8d0bc6e88d522584dbaa501e2e549f1420ca1",
+        "hash": "a5c7e3bf9f312cbfd6e8fb6bcbb68a763654f4bcd7c633916a1f66894a0c235a",
         "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
         "materials": {},
         "imageHashes": {}

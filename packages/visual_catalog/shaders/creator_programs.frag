@@ -61,113 +61,7 @@ vec4 creator_5_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_6_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_7_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_8_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_9_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_10_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_11_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_12_paintVisual(vec2 uv, CreatorFrame f) {
-vec2 q = uv - 0.5;
-vec2 p = q;
-p.x *= max(f.size.x, 1.0) / max(f.size.y, 1.0);
-
-float intensity = clamp(f.intensity, 0.0, 2.0);
-float speed = clamp(f.speed, 0.0, 3.0);
-float detail = clamp(f.detail, 0.0, 2.0);
-float glow = clamp(f.glow, 0.0, 2.0);
-
-float t = f.time * speed * 0.28;
-float seed = mod(
-f.seedLow * 0.0174533 + f.seedHigh * 0.0137137,
-6.2831853
-);
-
-vec3 deepBlue = mix(
-vec3(0.006, 0.022, 0.070),
-f.color0.rgb * 0.35,
-0.20
-);
-vec3 oceanBlue = mix(
-vec3(0.018, 0.115, 0.290),
-f.color1.rgb,
-0.20
-);
-vec3 waveBlue = mix(
-vec3(0.045, 0.310, 0.590),
-f.color2.rgb,
-0.22
-);
-vec3 lightBlue = mix(
-vec3(0.240, 0.590, 0.820),
-f.color3.rgb,
-0.20
-);
-
-float depth = smoothstep(0.0, 1.0, uv.y);
-vec3 c = mix(deepBlue, oceanBlue, 0.22 + 0.28 * depth);
-
-vec2 lightPosition = vec2(
-0.18 * sin(t * 0.23 + seed),
--0.12 + 0.06 * sin(t * 0.19 + seed * 0.71)
-);
-vec2 lightDistance = p - lightPosition;
-float ambientLight = exp(-dot(lightDistance, lightDistance) * 1.65);
-c += oceanBlue * ambientLight * 0.14;
-
-float density = 1.70 + 0.60 * detail;
-float amplitude = 0.075 + 0.055 * f.bass + 0.018 * f.energy;
-float luminosity = 0.78 + 0.22 * f.energy;
-
-for (int i = 0; i < 6; i++) {
-float k = float(i);
-float layer = k / 5.0;
-float offset = seed + k * 0.92;
-
-float primary = sin(
-  p.x * density - t * (0.68 + 0.035 * k) + offset
-);
-float secondary = sin(
-  p.x * (2.30 + 0.75 * detail)
-  + t * 0.44
-  + offset * 1.70
-);
-
-float center = (k - 2.5) * 0.17
-  + p.x * 0.07
-  + amplitude * primary
-  + (0.032 + 0.014 * f.flow) * secondary;
-
-float d = p.y - center;
-float width = 0.067 + 0.006 * k + 0.020 * f.body;
-float normalizedDistance = d / width;
-float wave = exp(-normalizedDistance * normalizedDistance);
-
-float crestDistance = (d + width * 0.30)
-  / (0.024 + 0.009 * f.body);
-float crest = exp(-crestDistance * crestDistance);
-
-float faceLight = 1.0 - smoothstep(-width, width * 1.60, d);
-vec3 ink = mix(oceanBlue, waveBlue, 0.28 + 0.60 * layer);
-vec3 face = ink * (0.64 + 0.30 * faceLight);
-
-float opacity = wave * (0.25 + 0.07 * f.energy) * intensity;
-c = mix(c, face, opacity);
-
-c += ink * wave
-  * (0.065 + 0.035 * f.energy)
-  * glow * intensity;
-
-float reflection = 0.027 + 0.026 * f.spark + 0.008 * f.pulse;
-c += lightBlue * crest * reflection
-  * luminosity * glow * intensity;
-
-}
-
-float vignette = 1.0
-- 0.26 * smoothstep(0.05, 0.50, dot(q, q));
-
-return vec4(clamp(c * vignette, 0.0, 1.0), 1.0);
-}
-
-vec4 creator_13_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_9_paintVisual(vec2 uv, CreatorFrame f) {
   vec2 p = (uv - 0.5) * vec2(f.size.x / max(f.size.y, 1.0), 1.0);
   float radius = 0.27 + 0.015 * sin(f.time * f.speed) + 0.025 * f.bass;
   float distance = abs(length(p) - radius);
@@ -178,26 +72,9 @@ vec4 creator_13_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(ink, alpha);
 }
 
-vec4 creator_14_paintVisual(vec2 uv, CreatorFrame f) {
-vec2 p = (uv - 0.5) * vec2(f.size.x / max(f.size.y, 1.0), 1.0);
-float t = f.time * f.speed * 0.2;
-vec3 c = f.color0.rgb;
-for (int i = 0; i < 3; i++) {
-  float k = float(i);
-  vec2 center = 0.08 * vec2(cos(t + k * 2.1), sin(t * 0.7 + k * 2.1));
-  float r = length(p - center);
-  float ring = abs(r - (0.15 + k * 0.085));
-  float beam = exp(-ring * ring * 18000.0) * 0.5;
-  float halo = exp(-ring * 30.0) * 0.13 * f.glow;
-  vec3 ink = mix(f.color1.rgb, f.color3.rgb, k * 0.5);
-  c += ink * (beam + halo) * f.intensity;
-}
-return vec4(c, 1.0);
-}
-
-vec4 creator_15_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_16_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_17_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_10_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_11_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_12_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 void main() {
   CreatorFrame f;
   f.size=uSize; f.time=uTime; f.seedLow=uSeedLow; f.seedHigh=uSeedHigh;
@@ -220,11 +97,6 @@ void main() {
   if (abs(uVisualIndex - 10.0) < 0.5) color=creator_10_paintVisual(uv,f);
   if (abs(uVisualIndex - 11.0) < 0.5) color=creator_11_paintVisual(uv,f);
   if (abs(uVisualIndex - 12.0) < 0.5) color=creator_12_paintVisual(uv,f);
-  if (abs(uVisualIndex - 13.0) < 0.5) color=creator_13_paintVisual(uv,f);
-  if (abs(uVisualIndex - 14.0) < 0.5) color=creator_14_paintVisual(uv,f);
-  if (abs(uVisualIndex - 15.0) < 0.5) color=creator_15_paintVisual(uv,f);
-  if (abs(uVisualIndex - 16.0) < 0.5) color=creator_16_paintVisual(uv,f);
-  if (abs(uVisualIndex - 17.0) < 0.5) color=creator_17_paintVisual(uv,f);
   if (any(isnan(color)) || any(isinf(color))) color=vec4(0.0);
   color=clamp(color,0.0,1.0);
   fragColor=vec4(color.rgb*color.a,color.a);

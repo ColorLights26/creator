@@ -42,7 +42,7 @@ class Visual final : public Scene {
     for (const auto& s : stars) batch.push_back({s.x * w, s.y * h});
     Paint sp; sp.blend = Blend::plus;
     sp.color = {1, 1, 1, (0.35f + 0.25f * std::abs(std::sin(t * 0.9f))) * glow};
-    c.points(batch, 1.6f, sp);
+    c.points(batch, 0.8f, sp);
     const float cy[4] = {0.30f, 0.36f, 0.44f, 0.50f};
     const float am[4] = {0.05f, 0.06f, 0.045f, 0.035f};
     const float th[4] = {0.20f, 0.16f, 0.13f, 0.09f};

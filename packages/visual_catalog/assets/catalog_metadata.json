@@ -60,35 +60,6 @@
       "reactivity": "optional"
     },
     {
-      "id": "caleidoscopio",
-      "name": "Caleidoscopio",
-      "description": "Doce segmentos espejados con pétalos, anillos y destellos girando.",
-      "purposes": [
-        "party",
-        "visualizer"
-      ],
-      "moods": [
-        "hypnotic",
-        "colorful"
-      ],
-      "concepts": [
-        "kaleidoscope",
-        "petals",
-        "symmetry"
-      ],
-      "credits": {
-        "author": "Chic Apps",
-        "license": "",
-        "source": ""
-      },
-      "thumbnail": {
-        "timeSeconds": 2.5
-      },
-      "publication": "draft",
-      "role": "background",
-      "reactivity": "optional"
-    },
-    {
       "id": "campo_plasma",
       "name": "Campo de Plasma",
       "description": "Niebla de color turquesa, lima y rosa en movimiento continuo.",
@@ -118,25 +89,6 @@
       "reactivity": "optional"
     },
     {
-      "id": "chrome_scene",
-      "name": "Liquid Chrome",
-      "description": "Escena programable de ejemplo; pendiente de revisión para producción.",
-      "purposes": [],
-      "moods": [],
-      "concepts": [],
-      "credits": {
-        "author": "Creator SDK",
-        "license": "",
-        "source": ""
-      },
-      "thumbnail": {
-        "timeSeconds": 2.5
-      },
-      "publication": "draft",
-      "role": "background",
-      "reactivity": "optional"
-    },
-    {
       "id": "cromo_liquido",
       "name": "Cromo Líquido",
       "description": "Gotas de metal fundido en violeta y rosa flotando sobre fondo oscuro.",
@@ -152,35 +104,6 @@
         "chrome",
         "liquid",
         "blobs"
-      ],
-      "credits": {
-        "author": "Chic Apps",
-        "license": "",
-        "source": ""
-      },
-      "thumbnail": {
-        "timeSeconds": 2.5
-      },
-      "publication": "draft",
-      "role": "background",
-      "reactivity": "optional"
-    },
-    {
-      "id": "galaxia_espiral",
-      "name": "Galaxia Espiral",
-      "description": "Tres brazos de estrellas orbitando un núcleo incandescente que respira con la música.",
-      "purposes": [
-        "relax",
-        "visualizer"
-      ],
-      "moods": [
-        "dreamy",
-        "cosmic"
-      ],
-      "concepts": [
-        "galaxy",
-        "stars",
-        "space"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -320,35 +243,6 @@
       "reactivity": "optional"
     },
     {
-      "id": "olas",
-      "name": "Olas",
-      "description": "Olas azules suaves que reaccionan a la música.",
-      "purposes": [
-        "relax",
-        "visualizer"
-      ],
-      "moods": [
-        "calm",
-        "dreamy"
-      ],
-      "concepts": [
-        "waves",
-        "ocean",
-        "blue"
-      ],
-      "credits": {
-        "author": "ChatGPT",
-        "license": "",
-        "source": "https://chatgpt.com/c/6ab5f5ae-ddf4-83e9-b757-a08fdeeb5da1"
-      },
-      "thumbnail": {
-        "timeSeconds": 2.5
-      },
-      "publication": "draft",
-      "role": "background",
-      "reactivity": "optional"
-    },
-    {
       "id": "prismatic_halo",
       "name": "Halo · capa de luz",
       "description": "Un halo de luz transparente que acompaña los acentos musicales.",
@@ -376,35 +270,6 @@
       "publication": "draft",
       "role": "overlay",
       "reactivity": "optional"
-    },
-    {
-      "id": "quiet_orbits",
-      "name": "Órbitas · sin música",
-      "description": "Órbitas luminosas de movimiento continuo, independientes del audio.",
-      "purposes": [
-        "relax",
-        "focus"
-      ],
-      "moods": [
-        "calm",
-        "meditative"
-      ],
-      "concepts": [
-        "orbits",
-        "space",
-        "light"
-      ],
-      "credits": {
-        "author": "Chic Apps",
-        "license": "Proprietary",
-        "source": "Visual Studio examples"
-      },
-      "thumbnail": {
-        "timeSeconds": 2.5
-      },
-      "publication": "draft",
-      "role": "background",
-      "reactivity": "none"
     },
     {
       "id": "selva_bioluminiscente",

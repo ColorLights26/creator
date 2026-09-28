@@ -50,7 +50,7 @@ class Visual final : public Scene {
     }
     Paint sp; sp.blend = Blend::plus;
     sp.color = {0.435f, 1, 0.753f, 0.4f * boost};
-    c.points(sbuf, 2.0f, sp);
+    c.points(sbuf, 1.0f, sp);
     const uint32_t cols[10] = {0xff0b3a2e, 0xff0f5c42, 0xff14855a, 0xff1fb573, 0xff43e08f,
       0xff7bffb0, 0xffb9ffd6, 0xffe6fff1, 0xffffffff, 0xffffffff};
     for (int i = 0; i < 10; i++) {
@@ -66,7 +66,7 @@ class Visual final : public Scene {
     }
     Paint tp; tp.blend = Blend::plus;
     tp.color = {0.788f, 1, 0.902f, (0.45f + 0.45f * std::abs(std::sin(t * 2.0f))) * boost};
-    c.points(tips, 3.2f, tp);
+    c.points(tips, 1.6f, tp);
   }
 };
 ''';

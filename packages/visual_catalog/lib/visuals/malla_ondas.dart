@@ -1,23 +1,26 @@
 // Malla de Ondas — port de la galería immersive a escena nativa.
-// Miles de puntos azules ondulando como superficie de agua vista desde arriba.
+// Miles de puntos azules ondulando como agua vista desde arriba.
 const nativeSource = r'''
 class Visual final : public Scene {
   std::vector<Vec2> buckets[6];
-  float step = 12.0f, cols = 0, rows = 0, lastW = 0, lastH = 0;
+  float step = 12.0f, cols = 0, rows = 0, lastW = 0, lastH = 0, lastDetail = -1.0f;
+  void build(float w, float h, float detail) {
+    step = std::max(9.0f, std::min(w, h) / (18.0f + 16.0f * detail));
+    cols = std::ceil(w / step) + 1.0f;
+    rows = std::ceil(h / step) + 1.0f;
+  }
  public:
   void reset(uint32_t seed) override {
     (void)seed;
     for (int i = 0; i < 6; i++) buckets[i].clear();
-    lastW = 0; lastH = 0;
+    lastW = 0; lastH = 0; lastDetail = -1.0f;
   }
   void update(const Frame& f) override {
     float w = f.width, h = f.height;
     float t = float(f.time) * f.speed;
-    if (w != lastW || h != lastH) {
-      step = std::max(9.0f, std::min(w, h) / 34.0f);
-      cols = std::ceil(w / step) + 1.0f;
-      rows = std::ceil(h / step) + 1.0f;
-      lastW = w; lastH = h;
+    if (w != lastW || h != lastH || f.detail != lastDetail) {
+      build(w, h, f.detail);
+      lastW = w; lastH = h; lastDetail = f.detail;
     }
     float amp = 1.0f + f.music.bass * 0.6f;
     float s1x = w * (0.5f + std::sin(t * 0.35f) * 0.32f);
@@ -47,17 +50,12 @@ class Visual final : public Scene {
     c.rect({0, 0, w, h}, bg);
     const uint32_t pal[6] = {0xff0a1b4a, 0xff123a8a, 0xff1f6fd0,
       0xff35b3f0, 0xff7fe9ff, 0xffd9fbff};
-    float frac = 0.4f + 0.6f * ((f.detail - 0.25f) / 1.75f);
     for (int b = 0; b < 6; b++) {
       if (buckets[b].empty()) continue;
-      size_t n = buckets[b].size();
-      size_t keep = size_t(float(n) * frac);
-      if (keep < 1) keep = 1;
       Color cc = Color::argb(pal[b]);
       Paint p; p.blend = Blend::plus;
       p.color = {cc.r, cc.g, cc.b, (0.55f + 0.45f * f.music.energy) * f.intensity};
-      std::vector<Vec2> view(buckets[b].begin(), buckets[b].begin() + keep);
-      c.points(view, 1.0f + float(b) / 5.0f * step * 0.21f, p);
+      c.points(buckets[b], (1.0f + float(b) / 5.0f * step * 0.42f) * 0.5f, p);
     }
   }
 };
