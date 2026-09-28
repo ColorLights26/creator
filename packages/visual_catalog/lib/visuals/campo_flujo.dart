@@ -89,10 +89,13 @@ class Visual final : public Scene {
     c.rect({0, 0, w, h}, bg);
     const uint32_t cols[3] = {0xff3fd8a5, 0xffc6e84f, 0xff58c7f3};
     const float alphas[3] = {0.4f, 0.267f, 0.267f};
-    int third = (count / 3) * kTail;
+    int per = (count + 2) / 3;
     for (int b = 0; b < 3; b++) {
       Path p;
-      int from = b * third, to = (b == 2) ? count * kTail : (b + 1) * third;
+      // El cubo se reparte en indices de particula; base multiplica por
+      // kTail * 4 para saltar a su bloque dentro del rastro.
+      int from = b * per;
+      int to = (b == 2) ? count : (b + 1) * per;
       for (int i = from; i < to; i++) {
         int base = i * kTail * 4;
         for (int k = 0; k < kTail; k++) {

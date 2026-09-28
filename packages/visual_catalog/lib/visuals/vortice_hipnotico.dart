@@ -2,23 +2,9 @@
 // 42 anillos hexagonales de colores girando hacia el centro luminoso.
 const nativeSource = r'''
 class Visual final : public Scene {
-  std::vector<Color> hues;
   float spin = 0;
  public:
-  void reset(uint32_t seed) override {
-    (void)seed; hues.clear(); spin = 0;
-    for (int i = 0; i < 60; i++) {
-      float hh = std::fmod(float(i * 6), 360.0f) / 60.0f;
-      int s = int(hh) % 6;
-      float fr = hh - std::floor(hh);
-      float v = 0.92f, p = 0.0f, q = v * (1.0f - fr), u = v * fr;
-      float r = p, g = p, b = p;
-      if (s == 0) { r = v; g = u; } else if (s == 1) { r = q; g = v; }
-      else if (s == 2) { g = v; b = u; } else if (s == 3) { g = q; b = v; }
-      else if (s == 4) { b = v; r = u; } else { r = v; b = q; }
-      hues.push_back({r, g, b, 1.0f});
-    }
-  }
+  void reset(uint32_t seed) override { (void)seed; spin = 0; }
   void update(const Frame& f) override {
     spin += float(f.delta) * f.speed * (f.reducedMotion ? 0.15f : 0.35f);
   }
@@ -37,7 +23,20 @@ class Visual final : public Scene {
       float rot = z * 2.2f + spin;
       float wob = std::sin(t * 0.8f + float(i) * 0.3f) * 0.12f;
       float a = std::min(1.0f, z * 2.4f) * (1.0f - z * 0.75f) * 0.95f;
-      Color hc = hues[(i * 3 + int(t * 22.0f)) % 60];
+      // Tono continuo: indexar una paleta con int(truncado) hacia que el
+      // color cambiase de golpe si el instante cae en el borde entero.
+      float hue = std::fmod(float(i) * 6.0f + t * 44.0f, 360.0f) / 60.0f;
+      int seg = int(hue) % 6;
+      float fr = hue - std::floor(hue);
+      const float v = 0.92f;
+      float q = v * (1.0f - fr), u = v * fr;
+      float r = 0, g = 0, b = 0;
+      if (seg == 0) { r = v; g = u; }
+      else if (seg == 1) { r = q; g = v; }
+      else if (seg == 2) { g = v; b = u; }
+      else if (seg == 3) { g = q; b = v; }
+      else if (seg == 4) { b = v; r = u; }
+      else { r = v; b = q; }
       Path hex;
       for (int s = 0; s <= 6; s++) {
         float ang = float(s) / 6.0f * 6.2831853f + rot;
@@ -47,7 +46,7 @@ class Visual final : public Scene {
       }
       hex.close();
       Paint p; p.blend = Blend::plus;
-      p.color = {hc.r, hc.g, hc.b, a * boost};
+      p.color = {r, g, b, a * boost};
       p.strokeWidth = 1.0f + z * 3.5f;
       c.path(hex, p);
     }

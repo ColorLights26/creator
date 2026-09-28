@@ -70,10 +70,10 @@ class Visual final : public Scene {
       if (zt < 0.0f) zt = 0.0f; if (zt > 1.0f) zt = 1.0f;
       float a = zt * (z * 2.2f < 1.0f ? z * 2.2f : 1.0f);
       int n = int(r.sides);
-      // Nueva orientación por cada vuelta completada: derivado del tiempo, no del frame.
-      float cycles = std::floor((r.z0 - travel) / ringSpan);
+      // Rotacion continua: cuantizar por vuelta daba un salto grande al
+      // cambiar el entero, y ese entero puede variar entre 30 y 60 FPS.
       float base = r.rot0 + t * 6.2831853f * (0.5f + (1.0f - z) * 0.6f)
-        + hash11(cycles + float(i) * 0.5f) * 6.2831853f;
+        + std::sin(t * 0.7f + float(i) * 1.3f) * 0.35f;
       Path ring;
       for (int sd = 0; sd <= n; sd++) {
         float ang = base + float(sd) / float(n) * 6.2831853f;
