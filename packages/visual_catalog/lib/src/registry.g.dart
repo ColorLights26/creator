@@ -34,7 +34,7 @@ final creatorSourceVisuals = <CreatorVisualDefinition>[
   metadata_3.metadata.withNative(visual_3.nativeSource, shaderSources: visual_3.shaderSources, sourceFile: 'cromo_liquido.dart', sourceLine: 4),
   metadata_4.metadata.withNative(visual_4.nativeSource, shaderSources: const {}, sourceFile: 'galaxy_scene.dart', sourceLine: 2),
   metadata_5.metadata.withNative(visual_5.nativeSource, shaderSources: const {}, sourceFile: 'golden_particles_scene.dart', sourceLine: 2),
-  metadata_6.metadata.withNative(visual_6.nativeSource, shaderSources: const {}, sourceFile: 'hipervelocidad.dart', sourceLine: 3),
+  metadata_6.metadata.withNative(visual_6.nativeSource, shaderSources: const {}, sourceFile: 'hipervelocidad.dart', sourceLine: 4),
   metadata_7.metadata.withNative(visual_7.nativeSource, shaderSources: const {}, sourceFile: 'horizonte_synthwave.dart', sourceLine: 3),
   metadata_8.metadata.withNative(visual_8.nativeSource, shaderSources: const {}, sourceFile: 'malla_ondas.dart', sourceLine: 3),
   metadata_9.metadata.withShader(visual_9.shaderSource),

@@ -3,15 +3,16 @@
 // LUT de siete paradas que la galería original.
 const nativeSource = r'''
 class Visual final : public Scene {
-  struct Blob { float fx, fy, fr, p1, p2; };
+  struct Blob { float radius, p1, p2, sx, sy; };
   std::vector<Blob> blobs;
   float energy = 0;
  public:
   void reset(uint32_t seed) override {
     Random rng(seed); blobs.clear(); energy = 0;
     for (int i = 0; i < 7; i++)
-      blobs.push_back({0.5f, 0.5f, 0.14f + rng.unit() * 0.13f,
-        rng.unit() * 6.2831853f, rng.unit() * 6.2831853f});
+      blobs.push_back({0.14f + rng.unit() * 0.13f,
+        rng.unit() * 6.2831853f, rng.unit() * 6.2831853f,
+        0.23f + float(i) * 0.045f, 0.19f + float(i) * 0.037f});
   }
   void update(const Frame& f) override {
     energy += (f.music.energy - energy) * float(1.0 - std::exp(-f.delta * 3.0));
@@ -28,9 +29,9 @@ class Visual final : public Scene {
     u.push_back(energy * f.intensity);
     u.push_back(f.glow);
     for (const auto& b : blobs) {
-      u.push_back(w * (0.5f + std::sin(t * (0.23f + b.fx) + b.p1) * 0.33f));
-      u.push_back(h * (0.5f + std::sin(t * (0.19f + b.fy) + b.p2) * 0.36f));
-      u.push_back(b.fr * w * (1.0f + energy * 0.25f));
+      u.push_back(w * (0.5f + std::sin(t * b.sx + b.p1) * 0.33f));
+      u.push_back(h * (0.5f + std::sin(t * b.sy + b.p2) * 0.36f));
+      u.push_back(b.radius * w * (1.0f + energy * 0.25f));
     }
     c.material("chrome", {0, 0, w, h}, u);
     Paint shade = Paint::radial({w * 0.5f, h * 0.5f}, std::max(w, h) * 0.75f,

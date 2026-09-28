@@ -1,48 +1,45 @@
 // Hipervelocidad — port de la galería immersive a escena nativa.
-// Estelas reales por segmentos, agrupadas en tres lotes por color.
+// Estelas reales por segmentos, agrupadas en tres lotes por color. La
+// posición es función pura del tiempo, así que 30 y 60 FPS coinciden.
 const nativeSource = r'''
 class Visual final : public Scene {
-  struct Star { float x, y, z; };
+  struct Star { float x, y, z0, cycle; };
   std::vector<Star> stars;
-  Random rng_{1234};
-  void seedOne(Star& s, float w, float h, bool far) {
-    s.x = (rng_.unit() - 0.5f) * w * 2.2f;
-    s.y = (rng_.unit() - 0.5f) * h * 2.2f;
-    s.z = far ? 1.0f + rng_.unit() * 1.2f : rng_.unit() * 2.2f + 0.05f;
-  }
  public:
   void reset(uint32_t seed) override {
-    rng_ = Random(seed ? seed : 1234);
+    Random rng(seed);
     stars.clear(); stars.reserve(621);
     for (int i = 0; i < 621; i++) {
-      Star s; seedOne(s, 400.0f, 700.0f, false);
+      Star s;
+      s.x = (rng.unit() - 0.5f) * 2.2f;
+      s.y = (rng.unit() - 0.5f) * 2.2f;
+      s.z0 = rng.unit() * 2.2f + 0.05f;
+      s.cycle = 2.2f + 1.2f;
       stars.push_back(s);
     }
   }
-  void update(const Frame& f) override {
-    float dt = std::min(float(f.delta), 0.05f);
-    float speed = (1.1f + std::sin(float(f.time) * 0.25f) * 0.55f)
-      * (f.reducedMotion ? 0.4f : 1.0f) * (1.0f + f.music.energy * 0.8f) * dt * 0.96f;
-    for (auto& s : stars) {
-      s.z -= speed;
-      if (s.z <= 0.04f) seedOne(s, f.width, f.height, true);
-    }
-  }
+  void update(const Frame& f) override { (void)f; }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
     float cx = w * 0.5f, cy = h * 0.5f;
+    float t = float(f.time) * f.speed;
+    float rate = (1.1f + std::sin(t * 0.25f) * 0.55f) * (1.0f + f.music.energy * 0.8f);
+    if (f.reducedMotion) rate *= 0.4f;
+    float travel = t * rate * 0.96f;
     float boost = (0.7f + 0.5f * f.music.energy + 0.4f * f.music.bass) * f.intensity;
     Paint bg; bg.color = Color::argb(0xff02020c);
     c.rect({0, 0, w, h}, bg);
     Path lanes[3];
     std::vector<Vec2> heads[3];
-    for (int i = 0; i < 3; i++) { heads[i].reserve(220); }
+    for (int i = 0; i < 3; i++) heads[i].reserve(240);
     for (size_t idx = 0; idx < stars.size(); idx++) {
       const Star& s = stars[idx];
-      float x1 = cx + (s.x / s.z) * 0.75f;
-      float y1 = cy + (s.y / s.z) * 0.75f;
+      float z = std::fmod(s.z0 - travel, s.cycle);
+      if (z < 0.04f) z += s.cycle;
+      float x1 = cx + (s.x / z) * 0.75f;
+      float y1 = cy + (s.y / z) * 0.75f;
       if (x1 < -80 || x1 > w + 80 || y1 < -80 || y1 > h + 80) continue;
-      float tail = s.z + 0.11f;
+      float tail = z + 0.11f;
       int lane = int(idx % 3);
       lanes[lane].moveTo(cx + (s.x / tail) * 0.75f, cy + (s.y / tail) * 0.75f);
       lanes[lane].lineTo(x1, y1);
