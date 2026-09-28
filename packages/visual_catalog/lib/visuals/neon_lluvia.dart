@@ -77,6 +77,7 @@ class Visual final : public Scene {
     float t = float(f.time) * f.speed;
     float horizon = h * 0.66f;
     float boost = (0.85f + 0.3f * f.music.energy) * f.intensity;
+    if (boost > 1.0f) boost = 1.0f; if (boost < 0.0f) boost = 0.0f;
     Paint sky = Paint::linear({0, 0}, {0, h},
       {Color::argb(0xff05060c), Color::argb(0xff131a2c), Color::argb(0xff2a1c2c),
        Color::argb(0xff0a0c14), Color::argb(0xff04050a)}, {0, 0.42f, 0.63f, 0.67f, 1.0f});

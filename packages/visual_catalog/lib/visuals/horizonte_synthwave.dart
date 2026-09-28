@@ -36,6 +36,7 @@ class Visual final : public Scene {
     float t = float(f.time) * f.speed;
     float hz = h * 0.56f;
     float glowBoost = (0.7f + 0.6f * f.music.bass + 0.8f * pulse) * f.intensity;
+    if (glowBoost > 1.0f) glowBoost = 1.0f; if (glowBoost < 0.0f) glowBoost = 0.0f;
     Paint sky = Paint::linear({0, 0}, {0, hz},
       {Color::argb(0xff160034), Color::argb(0xff4a0a6b), Color::argb(0xffff4d78)}, {0, 0.55f, 1.0f});
     c.rect({0, 0, w, hz}, sky);
@@ -61,7 +62,7 @@ class Visual final : public Scene {
     mtn.lineTo(w, hz); mtn.close();
     Paint mfill; mfill.color = Color::argb(0xff0d0020);
     c.path(mtn, mfill);
-    Paint mstroke; mstroke.color = {1, 0.435f, 0.847f, 0.9f * f.intensity};
+    Paint mstroke; mstroke.color = {1, 0.435f, 0.847f, std::min(1.0f, 0.9f * f.intensity)};
     mstroke.strokeWidth = 1.0f;
     c.path(mtn, mstroke);
     Paint floor = Paint::linear({0, hz}, {0, h},
@@ -79,7 +80,7 @@ class Visual final : public Scene {
       if (y > h) continue;
       grid.moveTo(0, y); grid.lineTo(w, y);
     }
-    Paint gp; gp.color = {0, 1, 0.965f, 0.75f * f.intensity};
+    Paint gp; gp.color = {0, 1, 0.965f, std::min(1.0f, 0.75f * f.intensity)};
     gp.strokeWidth = 1.1f;
     c.path(grid, gp);
     Paint hg = Paint::linear({0, hz - 26.0f}, {0, hz + 26.0f},

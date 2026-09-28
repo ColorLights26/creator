@@ -16,6 +16,7 @@ class Visual final : public Scene {
     float cx = w * (0.5f + drift), cy = h * (0.5f + drift);
     float amp = std::min(w, h) * 0.38f;
     float boost = (0.85f + 0.3f * f.music.energy) * f.intensity;
+    if (boost > 1.0f) boost = 1.0f; if (boost < 0.0f) boost = 0.0f;
     Paint solid; solid.color = Color::argb(0xf2090510);
     c.rect({0, 0, w, h}, solid);
 

@@ -36,6 +36,7 @@ class Visual final : public Scene {
     float cy = h * 0.5f + std::cos(t * 1.1f) * 8.0f * f.intensity;
     float f0 = fmin * 0.62f;
     float boost = (0.85f + 0.35f * f.music.energy + 0.3f * f.music.bass) * f.intensity;
+    if (boost > 1.0f) boost = 1.0f; if (boost < 0.0f) boost = 0.0f;
     float rate = (0.36f + f.music.energy * 0.55f) * (f.reducedMotion ? 0.35f : 1.0f);
     float travel = t * rate;
     Paint bg; bg.color = Color::argb(0xff04060d);

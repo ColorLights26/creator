@@ -20,6 +20,7 @@ class Visual final : public Scene {
 
     float lean = std::sin(t * 0.21f) * 0.16f * (1.0f + f.music.bass * 0.5f);
     float boost = (0.8f + 0.35f * f.music.energy) * f.intensity;
+    if (boost > 1.0f) boost = 1.0f; if (boost < 0.0f) boost = 0.0f;
     float sunX = w * (0.5f + lean);
     Paint sunPaint = Paint::radial({sunX, horizon}, w * 0.5f,
       {{0.776f, 0.910f, 0.310f, 0.42f * boost}, {0.471f, 0.784f, 0.471f, 0.12f * boost},

@@ -54,7 +54,7 @@ class Visual final : public Scene {
       if (buckets[b].empty()) continue;
       Color cc = Color::argb(pal[b]);
       Paint p; p.blend = Blend::plus;
-      p.color = {cc.r, cc.g, cc.b, (0.55f + 0.45f * f.music.energy) * f.intensity};
+      p.color = {cc.r, cc.g, cc.b, std::min(1.0f, (0.55f + 0.45f * f.music.energy) * f.intensity)};
       c.points(buckets[b], (1.0f + float(b) / 5.0f * step * 0.42f) * 0.5f, p);
     }
   }

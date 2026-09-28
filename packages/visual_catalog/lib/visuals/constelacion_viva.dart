@@ -91,6 +91,7 @@ class Visual final : public Scene {
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
     float boost = (0.8f + 0.4f * f.music.energy) * f.intensity;
+    if (boost > 1.0f) boost = 1.0f; if (boost < 0.0f) boost = 0.0f;
     Paint bg = Paint::radial({w * 0.5f, h * 0.5f}, std::max(w, h) * 0.75f,
       {Color::argb(0xff120f24), Color::argb(0xff080710), Color::argb(0xff04040a)},
       {0.0f, 0.6f, 1.0f});

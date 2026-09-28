@@ -27,6 +27,7 @@ class Visual final : public Scene {
     if (f.reducedMotion) rate *= 0.4f;
     float travel = t * rate * 0.96f;
     float boost = (0.7f + 0.5f * f.music.energy + 0.4f * f.music.bass) * f.intensity;
+    if (boost > 1.0f) boost = 1.0f; if (boost < 0.0f) boost = 0.0f;
     Paint bg; bg.color = Color::argb(0xff02020c);
     c.rect({0, 0, w, h}, bg);
     Path lanes[3];

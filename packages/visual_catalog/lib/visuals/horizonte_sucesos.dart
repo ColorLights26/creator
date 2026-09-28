@@ -39,6 +39,7 @@ class Visual final : public Scene {
     float yaw = std::sin(t * 0.09f) * 0.22f * (1.0f + f.music.energy * 0.3f);
     float squash = 0.24f + std::cos(t * 0.07f) * 0.14f;
     float boost = (0.85f + 0.35f * f.music.energy) * f.intensity;
+    if (boost > 1.0f) boost = 1.0f; if (boost < 0.0f) boost = 0.0f;
     float spin = t * 0.06f * (f.reducedMotion ? 0.3f : 1.0f);
     Paint bg; bg.color = Color::argb(0xff030308);
     c.rect({0, 0, w, h}, bg);

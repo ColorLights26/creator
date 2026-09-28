@@ -39,6 +39,7 @@ class Visual final : public Scene {
     float w = f.width, h = f.height;
     float t = float(f.time) * f.speed;
     float boost = (0.8f + 0.4f * f.music.energy) * f.intensity;
+    if (boost > 1.0f) boost = 1.0f; if (boost < 0.0f) boost = 0.0f;
     Paint bg = Paint::radial({w * 0.5f, h * 0.75f}, h * 0.9f,
       {Color::argb(0xff04231c), Color::argb(0xff021410), Color::argb(0xff000705)}, {0, 0.5f, 1.0f});
     c.rect({0, 0, w, h}, bg);

@@ -106,7 +106,7 @@ class Visual final : public Scene {
       }
       Color cc = Color::argb(cols[b]);
       Paint q; q.blend = Blend::plus;
-      q.color = {cc.r, cc.g, cc.b, alphas[b] * f.intensity};
+      q.color = {cc.r, cc.g, cc.b, std::min(1.0f, alphas[b] * f.intensity)};
       q.strokeWidth = 1.1f; q.strokeCap = 1; q.strokeJoin = 1;
       c.path(p, q);
     }

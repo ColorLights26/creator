@@ -34,6 +34,7 @@ class Visual final : public Scene {
     float w = f.width, h = f.height;
     float t = float(f.time) * f.speed;
     float glow = (0.8f + 0.35f * breath + 0.5f * flash) * f.intensity;
+    if (glow > 1.0f) glow = 1.0f; if (glow < 0.0f) glow = 0.0f;
     Paint sky = Paint::linear({0, 0}, {0, h},
       {Color::argb(0xff01030f), Color::argb(0xff04122b),
        Color::argb(0xff062033), Color::argb(0xff010409)}, {0, 0.45f, 0.8f, 1.0f});
