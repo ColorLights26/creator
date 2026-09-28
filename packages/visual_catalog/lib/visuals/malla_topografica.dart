@@ -4,8 +4,8 @@
 // automática y Grave, ambas función pura del tiempo.
 const nativeSource = r'''
 class Visual final : public Scene {
-  static const int cols = 46;
-  static const int rows = 46;
+  static constexpr int cols = 46;
+  static constexpr int rows = 46;
  public:
   void reset(uint32_t seed) override { (void)seed; }
   void update(const Frame& f) override { (void)f; }

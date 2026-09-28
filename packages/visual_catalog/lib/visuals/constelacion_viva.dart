@@ -4,7 +4,7 @@
 // fijo de 1/60 derivado de f.time, idéntico a 30 y a 60 FPS.
 const nativeSource = r'''
 class Visual final : public Scene {
-  static const float kCell = 74.0f;
+  static constexpr float kCell = 74.0f;
   struct Node { float x, y, vx, vy, r, phase; };
   std::vector<Node> nodes;
   std::vector<int> head, next;
@@ -70,16 +70,8 @@ class Visual final : public Scene {
     int target = int(float(f.time) * f.speed * rate * 60.0f + 0.001f);
     int guard = 0;
     while (done < target && guard < 16) { step(f.width, f.height); guard++; }
-  }
-  void render(const Frame& f, Canvas& c) const override {
-    float w = f.width, h = f.height;
-    float boost = (0.8f + 0.4f * f.music.energy) * f.intensity;
-    Paint bg = Paint::radial({w * 0.5f, h * 0.5f}, std::max(w, h) * 0.75f,
-      {Color::argb(0xff120f24), Color::argb(0xff080710), Color::argb(0xff04040a)},
-      {0.0f, 0.6f, 1.0f});
-    c.rect({0, 0, w, h}, bg);
-
-    // Rejilla espacial: cabecera + lista enlazada, cero reservas.
+    // La rejilla se reconstruye aquí y no en render: render es const y el
+    // vector de índices solo puede leerse desde él.
     std::fill(head.begin(), head.end(), -1);
     for (size_t i = 0; i < nodes.size(); i++) {
       int c0 = int(nodes[i].x / kCell);
@@ -90,7 +82,16 @@ class Visual final : public Scene {
       next[i] = head[idx];
       head[idx] = int(i);
     }
+  }
+  void render(const Frame& f, Canvas& c) const override {
+    float w = f.width, h = f.height;
+    float boost = (0.8f + 0.4f * f.music.energy) * f.intensity;
+    Paint bg = Paint::radial({w * 0.5f, h * 0.5f}, std::max(w, h) * 0.75f,
+      {Color::argb(0xff120f24), Color::argb(0xff080710), Color::argb(0xff04040a)},
+      {0.0f, 0.6f, 1.0f});
+    c.rect({0, 0, w, h}, bg);
 
+    // Rejilla espacial construida en update: aquí sólo se consulta.
     // Aristas en cuatro cubos de alpha.
     Path buckets[4];
     const float cell2 = kCell * kCell;

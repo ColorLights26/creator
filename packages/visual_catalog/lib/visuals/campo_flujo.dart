@@ -7,7 +7,10 @@ class Visual final : public Scene {
   static const int kTail = 5;
   int count = 0, done = 0;
   std::vector<float> x, y, life, trail;
-  void step(float size_w, float size_h, float time) {
+  void step(float size_w, float size_h, float rate) {
+    // El instante se deriva del contador de pasos, no del fotograma: a 30 y a
+    // 60 FPS se aplica exactamente la misma secuencia de campos.
+    float time = float(done) * (1.0f / 60.0f) * rate * 6.2831853f;
     for (int i = 0; i < count; i++) {
       if (life[i] <= 0.0f) {
         x[i] = hash11(float(i) * 1.37f + float(done) * 0.017f) * size_w;
@@ -75,12 +78,10 @@ class Visual final : public Scene {
       lastw = f.width; lasth = f.height; done = 0;
     }
     fenergy = f.music.energy;
-    float rate = f.reducedMotion ? 0.25f : 1.0f;
-    float clock = float(f.time) * f.speed * rate;
-    float time = clock * 6.2831853f;
-    int target = int(clock * 60.0f + 0.001f);
+    float rate = (f.reducedMotion ? 0.25f : 1.0f) * f.speed;
+    int target = int(float(f.time) * rate * 60.0f + 0.001f);
     int guard = 0;
-    while (done < target && guard < 16) { step(f.width, f.height, time); guard++; }
+    while (done < target && guard < 16) { step(f.width, f.height, rate); guard++; }
   }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;

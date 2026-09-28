@@ -3,7 +3,7 @@
 // material de la GPU y Dart sólo escribe 38 uniformes por fotograma.
 const nativeSource = r'''
 class Visual final : public Scene {
-  static const int nb = 12;
+  static constexpr int nb = 12;
   struct Blob { float ang, spd, rad; };
   std::vector<Blob> blobs;
  public:
