@@ -56,7 +56,15 @@ return vec4(c * vignette, 1.0);
 vec4 creator_1_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_2_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_3_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_4_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_4_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_5_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_6_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_7_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_8_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_9_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_10_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_11_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_12_paintVisual(vec2 uv, CreatorFrame f) {
 vec2 q = uv - 0.5;
 vec2 p = q;
 p.x *= max(f.size.x, 1.0) / max(f.size.y, 1.0);
@@ -159,7 +167,7 @@ float vignette = 1.0
 return vec4(clamp(c * vignette, 0.0, 1.0), 1.0);
 }
 
-vec4 creator_5_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_13_paintVisual(vec2 uv, CreatorFrame f) {
   vec2 p = (uv - 0.5) * vec2(f.size.x / max(f.size.y, 1.0), 1.0);
   float radius = 0.27 + 0.015 * sin(f.time * f.speed) + 0.025 * f.bass;
   float distance = abs(length(p) - radius);
@@ -170,7 +178,7 @@ vec4 creator_5_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(ink, alpha);
 }
 
-vec4 creator_6_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_14_paintVisual(vec2 uv, CreatorFrame f) {
 vec2 p = (uv - 0.5) * vec2(f.size.x / max(f.size.y, 1.0), 1.0);
 float t = f.time * f.speed * 0.2;
 vec3 c = f.color0.rgb;
@@ -187,7 +195,9 @@ for (int i = 0; i < 3; i++) {
 return vec4(c, 1.0);
 }
 
-vec4 creator_7_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_15_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_16_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_17_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 void main() {
   CreatorFrame f;
   f.size=uSize; f.time=uTime; f.seedLow=uSeedLow; f.seedHigh=uSeedHigh;
@@ -198,13 +208,23 @@ void main() {
   vec2 uv=FlutterFragCoord().xy / max(f.size,vec2(1.0));
   vec4 color=vec4(0.0);
   if (abs(uVisualIndex - 0.0) < 0.5) color=creator_0_paintVisual(uv,f);
-  else if (abs(uVisualIndex - 1.0) < 0.5) color=creator_1_paintVisual(uv,f);
-  else if (abs(uVisualIndex - 2.0) < 0.5) color=creator_2_paintVisual(uv,f);
-  else if (abs(uVisualIndex - 3.0) < 0.5) color=creator_3_paintVisual(uv,f);
-  else if (abs(uVisualIndex - 4.0) < 0.5) color=creator_4_paintVisual(uv,f);
-  else if (abs(uVisualIndex - 5.0) < 0.5) color=creator_5_paintVisual(uv,f);
-  else if (abs(uVisualIndex - 6.0) < 0.5) color=creator_6_paintVisual(uv,f);
-  else if (abs(uVisualIndex - 7.0) < 0.5) color=creator_7_paintVisual(uv,f);
+  if (abs(uVisualIndex - 1.0) < 0.5) color=creator_1_paintVisual(uv,f);
+  if (abs(uVisualIndex - 2.0) < 0.5) color=creator_2_paintVisual(uv,f);
+  if (abs(uVisualIndex - 3.0) < 0.5) color=creator_3_paintVisual(uv,f);
+  if (abs(uVisualIndex - 4.0) < 0.5) color=creator_4_paintVisual(uv,f);
+  if (abs(uVisualIndex - 5.0) < 0.5) color=creator_5_paintVisual(uv,f);
+  if (abs(uVisualIndex - 6.0) < 0.5) color=creator_6_paintVisual(uv,f);
+  if (abs(uVisualIndex - 7.0) < 0.5) color=creator_7_paintVisual(uv,f);
+  if (abs(uVisualIndex - 8.0) < 0.5) color=creator_8_paintVisual(uv,f);
+  if (abs(uVisualIndex - 9.0) < 0.5) color=creator_9_paintVisual(uv,f);
+  if (abs(uVisualIndex - 10.0) < 0.5) color=creator_10_paintVisual(uv,f);
+  if (abs(uVisualIndex - 11.0) < 0.5) color=creator_11_paintVisual(uv,f);
+  if (abs(uVisualIndex - 12.0) < 0.5) color=creator_12_paintVisual(uv,f);
+  if (abs(uVisualIndex - 13.0) < 0.5) color=creator_13_paintVisual(uv,f);
+  if (abs(uVisualIndex - 14.0) < 0.5) color=creator_14_paintVisual(uv,f);
+  if (abs(uVisualIndex - 15.0) < 0.5) color=creator_15_paintVisual(uv,f);
+  if (abs(uVisualIndex - 16.0) < 0.5) color=creator_16_paintVisual(uv,f);
+  if (abs(uVisualIndex - 17.0) < 0.5) color=creator_17_paintVisual(uv,f);
   if (any(isnan(color)) || any(isinf(color))) color=vec4(0.0);
   color=clamp(color,0.0,1.0);
   fragColor=vec4(color.rgb*color.a,color.a);

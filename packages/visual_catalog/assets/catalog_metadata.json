@@ -31,6 +31,93 @@
       "reactivity": "optional"
     },
     {
+      "id": "boreal_aurora",
+      "name": "Aurora Boreal",
+      "description": "Cintas de luz verde, azul y violeta sobre un cielo estrellado con montañas en sombra.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "calm",
+        "dreamy"
+      ],
+      "concepts": [
+        "aurora",
+        "night sky",
+        "stars"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "caleidoscopio",
+      "name": "Caleidoscopio",
+      "description": "Doce segmentos espejados con pétalos, anillos y destellos girando.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "hypnotic",
+        "colorful"
+      ],
+      "concepts": [
+        "kaleidoscope",
+        "petals",
+        "symmetry"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "campo_plasma",
+      "name": "Campo de Plasma",
+      "description": "Niebla de color turquesa, lima y rosa en movimiento continuo.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "dreamy",
+        "fluid"
+      ],
+      "concepts": [
+        "plasma",
+        "fog",
+        "gradient"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "chrome_scene",
       "name": "Liquid Chrome",
       "description": "Escena programable de ejemplo; pendiente de revisión para producción.",
@@ -39,6 +126,64 @@
       "concepts": [],
       "credits": {
         "author": "Creator SDK",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "cromo_liquido",
+      "name": "Cromo Líquido",
+      "description": "Gotas de metal fundido en violeta y rosa flotando sobre fondo oscuro.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "energetic",
+        "glossy"
+      ],
+      "concepts": [
+        "chrome",
+        "liquid",
+        "blobs"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "galaxia_espiral",
+      "name": "Galaxia Espiral",
+      "description": "Tres brazos de estrellas orbitando un núcleo incandescente que respira con la música.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "dreamy",
+        "cosmic"
+      ],
+      "concepts": [
+        "galaxy",
+        "stars",
+        "space"
+      ],
+      "credits": {
+        "author": "Chic Apps",
         "license": "",
         "source": ""
       },
@@ -85,6 +230,93 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "hipervelocidad",
+      "name": "Hipervelocidad",
+      "description": "Viaje a la velocidad de la luz entre estrellas con estelas blancas y azules.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "energetic",
+        "cosmic"
+      ],
+      "concepts": [
+        "warp",
+        "stars",
+        "speed"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "horizonte_synthwave",
+      "name": "Horizonte Synthwave",
+      "description": "Sol retro con rejilla infinita y montañas de neón estilo años 80.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "retro",
+        "energetic"
+      ],
+      "concepts": [
+        "synthwave",
+        "sun",
+        "grid"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "malla_ondas",
+      "name": "Malla de Ondas",
+      "description": "Miles de puntos azules ondulando como agua vista desde arriba.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "calm",
+        "fluid"
+      ],
+      "concepts": [
+        "waves",
+        "dots",
+        "water"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -175,6 +407,35 @@
       "reactivity": "none"
     },
     {
+      "id": "selva_bioluminiscente",
+      "name": "Selva Bioluminiscente",
+      "description": "Fractal verde luminoso que respira, con esporas flotando y puntas brillantes.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "calm",
+        "magical"
+      ],
+      "concepts": [
+        "tree",
+        "fractal",
+        "glow"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "synthwave_scene",
       "name": "Midnight Highway",
       "description": "Escena programable de ejemplo; pendiente de revisión para producción.",
@@ -183,6 +444,35 @@
       "concepts": [],
       "credits": {
         "author": "Creator SDK",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "vortice_hipnotico",
+      "name": "Vórtice Hipnótico",
+      "description": "Anillos hexagonales de colores girando hacia un centro luminoso.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "hypnotic",
+        "energetic"
+      ],
+      "concepts": [
+        "vortex",
+        "rings",
+        "tunnel"
+      ],
+      "credits": {
+        "author": "Chic Apps",
         "license": "",
         "source": ""
       },

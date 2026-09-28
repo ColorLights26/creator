@@ -1,0 +1,7 @@
+# Los archivos de templates/ son fuentes para copiar a una IA, no un paquete
+# compilable (no tienen pubspec). Se excluyen del análisis; la validación
+# real ocurre al pegar el contenido en el flujo de autoría y en los tests
+# de studio/packages.
+analyzer:
+  exclude:
+    - templates/**
