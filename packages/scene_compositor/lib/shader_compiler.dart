@@ -41,6 +41,12 @@ String compilePortableShader(List<CreatorVisualDefinition> visuals) {
     }
     sources.add(source);
   }
+  // Las ramas del despacho van planas a propósito. Una cadena `else if` anida
+  // un nivel por visual y el parser de SkSL aborta con "exceeded max parse
+  // depth" en cuanto el catálogo pasa de ~15 entradas; impellerc falla
+  // entonces la etapa SkSL y el asset queda solo-Vulkan, que no carga con el
+  // backend Skia. Evaluar las comparaciones en secuencia mantiene el resultado
+  // y la profundidad de parseo constante.
   return '''// Generated from packages/visual_catalog/lib/visuals/*.dart. Do not edit.
 #version 460 core
 #include <flutter/runtime_effect.glsl>
@@ -83,7 +89,7 @@ void main() {
   f.color0=uColor0; f.color1=uColor1; f.color2=uColor2; f.color3=uColor3;
   vec2 uv=FlutterFragCoord().xy / max(f.size,vec2(1.0));
   vec4 color=vec4(0.0);
-${[for (var i = 0; i < visuals.length; i++) '  ${i == 0 ? 'if' : 'else if'} (abs(uVisualIndex - $i.0) < 0.5) color=creator_${i}_paintVisual(uv,f);'].join('\n')}
+${[for (var i = 0; i < visuals.length; i++) '  if (abs(uVisualIndex - $i.0) < 0.5) color=creator_${i}_paintVisual(uv,f);'].join('\n')}
   if (any(isnan(color)) || any(isinf(color))) color=vec4(0.0);
   color=clamp(color,0.0,1.0);
   fragColor=vec4(color.rgb*color.a,color.a);
