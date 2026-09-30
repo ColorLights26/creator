@@ -229,8 +229,8 @@ class _CreatorStudioState extends State<CreatorStudio>
       ),
     ];
     _replay = SceneSignalReplay(_recordings.first.recording);
-    _readCatalog();
     _loadCuration();
+    _readCatalog();
     unawaited(_loadRecordings());
   }
 
@@ -287,6 +287,7 @@ class _CreatorStudioState extends State<CreatorStudio>
     if (_disposed) return;
     _stopReplay();
     _revision++;
+    _loadCuration();
     _readCatalog();
     if (_sourcesReady) {
       _prepareSelected();
