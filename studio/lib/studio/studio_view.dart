@@ -84,7 +84,7 @@ class StudioView extends StatefulWidget {
   final String? error;
   final bool muted;
   final VoidCallback? onToggleMuted;
-  final ValueChanged<String> onSelectVisual;
+  final ValueChanged<String?> onSelectVisual;
   final ValueChanged<String> onSelectSource;
   final VoidCallback onTogglePlaying;
   final ValueChanged<bool> onReactiveChanged;
@@ -140,25 +140,18 @@ class _StudioViewState extends State<StudioView> {
     if (widget.visuals.isEmpty) return;
     final pending = _pendingVisuals;
     if (pending.isEmpty) {
-      final index = _currentIndex;
-      final prevIndex = index <= 0 ? widget.visuals.length - 1 : index - 1;
-      widget.onSelectVisual(widget.visuals[prevIndex].id);
+      widget.onSelectVisual(null);
       return;
     }
 
     final currentId = widget.selectedVisualId;
     final pendingIndex = pending.indexWhere((v) => v.id == currentId);
-    if (pendingIndex >= 0) {
-      final prevIndex =
-          pendingIndex <= 0 ? pending.length - 1 : pendingIndex - 1;
-      widget.onSelectVisual(pending[prevIndex].id);
+    if (pendingIndex > 0) {
+      widget.onSelectVisual(pending[pendingIndex - 1].id);
+    } else if (pendingIndex == 0) {
+      widget.onSelectVisual(pending.last.id);
     } else {
-      final currentIndex = _currentIndex;
-      final prevPending = pending.lastWhere(
-        (v) => widget.visuals.indexOf(v) < currentIndex,
-        orElse: () => pending.last,
-      );
-      widget.onSelectVisual(prevPending.id);
+      widget.onSelectVisual(pending.first.id);
     }
   }
 
@@ -166,9 +159,7 @@ class _StudioViewState extends State<StudioView> {
     if (widget.visuals.isEmpty) return;
     final pending = _pendingVisuals;
     if (pending.isEmpty) {
-      final index = _currentIndex;
-      final nextIndex = (index + 1) % widget.visuals.length;
-      widget.onSelectVisual(widget.visuals[nextIndex].id);
+      widget.onSelectVisual(null);
       return;
     }
 
@@ -178,12 +169,7 @@ class _StudioViewState extends State<StudioView> {
       final nextIndex = (pendingIndex + 1) % pending.length;
       widget.onSelectVisual(pending[nextIndex].id);
     } else {
-      final currentIndex = _currentIndex;
-      final nextPending = pending.firstWhere(
-        (v) => widget.visuals.indexOf(v) > currentIndex,
-        orElse: () => pending.first,
-      );
-      widget.onSelectVisual(nextPending.id);
+      widget.onSelectVisual(pending.first.id);
     }
   }
 
@@ -203,6 +189,7 @@ class _StudioViewState extends State<StudioView> {
       );
       widget.onSelectVisual(next.id);
     } else {
+      widget.onSelectVisual(null);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -232,15 +219,15 @@ class _StudioViewState extends State<StudioView> {
 
     final String indexString;
     final Color counterColor;
-    if (pending.isEmpty) {
-      indexString = '$total/$total';
+    if (selected == null || pending.isEmpty) {
+      indexString = '✓ Completado';
       counterColor = const Color(0xFF73F572);
     } else if (isSelectedPending) {
       indexString =
           '${(pendingIndex + 1).toString().padLeft(2, '0')} / ${pending.length.toString().padLeft(2, '0')}';
       counterColor = const Color(0xFF73F572);
     } else {
-      final currentStatus = widget.curationStatus[selected?.id];
+      final currentStatus = widget.curationStatus[selected.id];
       final statusPrefix =
           currentStatus == VisualCurationStatus.approved ? '✓ ' : '✕ ';
       indexString =
@@ -339,74 +326,237 @@ class _StudioViewState extends State<StudioView> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // 1. Unobstructed Visual Canvas (100% full screen)
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => setState(() => _showControls = !_showControls),
-              onHorizontalDragEnd: (details) {
-                if (details.primaryVelocity case final double velocity) {
-                  if (velocity < -250) {
-                    _goToNextVisual();
-                  } else if (velocity > 250) {
-                    _goToPreviousVisual();
-                  }
-                }
-              },
-              child: _preview(context),
-            ),
-          ),
+      body: widget.error != null
+          ? _preview(context)
+          : (selected == null
+              ? _buildAllDoneView(context)
+              : Stack(
+              fit: StackFit.expand,
+              children: [
+                // 1. Unobstructed Visual Canvas (100% full screen)
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => setState(() => _showControls = !_showControls),
+                    onHorizontalDragEnd: (details) {
+                      if (details.primaryVelocity case final double velocity) {
+                        if (velocity < -250) {
+                          _goToNextVisual();
+                        } else if (velocity > 250) {
+                          _goToPreviousVisual();
+                        }
+                      }
+                    },
+                    child: _preview(context),
+                  ),
+                ),
 
-          // 2. Floating Bottom Hero & Controls Overlay
-          AnimatedOpacity(
-            opacity: _showControls ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 250),
-            child: IgnorePointer(
-              ignoring: !_showControls,
-              child: SafeArea(
-                minimum: const EdgeInsets.fromLTRB(16, 72, 16, 16),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final wide = constraints.maxWidth >= 760;
-                    return Align(
-                      alignment:
-                          wide ? Alignment.bottomRight : Alignment.bottomCenter,
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth: wide ? 380 : 520,
-                          maxHeight: constraints.maxHeight * (wide ? 1.0 : 0.66),
-                        ),
-                        child: Material(
-                          key: const ValueKey('studio-controls-overlay'),
-                          color: Colors.transparent,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  Colors.black.withValues(alpha: 0.35),
-                                  Colors.black.withValues(alpha: 0.85),
-                                ],
-                                stops: const [0.0, 0.25, 1.0],
+                // 2. Floating Bottom Hero & Controls Overlay
+                AnimatedOpacity(
+                  opacity: _showControls ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 250),
+                  child: IgnorePointer(
+                    ignoring: !_showControls,
+                    child: SafeArea(
+                      minimum: const EdgeInsets.fromLTRB(16, 72, 16, 16),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final wide = constraints.maxWidth >= 760;
+                          return Align(
+                            alignment:
+                                wide
+                                    ? Alignment.bottomRight
+                                    : Alignment.bottomCenter,
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: wide ? 380 : 520,
+                                maxHeight:
+                                    constraints.maxHeight * (wide ? 1.0 : 0.66),
                               ),
-                              borderRadius: BorderRadius.circular(24),
+                              child: Material(
+                                key: const ValueKey('studio-controls-overlay'),
+                                color: Colors.transparent,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withValues(alpha: 0.35),
+                                        Colors.black.withValues(alpha: 0.85),
+                                      ],
+                                      stops: const [0.0, 0.25, 1.0],
+                                    ),
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: SingleChildScrollView(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      16,
+                                      12,
+                                      16,
+                                      16,
+                                    ),
+                                    child: _buildFloatingControls(
+                                      context,
+                                      selected,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                              child: _buildFloatingControls(context, selected),
-                            ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
-                    );
-                  },
+                    ),
+                  ),
+                ),
+              ],
+            )),
+    );
+  }
+
+  Widget _buildAllDoneView(BuildContext context) {
+    final approvedCount = widget.visuals
+        .where(
+          (v) =>
+              widget.curationStatus[v.id] == VisualCurationStatus.approved,
+        )
+        .length;
+    final rejectedCount = widget.visuals
+        .where(
+          (v) =>
+              widget.curationStatus[v.id] == VisualCurationStatus.rejected,
+        )
+        .length;
+    final total = widget.visuals.length;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          decoration: BoxDecoration(
+            color: const Color(0xFF162521).withValues(alpha: 0.95),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: const Color(0xFF73F572).withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black54,
+                blurRadius: 30,
+                offset: Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF73F572).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.task_alt_rounded,
+                  color: Color(0xFF73F572),
+                  size: 48,
                 ),
               ),
+              const SizedBox(height: 16),
+              const Text(
+                '¡Revisión Completada!',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Has evaluado todos los visuales del catálogo.\nLos aprobados y descartados no aparecen en la cola principal.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildStatBadge(
+                    'Aprobados',
+                    '$approvedCount',
+                    const Color(0xFF73F572),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildStatBadge(
+                    'Descartados',
+                    '$rejectedCount',
+                    const Color(0xFFFF453A),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildStatBadge('Total', '$total', Colors.white70),
+                ],
+              ),
+              const SizedBox(height: 28),
+              FilledButton.icon(
+                onPressed: () => _showCurationSheet(context),
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF73F572),
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                icon: const Icon(Icons.format_list_bulleted_rounded, size: 20),
+                label: const Text(
+                  'VER Y EDITAR LISTA COMPLETA',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatBadge(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: color.withValues(alpha: 0.9),
             ),
           ),
         ],

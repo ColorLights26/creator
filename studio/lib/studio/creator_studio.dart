@@ -85,6 +85,11 @@ class _CreatorStudioState extends State<CreatorStudio>
     }
   }
 
+  static final List<String> _curationPaths = [
+    '/Users/meee/Projects/colorlights26/creator/creator_curation_review.json',
+    '${Directory.systemTemp.path}/creator_curation_review.json',
+  ];
+
   void _setCurationStatus(String id, VisualCurationStatus status) {
     setState(() {
       _curationStatus[id] = status;
@@ -98,10 +103,14 @@ class _CreatorStudioState extends State<CreatorStudio>
         for (final entry in _curationStatus.entries)
           entry.key: entry.value.name,
       };
-      final file = File('${Directory.systemTemp.path}/creator_curation_review.json');
-      file.writeAsStringSync(jsonEncode(jsonMap));
+      final data = jsonEncode(jsonMap);
+      for (final path in _curationPaths) {
+        try {
+          File(path).writeAsStringSync(data);
+        } catch (_) {}
+      }
       developer.log(
-        'Saved visual curation review to ${file.path}: $jsonMap',
+        'Saved visual curation review: $jsonMap',
         name: 'audiovisual_creator',
       );
     } catch (_) {
@@ -110,25 +119,43 @@ class _CreatorStudioState extends State<CreatorStudio>
   }
 
   void _loadCuration() {
-    try {
-      final file = File('${Directory.systemTemp.path}/creator_curation_review.json');
-      if (file.existsSync()) {
-        final decoded = jsonDecode(file.readAsStringSync());
-        if (decoded is Map) {
-          for (final entry in decoded.entries) {
-            final status = VisualCurationStatus.values.firstWhere(
-              (s) => s.name == entry.value,
-              orElse: () => VisualCurationStatus.pending,
-            );
-            _curationStatus[entry.key as String] = status;
+    // 1. Auto-aprobar los visuales que ya están oficialmente en la app (metadata/creator_catalog/approved)
+    final approvedDir = Directory(
+      '/Users/meee/Projects/colorlights26/metadata/creator_catalog/approved',
+    );
+    if (approvedDir.existsSync()) {
+      try {
+        for (final entity in approvedDir.listSync()) {
+          if (entity is File && entity.path.endsWith('.json')) {
+            final id = entity.uri.pathSegments.last.replaceAll('.json', '');
+            _curationStatus[id] = VisualCurationStatus.approved;
           }
         }
-      }
-    } catch (_) {
-      // non-blocking
+      } catch (_) {}
     }
-    if (!_curationStatus.containsKey('plasma_scene')) {
-      _curationStatus['plasma_scene'] = VisualCurationStatus.approved;
+    _curationStatus['giroscopio_cuantico'] = VisualCurationStatus.approved;
+    _curationStatus['plasma_scene'] = VisualCurationStatus.approved;
+    _curationStatus['synthwave_scene'] = VisualCurationStatus.approved;
+    _curationStatus['vortice_cosmico'] = VisualCurationStatus.approved;
+
+    // 2. Cargar decisiones de curación guardadas previamente por el usuario
+    for (final path in _curationPaths) {
+      try {
+        final file = File(path);
+        if (file.existsSync()) {
+          final decoded = jsonDecode(file.readAsStringSync());
+          if (decoded is Map) {
+            for (final entry in decoded.entries) {
+              final status = VisualCurationStatus.values.firstWhere(
+                (s) => s.name == entry.value,
+                orElse: () => VisualCurationStatus.pending,
+              );
+              _curationStatus[entry.key as String] = status;
+            }
+            break;
+          }
+        }
+      } catch (_) {}
     }
   }
 
@@ -227,15 +254,20 @@ class _CreatorStudioState extends State<CreatorStudio>
     try {
       final catalog = validateCreatorCatalog(widget.catalogBuilder());
       _catalog = catalog;
-      if (!catalog.any((visual) => visual.id == _selectedId)) {
-        _selectedId =
-            catalog.isEmpty
-                ? null
-                : (catalog.any((v) => v.id == 'furia_estelar')
-                    ? 'furia_estelar'
-                    : catalog
-                        .firstWhere((v) => v.isNative, orElse: () => catalog.first)
-                        .id);
+      final isCurrentPending = _selectedId != null &&
+          catalog.any((v) => v.id == _selectedId) &&
+          (_curationStatus[_selectedId!] ?? VisualCurationStatus.pending) ==
+              VisualCurationStatus.pending;
+
+      if (!isCurrentPending) {
+        // Seleccionar el primer visual pendiente de revisión
+        final firstPending = catalog.cast<CreatorVisualDefinition?>().firstWhere(
+              (v) =>
+                  (_curationStatus[v?.id] ?? VisualCurationStatus.pending) ==
+                  VisualCurationStatus.pending,
+              orElse: () => null,
+            );
+        _selectedId = firstPending?.id;
       }
       _error = null;
     } on Object catch (error, stack) {
@@ -292,10 +324,15 @@ class _CreatorStudioState extends State<CreatorStudio>
     }
   }
 
-  void _selectVisual(String id) {
+  void _selectVisual(String? id) {
     if (_selectedId == id) return;
     _selectedId = id;
-    _prepareSelected();
+    if (id != null) {
+      _prepareSelected();
+    } else {
+      _stopReplay();
+      setState(() {});
+    }
   }
 
   void _selectSource(String id) {
