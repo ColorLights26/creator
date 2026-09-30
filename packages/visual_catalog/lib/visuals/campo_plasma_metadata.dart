@@ -1,0 +1,17 @@
+import 'package:scene_compositor/authoring.dart';
+
+const metadata = CreatorVisualMetadata(
+  id: 'campo_plasma',
+  name: 'Campo de Plasma',
+  publication: CreatorPublication.draft,
+  description: 'Niebla de color turquesa, lima y rosa en movimiento continuo.',
+  purposes: ['relax', 'visualizer'],
+  moods: ['dreamy', 'fluid'],
+  concepts: ['plasma', 'fog', 'gradient'],
+  credits: CreatorCredits(author: 'Chic Apps', license: '', source: ''),
+  thumbnail: CreatorThumbnailSpec(timeSeconds: 2.5),
+  role: CreatorRole.background,
+  reactivity: CreatorReactivity.optional,
+  colors: [0xff00131f, 0xff00c2b2, 0xffffd93d, 0xffff2fb9],
+  controls: CreatorControls(intensity: 1, speed: .6, detail: 1, glow: .7),
+);

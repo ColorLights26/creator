@@ -31,14 +31,24 @@
       "reactivity": "optional"
     },
     {
-      "id": "chrome_scene",
-      "name": "Liquid Chrome",
-      "description": "Escena programable de ejemplo; pendiente de revisión para producción.",
-      "purposes": [],
-      "moods": [],
-      "concepts": [],
+      "id": "boreal_aurora",
+      "name": "Aurora Boreal",
+      "description": "Cintas de luz verde, azul y violeta sobre un cielo estrellado con montañas en sombra.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "calm",
+        "dreamy"
+      ],
+      "concepts": [
+        "aurora",
+        "night sky",
+        "stars"
+      ],
       "credits": {
-        "author": "Creator SDK",
+        "author": "Chic Apps",
         "license": "",
         "source": ""
       },
@@ -50,98 +60,26 @@
       "reactivity": "optional"
     },
     {
-      "id": "ciber_reticula",
-      "name": "Ciber Retícula 3D",
-      "description": "Paisaje cyberpunk infinito en perspectiva 3D con topografía láser, sol sintetizador en el horizonte y ondas de choque.",
+      "id": "campo_flujo",
+      "name": "Campo de Flujo",
+      "description": "Mil cuatrocientas partículas siguiendo un campo de flujo sinusoidal, con estelas y remolino central.",
       "purposes": [
-        "visualizer",
-        "party",
-        "focus"
+        "relax",
+        "visualizer"
       ],
       "moods": [
-        "retro_future",
-        "cyberpunk",
-        "energetic"
+        "fluid",
+        "calm"
       ],
       "concepts": [
-        "cyber_grid",
-        "synthwave",
-        "perspective",
-        "laser",
-        "neon_highway"
+        "particles",
+        "flow field",
+        "trails"
       ],
       "credits": {
-        "author": "Color Lights 26",
-        "license": "Proprietary",
-        "source": "Color Lights Studio"
-      },
-      "thumbnail": {
-        "timeSeconds": 2.0
-      },
-      "publication": "draft",
-      "role": "background",
-      "reactivity": "optional"
-    },
-    {
-      "id": "cristal_prismatico",
-      "name": "Cristal Prismático",
-      "description": "Gema cuántica hiperfacetada con dispersión óptica arcoíris, refracción interna y caústicas que estallan al ritmo de la música.",
-      "purposes": [
-        "visualizer",
-        "party",
-        "focus"
-      ],
-      "moods": [
-        "radiant",
-        "luxurious",
-        "kaleidoscopic"
-      ],
-      "concepts": [
-        "crystal",
-        "gem",
-        "refraction",
-        "rainbow",
-        "prismatic",
-        "diamond"
-      ],
-      "credits": {
-        "author": "Color Lights 26",
-        "license": "Proprietary",
-        "source": "Color Lights Studio"
-      },
-      "thumbnail": {
-        "timeSeconds": 3.0
-      },
-      "publication": "draft",
-      "role": "background",
-      "reactivity": "optional"
-    },
-    {
-      "id": "flor_cosmica",
-      "name": "Flor Cósmica",
-      "description": "Loto dimensional y mandala sagrado de pétalos dorados y violetas que florece en espirales de Fibonacci al compás del sonido.",
-      "purposes": [
-        "meditation",
-        "visualizer",
-        "relax"
-      ],
-      "moods": [
-        "sacred",
-        "hypnotic",
-        "spiritual",
-        "radiant"
-      ],
-      "concepts": [
-        "mandala",
-        "lotus",
-        "fibonacci",
-        "sacred_geometry",
-        "cosmic_flower"
-      ],
-      "credits": {
-        "author": "Color Lights 26",
-        "license": "Proprietary",
-        "source": "Color Lights Studio"
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
       },
       "thumbnail": {
         "timeSeconds": 2.5
@@ -151,35 +89,145 @@
       "reactivity": "optional"
     },
     {
-      "id": "furia_estelar",
-      "name": "Furia Estelar",
-      "description": "Supernova viva y fulguraciones solares con arcos magnéticos coronales y convección nuclear que estallan al ritmo de la música.",
+      "id": "campo_plasma",
+      "name": "Campo de Plasma",
+      "description": "Niebla de color turquesa, lima y rosa en movimiento continuo.",
       "purposes": [
-        "party",
-        "rave",
-        "visualizer",
-        "energy"
+        "relax",
+        "visualizer"
       ],
       "moods": [
-        "epic",
-        "intense",
-        "blazing",
-        "powerful"
+        "dreamy",
+        "fluid"
       ],
       "concepts": [
-        "supernova",
-        "solar_flare",
-        "sun",
         "plasma",
-        "coronal_mass_ejection"
+        "fog",
+        "gradient"
       ],
       "credits": {
-        "author": "Color Lights 26",
-        "license": "Proprietary",
-        "source": "Color Lights Studio"
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.0
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "constelacion_viva",
+      "name": "Constelación Táctil",
+      "description": "Grafo de vecindad con rejilla espacial: los nodos se repelen del centro y las aristas brillan por cercanía.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "dreamy",
+        "calm"
+      ],
+      "concepts": [
+        "graph",
+        "nodes",
+        "network"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "corona_solar",
+      "name": "Corona Solar",
+      "description": "Limbo solar deformado por siete armónicos, con filamentos de corona y gránulos de plasma.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "fiery",
+        "energetic"
+      ],
+      "concepts": [
+        "sun",
+        "corona",
+        "plasma"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "cromo_liquido",
+      "name": "Cromo Líquido",
+      "description": "Gotas de metal fundido en violeta y rosa flotando sobre fondo oscuro.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "energetic",
+        "glossy"
+      ],
+      "concepts": [
+        "chrome",
+        "liquid",
+        "blobs"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "deriva_julia",
+      "name": "Deriva de Julia",
+      "description": "Conjunto de Julia iterado por píxel en la GPU, con paleta coseno y coloración suave.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "dreamy",
+        "hypnotic"
+      ],
+      "concepts": [
+        "fractal",
+        "julia",
+        "iteration"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
       },
       "publication": "draft",
       "role": "background",
@@ -224,59 +272,26 @@
       "reactivity": "optional"
     },
     {
-      "id": "mercurio_liquido",
-      "name": "Mercurio Líquido",
-      "description": "Cromo fundido y mercurio líquido hiperreflectivo con ondas concéntricas y brillos especulares al compás del ritmo.",
+      "id": "hipervelocidad",
+      "name": "Hipervelocidad",
+      "description": "Viaje a la velocidad de la luz entre estrellas con estelas blancas y azules.",
       "purposes": [
-        "visualizer",
         "party",
-        "focus"
-      ],
-      "moods": [
-        "sleek",
-        "futuristic",
-        "metallic"
-      ],
-      "concepts": [
-        "chrome",
-        "mercury",
-        "liquid_metal",
-        "reflections",
-        "futuristic"
-      ],
-      "credits": {
-        "author": "Color Lights 26",
-        "license": "Proprietary",
-        "source": "Color Lights Studio"
-      },
-      "thumbnail": {
-        "timeSeconds": 2.0
-      },
-      "publication": "draft",
-      "role": "background",
-      "reactivity": "optional"
-    },
-    {
-      "id": "olas",
-      "name": "Olas",
-      "description": "Olas azules suaves que reaccionan a la música.",
-      "purposes": [
-        "relax",
         "visualizer"
       ],
       "moods": [
-        "calm",
-        "dreamy"
+        "energetic",
+        "cosmic"
       ],
       "concepts": [
-        "waves",
-        "ocean",
-        "blue"
+        "warp",
+        "stars",
+        "speed"
       ],
       "credits": {
-        "author": "ChatGPT",
+        "author": "Chic Apps",
         "license": "",
-        "source": "https://chatgpt.com/c/6ab5f5ae-ddf4-83e9-b757-a08fdeeb5da1"
+        "source": ""
       },
       "thumbnail": {
         "timeSeconds": 2.5
@@ -286,64 +301,145 @@
       "reactivity": "optional"
     },
     {
-      "id": "plasma_scene",
-      "name": "Campo de Plasma",
-      "description": "Interferencia fluida de ondas de plasma en color puro con pulsos armónicos y reactividad espectral.",
+      "id": "horizonte_sucesos",
+      "name": "Horizonte de Sucesos",
+      "description": "Agujero negro con disco de acreción diferencial, anillo fotónico, arco de Einstein y estrellas desviadas.",
       "purposes": [
-        "party",
-        "visualizer",
-        "relax"
+        "relax",
+        "visualizer"
       ],
       "moods": [
-        "hypnotic",
-        "energetic",
-        "trippy"
+        "cosmic",
+        "dramatic"
       ],
       "concepts": [
-        "plasma",
-        "waves",
-        "electric"
+        "black hole",
+        "accretion",
+        "lensing"
       ],
       "credits": {
-        "author": "Color Lights Team",
+        "author": "Chic Apps",
         "license": "",
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.0
+        "timeSeconds": 2.5
       },
       "publication": "draft",
       "role": "background",
       "reactivity": "optional"
     },
     {
-      "id": "portal_cuantico",
-      "name": "Portal Cuántico",
-      "description": "Túnel hipnótico de geometría sagrada fractal con anillos neón y aberración cromática que pulsa con el ritmo.",
+      "id": "horizonte_synthwave",
+      "name": "Horizonte Synthwave",
+      "description": "Sol retro con rejilla infinita y montañas de neón estilo años 80.",
       "purposes": [
-        "visualizer",
         "party",
-        "meditation"
+        "visualizer"
       ],
       "moods": [
-        "hypnotic",
-        "trippy",
-        "electric"
+        "retro",
+        "energetic"
       ],
       "concepts": [
-        "fractal",
-        "sacred_geometry",
-        "tunnel",
-        "quantum",
+        "synthwave",
+        "sun",
+        "grid"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "malla_ondas",
+      "name": "Malla de Ondas",
+      "description": "Miles de puntos azules ondulando como agua vista desde arriba.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "calm",
+        "fluid"
+      ],
+      "concepts": [
+        "waves",
+        "dots",
+        "water"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "malla_topografica",
+      "name": "Malla Topográfica",
+      "description": "Terreno en perspectiva con rejilla proyectada, sol en el horizonte y scroll continuo.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "calm",
+        "retro"
+      ],
+      "concepts": [
+        "terrain",
+        "grid",
+        "perspective"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "neon_lluvia",
+      "name": "Neón bajo la Lluvia",
+      "description": "Ciudad de neón en cuatro capas con ventanas encendidas, reflejo mojado y lluvia arrastrada por el viento.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "nocturnal",
+        "melancholic"
+      ],
+      "concepts": [
+        "city",
+        "rain",
         "neon"
       ],
       "credits": {
-        "author": "Color Lights 26",
-        "license": "Proprietary",
-        "source": "Color Lights Studio"
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 3.0
+        "timeSeconds": 2.5
       },
       "publication": "draft",
       "role": "background",
@@ -379,59 +475,55 @@
       "reactivity": "optional"
     },
     {
-      "id": "quiet_orbits",
-      "name": "Órbitas · sin música",
-      "description": "Órbitas luminosas de movimiento continuo, independientes del audio.",
+      "id": "salto_hiperespacial",
+      "name": "Salto Hiperespacial",
+      "description": "Túnel de aros hexagonales y octogonales con 260 estelas estelares que se aceleran con los graves.",
       "purposes": [
-        "relax",
-        "focus"
+        "party",
+        "visualizer"
       ],
       "moods": [
-        "calm",
-        "meditative"
+        "hypnotic",
+        "cosmic"
       ],
       "concepts": [
-        "orbits",
-        "space",
-        "light"
+        "tunnel",
+        "warp",
+        "rings"
       ],
       "credits": {
         "author": "Chic Apps",
-        "license": "Proprietary",
-        "source": "Visual Studio examples"
+        "license": "",
+        "source": ""
       },
       "thumbnail": {
         "timeSeconds": 2.5
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "none"
+      "reactivity": "optional"
     },
     {
-      "id": "seda_bioluminiscente",
-      "name": "Seda Bioluminiscente",
-      "description": "Cintas etéreas de seda bioluminiscente en gravedad cero con ondulaciones fluidas y esporas de luz reactivas al ritmo.",
+      "id": "selva_bioluminiscente",
+      "name": "Selva Bioluminiscente",
+      "description": "Fractal verde luminoso que respira, con esporas flotando y puntas brillantes.",
       "purposes": [
-        "visualizer",
         "relax",
-        "meditation"
+        "visualizer"
       ],
       "moods": [
-        "ethereal",
-        "dreamy",
-        "organic"
+        "calm",
+        "magical"
       ],
       "concepts": [
-        "silk",
-        "bioluminescent",
-        "aurora",
-        "deep_sea",
-        "fluid"
+        "tree",
+        "fractal",
+        "glow"
       ],
       "credits": {
-        "author": "Color Lights 26",
-        "license": "Proprietary",
-        "source": "Color Lights Studio"
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
       },
       "thumbnail": {
         "timeSeconds": 2.5
@@ -460,30 +552,550 @@
       "reactivity": "optional"
     },
     {
-      "id": "vortice_cosmico",
-      "name": "Vórtice Cósmico",
-      "description": "Singularidad cósmica y disco de acreción relativista con curvatura gravitacional, filamentos de plasma y llamaradas al ritmo de la música.",
+      "id": "v01_agujero_negro",
+      "name": "Agujero Negro & Acreción",
+      "description": "Horizonte de sucesos relativista, disco de acreción con corrimiento Doppler, chorros polares y lente gravitacional de Einstein.",
       "purposes": [
+        "cosmic",
         "visualizer",
-        "space",
-        "cinematic"
+        "relax"
       ],
       "moods": [
         "epic",
-        "cosmic",
+        "hypnotic",
         "deep"
       ],
       "concepts": [
-        "black_hole",
-        "space",
-        "galaxy",
-        "singularity",
-        "accretion_disk"
+        "black hole",
+        "accretion disk",
+        "relativity",
+        "space"
       ],
       "credits": {
-        "author": "Color Lights 26",
-        "license": "Proprietary",
-        "source": "Color Lights Studio"
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v02_red_neuronal",
+      "name": "Red Neuronal Cuántica",
+      "description": "Plexo sináptico de bio-computación cuántica con potenciales de acción en cascada disparados por impulsos armónicos.",
+      "purposes": [
+        "brainwave",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "mysterious",
+        "electric",
+        "organic"
+      ],
+      "concepts": [
+        "neural network",
+        "synapse",
+        "quantum",
+        "pulses"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v03_matriz_oceanica",
+      "name": "Matriz Oceánica 3D",
+      "description": "Malla tridimensional retrowave con oleaje armónico multi-frecuencia, sol synthwave con persianas y niebla de profundidad.",
+      "purposes": [
+        "retrowave",
+        "visualizer",
+        "driving"
+      ],
+      "moods": [
+        "cyberpunk",
+        "nostalgic",
+        "energetic"
+      ],
+      "concepts": [
+        "synthwave",
+        "ocean grid",
+        "wireframe",
+        "sun"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v04_tunel_warp",
+      "name": "Túnel Hiperdimensional",
+      "description": "Túnel infinito octagonal de velocidad warp con perspectiva relativista, vigas de torsión longitudinales y singularidad focal.",
+      "purposes": [
+        "warp",
+        "visualizer",
+        "gaming"
+      ],
+      "moods": [
+        "hypnotic",
+        "fast",
+        "futuristic"
+      ],
+      "concepts": [
+        "hyperspace",
+        "tunnel",
+        "octagon",
+        "warp speed"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v05_campo_curl",
+      "name": "Campo de Flujo Vectorial",
+      "description": "Cintas bioluminiscentes guiadas por un campo analítico de rotacional curl noise con estelas de inercia y vórtice central.",
+      "purposes": [
+        "fluid",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "smooth",
+        "hypnotic",
+        "organic"
+      ],
+      "concepts": [
+        "curl noise",
+        "vector field",
+        "particles",
+        "flow"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v06_tesseract_4d",
+      "name": "Hipercubo 4D Tesseract",
+      "description": "Geometría sagrada cuatridimensional con 16 vértices y 32 aristas rotando en planos XW e YZ en doble perspectiva relativista.",
+      "purposes": [
+        "geometry",
+        "visualizer",
+        "meditation"
+      ],
+      "moods": [
+        "sacred",
+        "mystical",
+        "hypnotic"
+      ],
+      "concepts": [
+        "tesseract",
+        "hypercube",
+        "4D",
+        "sacred geometry"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v07_aurora_plasma",
+      "name": "Aurora Boreal de Plasma",
+      "description": "Cortinas de plasma ionizado con ondulación armónica multi-frecuencia, filamentos centrales y siluetas montañosas sobre noche polar.",
+      "purposes": [
+        "atmosphere",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "dreamy",
+        "mystical",
+        "calm"
+      ],
+      "concepts": [
+        "aurora borealis",
+        "plasma",
+        "solar wind",
+        "mountains"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v08_espectro_cosmico",
+      "name": "Espectro Sonoro Cósmico",
+      "description": "Analizador espectral circular con núcleo palpitante de graves, 72 barras radiales y partículas orbitales armónicas.",
+      "purposes": [
+        "spectrum",
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "energetic",
+        "electric",
+        "club"
+      ],
+      "concepts": [
+        "audio spectrum",
+        "equalizer",
+        "circle",
+        "bass"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "music"
+    },
+    {
+      "id": "v09_espiral_aurea",
+      "name": "Espiral Áurea Sagrada",
+      "description": "Espiral de Fibonacci y filotaxis sagrada de 750 nodos con gradiente espectral continuo y singularidad central.",
+      "purposes": [
+        "geometry",
+        "visualizer",
+        "meditation"
+      ],
+      "moods": [
+        "sacred",
+        "calm",
+        "hypnotic"
+      ],
+      "concepts": [
+        "fibonacci",
+        "golden spiral",
+        "phyllotaxis",
+        "sacred geometry"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v10_supernova",
+      "name": "Supernova & Termodinámica",
+      "description": "Explosión estelar relativista con ondas de choque expansivas, 360 partículas termodinámicas con estelas de velocidad y púlsar central.",
+      "purposes": [
+        "physics",
+        "visualizer",
+        "epic"
+      ],
+      "moods": [
+        "explosive",
+        "intense",
+        "cosmic"
+      ],
+      "concepts": [
+        "supernova",
+        "shockwave",
+        "thermodynamics",
+        "stellar explosion"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v11_archivo_corrupto",
+      "name": "Archivo Corrupto",
+      "description": "Fallo digital de archivo y datamosh estructurado, canales RGB cromáticos aditivos, barrido CRT y franja VHS rodante reactiva al ritmo.",
+      "purposes": [
+        "cyberpunk",
+        "visualizer",
+        "glitch"
+      ],
+      "moods": [
+        "intense",
+        "hypnotic",
+        "digital"
+      ],
+      "concepts": [
+        "glitch",
+        "datamosh",
+        "vhs",
+        "cyberpunk",
+        "artifact"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v12_maquinaria_orbital",
+      "name": "Maquinaria Orbital",
+      "description": "Planetario astrológico de relojería en latón y piedra, cuatro esferas orbitantes en planos inclinados con sombras arrojadas y sol central iluminado.",
+      "purposes": [
+        "mechanical",
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "mysterious",
+        "hypnotic",
+        "elegant"
+      ],
+      "concepts": [
+        "orrery",
+        "astrolabe",
+        "clockwork",
+        "planets",
+        "brass",
+        "astronomy"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v13_nubes_volumetricas",
+      "name": "Nubes Volumétricas",
+      "description": "Raymarching 3D volumétrico de manto de nubes al atardecer, absorción de Beer-Lambert, paleta dorada y relámpagos de exposición reactivos.",
+      "purposes": [
+        "atmosphere",
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "dreamy",
+        "epic",
+        "peaceful"
+      ],
+      "concepts": [
+        "volumetric",
+        "clouds",
+        "raymarching",
+        "sunset",
+        "atmosphere"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v14_sismografo",
+      "name": "Sismógrafo",
+      "description": "Tambor sismográfico de metal cepillado con reflejo anisotrópico, aguja mecánica visible y trazo fosforescente cian de ondas sísmicas reactivas.",
+      "purposes": [
+        "scientific",
+        "visualizer",
+        "retro"
+      ],
+      "moods": [
+        "analytical",
+        "tense",
+        "technical"
+      ],
+      "concepts": [
+        "seismograph",
+        "earthquake",
+        "oscilloscope",
+        "drum",
+        "needle",
+        "laboratory"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v15_lluvia_cristal",
+      "name": "Lluvia sobre Cristal",
+      "description": "Gotas de lluvia con física de deslizamiento y coalescencia sobre cristal empañado, refracción de lente y bokeh nocturno de luces de ciudad.",
+      "purposes": [
+        "atmosphere",
+        "relax",
+        "nature"
+      ],
+      "moods": [
+        "peaceful",
+        "nostalgic",
+        "dreamy"
+      ],
+      "concepts": [
+        "rain",
+        "glass",
+        "bokeh",
+        "droplets",
+        "night",
+        "city lights",
+        "refraction"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v16_campo_magnetico",
+      "name": "Campo Magnético Cuántico",
+      "description": "Acelerador magnético de alta energía: dipolo con tubos de flujo aurorales, plasma de Lorentz en espirales ciclotrón, arcos eléctricos Tesla y ferrofluido reactivo.",
+      "purposes": [
+        "scientific",
+        "visualizer",
+        "energy"
+      ],
+      "moods": [
+        "epic",
+        "intense",
+        "hypnotic",
+        "futuristic"
+      ],
+      "concepts": [
+        "magnetic field",
+        "electromagnet",
+        "plasma",
+        "tesla",
+        "lorentz",
+        "ferrofluid"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "vortice_hipnotico",
+      "name": "Vórtice Hipnótico",
+      "description": "Anillos hexagonales de colores girando hacia un centro luminoso.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "hypnotic",
+        "energetic"
+      ],
+      "concepts": [
+        "vortex",
+        "rings",
+        "tunnel"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
       },
       "thumbnail": {
         "timeSeconds": 2.5
