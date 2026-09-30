@@ -21,15 +21,21 @@ class Visual final : public Scene {
 
   void update(const Frame& f) override {
     float dt = float(f.delta);
-    float speedMult = (f.reducedMotion ? 0.25f : 1.0f) * f.speed;
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    float targetSpark = f.music.active ? f.music.spark : 0.0f;
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+    smoothSpark += (targetSpark - smoothSpark) * float(1.0 - std::exp(-dt * 15.0));
+
+    // En silencio las nubes flotan en una deriva reposada y etérea (~0.10f).
+    // Con música la masa nubosa se arremolina y deforma con el audio.
+    float audioDrive = 0.10f + smoothEnergy * 0.75f + smoothBass * 0.35f;
+    float speedMult = (f.reducedMotion ? 0.25f : 1.0f) * f.speed * audioDrive;
     cloudTime += dt * speedMult;
 
-    smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-dt * 5.0));
-    smoothEnergy += (f.music.energy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
-    smoothSpark += (f.music.spark - smoothSpark) * float(1.0 - std::exp(-dt * 15.0));
-
     // Desplazamiento orgánico del dominio de ruido con los graves
-    warpOffset += dt * (0.08f + smoothBass * 0.65f) * speedMult;
+    warpOffset += dt * (0.05f + smoothBass * 0.70f) * f.speed;
   }
 
   void render(const Frame& f, Canvas& c) const override {

@@ -5,12 +5,31 @@ const nativeSource = r'''
 class Visual final : public Scene {
   static constexpr int kCols = 26;
   static constexpr int kRows = 24;
+  float waveTime = 0.0f;
+  float smoothEnergy = 0.0f;
+  float smoothBass = 0.0f;
  public:
-  void reset(uint32_t seed) override { (void)seed; }
-  void update(const Frame& f) override { (void)f; }
+  void reset(uint32_t seed) override {
+    (void)seed;
+    waveTime = 0.0f;
+    smoothEnergy = 0.0f;
+    smoothBass = 0.0f;
+  }
+  void update(const Frame& f) override {
+    float dt = float(f.delta);
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+
+    // En silencio reposa en un suave oleaje de marea nocturna (~0.10f).
+    // Con música acelera el tren de olas synthwave al compás del beat.
+    float audioDrive = 0.10f + smoothEnergy * 0.78f + smoothBass * 0.35f;
+    waveTime += dt * f.speed * audioDrive;
+  }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
-    float t = float(f.time) * f.speed;
+    float t = waveTime;
     float horizonY = h * 0.40f;
     float centerX = w * 0.5f;
 

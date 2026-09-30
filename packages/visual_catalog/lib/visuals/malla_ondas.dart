@@ -3,6 +3,9 @@
 const nativeSource = r'''
 class Visual final : public Scene {
   std::vector<Vec2> buckets[6];
+  float waveTime = 0.0f;
+  float smoothBass = 0.0f;
+  float smoothEnergy = 0.0f;
   float step = 12.0f, cols = 0, rows = 0, lastW = 0, lastH = 0, lastDetail = -1.0f;
   void build(float w, float h, float detail) {
     step = std::max(9.0f, std::min(w, h) / (18.0f + 16.0f * detail));
@@ -13,16 +16,28 @@ class Visual final : public Scene {
   void reset(uint32_t seed) override {
     (void)seed;
     for (int i = 0; i < 6; i++) buckets[i].clear();
+    waveTime = 0.0f; smoothBass = 0.0f; smoothEnergy = 0.0f;
     lastW = 0; lastH = 0; lastDetail = -1.0f;
   }
   void update(const Frame& f) override {
+    float dt = float(f.delta);
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+
+    // En silencio reposa en una ondulación zen (~0.10f).
+    // Con música acelera la onda y multiplica la amplitud vertical.
+    float audioDrive = 0.10f + smoothEnergy * 0.75f + smoothBass * 0.35f;
+    waveTime += dt * f.speed * audioDrive;
+
     float w = f.width, h = f.height;
-    float t = float(f.time) * f.speed;
+    float t = waveTime;
     if (w != lastW || h != lastH || f.detail != lastDetail) {
       build(w, h, f.detail);
       lastW = w; lastH = h; lastDetail = f.detail;
     }
-    float amp = 1.0f + f.music.bass * 0.6f;
+    float amp = 1.0f + smoothBass * 0.85f;
     float s1x = w * (0.5f + std::sin(t * 0.35f) * 0.32f);
     float s1y = h * (0.35f + std::sin(t * 0.27f + 1.0f) * 0.2f);
     float s2x = w * (0.5f + std::sin(t * 0.31f + 2.4f) * 0.34f);

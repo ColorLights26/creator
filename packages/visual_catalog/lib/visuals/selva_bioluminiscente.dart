@@ -7,6 +7,9 @@ class Visual final : public Scene {
   std::vector<Seg> segs[10];
   std::vector<Vec2> tips;
   std::vector<Spore> spores;
+  float treeTime = 0.0f;
+  float smoothEnergy = 0.0f;
+  float smoothBass = 0.0f;
   float motion = 1.0f;
   void grow(float x, float y, float a, float len, int d, float seed, float t) {
     float sway = std::sin(seed * 0.7f + t * 0.25f) * float(9 - d) * 0.025f * motion;
@@ -25,21 +28,32 @@ class Visual final : public Scene {
   void reset(uint32_t seed) override {
     Random rng(seed);
     spores.clear(); motion = 1.0f;
+    treeTime = 0.0f; smoothEnergy = 0.0f; smoothBass = 0.0f;
     for (int i = 0; i < 70; i++)
       spores.push_back({rng.unit(), rng.unit(), 0.3f + rng.unit() * 1.2f, rng.unit() * 6.2831853f});
   }
   void update(const Frame& f) override {
-    float t = float(f.time) * f.speed;
+    float dt = float(f.delta);
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+
+    // En silencio reposa en un vaivén suave y meditativo (~0.12f).
+    // Con música la selva bioluminiscente respira y late con el audio.
+    float audioDrive = 0.12f + smoothEnergy * 0.75f + smoothBass * 0.35f;
+    treeTime += dt * f.speed * audioDrive;
+
+    float t = treeTime;
     motion = f.reducedMotion ? 0.3f : 1.0f;
     for (int i = 0; i < 10; i++) segs[i].clear();
     tips.clear();
-    grow(f.width * 0.5f, f.height * 0.94f, -1.5707963f, f.height * 0.17f, 9, 1.0f, t);
+    grow(f.width * 0.5f, f.height * 0.94f, -1.5707963f, f.height * (0.16f + smoothBass * 0.035f), 9, 1.0f, t);
   }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
-    float t = float(f.time) * f.speed;
-    float boost = (0.8f + 0.4f * f.music.energy) * f.intensity;
-    if (boost > 1.0f) boost = 1.0f; if (boost < 0.0f) boost = 0.0f;
+    float t = treeTime;
+    float boost = std::clamp((0.8f + 0.4f * smoothEnergy + 0.3f * smoothBass) * f.intensity, 0.0f, 1.0f);
     Paint bg = Paint::radial({w * 0.5f, h * 0.75f}, h * 0.9f,
       {Color::argb(0xff04231c), Color::argb(0xff021410), Color::argb(0xff000705)}, {0, 0.5f, 1.0f});
     c.rect({0, 0, w, h}, bg);

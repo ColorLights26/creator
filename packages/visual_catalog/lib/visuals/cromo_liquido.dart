@@ -5,23 +5,32 @@ const nativeSource = r'''
 class Visual final : public Scene {
   struct Blob { float radius, p1, p2, sx, sy; };
   std::vector<Blob> blobs;
-  float energy = 0;
-  float smoothBass = 0;
+  float simTime = 0.0f;
+  float energy = 0.0f;
+  float smoothBass = 0.0f;
  public:
   void reset(uint32_t seed) override {
-    Random rng(seed); blobs.clear(); energy = 0; smoothBass = 0;
+    Random rng(seed); blobs.clear(); simTime = 0.0f; energy = 0.0f; smoothBass = 0.0f;
     for (int i = 0; i < 7; i++)
       blobs.push_back({0.14f + rng.unit() * 0.13f,
         rng.unit() * 6.2831853f, rng.unit() * 6.2831853f,
         0.23f + float(i) * 0.045f, 0.19f + float(i) * 0.037f});
   }
   void update(const Frame& f) override {
-    energy += (f.music.energy - energy) * float(1.0 - std::exp(-f.delta * 4.0));
-    smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-f.delta * 6.0));
+    float dt = float(f.delta);
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    energy += (targetEnergy - energy) * float(1.0 - std::exp(-dt * 5.0));
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 7.0));
+
+    // En silencio reposa en un movimiento líquido pausado y zen (~0.09f).
+    // Con música acelera la órbita de las metaballs y pulsa su volumen.
+    float audioDrive = 0.09f + energy * 0.75f + smoothBass * 0.35f;
+    simTime += dt * f.speed * audioDrive;
   }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
-    float t = float(f.time) * f.speed;
+    float t = simTime;
     Paint bg; bg.color = Color::argb(0xff03000c);
     c.rect({0, 0, w, h}, bg);
     std::vector<float> u;
@@ -30,10 +39,11 @@ class Visual final : public Scene {
     u.push_back(std::clamp(smoothBass, 0.0f, 1.0f));
     u.push_back(std::clamp(energy * f.intensity, 0.0f, 1.0f));
     u.push_back(f.glow);
+    float radiusExpansion = 1.0f + smoothBass * 0.38f + energy * 0.15f;
     for (const auto& b : blobs) {
       u.push_back(w * (0.5f + std::sin(t * b.sx + b.p1) * 0.33f));
       u.push_back(h * (0.5f + std::sin(t * b.sy + b.p2) * 0.36f));
-      u.push_back(b.radius * w * (1.0f + energy * 0.25f));
+      u.push_back(b.radius * w * radiusExpansion);
     }
     c.material("chrome", {0, 0, w, h}, u);
     Paint shade = Paint::radial({w * 0.5f, h * 0.5f}, std::max(w, h) * 0.75f,

@@ -4,12 +4,31 @@
 const nativeSource = r'''
 class Visual final : public Scene {
   static constexpr int kBarCount = 72;
+  float spectralTime = 0.0f;
+  float smoothEnergy = 0.0f;
+  float smoothBass = 0.0f;
  public:
-  void reset(uint32_t seed) override { (void)seed; }
-  void update(const Frame& f) override { (void)f; }
+  void reset(uint32_t seed) override {
+    (void)seed;
+    spectralTime = 0.0f;
+    smoothEnergy = 0.0f;
+    smoothBass = 0.0f;
+  }
+  void update(const Frame& f) override {
+    float dt = float(f.delta);
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 6.0));
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 8.0));
+
+    // En silencio reposa en un orbe tranquilo (~0.08f).
+    // Con música la rotación y el pulso se acoplan a la señal.
+    float audioDrive = 0.08f + smoothEnergy * 0.72f + smoothBass * 0.35f;
+    spectralTime += dt * f.speed * audioDrive;
+  }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
-    float t = float(f.time) * f.speed;
+    float t = spectralTime;
     Vec2 center{w * 0.5f, h * 0.5f};
     float minDim = std::min(w, h);
 
@@ -19,13 +38,14 @@ class Visual final : public Scene {
       {0.0f, 0.45f, 1.0f});
     c.rect({0, 0, w, h}, bg);
 
-    // 2. Núcleo central pulsante
-    float kick = (f.music.active ? f.music.bass * 1.5f : (0.5f + 0.5f * std::sin(t * 3.5f))) * f.intensity;
+    // 2. Núcleo central pulsante: en silencio está sereno (kick = 0)
+    float kick = (f.music.active ? smoothBass * 1.5f : 0.0f) * f.intensity;
     float baseRadius = minDim * 0.12f * (1.0f + kick * 0.28f);
 
     // Resplandor del núcleo
+    float glowAlpha = f.music.active ? (0.25f + smoothEnergy * 0.35f) : 0.15f;
     Paint coreGlow = Paint::radial(center, baseRadius * 1.6f,
-      {{1.0f, 0.0f, 0.5f, std::clamp(0.45f * f.intensity, 0.0f, 1.0f)}, {0, 0, 0, 0}},
+      {{1.0f, 0.0f, 0.5f, std::clamp(glowAlpha * f.intensity, 0.0f, 1.0f)}, {0, 0, 0, 0}},
       {0.0f, 1.0f});
     coreGlow.blend = Blend::plus;
     c.circle(center, baseRadius * 1.6f, coreGlow);
@@ -49,14 +69,11 @@ class Visual final : public Scene {
       float normFreq = std::abs((float(i) / (float(kBarCount) * 0.5f)) - 1.0f);
       int specIdx = std::clamp(int(normFreq * 30.0f), 0, 30);
       float realAudio = f.music.active ? f.music.spectrum[specIdx] : 0.0f;
+      float smoothAudio = f.music.active ? f.music.smoothSpectrum[specIdx] : 0.0f;
 
-      // Armónicos procedimentales enriquecidos
-      float h1 = std::sin(t * 3.0f + float(i) * 0.3f);
-      float h2 = std::cos(t * 6.0f + float(i) * 0.6f);
-      float procHeight = (std::sin(float(i) * 0.2f + t * 2.0f) * 0.4f + 0.6f) * (h1 * 0.5f + h2 * 0.3f + 0.8f);
-
-      float barVal = std::max(realAudio * 1.6f, procHeight * 0.55f);
-      float barLength = minDim * (0.04f + barVal * 0.16f + kick * (1.0f - normFreq) * 0.12f);
+      // En silencio las barras descansan en un anillo limpio sin brincar a lo loco
+      float barVal = f.music.active ? std::max(realAudio * 1.8f, smoothAudio * 1.3f) : 0.015f;
+      float barLength = minDim * (0.018f + barVal * 0.18f + kick * (1.0f - normFreq) * 0.12f);
 
       float cosA = std::cos(angle), sinA = std::sin(angle);
       float sx = center.x + baseRadius * cosA;

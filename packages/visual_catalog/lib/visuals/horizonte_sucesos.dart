@@ -8,10 +8,14 @@ class Visual final : public Scene {
   struct Star { float x, y, m; };
   std::vector<Part> parts;
   std::vector<Star> stars;
+  float horizonTime = 0.0f;
+  float smoothEnergy = 0.0f;
+  float smoothBass = 0.0f;
  public:
   void reset(uint32_t seed) override {
     Random rng(seed);
     parts.clear(); stars.clear();
+    horizonTime = 0.0f; smoothEnergy = 0.0f; smoothBass = 0.0f;
     int np = 620;
     parts.reserve(np);
     for (int i = 0; i < np; i++) {
@@ -30,16 +34,26 @@ class Visual final : public Scene {
       stars.push_back(s);
     }
   }
-  void update(const Frame& f) override { (void)f; }
+  void update(const Frame& f) override {
+    float dt = float(f.delta);
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+
+    // En silencio reposa en una rotación gravitatoria lenta (~0.10f).
+    // Con música acelera la rotación del disco y la deflexión relativista.
+    float audioDrive = 0.10f + smoothEnergy * 0.75f + smoothBass * 0.35f;
+    horizonTime += dt * f.speed * audioDrive;
+  }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
-    float t = float(f.time) * f.speed;
+    float t = horizonTime;
     float cx = w * 0.5f, cy = h * 0.5f;
     float rs = std::min(w, h) * 0.13f;
-    float yaw = std::sin(t * 0.09f) * 0.22f * (1.0f + f.music.energy * 0.3f);
+    float yaw = std::sin(t * 0.09f) * 0.22f * (1.0f + smoothEnergy * 0.3f);
     float squash = 0.24f + std::cos(t * 0.07f) * 0.14f;
-    float boost = (0.85f + 0.35f * f.music.energy) * f.intensity;
-    if (boost > 1.0f) boost = 1.0f; if (boost < 0.0f) boost = 0.0f;
+    float boost = std::clamp((0.85f + 0.35f * smoothEnergy + 0.30f * smoothBass) * f.intensity, 0.0f, 1.0f);
     float spin = t * 0.06f * (f.reducedMotion ? 0.3f : 1.0f);
     Paint bg; bg.color = Color::argb(0xff030308);
     c.rect({0, 0, w, h}, bg);

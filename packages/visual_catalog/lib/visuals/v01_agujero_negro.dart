@@ -42,11 +42,19 @@ class Visual final : public Scene {
     }
   }
   void update(const Frame& f) override {
-    smoothEnergy += (f.music.energy - smoothEnergy) * float(1.0 - std::exp(-f.delta * 6.0));
-    smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-f.delta * 5.0));
-    float rate = 60.0f * (1.0f + smoothEnergy * 0.4f);
-    jetTravel += float(f.delta) * f.speed * rate;
-    diskTime += float(f.delta) * f.speed;
+    float dt = float(f.delta);
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 6.0));
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+
+    // En silencio reposa en una órbita relativista pausada (~0.10f).
+    // Con música acelera el disco de acreción y desata los chorros polares.
+    float diskDrive = 0.10f + smoothEnergy * 0.75f + smoothBass * 0.35f;
+    diskTime += dt * f.speed * diskDrive;
+
+    float jetRate = 8.0f + smoothEnergy * 65.0f + smoothBass * 35.0f;
+    jetTravel += dt * f.speed * jetRate;
   }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;

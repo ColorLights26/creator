@@ -125,15 +125,22 @@ class Visual final : public Scene {
 
   void update(const Frame& f) override {
     float dt = float(f.delta);
-    float speedMult = (f.reducedMotion ? 0.3f : 1.0f) * f.speed;
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    float targetSpark = f.music.active ? f.music.spark : 0.0f;
+
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+    smoothSpark += (targetSpark - smoothSpark) * float(1.0 - std::exp(-dt * 15.0));
+
+    // En silencio reposa en un flujo magnético laminar lento (~0.10f).
+    // Con música acelera el flujo de iones Lorentz y desata arcos e inversiones de dipolo.
+    float audioDrive = 0.10f + smoothEnergy * 0.76f + smoothBass * 0.35f;
+    float speedMult = (f.reducedMotion ? 0.3f : 1.0f) * f.speed * audioDrive;
     simTime += dt * speedMult;
 
-    smoothEnergy += (f.music.energy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
-    smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
-    smoothSpark += (f.music.spark - smoothSpark) * float(1.0 - std::exp(-dt * 15.0));
-
-    // Inversión física del dipolo ante bombos rítmicos marcados
-    if (!f.reducedMotion && f.music.bass > 0.80f && (simTime - lastInvertTime > 1.8f)) {
+    // Inversión física del dipolo ante bombos rítmicos marcados con música activa
+    if (f.music.active && !f.reducedMotion && f.music.bass > 0.80f && (simTime - lastInvertTime > 1.8f)) {
       lastInvertTime = simTime;
       targetPolarity *= -1.0f;
       shockRadius1 = 15.0f;

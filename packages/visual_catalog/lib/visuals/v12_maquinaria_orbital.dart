@@ -42,12 +42,17 @@ class Visual final : public Scene {
 
   void update(const Frame& f) override {
     float dt = float(f.delta);
-    smoothEnergy += (f.music.energy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
-    smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
-    smoothSpark += (f.music.spark - smoothSpark) * float(1.0 - std::exp(-dt * 15.0));
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    float targetSpark = f.music.active ? f.music.spark : 0.0f;
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+    smoothSpark += (targetSpark - smoothSpark) * float(1.0 - std::exp(-dt * 15.0));
 
-    float periodStretch = 1.0f + smoothEnergy * 1.2f;
-    float speedFactor = ((f.reducedMotion ? 0.25f : 1.0f) * f.speed) / periodStretch;
+    // En silencio reposa en un tic-tac de reloj celestial sereno y majestuoso (~0.12f).
+    // Con música la maquinaria de relojería se revoluciona al compás del ritmo.
+    float audioDrive = 0.12f + smoothEnergy * 0.76f + smoothBass * 0.35f;
+    float speedFactor = (f.reducedMotion ? 0.25f : 1.0f) * f.speed * audioDrive;
     clockTime += dt * speedFactor;
 
     for (auto& p : planets) {

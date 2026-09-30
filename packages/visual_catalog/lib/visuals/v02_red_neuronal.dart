@@ -47,8 +47,9 @@ class Visual final : public Scene {
       }
     }
 
-    // Disparos periódicos o rítmicos de nuevos pulsos
-    if (pulses.size() < 24 && !nodes.empty()) {
+    // Disparos periódicos o rítmicos de nuevos pulsos: reposo en silencio (máx 6), activo con música (máx 24)
+    size_t maxPulses = fenergy > 0.05f ? 24 : 6;
+    if (pulses.size() < maxPulses && !nodes.empty()) {
       int from = (done * 7) % int(nodes.size());
       float fx = nodes[from].x * w, fy = nodes[from].y * h;
       for (size_t to = 0; to < nodes.size(); to++) {
@@ -83,8 +84,8 @@ class Visual final : public Scene {
   }
 
   void update(const Frame& f) override {
-    fenergy = f.music.energy;
-    fbass = f.music.bass;
+    fenergy = f.music.active ? f.music.energy : 0.0f;
+    fbass = f.music.active ? f.music.bass : 0.0f;
     float rate = (f.reducedMotion ? 0.3f : 1.0f) * f.speed;
     int target = int(float(f.time) * rate * 60.0f + 0.001f);
     int guard = 0;

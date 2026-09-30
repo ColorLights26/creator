@@ -11,19 +11,20 @@ class Visual final : public Scene {
   std::vector<StellarParticle> particles;
   int done = 0;
   float fenergy = 0.0f, fbass = 0.0f;
+  bool fActive = false;
   float shockRadius = 0.0f;
 
   void step(float w, float h) {
     const float dt = 1.0f / 60.0f;
     float cx = w * 0.5f, cy = h * 0.5f;
 
-    // Disparo periódico o rítmico de ondas de choque
+    // Disparo de ondas de choque exclusivamente ante bombos reales con música activa
     if (shockRadius > 0.0f) {
       shockRadius += 16.0f;
       if (shockRadius > std::max(w, h) * 1.2f) {
         shockRadius = 0.0f;
       }
-    } else if (done % 180 == 0 || fbass > 0.65f) {
+    } else if (fActive && fbass > 0.65f) {
       shockRadius = 10.0f;
       float blast = 14.0f + fenergy * 18.0f;
       for (auto& p : particles) {
@@ -69,7 +70,7 @@ class Visual final : public Scene {
   void reset(uint32_t seed) override {
     Random rng(seed);
     particles.clear(); particles.reserve(kParticleCount);
-    done = 0; shockRadius = 0.0f;
+    done = 0; shockRadius = 0.0f; fActive = false; fenergy = 0.0f; fbass = 0.0f;
     for (int i = 0; i < kParticleCount; i++) {
       float a = rng.unit() * 6.2831853f;
       float dist = 20.0f + rng.unit() * 180.0f;
@@ -85,8 +86,9 @@ class Visual final : public Scene {
   }
 
   void update(const Frame& f) override {
-    fenergy = f.music.energy;
-    fbass = f.music.bass;
+    fActive = f.music.active;
+    fenergy = f.music.active ? f.music.energy : 0.0f;
+    fbass = f.music.active ? f.music.bass : 0.0f;
     float rate = (f.reducedMotion ? 0.3f : 1.0f) * f.speed;
     int target = int(float(f.time) * rate * 60.0f + 0.001f);
     int guard = 0;

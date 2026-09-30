@@ -60,13 +60,28 @@ class Visual final : public Scene {
       drops.push_back({hash01(i, 7) * w, hash01(i, 29) * h,
         520.0f + hash01(i, 53) * 620.0f, 8.0f + hash01(i, 71) * 26.0f});
   }
+  float rainTime = 0.0f;
+  float smoothEnergy = 0.0f;
+  float smoothBass = 0.0f;
  public:
   void reset(uint32_t seed) override {
     (void)seed;
     layers.clear(); drops.clear();
+    rainTime = 0.0f; smoothEnergy = 0.0f; smoothBass = 0.0f;
     lastw = 0; lasth = 0; lastDetail = -1.0f;
   }
   void update(const Frame& f) override {
+    float dt = float(f.delta);
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+
+    // En silencio reposa en una llovizna urbana tranquila (~0.12f).
+    // Con música la lluvia y la ciudad cobran dinamismo y resplandor.
+    float audioDrive = 0.12f + smoothEnergy * 0.76f + smoothBass * 0.35f;
+    rainTime += dt * f.speed * audioDrive;
+
     if (f.width != lastw || f.height != lasth || f.detail != lastDetail) {
       build(f.width, f.height, f.detail);
       lastw = f.width; lasth = f.height; lastDetail = f.detail;
@@ -74,10 +89,9 @@ class Visual final : public Scene {
   }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
-    float t = float(f.time) * f.speed;
+    float t = rainTime;
     float horizon = h * 0.66f;
-    float boost = (0.85f + 0.3f * f.music.energy) * f.intensity;
-    if (boost > 1.0f) boost = 1.0f; if (boost < 0.0f) boost = 0.0f;
+    float boost = std::clamp((0.85f + 0.35f * smoothEnergy) * f.intensity, 0.0f, 1.0f);
     Paint sky = Paint::linear({0, 0}, {0, h},
       {Color::argb(0xff05060c), Color::argb(0xff131a2c), Color::argb(0xff2a1c2c),
        Color::argb(0xff0a0c14), Color::argb(0xff04050a)}, {0, 0.42f, 0.63f, 0.67f, 1.0f});

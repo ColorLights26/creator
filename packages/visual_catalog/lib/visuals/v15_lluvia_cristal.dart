@@ -19,12 +19,19 @@ class Visual final : public Scene {
 
   void update(const Frame& f) override {
     float dt = float(f.delta);
-    float speedMult = (f.reducedMotion ? 0.35f : 1.0f) * f.speed * (1.0f + smoothBass * 0.45f);
-    rainTime += dt * speedMult;
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    float targetSpark = f.music.active ? f.music.spark : 0.0f;
 
-    smoothEnergy += (f.music.energy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
-    smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
-    smoothSpark += (f.music.spark - smoothSpark) * float(1.0 - std::exp(-dt * 15.0));
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+    smoothSpark += (targetSpark - smoothSpark) * float(1.0 - std::exp(-dt * 15.0));
+
+    // En silencio reposa en un lloviznar suave y sereno (~0.12f).
+    // Con música la tormenta cobra ímpetu al compás de los ritmos y bombos.
+    float audioDrive = 0.12f + smoothEnergy * 0.72f + smoothBass * 0.35f;
+    float speedMult = (f.reducedMotion ? 0.35f : 1.0f) * f.speed * audioDrive;
+    rainTime += dt * speedMult;
   }
 
   void render(const Frame& f, Canvas& c) const override {
