@@ -88,7 +88,7 @@ class Visual final : public Scene {
     ions.reserve(kIonCount);
     for (int i = 0; i < kIonCount; i++) {
       ions.push_back({
-        int(rng.unit() * float(kLines - 0.001f)),
+        i % kLines,
         rng.unit(),
         0.35f + rng.unit() * 0.55f,
         rng.unit() * 6.2831853f,
@@ -117,7 +117,8 @@ class Visual final : public Scene {
         f.len = 0.006f + rng.unit() * 0.005f;
         f.isPolar = false;
       }
-      f.angle = rng.unit() * 6.2831853f;
+      Vec2 b = evalFieldDir(f.x, f.y, 1.0f, 0.0f);
+      f.angle = std::atan2(b.y, b.x);
       filings.push_back(f);
     }
   }
@@ -184,7 +185,6 @@ class Visual final : public Scene {
       ion.prog += dt * ion.speed * 0.45f * ionSpeedFactor;
       if (ion.prog >= 1.0f) {
         ion.prog = std::fmod(ion.prog, 1.0f);
-        ion.lineIdx = (ion.lineIdx + 7) % kLines;
       }
     }
 

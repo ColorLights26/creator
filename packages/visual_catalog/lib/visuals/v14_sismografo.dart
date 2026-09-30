@@ -1,82 +1,62 @@
 // Sismógrafo — Puerto fiel de Visuales Inmersivas v14.
 // Tambor sismográfico de metal cepillado con reflejo anisotrópico, aguja mecánica
-// visible, cuadrícula milimétrica en movimiento y trazo fosforescente reactivo.
+// visible, cuadrícula milimétrica en movimiento y trazo analítico continuo a 30/60 FPS.
 const nativeSource = r'''
 class Visual final : public Scene {
-  static constexpr int kBufferSize = 512;
-  float ringBuffer[kBufferSize];
-  int head = 0;
+  static constexpr int kTracePoints = 256;
+  static constexpr int kMaxShocks = 8;
+  struct Shock {
+    float time;
+    float mag;
+    float pol;
+  };
+  Shock shocks[kMaxShocks];
+  int shockHead = 0;
+  float lastShockTime = -100.0f;
 
-  float phase1 = 0.0f;
-  float phase2 = 1.1f;
-  float phase3 = 2.4f;
-  float phase4 = 0.5f;
-
-  float seismicEnv = 0.0f;
-  float seismicPol = 1.0f;
-  float sparkSpike = 0.0f;
-
+  float simTime = 0.0f;
   float drumScroll = 0.0f;
   float smoothEnergy = 0.0f;
   float smoothBass = 0.0f;
+  float smoothSpark = 0.0f;
+  float currentBpm = 120.0f;
 
  public:
   void reset(uint32_t seed) override {
     (void)seed;
-    for (int i = 0; i < kBufferSize; i++) ringBuffer[i] = 0.0f;
-    head = 0;
-    phase1 = 0.0f; phase2 = 1.1f; phase3 = 2.4f; phase4 = 0.5f;
-    seismicEnv = 0.0f; seismicPol = 1.0f; sparkSpike = 0.0f;
+    simTime = 0.0f;
     drumScroll = 0.0f;
-    smoothEnergy = 0.0f; smoothBass = 0.0f;
+    smoothEnergy = 0.0f;
+    smoothBass = 0.0f;
+    smoothSpark = 0.0f;
+    currentBpm = 120.0f;
+    shockHead = 0;
+    lastShockTime = -100.0f;
+    for (int i = 0; i < kMaxShocks; i++) {
+      shocks[i] = {-100.0f, 0.0f, 1.0f};
+    }
   }
 
   void update(const Frame& f) override {
     float dt = float(f.delta);
     float speed = (f.reducedMotion ? 0.3f : 1.0f) * f.speed;
-    float bpm = (f.music.bpm > 40.0f && f.music.bpm < 240.0f) ? f.music.bpm : 120.0f;
-    float osc4Freq = 6.1f * (bpm / 120.0f);
+    simTime += dt * speed;
+    drumScroll += dt * 48.0f * speed;
+
+    currentBpm = (f.music.bpm > 40.0f && f.music.bpm < 240.0f) ? f.music.bpm : 120.0f;
 
     smoothEnergy += (f.music.energy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
     smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
-
-    phase1 += dt * 0.7f * 6.2831853f * speed;
-    phase2 += dt * 1.3f * 6.2831853f * speed;
-    phase3 += dt * 2.9f * 6.2831853f * speed;
-    phase4 += dt * osc4Freq * 6.2831853f * speed;
-
-    drumScroll += dt * 48.0f * speed;
+    smoothSpark += (f.music.spark - smoothSpark) * float(1.0 - std::exp(-dt * 15.0));
 
     // Disparo sísmico ante bombos
-    if (f.music.bass > 0.70f) {
-      seismicPol = std::sin(drumScroll * 1.9f) >= 0.0f ? 1.0f : -1.0f;
+    if (f.music.bass > 0.70f && (simTime - lastShockTime > 0.15f)) {
+      lastShockTime = simTime;
+      float pol = (std::sin(drumScroll * 1.9f) >= 0.0f) ? 1.0f : -1.0f;
       float mag = 0.35f + smoothEnergy * 0.85f;
-      seismicEnv = std::max(seismicEnv, mag);
+      shocks[shockHead] = {simTime, mag, pol};
+      shockHead = (shockHead + 1) % kMaxShocks;
     }
-    seismicEnv *= std::exp(-dt / 0.24f);
-
-    // Destello de aguja ante chispas
-    if (f.music.spark > 0.60f) {
-      sparkSpike = (std::cos(drumScroll * 2.7f) >= 0.0f ? 1.0f : -1.0f) * 0.95f;
-    } else {
-      sparkSpike *= std::exp(-dt / 0.025f);
-    }
-
-    float baseOsc =
-      std::sin(phase1) * 0.06f +
-      std::sin(phase2) * 0.05f +
-      std::sin(phase3) * 0.04f +
-      std::sin(phase4) * (0.04f + smoothEnergy * 0.09f);
-
-    float seismicCarrier =
-      std::sin(phase4 * 1.9f) * seismicEnv * (0.45f + smoothEnergy * 0.55f) +
-      seismicPol * seismicEnv * 0.28f * smoothBass;
-
-    float currentSample = std::clamp(baseOsc + seismicCarrier + sparkSpike, -0.92f, 0.92f);
-
-    // Buffer circular
-    ringBuffer[head] = currentSample;
-    head = (head + 1) % kBufferSize;
   }
 
   void render(const Frame& f, Canvas& c) const override {
@@ -148,23 +128,47 @@ class Visual final : public Scene {
     baseP.lineTo(drumRight, centerY);
     c.path(baseP, baseLine);
 
-    // 4. Trazo sísmico de 512 puntos
+    // 4. Trazo sísmico analítico continuo (tiempo real 30/60 FPS continuo)
     Path tracePath;
     float maxAmp = drumH * 0.41f;
+    float windowDuration = (drumW - 16.0f) / 48.0f;
+    float osc4Freq = 6.1f * (currentBpm / 120.0f);
+
     float stylusX = drumRight - 8.0f;
     float stylusY = centerY;
 
-    for (int i = 0; i < kBufferSize; i++) {
-      int bufIdx = (head + i) % kBufferSize;
-      float val = ringBuffer[bufIdx];
-      float u = float(i) / float(kBufferSize - 1);
+    for (int i = 0; i < kTracePoints; i++) {
+      float u = float(i) / float(kTracePoints - 1);
       float px = drumLeft + 8.0f + u * (drumW - 16.0f);
+      float tSample = simTime - (1.0f - u) * windowDuration;
+
+      // Armónicos base continuos
+      float baseOsc =
+        std::sin(tSample * 0.7f * 6.2831853f) * 0.06f +
+        std::sin(tSample * 1.3f * 6.2831853f + 1.1f) * 0.05f +
+        std::sin(tSample * 2.9f * 6.2831853f + 2.4f) * 0.04f +
+        std::sin(tSample * osc4Freq * 6.2831853f + 0.5f) * (0.04f + smoothEnergy * 0.09f);
+
+      // Contribución de ondas sísmicas recientes
+      float shockContrib = 0.0f;
+      for (int s = 0; s < kMaxShocks; s++) {
+        float age = tSample - shocks[s].time;
+        if (age >= 0.0f && age < 1.4f) {
+          float env = shocks[s].mag * std::exp(-age / 0.24f);
+          float carrier = std::sin(age * 36.0f) * (0.45f + smoothEnergy * 0.55f) +
+                          shocks[s].pol * 0.28f * smoothBass;
+          shockContrib += env * carrier;
+        }
+      }
+
+      float spark = (i == kTracePoints - 1) ? smoothSpark * 0.25f : 0.0f;
+      float val = std::clamp(baseOsc + shockContrib + spark, -0.92f, 0.92f);
       float py = centerY - val * maxAmp;
 
       if (i == 0) tracePath.moveTo(px, py);
       else tracePath.lineTo(px, py);
 
-      if (i == kBufferSize - 1) {
+      if (i == kTracePoints - 1) {
         stylusX = px;
         stylusY = py;
       }
