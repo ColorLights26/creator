@@ -623,6 +623,31 @@ class _StudioViewState extends State<StudioView> {
     );
   }
 
+  void _giveSecondChanceToRejected() {
+    final rejectedIds = widget.visuals
+        .where(
+          (v) =>
+              widget.curationStatus[v.id] == VisualCurationStatus.rejected,
+        )
+        .map((v) => v.id)
+        .toList();
+    if (rejectedIds.isEmpty) return;
+    for (final id in rejectedIds) {
+      widget.onCurationChanged?.call(id, VisualCurationStatus.pending);
+    }
+    widget.onSelectVisual(rejectedIds.first);
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '🔄 Segunda oportunidad: ${rejectedIds.length} descartados vuelven a la cola.',
+        ),
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   Widget _buildAllDoneView(BuildContext context) {
     final approvedCount = widget.visuals
         .where(
@@ -732,6 +757,34 @@ class _StudioViewState extends State<StudioView> {
                   style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
                 ),
               ),
+              if (rejectedCount > 0) ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: _giveSecondChanceToRejected,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFFFB74D),
+                    side: const BorderSide(
+                      color: Color(0xFFFFB74D),
+                      width: 1.2,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  icon: const Icon(Icons.history_rounded, size: 20),
+                  label: Text(
+                    'SEGUNDA OPORTUNIDAD ($rejectedCount DESCARTADOS)',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
