@@ -326,10 +326,12 @@ class _StudioViewState extends State<StudioView> {
           const SizedBox(width: 8),
         ],
       ),
-      body: widget.error != null
-          ? _preview(context)
-          : (selected == null
-              ? _buildAllDoneView(context)
+      body: selected == null
+          ? (widget.error != null
+              ? _preview(context)
+              : _buildAllDoneView(context))
+          : (widget.error != null
+              ? _buildErrorView(context, selected)
               : Stack(
               fit: StackFit.expand,
               children: [
@@ -413,6 +415,211 @@ class _StudioViewState extends State<StudioView> {
                 ),
               ],
             )),
+    );
+  }
+
+  Widget _buildErrorView(BuildContext context, StudioVisualItem selected) {
+    final problem = widget.error ?? 'Error desconocido';
+    final colors = Theme.of(context).colorScheme;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity case final double velocity) {
+          if (velocity < -250) {
+            _goToNextVisual();
+          } else if (velocity > 250) {
+            _goToPreviousVisual();
+          }
+        }
+      },
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+              decoration: BoxDecoration(
+                color: const Color(0xFF162521).withValues(alpha: 0.96),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: const Color(0xFFFF453A).withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black54,
+                    blurRadius: 30,
+                    offset: Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: colors.error.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.error_outline_rounded,
+                      color: colors.error,
+                      size: 38,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    selected.name,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  if (selected.description.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      selected.description,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.white70,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    constraints: const BoxConstraints(maxHeight: 160),
+                    child: SingleChildScrollView(
+                      child: SelectableText(
+                        problem,
+                        textAlign: TextAlign.left,
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 11,
+                          color: Colors.white70,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF453A),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    onPressed: () {
+                      widget.onCurationChanged?.call(
+                        selected.id,
+                        VisualCurationStatus.rejected,
+                      );
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('✕ "${selected.name}" descartado.'),
+                          duration: const Duration(seconds: 2),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                      _advanceAfterCuration(selected.id);
+                    },
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    label: const Text(
+                      'DESCARTAR ESTE VISUAL',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white70,
+                          side: const BorderSide(color: Colors.white24),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _goToPreviousVisual,
+                        icon: const Icon(Icons.arrow_back_rounded, size: 16),
+                        label: const Text('Anterior'),
+                      ),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white70,
+                          side: const BorderSide(color: Colors.white24),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _goToNextVisual,
+                        icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                        label: const Text('Siguiente'),
+                      ),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white70,
+                          side: const BorderSide(color: Colors.white24),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () => _showCurationSheet(context),
+                        icon: const Icon(Icons.format_list_bulleted_rounded, size: 16),
+                        label: const Text('Lista'),
+                      ),
+                      IconButton(
+                        tooltip: 'Recargar visual',
+                        onPressed: widget.loading ? null : widget.onReload,
+                        icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 

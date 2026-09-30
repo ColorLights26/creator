@@ -100,48 +100,71 @@ class Visual final : public Scene {
       c.rect({x, y, 8.0f + float((i * 7) % 26), 18.0f + float((i * 13) % 54)}, add);
     }
 
-    // Ciudad en dos pasadas: normal y reflejo mojado invertido.
+    // 1. Ciudad en capas (sin clip innecesario).
     for (size_t li = 0; li < layers.size(); li++) {
       const Layer& L = layers[li];
       float period = std::max(w, 1.0f);
       float off = std::fmod(t * L.speed, period);
       float alpha = 0.35f + L.depth * 0.65f;
-      for (int pass = 0; pass < 2; pass++) {
-        c.save();
-        Path clip;
-        if (pass == 0) clip.rect({0, 0, w, horizon});
-        else {
-          clip.rect({0, horizon, w, h - horizon});
-          c.clip(clip);
-          c.translate(0, horizon);
-          c.scale(1, -0.42f);
-          c.translate(0, -horizon);
-        }
-        if (pass == 0) c.clip(clip);
-        for (int rep = 0; rep < 2; rep++) {
-          float dx = -off + float(rep) * period;
-          Path body;
-          for (const auto& b : L.blds)
-            body.rect({dx + b.x, L.height - b.h, b.w - 2.0f, b.h});
-          Paint fill;
-          fill.color = {L.shade / 255.0f, (L.shade + 3.0f) / 255.0f,
-            (L.shade + 10.0f) / 255.0f, pass == 0 ? alpha : alpha * 0.2f};
-          c.path(body, fill);
-          if (!L.wins.empty()) {
-            std::vector<Vec2> win;
-            win.reserve(L.wins.size() * 2);
-            for (const auto& p : L.wins) {
-              win.push_back({dx + p.x, p.y});
-              win.push_back({dx + p.x, p.y});
-            }
-            Paint wp; wp.blend = Blend::plus;
-            wp.color = {1, 0.851f, 0.627f, (pass == 0 ? 0.5f : 0.1f) * alpha * boost};
-            c.points(win, 1.7f, wp);
+      for (int rep = 0; rep < 2; rep++) {
+        float dx = -off + float(rep) * period;
+        Path body;
+        for (const auto& b : L.blds)
+          body.rect({dx + b.x, L.height - b.h, b.w - 2.0f, b.h});
+        Paint fill;
+        fill.color = {L.shade / 255.0f, (L.shade + 3.0f) / 255.0f,
+          (L.shade + 10.0f) / 255.0f, alpha};
+        c.path(body, fill);
+        if (!L.wins.empty()) {
+          std::vector<Vec2> win;
+          win.reserve(L.wins.size() * 2);
+          for (const auto& p : L.wins) {
+            win.push_back({dx + p.x, p.y});
+            win.push_back({dx + p.x, p.y});
           }
+          Paint wp; wp.blend = Blend::plus;
+          wp.color = {1, 0.851f, 0.627f, 0.5f * alpha * boost};
+          c.points(win, 1.7f, wp);
         }
-        c.restore();
       }
     }
+
+    // 2. Reflejo mojado invertido (un solo clip para todas las capas combinadas).
+    c.save();
+    Path refClip;
+    refClip.rect({0, horizon, w, h - horizon});
+    c.clip(refClip);
+    c.translate(0, horizon);
+    c.scale(1, -0.42f);
+    c.translate(0, -horizon);
+    for (size_t li = 0; li < layers.size(); li++) {
+      const Layer& L = layers[li];
+      float period = std::max(w, 1.0f);
+      float off = std::fmod(t * L.speed, period);
+      float alpha = (0.35f + L.depth * 0.65f) * 0.2f;
+      for (int rep = 0; rep < 2; rep++) {
+        float dx = -off + float(rep) * period;
+        Path body;
+        for (const auto& b : L.blds)
+          body.rect({dx + b.x, L.height - b.h, b.w - 2.0f, b.h});
+        Paint fill;
+        fill.color = {L.shade / 255.0f, (L.shade + 3.0f) / 255.0f,
+          (L.shade + 10.0f) / 255.0f, alpha};
+        c.path(body, fill);
+        if (!L.wins.empty()) {
+          std::vector<Vec2> win;
+          win.reserve(L.wins.size() * 2);
+          for (const auto& p : L.wins) {
+            win.push_back({dx + p.x, p.y});
+            win.push_back({dx + p.x, p.y});
+          }
+          Paint wp; wp.blend = Blend::plus;
+          wp.color = {1, 0.851f, 0.627f, 0.1f * (0.35f + L.depth * 0.65f) * boost};
+          c.points(win, 1.7f, wp);
+        }
+      }
+    }
+    c.restore();
 
     // Niebla en el horizonte.
     float fogTop = horizon - h * 0.18f;

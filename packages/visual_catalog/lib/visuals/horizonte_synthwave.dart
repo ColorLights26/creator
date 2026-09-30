@@ -18,14 +18,19 @@ class Visual final : public Scene {
     return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
   }
  public:
+  Visual() {
+    reset(0);
+  }
   void reset(uint32_t seed) override {
-    (void)seed; ridge.clear(); pulse = 0;
+    (void)seed;
+    pulse = 0;
+    ridge.resize(30);
+    for (int i = 0; i < 30; i++)
+      ridge[i] = (vnoise(float(i) * 0.4f, 1.0f) * 0.5f + vnoise(float(i) * 0.9f, 7.0f) * 0.5f);
   }
   void update(const Frame& f) override {
     if (ridge.size() != 30) {
-      ridge.resize(30);
-      for (int i = 0; i < 30; i++)
-        ridge[i] = (vnoise(float(i) * 0.4f, 1.0f) * 0.5f + vnoise(float(i) * 0.9f, 7.0f) * 0.5f);
+      reset(0);
     }
     for (const auto& band : f.music.events)
       for (const auto& e : band) pulse += e.strength;
@@ -57,8 +62,10 @@ class Visual final : public Scene {
     }
     c.restore();
     Path mtn; mtn.moveTo(0, hz);
-    for (int i = 0; i < 30; i++)
-      mtn.lineTo(float(i) / 29.0f * w, hz - ridge[i] * h * 0.16f);
+    if (ridge.size() == 30) {
+      for (int i = 0; i < 30; i++)
+        mtn.lineTo(float(i) / 29.0f * w, hz - ridge[i] * h * 0.16f);
+    }
     mtn.lineTo(w, hz); mtn.close();
     Paint mfill; mfill.color = Color::argb(0xff0d0020);
     c.path(mtn, mfill);
