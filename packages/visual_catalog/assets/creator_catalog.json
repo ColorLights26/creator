@@ -50,8 +50,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "2498f62f12e6ec4f5cc848b05d0641bfdec3c6d9753a437eeb3ebb9161ee0dcd",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "38763a2203a27a938e90d6f0e8d6435ec2670d84571a3f3686839d23ed642fbb",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -83,8 +83,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "37d2111d34f061313c9f5088df64e676fa10f853c1cdbfd6948acc3f8081e0e7",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "ceb0285d368d084f8a9c3255a2aa1b93dce6454b36ea8e42779ed97b59cb9894",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -118,11 +118,11 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "87b022997d55f22c3f2be28e0575174af16557203daaadfebdfda89415a1f7bd",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "1ec3ac6add2695e6d7c7e2e5650b2364c6ab36b5b8248d854d2448cd0b0917e1",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {
           "plasma": {
-            "compilerHash": "de4da9d62f27e93e9a40f458b2158a12c770ca8449189f8af4b41fe79a13a0b8",
+            "compilerHash": "a7f4564617f81a9f3772fb568e1e7d353bb9ed736eea2f1842e29a843e8a232c",
             "asset": "packages/visual_catalog/assets/native/campo_plasma_plasma.iplr",
             "assetHash": "6c2cc27d22e73d9ce0c9971a8dc77be740c13a2a4bc1d7e84694f7e10cddbc01",
             "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct campo_plasma_plasma_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct campo_plasma_plasma_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment campo_plasma_plasma_fragment_main_out campo_plasma_plasma_fragment_main(campo_plasma_plasma_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float& uTime [[buffer(1)]], constant float& uBass [[buffer(2)]])\n{\n    campo_plasma_plasma_fragment_main_out out = {};\n    float2 _41 = ((in._fragCoord / uSize) - float2(0.5)) * float2(uSize.x / uSize.y, 1.0);\n    float _53 = 1.0 + (fast::clamp(uBass, 0.0, 1.0) * 0.449999988079071044921875);\n    float _56 = _41.x;\n    float _65 = _41.y;\n    float _110 = fast::clamp((((((sin((_56 * 6.0) + (uTime * 0.89999997615814208984375)) + sin((_65 * 5.0) - (uTime * 1.10000002384185791015625))) + sin(((_56 + _65) * 4.0) + (uTime * 0.60000002384185791015625))) + (sin((length(_41) * 8.0) - (uTime * 1.60000002384185791015625)) * _53)) + 3.0) + _53) / (6.0 + (2.0 * _53)), 0.0, 1.0);\n    out.fragColor = float4(mix(mix(mix(float3(0.0, 0.070000000298023223876953125, 0.119999997317790985107421875), float3(0.0, 0.7599999904632568359375, 0.699999988079071044921875), float3(smoothstep(0.0, 0.4000000059604644775390625, _110))), float3(1.0, 0.85000002384185791015625, 0.23999999463558197021484375), float3(smoothstep(0.4000000059604644775390625, 0.699999988079071044921875, _110))), float3(1.0, 0.180000007152557373046875, 0.730000019073486328125), float3(smoothstep(0.699999988079071044921875, 1.0, _110))), 1.0);\n    return out;\n}\n\n",
@@ -155,6 +155,28 @@
       }
     },
     {
+      "id": "ciber_reticula",
+      "name": "Ciber Retícula 3D",
+      "programId": "creator_ciber_reticula",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278519064,
+        4294131096,
+        4281917951,
+        4294958848
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.1
+      },
+      "shaderSource": "vec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.0;\n\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float energy = clamp(f.energy, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n  float flow = clamp(f.flow, 0.0, 1.0);\n\n  float t = f.time * f.speed * 0.5;\n\n  float horizonY = -0.05;\n  vec3 col = vec3(0.0);\n\n  // Background deep sky gradient\n  vec3 skyTop = vec3(0.02, 0.02, 0.08);\n  vec3 skyHorizon = vec3(0.35, 0.05, 0.35);\n  float skyGradient = smoothstep(horizonY, 1.2, p.y);\n  col = mix(skyHorizon, skyTop, skyGradient);\n\n  // Retro horizon glowing synth sun\n  vec2 sunPos = vec2(0.0, horizonY + 0.32);\n  float sunDist = length(p - sunPos);\n  float sunRadius = 0.38 + 0.05 * bass;\n  if (p.y > horizonY) {\n    if (sunDist < sunRadius) {\n      // Horizontal laser stripes cut through the sun\n      float sunStripe = sin(p.y * 36.0);\n      float stripeMask = smoothstep(0.2, 0.4, sunStripe);\n      if (p.y < sunPos.y) {\n        stripeMask = mix(1.0, stripeMask, smoothstep(sunPos.y - sunRadius, sunPos.y, p.y));\n      } else {\n        stripeMask = 1.0;\n      }\n      vec3 sunTopCol = vec3(1.0, 0.9, 0.2);\n      vec3 sunBotCol = vec3(1.0, 0.15, 0.55);\n      float sunY = (p.y - (sunPos.y - sunRadius)) / (sunRadius * 2.0);\n      vec3 sunColor = mix(sunBotCol, sunTopCol, sunY);\n      col = mix(col, sunColor, stripeMask);\n    }\n  }\n\n  // Soft atmospheric sun corona glow\n  float sunGlow = (0.04 + 0.06 * bass) / (sunDist * sunDist * 10.0 + 0.1);\n  col += vec3(1.0, 0.25, 0.6) * sunGlow;\n\n  // Infinite Perspective Cyber Grid (below horizon)\n  if (p.y < horizonY) {\n    // 3D ray projection onto the ground plane\n    float py = horizonY - p.y;\n    float depth = 1.0 / (py + 0.03);\n\n    // Ground plane coordinates (x: sideways, z: forward depth)\n    float worldX = p.x * depth * 0.85;\n    float worldZ = depth * 1.5 + t * (2.5 + 2.5 * energy);\n\n    // Topographical terrain elevation modulated by sound waves\n    float mountainFreq = worldX * 0.35;\n    float mountainH = sin(mountainFreq) * cos(worldZ * 0.15) * (0.8 + 0.5 * flow);\n    // Shockwave ripple surging from the beat\n    float ripple = sin(worldZ * 0.8 - t * 4.5) * (0.3 + 0.8 * bass);\n    worldX += mountainH * 0.2;\n\n    // Grid lines with antialiased inverse-distance glow\n    float gridX = abs(fract(worldX) - 0.5) * 2.0;\n    float gridZ = abs(fract(worldZ * 0.4) - 0.5) * 2.0;\n\n    float lineX = 1.0 - smoothstep(0.0, 0.08 * (1.0 + depth * 0.05), gridX);\n    float lineZ = 1.0 - smoothstep(0.0, 0.08 * (1.0 + depth * 0.05), gridZ);\n\n    float gridLines = max(lineX, lineZ);\n    // Sparkle points at grid vertices\n    float vertices = pow(lineX * lineZ, 0.5) * (1.0 + 3.0 * spark);\n\n    // Grid color ramp: Neon cyan near, hot magenta towards the horizon\n    float fog = smoothstep(22.0, 2.0, depth);\n    vec3 nearColor = vec3(0.15, 0.95, 1.0);\n    vec3 farColor = vec3(1.0, 0.15, 0.75);\n    vec3 gridColor = mix(farColor, nearColor, fog);\n\n    vec3 groundSurface = gridColor * (gridLines * 1.2 + vertices * 2.0);\n    // Dark metallic reflective ground under the grid lines\n    vec3 groundBase = vec3(0.015, 0.01, 0.03) + sunGlow * vec3(0.2, 0.05, 0.15);\n\n    vec3 finalGround = groundBase + groundSurface;\n    col = mix(skyHorizon, finalGround, fog);\n  }\n\n  // Horizon laser separator line\n  float horizonLine = exp(-abs(p.y - horizonY) * 65.0) * (0.6 + 0.8 * bass);\n  col += vec3(0.3, 0.9, 1.0) * horizonLine;\n\n  // Soft tone mapping and subtle vignette\n  col = col / (col + vec3(0.85));\n  float vignette = 1.0 - smoothstep(0.6, 1.5, length(p));\n  col *= vignette;\n\n  return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);\n}\n"
+    },
+    {
       "id": "constelacion_viva",
       "name": "Constelación Táctil",
       "programId": "creator_constelacion_viva",
@@ -181,8 +203,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "fd435e27ce54ba908ed667fd2b36a18b3a7215fcff1864ea5d0958ec9c85f615",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "cd3b54813e2d75311309f6a6a68dde868b069def0c70674e26dae516181fe066",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -214,11 +236,33 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "18788e6fa48194d3cb74c5c4efcf277dd817e088f072204b261f5c48c04e67b8",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "8254beef1fa138ed55e9c09d8f4286fbb3be49544b725492e91f5c230a31a4bd",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
+    },
+    {
+      "id": "cristal_prismatico",
+      "name": "Cristal Prismático",
+      "programId": "creator_cristal_prismatico",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278519058,
+        4281917951,
+        4294131096,
+        4294958848
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.2
+      },
+      "shaderSource": "vec2 rotate2D(vec2 p, float a) {\n  float c = cos(a);\n  float s = sin(a);\n  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);\n}\n\nfloat crystalFacet(vec2 p, float size, float t, float bass) {\n  vec2 q = abs(p);\n  // Octahedral and dodecahedral folding planes\n  float d1 = dot(q, normalize(vec2(1.0, 1.0))) - size;\n  float d2 = dot(q, normalize(vec2(1.732, 1.0))) - size;\n  float d3 = dot(q, normalize(vec2(1.0, 1.732))) - size;\n  float d4 = max(q.x, q.y) - size * 0.92;\n  return max(max(d1, d2), max(d3, d4));\n}\n\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;\n\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float energy = clamp(f.energy, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n  float flow = clamp(f.flow, 0.0, 1.0);\n\n  float t = f.time * f.speed * 0.42;\n\n  vec3 col = vec3(0.0);\n  float crystalBaseSize = 0.52 + 0.08 * bass;\n\n  // 3-channel Chromatic Dispersion (Abbe number split)\n  for (int ch = 0; ch < 3; ch++) {\n    float dispersion = float(ch - 1) * (0.016 + 0.035 * spark);\n    vec2 cp = p * (1.0 + dispersion);\n\n    // Slowly rotating crystal body\n    vec2 rotP = rotate2D(cp, t * 0.35 + bass * 0.25);\n\n    // External crystal facets\n    float dExt = crystalFacet(rotP, crystalBaseSize, t, bass);\n    float edgeGlow = (0.018 + 0.025 * spark) / (abs(dExt) * 18.0 + 0.008);\n\n    // Internal refracted layers / nested smaller crystal shells\n    vec2 innerP1 = rotate2D(rotP * 1.55, -t * 0.55 + float(ch) * 0.2);\n    float dInt1 = crystalFacet(innerP1, crystalBaseSize * 0.85, t, bass);\n    float innerGlow1 = (0.012 + 0.02 * bass) / (abs(dInt1) * 22.0 + 0.012);\n\n    vec2 innerP2 = rotate2D(rotP * 2.4, t * 0.75 + float(ch) * 0.4);\n    float dInt2 = crystalFacet(innerP2, crystalBaseSize * 0.7, t, bass);\n    float innerGlow2 = (0.008 + 0.015 * energy) / (abs(dInt2) * 28.0 + 0.015);\n\n    // Caustic light rays radiating through the crystal faces\n    float angle = atan(rotP.y / (rotP.x + 0.00001)) + (rotP.x < 0.0 ? 3.14159 : 0.0);\n    float causticRays = pow(abs(cos(angle * 6.0 + t * 0.8)), 8.0) * (0.3 + 0.7 * bass);\n    float rayFalloff = exp(-length(cp) * 2.2);\n    float caustics = causticRays * rayFalloff;\n\n    // Center radiant hyper-core\n    float core = (0.08 + 0.32 * bass) / (length(cp) * length(cp) * 16.0 + 0.12);\n\n    // Rainbow spectral palette\n    vec3 palColor;\n    if (ch == 0) {\n      palColor = vec3(1.0, 0.15, 0.45); // Ruby / Magenta\n    } else if (ch == 1) {\n      palColor = vec3(0.15, 1.0, 0.65); // Emerald / Cyan\n    } else {\n      palColor = vec3(0.25, 0.55, 1.0); // Sapphire / Violet\n    }\n\n    float channelTotal = (edgeGlow * 0.45 + innerGlow1 * 0.35 + innerGlow2 * 0.25 + caustics * 0.5 + core * 0.7);\n\n    col += palColor * channelTotal;\n  }\n\n  // Specular facet glints (sharp diamond flare)\n  vec2 flareP = rotate2D(p, t * 0.35);\n  float starX = exp(-abs(flareP.x) * 45.0) * exp(-abs(flareP.y) * 4.0);\n  float starY = exp(-abs(flareP.y) * 45.0) * exp(-abs(flareP.x) * 4.0);\n  float diamondFlare = (starX + starY) * (0.2 + 1.8 * spark);\n  col += vec3(1.0, 0.98, 0.92) * diamondFlare;\n\n  // Background velvet depth and cinematic vignette\n  vec3 bg = vec3(0.012, 0.015, 0.03) * (1.0 - 0.4 * length(p));\n  col = mix(bg, col, smoothstep(0.0, 0.15, length(col)));\n\n  // Soft tone mapping\n  col = col / (col + vec3(0.88));\n  float vignette = 1.0 - smoothstep(0.45, 1.45, length(p));\n  col *= vignette;\n\n  return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);\n}\n"
     },
     {
       "id": "cromo_liquido",
@@ -249,11 +293,11 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "11628125d64b5bbceb135532c2f73d7b4e6422d8d71826141119f0bd35cedb9c",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "6ba3b4ddbfc35d6ef3d83ee7f15dbf4f51775610f229d741bd896c59a89dbe35",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {
           "chrome": {
-            "compilerHash": "2eb8c10b2a22980fce343aaf7713074975bbd029020d0ac12814bba420ba9d59",
+            "compilerHash": "8742e779b7e1a5ca68a7739c65b340b7b04fa28a2a03fccaff5dfb8efec6cd69",
             "asset": "packages/visual_catalog/assets/native/cromo_liquido_chrome.iplr",
             "assetHash": "a31bc7a7c4f5f8cfbb4dc4f4662b7ddddace90fe6a43d04c550a5846cc7b850b",
             "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct cromo_liquido_chrome_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct cromo_liquido_chrome_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment cromo_liquido_chrome_fragment_main_out cromo_liquido_chrome_fragment_main(cromo_liquido_chrome_fragment_main_in in [[stage_in]], constant float& uBass [[buffer(2)]], constant float& uEnergy [[buffer(3)]], constant float& uGlow [[buffer(4)]], constant float2& uBlob0 [[buffer(5)]], constant float& uRad0 [[buffer(6)]], constant float2& uBlob1 [[buffer(7)]], constant float& uRad1 [[buffer(8)]], constant float2& uBlob2 [[buffer(9)]], constant float& uRad2 [[buffer(10)]], constant float2& uBlob3 [[buffer(11)]], constant float& uRad3 [[buffer(12)]], constant float2& uBlob4 [[buffer(13)]], constant float& uRad4 [[buffer(14)]], constant float2& uBlob5 [[buffer(15)]], constant float& uRad5 [[buffer(16)]], constant float2& uBlob6 [[buffer(17)]], constant float& uRad6 [[buffer(18)]])\n{\n    cromo_liquido_chrome_fragment_main_out out = {};\n    float2 _33 = in._fragCoord - uBlob0;\n    float2 _50 = in._fragCoord - uBlob1;\n    float2 _66 = in._fragCoord - uBlob2;\n    float2 _82 = in._fragCoord - uBlob3;\n    float2 _98 = in._fragCoord - uBlob4;\n    float2 _114 = in._fragCoord - uBlob5;\n    float2 _130 = in._fragCoord - uBlob6;\n    float _148 = ((((((((uRad0 * uRad0) / (dot(_33, _33) + 24.0)) + ((uRad1 * uRad1) / (dot(_50, _50) + 24.0))) + ((uRad2 * uRad2) / (dot(_66, _66) + 24.0))) + ((uRad3 * uRad3) / (dot(_82, _82) + 24.0))) + ((uRad4 * uRad4) / (dot(_98, _98) + 24.0))) + ((uRad5 * uRad5) / (dot(_114, _114) + 24.0))) + ((uRad6 * uRad6) / (dot(_130, _130) + 24.0))) * (0.550000011920928955078125 * (1.0 + (uBass * 0.3499999940395355224609375)));\n    float _156 = fast::clamp(_148 / (1.0 + _148), 0.0, 1.0);\n    float3 _286;\n    if (_156 < 0.1599999964237213134765625)\n    {\n        _286 = mix(float3(0.01200000010430812835693359375, 0.0, 0.046999998390674591064453125), float3(0.078000001609325408935546875, 0.0390000008046627044677734375, 0.2269999980926513671875), float3(_156 * 6.25));\n    }\n    else\n    {\n        float3 _287;\n        if (_156 < 0.3300000131130218505859375)\n        {\n            _287 = mix(float3(0.078000001609325408935546875, 0.0390000008046627044677734375, 0.2269999980926513671875), float3(0.231000006198883056640625, 0.071000002324581146240234375, 0.62699997425079345703125), float3((_156 - 0.1599999964237213134765625) * 5.8823528289794921875));\n        }\n        else\n        {\n            float3 _288;\n            if (_156 < 0.5)\n            {\n                _288 = mix(float3(0.231000006198883056640625, 0.071000002324581146240234375, 0.62699997425079345703125), float3(0.54100000858306884765625, 0.1689999997615814208984375, 0.885999977588653564453125), float3((_156 - 0.3300000131130218505859375) * 5.8823528289794921875));\n            }\n            else\n            {\n                float3 _289;\n                if (_156 < 0.680000007152557373046875)\n                {\n                    _289 = mix(float3(0.54100000858306884765625, 0.1689999997615814208984375, 0.885999977588653564453125), float3(1.0, 0.2430000007152557373046875, 0.647000014781951904296875), float3((_156 - 0.5) * 5.5555553436279296875));\n                }\n                else\n                {\n                    float3 _290;\n                    if (_156 < 0.86000001430511474609375)\n                    {\n                        _290 = mix(float3(1.0, 0.2430000007152557373046875, 0.647000014781951904296875), float3(1.0, 0.819999992847442626953125, 0.953000009059906005859375), float3((_156 - 0.680000007152557373046875) * 5.5555553436279296875));\n                    }\n                    else\n                    {\n                        _290 = mix(float3(1.0, 0.819999992847442626953125, 0.953000009059906005859375), float3(1.0), float3((_156 - 0.86000001430511474609375) * 7.142857074737548828125));\n                    }\n                    _289 = _290;\n                }\n                _288 = _289;\n            }\n            _287 = _288;\n        }\n        _286 = _287;\n    }\n    out.fragColor = float4(fast::clamp((_286 + ((float3(0.550000011920928955078125, 0.449999988079071044921875, 0.60000002384185791015625) * powr(fast::max(0.0, _156 - 0.550000011920928955078125) * 2.2000000476837158203125, 3.0)) * uGlow)) * (0.85000002384185791015625 + (0.300000011920928955078125 * uEnergy)), float3(0.0), float3(1.0)), 1.0);\n    return out;\n}\n\n",
@@ -410,11 +454,11 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "f692045063ed592392aaa84a76e4d3e4bdfdfbe99a4477ec6aea80a9c89a2da6",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "a71972c5f532467ce6fd3a0a6da7ba4a05290a696f15583ddf1bf2decd5939ff",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {
           "julia": {
-            "compilerHash": "f7cbd457b15e66019e8a9b6df381bc6dc80fb50654d7795741e9aa5961dd2407",
+            "compilerHash": "89905460771446e5dfb72bbef37cc4467212fc6a1392781363906b70c455f3fd",
             "asset": "packages/visual_catalog/assets/native/deriva_julia_julia.iplr",
             "assetHash": "4d4372405aeb20cef8cc9118729d77fef6f2c5e7ecb585ba6b41b3b7caaf86db",
             "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct deriva_julia_julia_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct deriva_julia_julia_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment deriva_julia_julia_fragment_main_out deriva_julia_julia_fragment_main(deriva_julia_julia_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float2& uC [[buffer(1)]], constant float& uTime [[buffer(2)]], constant float& uZoom [[buffer(3)]], constant float& uMaxIter [[buffer(4)]])\n{\n    deriva_julia_julia_fragment_main_out out = {};\n    do\n    {\n        float2 _50 = in._fragCoord / uSize;\n        float _212;\n        float2 _213;\n        float _214;\n        _214 = 0.0;\n        _213 = ((_50 * 2.0) - float2(1.0)) * float2(uZoom * (uSize.x / uSize.y), uZoom);\n        _212 = 0.0;\n        float2 _122;\n        float _125;\n        float _127;\n        for (int _211 = 0; _211 < 96; _214 = _127, _213 = _122, _212 = _125, _211++)\n        {\n            if ((float(_211) >= uMaxIter) || (_212 > 6.0))\n            {\n                break;\n            }\n            _122 = float2((_213.x * _213.x) - (_213.y * _213.y), (2.0 * _213.x) * _213.y) + uC;\n            _125 = dot(_122, _122);\n            _127 = _214 + 1.0;\n        }\n        if (_214 >= uMaxIter)\n        {\n            out.fragColor = float4(0.0199999995529651641845703125, 0.014999999664723873138427734375, 0.039999999105930328369140625, 1.0);\n            break;\n        }\n        out.fragColor = float4(fast::clamp(powr((float3(0.5) + (cos(((float3(1.0, 0.89999997615814208984375, 0.800000011920928955078125) * (((_214 - log2(fast::max(9.9999997473787516355514526367188e-05, log2(fast::max(1.00010001659393310546875, _212))))) * 0.01200000010430812835693359375) + (uTime * 0.0199999995529651641845703125))) + float3(0.0199999995529651641845703125, 0.180000007152557373046875, 0.3400000035762786865234375)) * 6.28318023681640625) * 0.5)) * smoothstep(0.949999988079071044921875, 0.25, length(_50 - float2(0.5))), float3(0.85000002384185791015625)), float3(0.0), float3(1.0)), 1.0);\n        break;\n    } while(false);\n    return out;\n}\n\n",
@@ -459,6 +503,50 @@
       }
     },
     {
+      "id": "flor_cosmica",
+      "name": "Flor Cósmica",
+      "programId": "creator_flor_cosmica",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278714900,
+        4294958848,
+        4294131096,
+        4281917951
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.2
+      },
+      "shaderSource": "vec2 rotate2D(vec2 p, float a) {\n  float c = cos(a);\n  float s = sin(a);\n  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);\n}\n\nfloat getAngle(vec2 p) {\n  float r = length(p);\n  if (r < 0.00001) { return 0.0; }\n  float a = asin(clamp(p.y / r, -1.0, 1.0));\n  if (p.x < 0.0) {\n    a = 3.14159265 - a;\n  }\n  if (a < 0.0) {\n    a = a + 6.2831853;\n  }\n  return a;\n}\n\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;\n\n  float r = length(p);\n  float a = getAngle(p);\n\n  float beat = clamp(f.pulse, 0.0, 1.0);\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n  float flow = clamp(f.flow, 0.0, 1.0);\n  float t = f.time * 0.42 * f.speed;\n\n  // Background deep sacred cosmic aura\n  vec3 bgCol = mix(vec3(0.02, 0.008, 0.06), vec3(0.06, 0.015, 0.14), r * 0.8);\n  bgCol = bgCol + vec3(0.1, 0.02, 0.18) * sin(r * 4.0 - t * 1.5) * 0.3;\n\n  vec3 col = bgCol;\n\n  // Fibonacci Petal Ring 1 (Inner 5 petals)\n  float a1 = a + t * 0.6;\n  float pet1 = cos(5.0 * a1);\n  float r1 = 0.18 + 0.08 * pet1 + bass * 0.06;\n  float d1 = abs(r - r1);\n  float edge1 = 0.012 / (d1 + 0.012);\n  vec3 col1 = mix(vec3(1.0, 0.85, 0.2), vec3(1.0, 0.25, 0.6), 0.5 + 0.5 * pet1);\n  col = col + col1 * edge1 * 0.7;\n\n  // Fibonacci Petal Ring 2 (Middle 8 petals, counter-rotating)\n  float a2 = a - t * 0.4;\n  float pet2 = cos(8.0 * a2);\n  float r2 = 0.35 + 0.12 * pet2 + beat * 0.08;\n  float d2 = abs(r - r2);\n  float edge2 = 0.015 / (d2 + 0.018);\n  vec3 col2 = mix(vec3(0.2, 0.85, 1.0), vec3(0.9, 0.1, 0.7), 0.5 + 0.5 * pet2);\n  col = col + col2 * edge2 * 0.65;\n\n  // Fibonacci Petal Ring 3 (Outer 13 petals)\n  float a3 = a + t * 0.25;\n  float pet3 = cos(13.0 * a3);\n  float r3 = 0.58 + 0.15 * pet3 + bass * 0.1;\n  float d3 = abs(r - r3);\n  float edge3 = 0.018 / (d3 + 0.022);\n  vec3 col3 = mix(vec3(0.95, 0.3, 0.8), vec3(1.0, 0.7, 0.2), 0.5 + 0.5 * pet3);\n  col = col + col3 * edge3 * 0.6;\n\n  // Fibonacci Petal Ring 4 (Ethereal 21 filaments)\n  float a4 = a - t * 0.15;\n  float pet4 = cos(21.0 * a4);\n  float r4 = 0.82 + 0.14 * pet4 + beat * 0.06;\n  float d4 = abs(r - r4);\n  float edge4 = 0.012 / (d4 + 0.025);\n  vec3 col4 = mix(vec3(0.4, 0.3, 1.0), vec3(0.2, 0.95, 0.8), 0.5 + 0.5 * pet4);\n  col = col + col4 * edge4 * (0.4 + 0.3 * spark);\n\n  // Sacred golden spiral rays\n  float spiral1 = sin(log(r + 0.02) * 5.0 - a * 3.0 + t * 1.2);\n  float spiral2 = sin(log(r + 0.02) * 5.0 + a * 3.0 - t * 1.2);\n  float spiralGrid = smoothstep(0.85, 0.98, spiral1) + smoothstep(0.85, 0.98, spiral2);\n  col = col + vec3(1.0, 0.8, 0.3) * spiralGrid * 0.35 * exp(-r * 1.8);\n\n  // Radiant Golden Core / Lotus Stamen\n  float coreDist = r;\n  float coreGlow = 0.04 / (coreDist * coreDist * 6.0 + 0.04);\n  float corePulse = 1.0 + 0.4 * sin(t * 4.0) + bass * 0.8;\n  vec3 coreColor = mix(vec3(1.0, 0.95, 0.5), vec3(1.0, 0.4, 0.1), clamp(r * 5.0, 0.0, 1.0));\n  col = col + coreColor * coreGlow * corePulse * 1.2;\n\n  // Stardust / Pollen particles swirling around the flower\n  for (int i = 0; i < 6; i++) {\n    float fi = float(i);\n    float pAngle = fi * 1.047 + t * (0.8 + 0.2 * fi);\n    float pRad = 0.25 + 0.15 * sin(fi * 2.1 + t * 1.5) + bass * 0.1;\n    vec2 pPos = vec2(cos(pAngle), sin(pAngle)) * pRad;\n    float pDist = length(p - pPos);\n    float pGlow = 0.003 / (pDist * pDist * 25.0 + 0.003);\n    col = col + vec3(1.0, 0.9, 0.4) * pGlow * (0.8 + 0.8 * spark);\n  }\n\n  // Soft tone mapping and cinematic vignette\n  col = col / (col + vec3(0.85));\n  float vig = 1.0 - smoothstep(0.5, 1.5, r);\n  col = col * vig * f.intensity * f.glow;\n\n  return vec4(clamp(col, 0.0, 1.0), 1.0);\n}\n"
+    },
+    {
+      "id": "furia_estelar",
+      "name": "Furia Estelar",
+      "programId": "creator_furia_estelar",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278517760,
+        4294910464,
+        4294940928,
+        4294967278
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.3
+      },
+      "shaderSource": "vec2 rotate2D(vec2 p, float a) {\n  float c = cos(a);\n  float s = sin(a);\n  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);\n}\n\nfloat getAngle(vec2 p) {\n  float r = length(p);\n  if (r < 0.00001) { return 0.0; }\n  float a = asin(clamp(p.y / r, -1.0, 1.0));\n  if (p.x < 0.0) {\n    a = 3.14159265 - a;\n  }\n  if (a < 0.0) {\n    a = a + 6.2831853;\n  }\n  return a;\n}\n\n// Multi-octave convective solar plasma noise\nfloat solarNoise(vec2 p, float t) {\n  float n = 0.0;\n  n = n + sin(p.x * 6.0 + t * 1.2) * cos(p.y * 6.0 - t * 0.9);\n  n = n + sin(p.x * 14.0 - t * 1.8 + p.y * 5.0) * 0.5;\n  n = n + cos(p.y * 24.0 + t * 3.1 - p.x * 10.0) * 0.25;\n  n = n + sin((p.x + p.y) * 36.0 + t * 4.5) * 0.12;\n  return n * 0.53;\n}\n\n// Blackbody thermal incandescent ramp (0=dark vacuum, 1=blinding white)\nvec3 blackbody(float heat) {\n  vec3 col = vec3(0.0);\n  col = mix(col, vec3(0.65, 0.03, 0.0), smoothstep(0.0, 0.32, heat));\n  col = mix(col, vec3(1.0, 0.32, 0.02), smoothstep(0.24, 0.62, heat));\n  col = mix(col, vec3(1.0, 0.88, 0.18), smoothstep(0.52, 0.82, heat));\n  col = mix(col, vec3(1.0, 1.0, 0.98), smoothstep(0.78, 1.05, heat));\n  return col;\n}\n\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;\n\n  float t = f.time * 0.55 * f.speed;\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float beat = clamp(f.pulse, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n\n  float r = length(p);\n  float a = getAngle(p);\n\n  // Stellar core radius with bass pulsation\n  float coreRadius = 0.34 + bass * 0.09 + beat * 0.04;\n\n  // Background deep space with hot ambient nebula dust\n  vec3 col = vec3(0.015, 0.003, 0.008) + vec3(0.14, 0.018, 0.0) * exp(-r * 1.6);\n\n  // Shockwave blast rings propagating outward\n  float wavePhase = mod(r * 2.8 - t * 2.0, 2.0);\n  float shock = exp(-abs(wavePhase - 1.0) * 14.0) * exp(-r * 0.9);\n  col = col + vec3(1.0, 0.45, 0.08) * shock * (0.6 + 0.9 * bass);\n\n  // Solar Prominences / coronal mass ejections (flares radiating outward)\n  float flares = 0.0;\n  for (int i = 0; i < 6; i++) {\n    float fi = float(i);\n    float flareAngle = fi * 1.047 + sin(t * 0.4 + fi * 1.2) * 0.35;\n    float da = abs(mod(a - flareAngle + 3.14159, 6.28318) - 3.14159);\n    float flareDist = abs(r - (coreRadius + 0.18 + 0.16 * sin(t * 2.2 + fi * 2.0) + bass * 0.18));\n    float flareIntensity = exp(-da * 8.5) * exp(-flareDist * 9.0);\n    flares = flares + flareIntensity;\n  }\n  col = col + vec3(1.0, 0.38, 0.06) * flares * 2.0;\n\n  // Ethereal coronal streamers (solar wind filaments)\n  float rays = sin(a * 16.0 + t * 2.2 + sin(r * 6.0 - t * 3.5)) * 0.5 + 0.5;\n  rays = rays * smoothstep(coreRadius * 0.8, 1.3, r) * exp(-r * 2.0);\n  col = col + vec3(1.0, 0.55, 0.12) * rays * (0.8 + 0.8 * beat);\n\n  // Magnetic coronal loops (toroidal magnetic flux arches)\n  for (int m = 0; m < 5; m++) {\n    float fm = float(m);\n    vec2 loopCenter = vec2(cos(fm * 1.256 + t * 0.35), sin(fm * 1.256 + t * 0.35)) * (coreRadius * 0.92);\n    float dLoop = length(p - loopCenter);\n    float loopRadius = 0.13 + 0.05 * sin(t * 1.6 + fm * 1.8);\n    float loopRing = abs(dLoop - loopRadius);\n    float loopGlow = 0.0035 / (loopRing * loopRing * 22.0 + 0.004);\n    col = col + vec3(1.0, 0.75, 0.25) * loopGlow * (0.7 + 0.6 * spark);\n  }\n\n  // Solar photosphere surface with boiling convective granulation\n  if (r < coreRadius * 1.25) {\n    vec2 surfCoord = rotate2D(p, t * 0.18);\n    float granulation = solarNoise(surfCoord * 5.0, t * 1.5);\n    \n    // Radial darkening towards the limb, searing nuclear interior\n    float radialFactor = clamp((coreRadius - r) / coreRadius, 0.0, 1.0);\n    float heat = radialFactor * 0.92 + granulation * 0.32 + bass * 0.35;\n    vec3 sunSurface = blackbody(clamp(heat, 0.0, 1.25));\n\n    // Crisp limb transition with solar atmosphere rim\n    float diskAlpha = smoothstep(coreRadius + 0.02, coreRadius - 0.02, r);\n    col = mix(col, sunSurface, diskAlpha);\n  }\n\n  // Radiant nuclear core glow\n  float coreGlow = 0.06 / (r * r * 8.5 + 0.06);\n  col = col + vec3(1.0, 0.92, 0.75) * coreGlow * (0.9 + 1.1 * bass);\n\n  // High-energy relativistic plasma sparks\n  for (int s = 0; s < 8; s++) {\n    float fs = float(s);\n    float spAngle = fs * 0.785 + t * (1.3 + 0.25 * fs);\n    float spRad = coreRadius + 0.10 + 0.28 * fract(sin(fs * 43.12) * 532.1 + t * 0.45);\n    vec2 spPos = vec2(cos(spAngle), sin(spAngle)) * spRad;\n    float spDist = length(p - spPos);\n    float sparkGlow = 0.002 / (spDist * spDist * 32.0 + 0.002);\n    col = col + vec3(1.0, 0.9, 0.4) * sparkGlow * (1.0 + 1.3 * spark);\n  }\n\n  // Soft tone mapping and subtle vignette\n  col = col / (col + vec3(0.82));\n  float vig = 1.0 - smoothstep(0.5, 1.5, r);\n  col = col * vig * f.intensity * f.glow;\n\n  return vec4(clamp(col, 0.0, 1.0), 1.0);\n}\n"
+    },
+    {
       "id": "galaxy_scene",
       "name": "Spiral Galaxy",
       "programId": "creator_galaxy_scene",
@@ -485,8 +573,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "ad30b0c9f73544c5c00540ae83aa241e74eb59f35d2eee4720378c0b4003723c",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "a629ae0e3fadbd0ad0900b18f97aee0050d25b762259687278bab08bb3f66037",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -518,8 +606,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "755afdef7928c9d2a86ada291aabce52c4095ea2b30ef0bb8c21f573883a1fe6",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "371a48714ee3d890fc6451612113545fa9bfaae41a493f6591c94540bc74afed",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -551,8 +639,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "830f4ad980ef2e114a31ea16b27f27c38992d00dc9532d7447a72110c23b0698",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "b5e75ac1ee5125ff46938cc1101d5959d0967b2e4c81195359aebe3c88be62cc",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -584,8 +672,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "2637db246fa66408b7c80874cd7173b8d14838e5fd8a360ffab7b7f0155a59c6",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "cc2e2ece6c03d3022e943593b87490f2036cef9b68965a0eeae8ec63b2ef6ff3",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -617,8 +705,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "63b4e4877b73f8224a1cc07afef2cd7f75bbfbd72e6a8d37746cc145887d93b4",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "6fad5a52085ee4c971cb249f9ec6e8813e415cf31c0806f7befcef5895f959c4",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -650,8 +738,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "644cc925b2df505c9c1e849f9255eefb9f856207054881acf6ad81300c59f723",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "7f5ff62a602b7cdbd38088e4d03337a3728d0f59cd01b4d4726bc72f2b471bd4",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -683,11 +771,33 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "33ea75aa9002801a71a2e636281e63ced34d095645a4c9bb924fe1b91a962077",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "015447f058dc68b0fd51bde17b0120ebfa7e6c9973cc84e56f67b8fc6ba5470d",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
+    },
+    {
+      "id": "mercurio_liquido",
+      "name": "Mercurio Líquido",
+      "programId": "creator_mercurio_liquido",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278519824,
+        4287146700,
+        4294967295,
+        4281917951
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "shaderSource": "float liquidField(vec2 p, float t, float bass, float spark, float flow) {\n  float r = length(p);\n  // Concentric liquid ripples expanding from center\n  float ripple = sin(r * (14.0 + 3.0 * flow) - t * 3.8) * (0.035 + 0.055 * bass);\n\n  // Cross-interfering droplet orbits\n  vec2 c1 = vec2(sin(t * 0.7) * 0.42, cos(t * 0.8) * 0.35);\n  vec2 c2 = vec2(cos(t * 0.9 + 1.8) * 0.38, sin(t * 0.6) * 0.42);\n  float wave1 = sin(length(p - c1) * 16.0 - t * 4.2) * (0.025 + 0.035 * bass);\n  float wave2 = sin(length(p - c2) * 18.0 - t * 3.6) * (0.020 + 0.030 * spark);\n\n  // High-frequency surface sizzle from spark / hi-hats\n  float sizzle = sin(p.x * 32.0 + t * 4.5) * cos(p.y * 32.0 + t * 4.0) * (0.006 + 0.018 * spark);\n\n  // Base organic dome\n  float dome = exp(-r * r * 2.2) * 0.16;\n\n  return dome + ripple + wave1 + wave2 + sizzle;\n}\n\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.1;\n\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float energy = clamp(f.energy, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n  float flow = clamp(f.flow, 0.0, 1.0);\n\n  float t = f.time * f.speed * 0.48;\n\n  // Surface Normal via finite differences\n  float eps = 0.0035;\n  float hC = liquidField(p, t, bass, spark, flow);\n  float hR = liquidField(p + vec2(eps, 0.0), t, bass, spark, flow);\n  float hU = liquidField(p + vec2(0.0, eps), t, bass, spark, flow);\n\n  vec3 normal = normalize(vec3((hC - hR) / eps, (hC - hU) / eps, 0.32));\n\n  // Environmental reflection vector\n  vec3 view = normalize(vec3(p * 0.22, 1.0));\n  vec3 ref = reflect(-view, normal);\n\n  // Studio lighting environment ramp (chrome horizon, deep velvet zenith)\n  float horizon = smoothstep(-0.25, 0.25, ref.y);\n  float stripe = sin(ref.y * 12.0 + ref.x * 6.0 + t * 0.25);\n  float studioStripe = smoothstep(0.35, 0.75, stripe);\n\n  vec3 deepMetal = vec3(0.02, 0.035, 0.07);\n  vec3 silver = vec3(0.85, 0.90, 0.98);\n  vec3 neonCyan = vec3(0.20, 0.85, 1.0);\n  vec3 neonMagenta = vec3(0.95, 0.20, 0.65);\n\n  vec3 chrome = mix(deepMetal, silver, horizon * 0.8 + studioStripe * 0.25);\n\n  // Directional specular glints\n  vec3 lightDir1 = normalize(vec3(-0.45, 0.7, 0.6));\n  float spec1 = pow(max(dot(ref, lightDir1), 0.0), 36.0) * (1.6 + 2.4 * spark);\n  vec3 lightDir2 = normalize(vec3(0.55, -0.5, 0.55));\n  float spec2 = pow(max(dot(ref, lightDir2), 0.0), 22.0) * (0.8 + 1.4 * bass);\n\n  // Fresnel rim glow with subtle chromatic sheen\n  float fresnel = pow(1.0 - max(dot(normal, view), 0.0), 2.6);\n  vec3 rimColor = mix(neonCyan, neonMagenta, 0.5 + 0.5 * sin(t * 0.35 + p.y * 2.2));\n\n  // Combine chrome surface\n  vec3 surface = chrome + (spec1 + spec2) * vec3(1.0, 0.98, 0.93) + fresnel * rimColor * (0.65 + 0.85 * energy);\n\n  // Smooth dropoff into deep velvet background\n  float fluidAlpha = smoothstep(1.4, 0.85, length(p));\n  vec3 bg = vec3(0.015, 0.02, 0.035) * (1.0 - 0.45 * length(p));\n  vec3 finalColor = mix(bg, surface, fluidAlpha);\n\n  return vec4(clamp(finalColor * f.intensity * f.glow, 0.0, 1.0), 1.0);\n}\n"
     },
     {
       "id": "neon_lluvia",
@@ -716,11 +826,122 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "b2ceee7f6c30e034a10ed09b4f4ff1c1c8884dc20f417a9c2b66d83c76b9702d",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "c6cfb68ba97ab6b0d46faeff813879ebecb32c444c0931056f8dcf3ef6ee0796",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
+    },
+    {
+      "id": "plasma_scene",
+      "name": "Campo de Plasma",
+      "programId": "creator_plasma_scene",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278194975,
+        4278239922,
+        4294957373,
+        4294913977
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 0.8,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  float smoothBass = 0.0f;\n  float smoothEnergy = 0.0f;\n  float smoothSpark = 0.0f;\n  float plasmaTime = 0.0f;\n  float ripplePhase = 0.0f;\n  float colorPhase = 0.0f;\n\n public:\n  void reset(uint32_t) override {\n    smoothBass = 0.0f;\n    smoothEnergy = 0.0f;\n    smoothSpark = 0.0f;\n    plasmaTime = 0.0f;\n    ripplePhase = 0.0f;\n    colorPhase = 0.0f;\n  }\n\n  void update(const Frame& f) override {\n    float dt = float(f.delta);\n    if (dt > 0.1f) dt = 0.1f;\n\n    // Filtro exponencial asimétrico para respuesta musical orgánica sin tirones\n    float targetBass = f.music.active ? f.music.bass : 0.0f;\n    float targetEnergy = f.music.active ? f.music.energy : 0.0f;\n    float targetSpark = f.music.active ? f.music.spark : 0.0f;\n\n    float bassRate = targetBass > smoothBass ? 16.0f : 4.5f;\n    smoothBass += (targetBass - smoothBass) * (1.0f - std::exp(-dt * bassRate));\n    smoothEnergy += (targetEnergy - smoothEnergy) * (1.0f - std::exp(-dt * 5.0f));\n    smoothSpark += (targetSpark - smoothSpark) * (1.0f - std::exp(-dt * 10.0f));\n\n    // Integración continua: la música modula la velocidad de flujo, nunca resetea la fase\n    float speedMod = (1.0f + smoothEnergy * 0.75f + smoothBass * 0.5f) * f.speed;\n    plasmaTime += dt * speedMod * 0.85f;\n    ripplePhase += dt * (1.2f + smoothBass * 2.8f);\n    colorPhase += dt * (0.04f + smoothBass * 0.10f + smoothEnergy * 0.06f);\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    c.material(\"plasma\", {0, 0, f.width, f.height},\n               {plasmaTime, ripplePhase, colorPhase, smoothBass, smoothEnergy, smoothSpark});\n  }\n};\n",
+      "shaderSources": {
+        "plasma": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform float uTime;\nuniform float uRipple;\nuniform float uColorPhase;\nuniform float uBass;\nuniform float uEnergy;\nuniform float uSpark;\nout vec4 fragColor;\n\nvec3 plasmaColor(float x) {\n  float s = fract(x) * 8.0;\n  int i = int(floor(s));\n  float f = fract(s);\n  f = f * f * (3.0 - 2.0 * f);\n\n  vec3 c0 = vec3(0.005, 0.040, 0.120);\n  vec3 c1 = vec3(0.000, 0.380, 0.580);\n  vec3 c2 = vec3(0.000, 0.880, 0.760);\n  vec3 c3 = vec3(0.500, 1.000, 0.380);\n  vec3 c4 = vec3(1.000, 0.860, 0.220);\n  vec3 c5 = vec3(1.000, 0.320, 0.300);\n  vec3 c6 = vec3(0.960, 0.120, 0.680);\n  vec3 c7 = vec3(0.240, 0.030, 0.380);\n\n  vec3 colA = c0;\n  vec3 colB = c1;\n  if (i == 1) { colA = c1; colB = c2; }\n  else if (i == 2) { colA = c2; colB = c3; }\n  else if (i == 3) { colA = c3; colB = c4; }\n  else if (i == 4) { colA = c4; colB = c5; }\n  else if (i == 5) { colA = c5; colB = c6; }\n  else if (i == 6) { colA = c6; colB = c7; }\n  else if (i == 7) { colA = c7; colB = c0; }\n\n  return mix(colA, colB, f);\n}\n\nvoid main() {\n  vec2 uv = FlutterFragCoord().xy / uSize;\n  float aspect = uSize.x / uSize.y;\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 6.5;\n\n  vec2 c1 = vec2(sin(uTime * 0.45), cos(uTime * 0.38)) * 1.5;\n  vec2 c2 = vec2(cos(uTime * 0.33 + 1.8), sin(uTime * 0.52)) * 1.4;\n\n  float d1 = length(p - c1);\n  float d2 = length(p - c2);\n\n  float w1 = sin(p.x * 1.8 + uTime * 1.1);\n  float w2 = sin(p.y * 2.1 + uTime * 0.95);\n  float w3 = sin((p.x + p.y) * 1.5 + uTime * 0.75);\n  float w4 = sin(d1 * 2.8 - uRipple * 2.2);\n  float w5 = sin(d2 * 2.4 - uRipple * 1.7);\n\n  vec2 warp = vec2(w1 + w5 * 0.4, w2 + w4 * 0.4) * (0.45 + uBass * 0.25);\n  float w6 = sin(length(p + warp) * 2.6 - uTime * 1.2);\n\n  float v = (w1 + w2 + w3 + w4 + w5 * 0.8 + w6 * 1.1) / 5.7;\n\n  float phase = v * 0.85 + uColorPhase;\n  vec3 col = plasmaColor(phase);\n\n  float crest = pow(max(0.0, sin(v * 3.14159 * 2.0)), 6.0);\n  vec3 filamentColor = mix(vec3(0.4, 0.8, 1.0), vec3(1.0, 0.9, 0.5), smoothstep(0.0, 1.0, uBass));\n  col += filamentColor * (crest * (0.35 + uBass * 0.45 + uSpark * 0.4));\n\n  col = mix(col, col * col * 1.4, uEnergy * 0.25);\n\n  float vig = 1.0 - smoothstep(0.55, 1.4, length(uv - 0.5) * 1.35);\n  col *= vig;\n\n  fragColor = vec4(col, 1.0);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "44d54245e4d785dd678bc22b0eaea74f5c71b9ff5ff9b86c067ed40fe0f5ecc0",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
+        "materials": {
+          "plasma": {
+            "compilerHash": "5c78a363c73b0e7db77083262d7777d542d5fd8c49bd56a66ca07f2523be8e75",
+            "asset": "packages/visual_catalog/assets/native/plasma_scene_plasma.iplr",
+            "assetHash": "26004046081685a9cfb3f85c342b69dc8ea666bddf40bfdb07726effcd61ffb1",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct plasma_scene_plasma_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct plasma_scene_plasma_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment plasma_scene_plasma_fragment_main_out plasma_scene_plasma_fragment_main(plasma_scene_plasma_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float& uTime [[buffer(1)]], constant float& uRipple [[buffer(2)]], constant float& uColorPhase [[buffer(3)]], constant float& uBass [[buffer(4)]], constant float& uEnergy [[buffer(5)]], constant float& uSpark [[buffer(6)]])\n{\n    plasma_scene_plasma_fragment_main_out out = {};\n    float2 _169 = (in._fragCoord / uSize) - float2(0.5);\n    float2 _174 = (_169 * float2(uSize.x / uSize.y, 1.0)) * 6.5;\n    float _213 = _174.x;\n    float _219 = sin((_213 * 1.7999999523162841796875) + (uTime * 1.10000002384185791015625));\n    float _222 = _174.y;\n    float _229 = sin((_222 * 2.099999904632568359375) + (uTime * 0.949999988079071044921875));\n    float _251 = sin((length(_174 - (float2(sin(uTime * 0.449999988079071044921875), cos(uTime * 0.37999999523162841796875)) * 1.5)) * 2.7999999523162841796875) - (uRipple * 2.2000000476837158203125));\n    float _260 = sin((length(_174 - (float2(cos((uTime * 0.3300000131130218505859375) + 1.7999999523162841796875), sin(uTime * 0.519999980926513671875)) * 1.39999997615814208984375)) * 2.400000095367431640625) - (uRipple * 1.7000000476837158203125));\n    float _304 = ((((_219 + _229) + sin(((_213 + _222) * 1.5) + (uTime * 0.75))) + _251) + (_260 * 0.800000011920928955078125)) + (sin((length(_174 + (float2(_219 + (_260 * 0.4000000059604644775390625), _229 + (_251 * 0.4000000059604644775390625)) * (0.449999988079071044921875 + (uBass * 0.25)))) * 2.599999904632568359375) - (uTime * 1.2000000476837158203125)) * 1.10000002384185791015625);\n    float _400 = fract((_304 * 0.14912281930446624755859375) + uColorPhase) * 8.0;\n    int _403 = int(floor(_400));\n    float _405 = fract(_400);\n    float3 _472;\n    float3 _479;\n    if (_403 == 1)\n    {\n        _479 = float3(0.0, 0.87999999523162841796875, 0.7599999904632568359375);\n        _472 = float3(0.0, 0.37999999523162841796875, 0.579999983310699462890625);\n    }\n    else\n    {\n        float3 _473;\n        float3 _480;\n        if (_403 == 2)\n        {\n            _480 = float3(0.5, 1.0, 0.37999999523162841796875);\n            _473 = float3(0.0, 0.87999999523162841796875, 0.7599999904632568359375);\n        }\n        else\n        {\n            float3 _474;\n            float3 _481;\n            if (_403 == 3)\n            {\n                _481 = float3(1.0, 0.86000001430511474609375, 0.2199999988079071044921875);\n                _474 = float3(0.5, 1.0, 0.37999999523162841796875);\n            }\n            else\n            {\n                float3 _475;\n                float3 _482;\n                if (_403 == 4)\n                {\n                    _482 = float3(1.0, 0.319999992847442626953125, 0.300000011920928955078125);\n                    _475 = float3(1.0, 0.86000001430511474609375, 0.2199999988079071044921875);\n                }\n                else\n                {\n                    float3 _476;\n                    float3 _483;\n                    if (_403 == 5)\n                    {\n                        _483 = float3(0.959999978542327880859375, 0.119999997317790985107421875, 0.680000007152557373046875);\n                        _476 = float3(1.0, 0.319999992847442626953125, 0.300000011920928955078125);\n                    }\n                    else\n                    {\n                        float3 _477;\n                        float3 _484;\n                        if (_403 == 6)\n                        {\n                            _484 = float3(0.23999999463558197021484375, 0.02999999932944774627685546875, 0.37999999523162841796875);\n                            _477 = float3(0.959999978542327880859375, 0.119999997317790985107421875, 0.680000007152557373046875);\n                        }\n                        else\n                        {\n                            bool3 _492 = bool3(_403 == 7);\n                            _484 = select(float3(0.0, 0.37999999523162841796875, 0.579999983310699462890625), float3(0.004999999888241291046142578125, 0.039999999105930328369140625, 0.119999997317790985107421875), _492);\n                            _477 = select(float3(0.004999999888241291046142578125, 0.039999999105930328369140625, 0.119999997317790985107421875), float3(0.23999999463558197021484375, 0.02999999932944774627685546875, 0.37999999523162841796875), _492);\n                        }\n                        _483 = _484;\n                        _476 = _477;\n                    }\n                    _482 = _483;\n                    _475 = _476;\n                }\n                _481 = _482;\n                _474 = _475;\n            }\n            _480 = _481;\n            _473 = _474;\n        }\n        _479 = _480;\n        _472 = _473;\n    }\n    float3 _348 = mix(_472, _479, float3((_405 * _405) * (3.0 - (2.0 * _405)))) + (mix(float3(0.4000000059604644775390625, 0.800000011920928955078125, 1.0), float3(1.0, 0.89999997615814208984375, 0.5), float3(smoothstep(0.0, 1.0, uBass))) * (powr(fast::max(0.0, sin(_304 * 1.1023123264312744140625)), 6.0) * ((0.3499999940395355224609375 + (uBass * 0.449999988079071044921875)) + (uSpark * 0.4000000059604644775390625))));\n    out.fragColor = float4(mix(_348, (_348 * _348) * 1.39999997615814208984375, float3(uEnergy * 0.25)) * (1.0 - smoothstep(0.550000011920928955078125, 1.39999997615814208984375, length(_169) * 1.35000002384185791015625)), 1.0);\n    return out;\n}\n\n",
+            "entryPoint": "plasma_scene_plasma_fragment_main",
+            "floatCount": 8,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uTime",
+                "offset": 2,
+                "count": 1,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uRipple",
+                "offset": 3,
+                "count": 1,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uColorPhase",
+                "offset": 4,
+                "count": 1,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uBass",
+                "offset": 5,
+                "count": 1,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uEnergy",
+                "offset": 6,
+                "count": 1,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uSpark",
+                "offset": 7,
+                "count": 1,
+                "bufferIndex": 6
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
+    },
+    {
+      "id": "portal_cuantico",
+      "name": "Portal Cuántico",
+      "programId": "creator_portal_cuantico",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278519061,
+        4281917951,
+        4294131096,
+        4294958848
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.2
+      },
+      "shaderSource": "vec2 rotate2D(vec2 p, float a) {\n  float c = cos(a);\n  float s = sin(a);\n  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);\n}\n\nvec3 paletteCos(float t, vec3 a, vec3 b, vec3 c, vec3 d) {\n  return a + b * cos(6.28318 * (c * t + d));\n}\n\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;\n\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float energy = clamp(f.energy, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n  float flow = clamp(f.flow, 0.0, 1.0);\n\n  float t = f.time * f.speed * 0.42;\n  vec3 col = vec3(0.0);\n\n  // Split into 3 chromatic channels for subtle optical dispersion\n  for (int ch = 0; ch < 3; ch++) {\n    float dispersion = float(ch - 1) * (0.012 + 0.022 * spark);\n    vec2 cp = p * (1.0 + dispersion);\n\n    float r = length(cp);\n    // Logarithmic tunnel coordinate moving into the screen\n    float z = 1.0 / (r + 0.06);\n    float tunnelDepth = z * 0.55 - t * (1.1 + 0.9 * energy);\n\n    // Dynamic rotation modulated by sub-bass and flow\n    vec2 q = rotate2D(cp, t * 0.25 + z * 0.12 + bass * 0.35);\n\n    // Iterated Sacred Geometry / Kaleidoscope Folding\n    float accum = 0.0;\n    vec2 k = q * (1.8 + 0.4 * flow);\n    for (int i = 0; i < 4; i++) {\n      float fi = float(i);\n      k = abs(k) - vec2(0.32 + 0.12 * sin(t * 0.6 + fi * 1.3), 0.22 + 0.08 * cos(t * 0.45));\n      k = rotate2D(k, 0.785398 + 0.25 * bass + fi * 0.3);\n      accum += 1.0 / (length(k) * 22.0 + 1.0);\n    }\n\n    // Glowing harmonic tunnel rings\n    float ringPattern = abs(sin(tunnelDepth * 3.14159));\n    float ringGlow = (0.025 + 0.035 * bass) / (ringPattern * ringPattern + 0.007);\n\n    // Center singularity core radiance\n    float core = (0.10 + 0.35 * bass) / (r * r * 18.0 + 0.12);\n\n    // Color ramp: electric cyan, deep magenta, warm gold\n    vec3 pal = paletteCos(\n      tunnelDepth * 0.16 + float(ch) * 0.06 + t * 0.05,\n      vec3(0.5, 0.5, 0.5),\n      vec3(0.5, 0.5, 0.5),\n      vec3(1.0, 1.0, 1.0),\n      vec3(0.05, 0.33, 0.67)\n    );\n\n    float intensity = (accum * 0.42 + ringGlow * 0.48 + core * 0.6) * f.intensity * f.glow;\n\n    if (ch == 0) col.r += intensity * pal.r;\n    else if (ch == 1) col.g += intensity * pal.g;\n    else if (ch == 2) col.b += intensity * pal.b;\n  }\n\n  // Soft tone mapping and subtle cinematic vignette\n  col = col / (col + vec3(0.85));\n  float vignette = 1.0 - smoothstep(0.45, 1.45, length(p));\n  col *= vignette;\n\n  return vec4(col, 1.0);\n}\n"
     },
     {
       "id": "prismatic_halo",
@@ -771,11 +992,33 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "3dd48bf641b52a871f31ae6e7e1a31a81fa7e794075130e4bd3a64a9e2d38b96",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "f7c4644169cba31dbcc7c890a30c659c0a84f763cbf14949918d722e8faf5b38",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
+    },
+    {
+      "id": "seda_bioluminiscente",
+      "name": "Seda Bioluminiscente",
+      "programId": "creator_seda_bioluminiscente",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278322706,
+        4279563674,
+        4281917951,
+        4288545023
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.1
+      },
+      "shaderSource": "vec2 rotate2D(vec2 p, float a) {\n  float c = cos(a);\n  float s = sin(a);\n  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);\n}\n\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;\n\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float energy = clamp(f.energy, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n  float flow = clamp(f.flow, 0.0, 1.0);\n\n  float t = f.time * f.speed * 0.38;\n\n  // Multi-frequency fluid domain warping\n  vec2 q = vec2(\n    sin(p.x * 1.8 + t * 0.45 + bass * 0.2),\n    cos(p.y * 1.8 + t * 0.38 + flow * 0.3)\n  );\n\n  vec2 r = vec2(\n    sin(p.x * 2.8 + q.y * 2.4 + t * 0.52),\n    cos(p.y * 2.8 + q.x * 2.4 + t * 0.44)\n  );\n\n  // Sheer silk ribbon folds\n  vec2 warpedP = p + r * (0.35 + 0.15 * flow);\n  warpedP = rotate2D(warpedP, t * 0.12 + bass * 0.2);\n\n  float ribbon1 = sin(warpedP.y * 4.2 + warpedP.x * 2.1 + t * 1.2);\n  float ribbon2 = cos(warpedP.y * 5.6 - warpedP.x * 2.8 - t * 0.95);\n  float ribbon3 = sin(length(warpedP) * 5.0 - t * 1.6);\n\n  float sheet1 = 1.0 / (abs(ribbon1) * 14.0 + 1.0);\n  float sheet2 = 1.0 / (abs(ribbon2) * 16.0 + 1.0);\n  float sheet3 = 1.0 / (abs(ribbon3) * 12.0 + 1.0);\n\n  // Bioluminescent deep-ocean palette\n  vec3 deepNavy = vec3(0.008, 0.024, 0.070);\n  vec3 bioEmerald = vec3(0.08, 0.96, 0.60);\n  vec3 bioCyan = vec3(0.15, 0.85, 1.0);\n  vec3 bioViolet = vec3(0.62, 0.10, 0.95);\n  vec3 warmSparkle = vec3(1.0, 0.95, 0.80);\n\n  // Layered transmission & rim light\n  vec3 col = deepNavy;\n  col += bioCyan * sheet1 * (0.75 + 0.55 * bass);\n  col += bioEmerald * sheet2 * (0.65 + 0.65 * energy);\n  col += bioViolet * sheet3 * (0.55 + 0.45 * flow);\n\n  // Bioluminescent micro-spores dancing on the crests\n  float sporeGrid = sin(warpedP.x * 32.0 + t * 4.0) * cos(warpedP.y * 32.0 - t * 3.5);\n  float spores = smoothstep(0.72, 0.98, sporeGrid) * (sheet1 + sheet2);\n  col += warmSparkle * spores * (0.4 + 2.2 * spark);\n\n  // Soft caustics / volumetric underwater rays\n  float rays = sin(p.x * 6.0 + p.y * 3.0 + t * 0.8) * 0.5 + 0.5;\n  col += bioCyan * rays * 0.12 * (1.0 + bass * 0.6);\n\n  // Tone mapping and gentle vignette\n  col = col / (col + vec3(0.9));\n  float vignette = 1.0 - smoothstep(0.5, 1.45, length(p));\n  col *= vignette;\n\n  return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);\n}\n"
     },
     {
       "id": "selva_bioluminiscente",
@@ -804,8 +1047,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "ef46786776be0f41b4658ea6f25f95b591a320382f34f189aeec1a3f4b599d14",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "72a5b46f37631bf4f43cd899949e16be832c0157591cf382340271d8502ecdc0",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -837,8 +1080,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "6d5eae02e2cd074900641ce016eeb11e2ac79264f0bfede262075d7d6d02691e",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "4481a0a79768900b503706f0fefc869e995b69cb4bdfb92acfa14e0f859034a7",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -870,8 +1113,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "b5d4678455c21e3e38cafaba4368e59ea827d4bee7efa25b98a2442e7a35ce40",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "92b4d7523720f5cf2ae1f5e2b9d6819a09f198a879c4cd9e0aeee9032de93295",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -903,8 +1146,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "3ddb97edfffb5585bde1ca221ec9909016b210286e6c694b58d7691c5d5fadb6",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "54f76ada3b99ad0105b88e3d9213bf50d9d3cbe82ab882223d2b4ec028280611",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -936,8 +1179,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "06687586bf8cb0f148946bd7fac5f36588c045b84e08f111541e83bcb59ee21e",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "5ede18ea75986d28dd821357fcfa05e71439e863b4df5cc9c0874c0d75e0a28c",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -969,8 +1212,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "ccb7c0b2dd6c614c3dc65398d6f1accc9f3b7e3b3e39d152711f7f61615db724",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "a751d39697672be24fb62aeb4728bdacc8b62cf81911251c213f002db775f95f",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -1002,8 +1245,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "77ebe8a5df125ac2654324e29a0c7ccb11ef9469607641169c5321f4a09a0f21",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "30cd92a9df9ed2aca29a203db37669ee47021cbe6614a83385a69775b515606b",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -1035,8 +1278,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "cdf556b663d1b0c80089bab659ef2ee12d44ba18ac9b8e6523133458923d63bc",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "267252a934824de8db0b3a3392d6de3f07297b95b6ba438adae5a730387ce89b",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -1068,8 +1311,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "42215fa50de6be274e57b3292607c89fdd21c7ede18f2fa378d096255ec56dfd",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "05ad21055a0bf91167002306d5786e22b0ef3d08b505c669858ec9f160561d6f",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -1101,8 +1344,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "46b3a66bebcdac69ce4bf67799e347a538548ca348dfa6a11b3bc2cd754b5a35",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "a9dac5da5fdc9e283c666f6e23e777b372e6736cfde787ec3d773c2d6d691651",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -1134,8 +1377,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "9f88bb52f13213f5dff2c1d2428aef29734132f570c996321a17efa85eda831d",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "6edef6b65bf2f739085d214daa8fc5f0f83f496e46b594bdfeffc70b61d00e4c",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -1167,8 +1410,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "151fde383a60d1cfe34ffbd18b161860fab5312d27dd4d22bd1ea33062be7991",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "1ec2722ea97ca291edbc4d961850d5817088a77d737fec4451aeb45cba38bf53",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -1200,8 +1443,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "adc9f2678c4ee13d6b32b4a617f447290112427f66adcb864113df78962e35fb",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "78e9d657d2dc3e4a6cf872a6e32da4d45119135cec483f11065d247a1dc795fe",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -1233,8 +1476,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "f1e5d23dea83bd78425a1832c8d38f1619e2c9232b17a455858f2d8b0bea0d08",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "c74696b003f54d06cdbaae64371288a158a3e749952a90dd074b58ba2f8adb3d",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -1268,11 +1511,11 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "57205aba098c5dcf5ea6f424ce4ad0adc5eec15299bdc63f6ba06af2d8c3167d",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "68e020c1d67d6827094657c9a36364f1b4eaaa69935b72bfd78c96d0e5643c89",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {
           "nubes": {
-            "compilerHash": "025dc691cc8bff18d505f26d4fb5bba48d9a92a91507f019f5d070d7dc7a0476",
+            "compilerHash": "ae8fe149c9d52cd508a254bd289bf0eb047b2434b5642e66c2ddfd9c2f45c76a",
             "asset": "packages/visual_catalog/assets/native/v13_nubes_volumetricas_nubes.iplr",
             "assetHash": "6a3276e5290655170d17381979a80232dc6470dae04c72d8e38e84d269fd48bd",
             "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct v13_nubes_volumetricas_nubes_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct v13_nubes_volumetricas_nubes_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment v13_nubes_volumetricas_nubes_fragment_main_out v13_nubes_volumetricas_nubes_fragment_main(v13_nubes_volumetricas_nubes_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float& uTime [[buffer(1)]], constant float& uWarpShift [[buffer(2)]], constant float& uDensityAdd [[buffer(3)]], constant float& uSparkExp [[buffer(4)]], constant float& uReduced [[buffer(5)]])\n{\n    v13_nubes_volumetricas_nubes_fragment_main_out out = {};\n    float2 _225 = in._fragCoord / uSize;\n    float3 _277 = fast::normalize(float3((((_225 * 2.0) - float2(1.0)) * float2(uSize.x / uSize.y, -1.0)) * 0.85000002384185791015625, 1.39999997615814208984375));\n    float _289 = (uReduced > 0.5) ? 12.0 : 24.0;\n    float _293 = 4.30000019073486328125 / _289;\n    float _309 = 1.10000002384185791015625 + (fract(sin(dot(in._fragCoord, float2(12.98980045318603515625, 78.233001708984375))) * 43758.546875) * _293);\n    float _1792;\n    float3 _1810;\n    _1810 = float3(0.0);\n    _1792 = 0.0;\n    float _411;\n    float _1831;\n    float3 _1832;\n    int _1791 = 0;\n    float _1793 = _309;\n    for (; _1791 < 24; _1810 = _1832, _1793 = _411, _1792 = _1831, _1791++)\n    {\n        if ((float(_1791) >= _289) || (_1792 > 0.9900000095367431640625))\n        {\n            break;\n        }\n        float3 _336 = _277 * _1793;\n        float3 _337 = float3(0.0, -0.1500000059604644775390625, -3.2000000476837158203125) + _336;\n        float3 _462 = float3((uTime * 0.180000007152557373046875) + uWarpShift, 0.0, uTime * (-0.119999997317790985107421875));\n        float _1795;\n        float3 _1828;\n        _1828 = _337 + _462;\n        _1795 = 0.0;\n        int _1794 = 0;\n        float _1827 = 0.519999980926513671875;\n        for (; _1794 < 4; )\n        {\n            float3 _510 = floor(_1828);\n            float3 _512 = fract(_1828);\n            float3 _520 = (_512 * _512) * (float3(3.0) - (_512 * 2.0));\n            float3 _570 = fract(_510 * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n            float3 _579 = _570 + float3(dot(_570, _570.yzx + float3(19.1900005340576171875)));\n            float3 _593 = fract((_510 + float3(1.0, 0.0, 0.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n            float3 _602 = _593 + float3(dot(_593, _593.yzx + float3(19.1900005340576171875)));\n            float _528 = _520.x;\n            float3 _616 = fract((_510 + float3(0.0, 1.0, 0.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n            float3 _625 = _616 + float3(dot(_616, _616.yzx + float3(19.1900005340576171875)));\n            float3 _639 = fract((_510 + float3(1.0, 1.0, 0.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n            float3 _648 = _639 + float3(dot(_639, _639.yzx + float3(19.1900005340576171875)));\n            float _540 = _520.y;\n            float3 _662 = fract((_510 + float3(0.0, 0.0, 1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n            float3 _671 = _662 + float3(dot(_662, _662.yzx + float3(19.1900005340576171875)));\n            float3 _685 = fract((_510 + float3(1.0, 0.0, 1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n            float3 _694 = _685 + float3(dot(_685, _685.yzx + float3(19.1900005340576171875)));\n            float3 _708 = fract((_510 + float3(0.0, 1.0, 1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n            float3 _717 = _708 + float3(dot(_708, _708.yzx + float3(19.1900005340576171875)));\n            float3 _731 = fract((_510 + float3(1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n            float3 _740 = _731 + float3(dot(_731, _731.yzx + float3(19.1900005340576171875)));\n            float _472 = _1827 * mix(mix(mix(fract((_579.x + _579.y) * _579.z), fract((_602.x + _602.y) * _602.z), _528), mix(fract((_625.x + _625.y) * _625.z), fract((_648.x + _648.y) * _648.z), _528), _540), mix(mix(fract((_671.x + _671.y) * _671.z), fract((_694.x + _694.y) * _694.z), _528), mix(fract((_717.x + _717.y) * _717.z), fract((_740.x + _740.y) * _740.z), _528), _540), _520.z);\n            _1828 = (_1828 * 2.0299999713897705078125) + float3(2.099999904632568359375, -1.7000000476837158203125, 3.2999999523162841796875);\n            _1827 *= 0.5;\n            _1795 += _472;\n            _1794++;\n            continue;\n        }\n        float _486 = 0.4199999868869781494140625 - uDensityAdd;\n        float _496 = fast::clamp(((_1795 - _486) - (abs(_337.y) * 0.289655148983001708984375)) * 2.400000095367431640625, 0.0, 1.0);\n        if (_496 > 0.00999999977648258209228515625)\n        {\n            float3 _351 = _336 + float3(-0.116801612079143524169921875, -0.02061976492404937744140625, -3.2449238300323486328125);\n            float _1797;\n            float3 _1826;\n            _1826 = _351 + _462;\n            _1797 = 0.0;\n            int _1796 = 0;\n            float _1825 = 0.519999980926513671875;\n            for (; _1796 < 4; )\n            {\n                float3 _814 = floor(_1826);\n                float3 _816 = fract(_1826);\n                float3 _824 = (_816 * _816) * (float3(3.0) - (_816 * 2.0));\n                float3 _874 = fract(_814 * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _883 = _874 + float3(dot(_874, _874.yzx + float3(19.1900005340576171875)));\n                float3 _897 = fract((_814 + float3(1.0, 0.0, 0.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _906 = _897 + float3(dot(_897, _897.yzx + float3(19.1900005340576171875)));\n                float _832 = _824.x;\n                float3 _920 = fract((_814 + float3(0.0, 1.0, 0.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _929 = _920 + float3(dot(_920, _920.yzx + float3(19.1900005340576171875)));\n                float3 _943 = fract((_814 + float3(1.0, 1.0, 0.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _952 = _943 + float3(dot(_943, _943.yzx + float3(19.1900005340576171875)));\n                float _844 = _824.y;\n                float3 _966 = fract((_814 + float3(0.0, 0.0, 1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _975 = _966 + float3(dot(_966, _966.yzx + float3(19.1900005340576171875)));\n                float3 _989 = fract((_814 + float3(1.0, 0.0, 1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _998 = _989 + float3(dot(_989, _989.yzx + float3(19.1900005340576171875)));\n                float3 _1012 = fract((_814 + float3(0.0, 1.0, 1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1021 = _1012 + float3(dot(_1012, _1012.yzx + float3(19.1900005340576171875)));\n                float3 _1035 = fract((_814 + float3(1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1044 = _1035 + float3(dot(_1035, _1035.yzx + float3(19.1900005340576171875)));\n                float _776 = _1825 * mix(mix(mix(fract((_883.x + _883.y) * _883.z), fract((_906.x + _906.y) * _906.z), _832), mix(fract((_929.x + _929.y) * _929.z), fract((_952.x + _952.y) * _952.z), _832), _844), mix(mix(fract((_975.x + _975.y) * _975.z), fract((_998.x + _998.y) * _998.z), _832), mix(fract((_1021.x + _1021.y) * _1021.z), fract((_1044.x + _1044.y) * _1044.z), _832), _844), _824.z);\n                _1826 = (_1826 * 2.0299999713897705078125) + float3(2.099999904632568359375, -1.7000000476837158203125, 3.2999999523162841796875);\n                _1825 *= 0.5;\n                _1797 += _776;\n                _1796++;\n                continue;\n            }\n            float3 _357 = _336 + float3(-0.2725370824337005615234375, 0.1518872082233428955078125, -3.30482196807861328125);\n            float _1799;\n            float3 _1824;\n            _1824 = _357 + _462;\n            _1799 = 0.0;\n            int _1798 = 0;\n            float _1823 = 0.519999980926513671875;\n            for (; _1798 < 4; )\n            {\n                float3 _1118 = floor(_1824);\n                float3 _1120 = fract(_1824);\n                float3 _1128 = (_1120 * _1120) * (float3(3.0) - (_1120 * 2.0));\n                float3 _1178 = fract(_1118 * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1187 = _1178 + float3(dot(_1178, _1178.yzx + float3(19.1900005340576171875)));\n                float3 _1201 = fract((_1118 + float3(1.0, 0.0, 0.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1210 = _1201 + float3(dot(_1201, _1201.yzx + float3(19.1900005340576171875)));\n                float _1136 = _1128.x;\n                float3 _1224 = fract((_1118 + float3(0.0, 1.0, 0.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1233 = _1224 + float3(dot(_1224, _1224.yzx + float3(19.1900005340576171875)));\n                float3 _1247 = fract((_1118 + float3(1.0, 1.0, 0.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1256 = _1247 + float3(dot(_1247, _1247.yzx + float3(19.1900005340576171875)));\n                float _1148 = _1128.y;\n                float3 _1270 = fract((_1118 + float3(0.0, 0.0, 1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1279 = _1270 + float3(dot(_1270, _1270.yzx + float3(19.1900005340576171875)));\n                float3 _1293 = fract((_1118 + float3(1.0, 0.0, 1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1302 = _1293 + float3(dot(_1293, _1293.yzx + float3(19.1900005340576171875)));\n                float3 _1316 = fract((_1118 + float3(0.0, 1.0, 1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1325 = _1316 + float3(dot(_1316, _1316.yzx + float3(19.1900005340576171875)));\n                float3 _1339 = fract((_1118 + float3(1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1348 = _1339 + float3(dot(_1339, _1339.yzx + float3(19.1900005340576171875)));\n                float _1080 = _1823 * mix(mix(mix(fract((_1187.x + _1187.y) * _1187.z), fract((_1210.x + _1210.y) * _1210.z), _1136), mix(fract((_1233.x + _1233.y) * _1233.z), fract((_1256.x + _1256.y) * _1256.z), _1136), _1148), mix(mix(fract((_1279.x + _1279.y) * _1279.z), fract((_1302.x + _1302.y) * _1302.z), _1136), mix(fract((_1325.x + _1325.y) * _1325.z), fract((_1348.x + _1348.y) * _1348.z), _1136), _1148), _1128.z);\n                _1824 = (_1824 * 2.0299999713897705078125) + float3(2.099999904632568359375, -1.7000000476837158203125, 3.2999999523162841796875);\n                _1823 *= 0.5;\n                _1799 += _1080;\n                _1798++;\n                continue;\n            }\n            float3 _365 = _336 + float3(-0.506140291690826416015625, 0.4106476604938507080078125, -3.3946692943572998046875);\n            float _1801;\n            float3 _1822;\n            _1822 = _365 + _462;\n            _1801 = 0.0;\n            int _1800 = 0;\n            float _1821 = 0.519999980926513671875;\n            for (; _1800 < 4; )\n            {\n                float3 _1422 = floor(_1822);\n                float3 _1424 = fract(_1822);\n                float3 _1432 = (_1424 * _1424) * (float3(3.0) - (_1424 * 2.0));\n                float3 _1482 = fract(_1422 * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1491 = _1482 + float3(dot(_1482, _1482.yzx + float3(19.1900005340576171875)));\n                float3 _1505 = fract((_1422 + float3(1.0, 0.0, 0.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1514 = _1505 + float3(dot(_1505, _1505.yzx + float3(19.1900005340576171875)));\n                float _1440 = _1432.x;\n                float3 _1528 = fract((_1422 + float3(0.0, 1.0, 0.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1537 = _1528 + float3(dot(_1528, _1528.yzx + float3(19.1900005340576171875)));\n                float3 _1551 = fract((_1422 + float3(1.0, 1.0, 0.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1560 = _1551 + float3(dot(_1551, _1551.yzx + float3(19.1900005340576171875)));\n                float _1452 = _1432.y;\n                float3 _1574 = fract((_1422 + float3(0.0, 0.0, 1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1583 = _1574 + float3(dot(_1574, _1574.yzx + float3(19.1900005340576171875)));\n                float3 _1597 = fract((_1422 + float3(1.0, 0.0, 1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1606 = _1597 + float3(dot(_1597, _1597.yzx + float3(19.1900005340576171875)));\n                float3 _1620 = fract((_1422 + float3(0.0, 1.0, 1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1629 = _1620 + float3(dot(_1620, _1620.yzx + float3(19.1900005340576171875)));\n                float3 _1643 = fract((_1422 + float3(1.0)) * float3(443.897003173828125, 441.423004150390625, 437.19500732421875));\n                float3 _1652 = _1643 + float3(dot(_1643, _1643.yzx + float3(19.1900005340576171875)));\n                float _1384 = _1821 * mix(mix(mix(fract((_1491.x + _1491.y) * _1491.z), fract((_1514.x + _1514.y) * _1514.z), _1440), mix(fract((_1537.x + _1537.y) * _1537.z), fract((_1560.x + _1560.y) * _1560.z), _1440), _1452), mix(mix(fract((_1583.x + _1583.y) * _1583.z), fract((_1606.x + _1606.y) * _1606.z), _1440), mix(fract((_1629.x + _1629.y) * _1629.z), fract((_1652.x + _1652.y) * _1652.z), _1440), _1452), _1432.z);\n                _1822 = (_1822 * 2.0299999713897705078125) + float3(2.099999904632568359375, -1.7000000476837158203125, 3.2999999523162841796875);\n                _1821 *= 0.5;\n                _1801 += _1384;\n                _1800++;\n                continue;\n            }\n            float _377 = exp(((fast::clamp(((_1797 - _486) - (abs(_351.y) * 0.289655148983001708984375)) * 2.400000095367431640625, 0.0, 1.0) + fast::clamp(((_1799 - _486) - (abs(_357.y) * 0.289655148983001708984375)) * 2.400000095367431640625, 0.0, 1.0)) + fast::clamp(((_1801 - _486) - (abs(_365.y) * 0.289655148983001708984375)) * 2.400000095367431640625, 0.0, 1.0)) * (-1.22399997711181640625));\n            float _400 = fast::min((_496 * 0.37999999523162841796875) * (24.0 / _289), 1.0 - _1792);\n            _1832 = _1810 + (mix(mix(float3(0.1410000026226043701171875, 0.1019999980926513671875, 0.208000004291534423828125), float3(0.78799998760223388671875, 0.717999994754791259765625, 0.8389999866485595703125), float3(smoothstep(0.0, 0.550000011920928955078125, _377))), float3(1.0, 0.944999992847442626953125, 0.862999975681304931640625), float3(smoothstep(0.449999988079071044921875, 1.0, _377))) * _400);\n            _1831 = _1792 + _400;\n        }\n        else\n        {\n            _1832 = _1810;\n            _1831 = _1792;\n        }\n        _411 = _1793 + _293;\n    }\n    out.fragColor = float4(fast::clamp(mix(mix(float3(0.0199999995529651641845703125, 0.0240000002086162567138671875, 0.05099999904632568359375), float3(0.05099999904632568359375, 0.063000001013278961181640625, 0.1410000026226043701171875), float3(1.0 - _225.y)), _1810 / float3(fast::max(_1792, 9.9999997473787516355514526367188e-05)), float3(_1792)) * (1.0 + (uSparkExp * 0.579999983310699462890625)), float3(0.0), float3(1.0)), 1.0);\n    return out;\n}\n\n",
@@ -1349,8 +1592,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "e976f7166e71a52e272fa25229a71fa8d75cf7c67a23980405ee49f6023f3aa3",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "aa7867160dbb6c1908ec6b63be63c592e5e365f5c40d79cc35574c0aac0dedad",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
@@ -1384,11 +1627,11 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "92df471c6c956d15141e1bd848b8d6cbb9cc4b592c1e8172a19b716160db95a5",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "654519f3a200135342ecb97daad3871b11e68df93b2f6ee53d6fad5195e52e99",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {
           "city_bokeh": {
-            "compilerHash": "bddb48d7298f3eac2f632de243be9684012dd524759a19c7b20982ce8e5faff5",
+            "compilerHash": "0cc6c23ef151fb13d3f6071510a60aa87359a59eefe8c53bd59570a8b165d37f",
             "asset": "packages/visual_catalog/assets/native/v15_lluvia_cristal_city_bokeh.iplr",
             "assetHash": "a147d2fb9a3da7d29ba77713a6dac8253d492422d874b4b063e47d2a89639af4",
             "metalSource": "#pragma clang diagnostic ignored \"-Wmissing-prototypes\"\n\n#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\n// Implementation of the GLSL mod() function, which is slightly different than Metal fmod()\ntemplate<typename Tx, typename Ty>\ninline Tx mod(Tx x, Ty y)\n{\n    return x - y * floor(x / y);\n}\n\nstruct v15_lluvia_cristal_city_bokeh_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct v15_lluvia_cristal_city_bokeh_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment v15_lluvia_cristal_city_bokeh_fragment_main_out v15_lluvia_cristal_city_bokeh_fragment_main(v15_lluvia_cristal_city_bokeh_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float& uTime [[buffer(1)]], constant float& uEnergy [[buffer(2)]], constant float& uSpark [[buffer(3)]], constant float& uBass [[buffer(4)]])\n{\n    v15_lluvia_cristal_city_bokeh_fragment_main_out out = {};\n    float2 _1003 = in._fragCoord / uSize;\n    float _1010 = uSize.x / fast::max(uSize.y, 1.0);\n    float _1017 = fast::min(uSize.x, uSize.y);\n    float2 _1325 = _1003 * float2(4.0 * _1010, 3.2000000476837158203125);\n    float2 _1327 = floor(_1325);\n    float2 _1331 = fract(_1325) - float2(0.5);\n    float2 _3025;\n    float _3027;\n    float _3029;\n    float _3036;\n    _3036 = 0.0;\n    _3029 = 0.0;\n    _3027 = 0.0;\n    _3025 = float2(0.0);\n    float2 _3142;\n    float _3144;\n    float _3146;\n    float _3150;\n    for (int _3022 = -1; _3022 <= 1; _3036 = _3150, _3029 = _3146, _3027 = _3144, _3025 = _3142, _3022++)\n    {\n        _3150 = _3036;\n        _3146 = _3029;\n        _3144 = _3027;\n        _3142 = _3025;\n        float2 _3240;\n        float _3241;\n        float _3242;\n        float _3244;\n        for (int _3139 = -1; _3139 <= 1; _3150 = _3244, _3146 = _3242, _3144 = _3241, _3142 = _3240, _3139++)\n        {\n            float2 _1346 = float2(float(_3139), float(_3022));\n            float3 _1730 = fract(float3(_1327 + _1346, 103.09999847412109375) * float3(0.103100001811981201171875, 0.10300000011920928955078125, 0.097300000488758087158203125));\n            float3 _1739 = _1730 + float3(dot(_1730, _1730.yxz + float3(33.3300018310546875)));\n            float3 _1748 = fract((_1739.xxy + _1739.yzz) * _1739.zyx);\n            float _1362 = _1748.y;\n            float _1364 = (uTime * (0.319999992847442626953125 + (0.180000007152557373046875 * _1748.x))) + (_1362 * 6.28318023681640625);\n            float2 _1389 = _1331 - (_1346 + float2((_1748.z - 0.5) * 0.519999980926513671875, fract(((_1364 + (sin(_1364) * 0.4199999868869781494140625)) + (sin(_1364 * 2.0) * 0.119999997317790985107421875)) * 0.25) - 0.5));\n            float _1394 = _1389.x * _1010;\n            float2 _2951 = _1389;\n            _2951.x = _1394;\n            float _1399 = 0.0460000000894069671630859375 + (0.0240000002086162567138671875 * _1362);\n            float _1401 = _1389.y;\n            bool _1402 = _1401 < 0.0;\n            bool _1408;\n            if (_1402)\n            {\n                _1408 = _1401 > (-0.519999980926513671875);\n            }\n            else\n            {\n                _1408 = _1402;\n            }\n            float2 _3151;\n            float _3153;\n            float _3156;\n            if (_1408)\n            {\n                float _1419 = (_1399 * 0.3499999940395355224609375) * (1.0 - (_1401 * (-1.25)));\n                float2 _1431 = float2(_1394, mod(-_1401, 0.064999997615814208984375) - 0.0324999988079071044921875);\n                float _1432 = length(_1431);\n                float _1434 = _1419 * 0.85000002384185791015625;\n                float2 _3147;\n                float _3155;\n                float _3158;\n                if (_1432 < _1434)\n                {\n                    float _1441 = _1432 / _1434;\n                    float _1443 = smoothstep(1.0, 0.680000007152557373046875, _1441);\n                    _3158 = fast::max(_3146, smoothstep(0.60000002384185791015625, 0.949999988079071044921875, _1441) * _1443);\n                    _3155 = fast::max(_3144, _1443 * 0.819999992847442626953125);\n                    _3147 = _3142 + (((_1431 / float2(fast::max(_1434, 0.001000000047497451305389404296875))) * _1443) * 0.699999988079071044921875);\n                }\n                else\n                {\n                    _3158 = _3146;\n                    _3155 = _3144;\n                    _3147 = _3142;\n                }\n                float _1471 = abs(_1394);\n                float2 _3152;\n                float _3245;\n                if (_1471 < _1419)\n                {\n                    float _1483 = (1.0 - (_1471 / _1419)) * (1.0 - (_1401 * (-1.92307698726654052734375)));\n                    float2 _2964 = _3147;\n                    _2964.x = _3147.x + (((_1394 / fast::max(_1419, 0.001000000047497451305389404296875)) * _1483) * 0.2199999988079071044921875);\n                    _3245 = fast::max(_3150, _1483 * 0.5);\n                    _3152 = _2964;\n                }\n                else\n                {\n                    _3245 = _3150;\n                    _3152 = _3147;\n                }\n                _3244 = _3245;\n                _3156 = _3158;\n                _3153 = _3155;\n                _3151 = _3152;\n            }\n            else\n            {\n                _3244 = _3150;\n                _3156 = _3146;\n                _3153 = _3144;\n                _3151 = _3142;\n            }\n            float _1512 = length(_2951 * float2(1.0, 0.86000001430511474609375 + (0.14000000059604644775390625 * smoothstep(0.0, _1399, -_1401))));\n            if (_1512 < _1399)\n            {\n                float _1519 = _1512 / _1399;\n                float _1521 = smoothstep(1.0, 0.800000011920928955078125, _1519);\n                _3242 = fast::max(_3156, smoothstep(0.699999988079071044921875, 0.980000019073486328125, _1519) * _1521);\n                _3241 = fast::max(_3153, _1521);\n                _3240 = _3151 + (((_2951 / float2(_1399)) * _1521) * 1.5499999523162841796875);\n            }\n            else\n            {\n                _3242 = _3156;\n                _3241 = _3153;\n                _3240 = _3151;\n            }\n        }\n    }\n    float2 _1556 = _1003 * float2(8.5 * _1010, 8.5);\n    float2 _1558 = floor(_1556);\n    float2 _1562 = fract(_1556) - float2(0.5);\n    float2 _3024;\n    float _3026;\n    float _3028;\n    _3028 = _3029;\n    _3026 = _3027;\n    _3024 = _3025;\n    float2 _3134;\n    float _3135;\n    float _3136;\n    for (int _3023 = -1; _3023 <= 1; _3028 = _3136, _3026 = _3135, _3024 = _3134, _3023++)\n    {\n        _3136 = _3028;\n        _3135 = _3026;\n        _3134 = _3024;\n        float2 _3229;\n        float _3231;\n        float _3233;\n        for (int _3132 = -1; _3132 <= 1; _3136 = _3233, _3135 = _3231, _3134 = _3229, _3132++)\n        {\n            float2 _1577 = float2(float(_3132), float(_3023));\n            float3 _1753 = fract(float3(_1558 + _1577, 239.5) * float3(0.103100001811981201171875, 0.10300000011920928955078125, 0.097300000488758087158203125));\n            float3 _1762 = _1753 + float3(dot(_1753, _1753.yxz + float3(33.3300018310546875)));\n            float3 _1771 = fract((_1762.xxy + _1762.yzz) * _1762.zyx);\n            float _1587 = _1771.x;\n            if (_1587 < 0.62000000476837158203125)\n            {\n                float2 _1599 = _1562 - (_1577 + ((_1771.yz - float2(0.5)) * 0.579999983310699462890625));\n                _1599.x = _1599.x * _1010;\n                float _1609 = 0.0240000002086162567138671875 + (0.01600000075995922088623046875 * _1587);\n                float _1611 = length(_1599);\n                float2 _3230;\n                float _3232;\n                float _3234;\n                if (_1611 < _1609)\n                {\n                    float _1618 = _1611 / _1609;\n                    float _1620 = smoothstep(1.0, 0.7599999904632568359375, _1618);\n                    _3234 = fast::max(_3136, smoothstep(0.680000007152557373046875, 0.959999978542327880859375, _1618) * _1620);\n                    _3232 = fast::max(_3135, _1620);\n                    _3230 = _3134 + (((_1599 / float2(_1609)) * _1620) * 1.25);\n                }\n                else\n                {\n                    _3234 = _3136;\n                    _3232 = _3135;\n                    _3230 = _3134;\n                }\n                _3233 = _3234;\n                _3231 = _3232;\n                _3229 = _3230;\n            }\n            else\n            {\n                _3233 = _3136;\n                _3231 = _3135;\n                _3229 = _3134;\n            }\n        }\n    }\n    float2 _1656 = _1003 * float2(20.0 * _1010, 20.0);\n    float3 _1776 = fract(float3(floor(_1656), 511.899993896484375) * float3(0.103100001811981201171875, 0.10300000011920928955078125, 0.097300000488758087158203125));\n    float3 _1785 = _1776 + float3(dot(_1776, _1776.yxz + float3(33.3300018310546875)));\n    float3 _1794 = fract((_1785.xxy + _1785.yzz) * _1785.zyx);\n    float _1669 = _1794.x;\n    float2 _3030;\n    float _3032;\n    float _3038;\n    if (_1669 < 0.680000007152557373046875)\n    {\n        float2 _1679 = (fract(_1656) - float2(0.5)) - ((_1794.yz - float2(0.5)) * 0.64999997615814208984375);\n        float _1683 = 0.054999999701976776123046875 + (0.07500000298023223876953125 * _1669);\n        float _1685 = length(_1679);\n        float2 _3031;\n        float _3033;\n        float _3039;\n        if (_1685 < _1683)\n        {\n            float _1692 = _1685 / _1683;\n            float _1694 = smoothstep(1.0, 0.62000000476837158203125, _1692);\n            _3039 = fast::max(_3028, (smoothstep(0.60000002384185791015625, 0.949999988079071044921875, _1692) * _1694) * 0.4000000059604644775390625);\n            _3033 = fast::max(_3026, _1694 * 0.64999997615814208984375);\n            _3031 = _3024 + (((_1679 / float2(_1683)) * _1694) * 0.4199999868869781494140625);\n        }\n        else\n        {\n            _3039 = _3028;\n            _3033 = _3026;\n            _3031 = _3024;\n        }\n        _3038 = _3039;\n        _3032 = _3033;\n        _3030 = _3031;\n    }\n    else\n    {\n        _3038 = _3028;\n        _3032 = _3026;\n        _3030 = _3024;\n    }\n    float _1721 = fast::max(_3032, _3036);\n    float2 _1029 = float4(_3030, _1721, _3038).xy;\n    float2 _3040;\n    if (uBass > 0.02999999932944774627685546875)\n    {\n        float _1049 = uTime * 10.0;\n        _3040 = _1029 + (float2(sin((_1003.y * 70.0) + _1049), cos((_1003.x * 70.0) + _1049)) * (uBass * 0.01600000075995922088623046875));\n    }\n    else\n    {\n        _3040 = _1029;\n    }\n    float2 _1075 = _1003 - (_3040 * (0.064999997615814208984375 * (1.0 + (uEnergy * 0.25))));\n    float2 _1084 = (_3040 * 0.007000000216066837310791015625) * (1.0 + (_3038 * 2.2000000476837158203125));\n    float2 _1091 = fast::clamp(_1075 + _1084, float2(0.0), float2(1.0));\n    float2 _1096 = fast::clamp(_1075, float2(0.0), float2(1.0));\n    float2 _1103 = fast::clamp(_1075 - _1084, float2(0.0), float2(1.0));\n    float2 _1116 = float2(uSize.x / _1017, uSize.y / _1017);\n    float2 _1117 = (_1091 - float2(0.5)) * _1116;\n    float2 _1131 = (_1096 - float2(0.5)) * _1116;\n    float2 _1145 = (_1103 - float2(0.5)) * _1116;\n    float _1848 = _1091.y;\n    float2 _1901 = _1117 * 4.19999980926513671875;\n    float2 _1903 = floor(_1901);\n    float2 _1905 = fract(_1901);\n    float3 _3046;\n    _3046 = (((mix(mix(float3(0.014999999664723873138427734375, 0.0199999995529651641845703125, 0.039999999105930328369140625), float3(0.07500000298023223876953125, 0.0500000007450580596923828125, 0.0900000035762786865234375), float3(smoothstep(0.0, 0.64999997615814208984375, _1848))), float3(0.01200000010430812835693359375, 0.01400000043213367462158203125, 0.02199999988079071044921875), float3(smoothstep(0.64999997615814208984375, 1.0, _1848))) + (float3(0.2199999988079071044921875, 0.1495999991893768310546875, 0.06599999964237213134765625) * exp(length(_1117 - float2(-0.449999988079071044921875, -0.0500000007450580596923828125)) * (-3.2000000476837158203125)))) + (float3(0.070000000298023223876953125, 0.1599999964237213134765625, 0.20000000298023223876953125) * exp(length(_1117 - float2(0.4000000059604644775390625, 0.07999999821186065673828125)) * (-3.5)))) + (float3(0.23999999463558197021484375, 0.09600000083446502685546875, 0.04320000112056732177734375) * exp(length(_1117 - float2(-0.0500000007450580596923828125, 0.1500000059604644775390625)) * (-3.0)))) + (float3(0.1360000073909759521484375, 0.03519999980926513671875, 0.1040000021457672119140625) * exp(length(_1117 - float2(0.180000007152557373046875, -0.1500000059604644775390625)) * (-3.7999999523162841796875)));\n    float3 _3124;\n    for (int _3041 = -1; _3041 <= 1; _3046 = _3124, _3041++)\n    {\n        _3124 = _3046;\n        float3 _3225;\n        for (int _3118 = -1; _3118 <= 1; _3124 = _3225, _3118++)\n        {\n            float2 _1920 = float2(float(_3118), float(_3041));\n            float2 _1923 = _1903 + _1920;\n            float3 _2136 = fract(float3(_1923, 17.299999237060546875) * float3(0.103100001811981201171875, 0.10300000011920928955078125, 0.097300000488758087158203125));\n            float3 _2145 = _2136 + float3(dot(_2136, _2136.yxz + float3(33.3300018310546875)));\n            float3 _2154 = fract((_2145.xxy + _2145.yzz) * _2145.zyx);\n            float _1935 = _2154.x;\n            if ((_1935 < 0.60000002384185791015625) && (((_1923.y + 0.5) * 0.2380952537059783935546875) > (-0.60000002384185791015625)))\n            {\n                float _1951 = length(_1905 - ((_1920 + float2(0.25)) + (_2154.yz * 0.5)));\n                float _1955 = 0.180000007152557373046875 + (0.180000007152557373046875 * _1935);\n                float3 _3226;\n                if (_1951 < _1955)\n                {\n                    float _1962 = _1951 / _1955;\n                    float _1979 = _2154.z;\n                    float3 _3120;\n                    if (_1979 < 0.36000001430511474609375)\n                    {\n                        _3120 = float3(1.0, 0.7200000286102294921875, 0.36000001430511474609375);\n                    }\n                    else\n                    {\n                        float3 _3121;\n                        if (_1979 < 0.62000000476837158203125)\n                        {\n                            _3121 = float3(0.4000000059604644775390625, 0.85000002384185791015625, 1.0);\n                        }\n                        else\n                        {\n                            _3121 = select(float3(0.2800000011920928955078125, 0.949999988079071044921875, 0.64999997615814208984375), float3(1.0, 0.2199999988079071044921875, 0.2599999904632568359375), bool3(_1979 < 0.819999992847442626953125));\n                        }\n                        _3120 = _3121;\n                    }\n                    _3226 = _3124 + ((_3120 * (((smoothstep(0.699999988079071044921875, 0.980000019073486328125, _1962) * (1.0 - smoothstep(0.980000019073486328125, 1.0, _1962))) * 1.35000002384185791015625) + ((1.0 - (_1962 * _1962)) * 0.449999988079071044921875))) * (0.3499999940395355224609375 + (uEnergy * 0.180000007152557373046875)));\n                }\n                else\n                {\n                    _3226 = _3124;\n                }\n                _3225 = _3226;\n            }\n            else\n            {\n                _3225 = _3124;\n            }\n        }\n    }\n    float _2015 = uTime * 0.119999997317790985107421875;\n    float _2018 = _1117.y;\n    bool _2019 = _2018 > (-0.20000000298023223876953125);\n    bool _2025;\n    if (_2019)\n    {\n        _2025 = _2018 < 0.60000002384185791015625;\n    }\n    else\n    {\n        _2025 = _2019;\n    }\n    float3 _3044;\n    if (_2025)\n    {\n        float _2030 = floor(_2018 * 7.0);\n        float _2034 = (mod(_2030, 2.0) == 0.0) ? 1.0 : (-1.0);\n        float2 _2991 = _1117;\n        _2991.x = _1117.x + ((_2015 * _2034) * (0.699999988079071044921875 + (0.300000011920928955078125 * fract(_2030 * 0.4099999964237213134765625))));\n        float2 _2050 = _2991 * 7.0;\n        float2 _2052 = floor(_2050);\n        float2 _2054 = fract(_2050);\n        float3 _3047;\n        _3047 = _3046;\n        float3 _3115;\n        for (int _3043 = -1; _3043 <= 1; _3047 = _3115, _3043++)\n        {\n            _3115 = _3047;\n            float3 _3218;\n            for (int _3113 = -1; _3113 <= 1; _3115 = _3218, _3113++)\n            {\n                float2 _2069 = float2(float(_3113), float(_3043));\n                float3 _2159 = fract(float3(_2052 + _2069, 43.09999847412109375) * float3(0.103100001811981201171875, 0.10300000011920928955078125, 0.097300000488758087158203125));\n                float3 _2168 = _2159 + float3(dot(_2159, _2159.yxz + float3(33.3300018310546875)));\n                float3 _2177 = fract((_2168.xxy + _2168.yzz) * _2168.zyx);\n                if (_2177.x < 0.519999980926513671875)\n                {\n                    float _2092 = length(_2054 - ((_2069 + float2(0.2800000011920928955078125)) + (_2177.yz * 0.439999997615814208984375)));\n                    float _2096 = 0.12999999523162841796875 + (0.14000000059604644775390625 * _2177.y);\n                    float3 _3219;\n                    if (_2092 < _2096)\n                    {\n                        float _2103 = _2092 / _2096;\n                        _3219 = _3115 + ((select(float3(1.0, 0.1599999964237213134765625, 0.20000000298023223876953125), float3(1.0, 0.87999999523162841796875, 0.64999997615814208984375), bool3(_2034 > 0.0)) * (smoothstep(1.0, 0.449999988079071044921875, _2103) * (1.0 - (_2103 * 0.3499999940395355224609375)))) * 0.4000000059604644775390625);\n                    }\n                    else\n                    {\n                        _3219 = _3115;\n                    }\n                    _3218 = _3219;\n                }\n                else\n                {\n                    _3218 = _3115;\n                }\n            }\n        }\n        _3044 = _3047;\n    }\n    else\n    {\n        _3044 = _3046;\n    }\n    float _2231 = _1096.y;\n    float2 _2284 = _1131 * 4.19999980926513671875;\n    float2 _2286 = floor(_2284);\n    float2 _2288 = fract(_2284);\n    float3 _3053;\n    _3053 = (((mix(mix(float3(0.014999999664723873138427734375, 0.0199999995529651641845703125, 0.039999999105930328369140625), float3(0.07500000298023223876953125, 0.0500000007450580596923828125, 0.0900000035762786865234375), float3(smoothstep(0.0, 0.64999997615814208984375, _2231))), float3(0.01200000010430812835693359375, 0.01400000043213367462158203125, 0.02199999988079071044921875), float3(smoothstep(0.64999997615814208984375, 1.0, _2231))) + (float3(0.2199999988079071044921875, 0.1495999991893768310546875, 0.06599999964237213134765625) * exp(length(_1131 - float2(-0.449999988079071044921875, -0.0500000007450580596923828125)) * (-3.2000000476837158203125)))) + (float3(0.070000000298023223876953125, 0.1599999964237213134765625, 0.20000000298023223876953125) * exp(length(_1131 - float2(0.4000000059604644775390625, 0.07999999821186065673828125)) * (-3.5)))) + (float3(0.23999999463558197021484375, 0.09600000083446502685546875, 0.04320000112056732177734375) * exp(length(_1131 - float2(-0.0500000007450580596923828125, 0.1500000059604644775390625)) * (-3.0)))) + (float3(0.1360000073909759521484375, 0.03519999980926513671875, 0.1040000021457672119140625) * exp(length(_1131 - float2(0.180000007152557373046875, -0.1500000059604644775390625)) * (-3.7999999523162841796875)));\n    float3 _3105;\n    for (int _3048 = -1; _3048 <= 1; _3053 = _3105, _3048++)\n    {\n        _3105 = _3053;\n        float3 _3214;\n        for (int _3099 = -1; _3099 <= 1; _3105 = _3214, _3099++)\n        {\n            float2 _2303 = float2(float(_3099), float(_3048));\n            float2 _2306 = _2286 + _2303;\n            float3 _2519 = fract(float3(_2306, 17.299999237060546875) * float3(0.103100001811981201171875, 0.10300000011920928955078125, 0.097300000488758087158203125));\n            float3 _2528 = _2519 + float3(dot(_2519, _2519.yxz + float3(33.3300018310546875)));\n            float3 _2537 = fract((_2528.xxy + _2528.yzz) * _2528.zyx);\n            float _2318 = _2537.x;\n            if ((_2318 < 0.60000002384185791015625) && (((_2306.y + 0.5) * 0.2380952537059783935546875) > (-0.60000002384185791015625)))\n            {\n                float _2334 = length(_2288 - ((_2303 + float2(0.25)) + (_2537.yz * 0.5)));\n                float _2338 = 0.180000007152557373046875 + (0.180000007152557373046875 * _2318);\n                float3 _3215;\n                if (_2334 < _2338)\n                {\n                    float _2345 = _2334 / _2338;\n                    float _2362 = _2537.z;\n                    float3 _3101;\n                    if (_2362 < 0.36000001430511474609375)\n                    {\n                        _3101 = float3(1.0, 0.7200000286102294921875, 0.36000001430511474609375);\n                    }\n                    else\n                    {\n                        float3 _3102;\n                        if (_2362 < 0.62000000476837158203125)\n                        {\n                            _3102 = float3(0.4000000059604644775390625, 0.85000002384185791015625, 1.0);\n                        }\n                        else\n                        {\n                            _3102 = select(float3(0.2800000011920928955078125, 0.949999988079071044921875, 0.64999997615814208984375), float3(1.0, 0.2199999988079071044921875, 0.2599999904632568359375), bool3(_2362 < 0.819999992847442626953125));\n                        }\n                        _3101 = _3102;\n                    }\n                    _3215 = _3105 + ((_3101 * (((smoothstep(0.699999988079071044921875, 0.980000019073486328125, _2345) * (1.0 - smoothstep(0.980000019073486328125, 1.0, _2345))) * 1.35000002384185791015625) + ((1.0 - (_2345 * _2345)) * 0.449999988079071044921875))) * (0.3499999940395355224609375 + (uEnergy * 0.180000007152557373046875)));\n                }\n                else\n                {\n                    _3215 = _3105;\n                }\n                _3214 = _3215;\n            }\n            else\n            {\n                _3214 = _3105;\n            }\n        }\n    }\n    float _2401 = _1131.y;\n    bool _2402 = _2401 > (-0.20000000298023223876953125);\n    bool _2408;\n    if (_2402)\n    {\n        _2408 = _2401 < 0.60000002384185791015625;\n    }\n    else\n    {\n        _2408 = _2402;\n    }\n    float3 _3051;\n    if (_2408)\n    {\n        float _2413 = floor(_2401 * 7.0);\n        float _2417 = (mod(_2413, 2.0) == 0.0) ? 1.0 : (-1.0);\n        float2 _3005 = _1131;\n        _3005.x = _1131.x + ((_2015 * _2417) * (0.699999988079071044921875 + (0.300000011920928955078125 * fract(_2413 * 0.4099999964237213134765625))));\n        float2 _2433 = _3005 * 7.0;\n        float2 _2435 = floor(_2433);\n        float2 _2437 = fract(_2433);\n        float3 _3054;\n        _3054 = _3053;\n        float3 _3096;\n        for (int _3050 = -1; _3050 <= 1; _3054 = _3096, _3050++)\n        {\n            _3096 = _3054;\n            float3 _3207;\n            for (int _3094 = -1; _3094 <= 1; _3096 = _3207, _3094++)\n            {\n                float2 _2452 = float2(float(_3094), float(_3050));\n                float3 _2542 = fract(float3(_2435 + _2452, 43.09999847412109375) * float3(0.103100001811981201171875, 0.10300000011920928955078125, 0.097300000488758087158203125));\n                float3 _2551 = _2542 + float3(dot(_2542, _2542.yxz + float3(33.3300018310546875)));\n                float3 _2560 = fract((_2551.xxy + _2551.yzz) * _2551.zyx);\n                if (_2560.x < 0.519999980926513671875)\n                {\n                    float _2475 = length(_2437 - ((_2452 + float2(0.2800000011920928955078125)) + (_2560.yz * 0.439999997615814208984375)));\n                    float _2479 = 0.12999999523162841796875 + (0.14000000059604644775390625 * _2560.y);\n                    float3 _3208;\n                    if (_2475 < _2479)\n                    {\n                        float _2486 = _2475 / _2479;\n                        _3208 = _3096 + ((select(float3(1.0, 0.1599999964237213134765625, 0.20000000298023223876953125), float3(1.0, 0.87999999523162841796875, 0.64999997615814208984375), bool3(_2417 > 0.0)) * (smoothstep(1.0, 0.449999988079071044921875, _2486) * (1.0 - (_2486 * 0.3499999940395355224609375)))) * 0.4000000059604644775390625);\n                    }\n                    else\n                    {\n                        _3208 = _3096;\n                    }\n                    _3207 = _3208;\n                }\n                else\n                {\n                    _3207 = _3096;\n                }\n            }\n        }\n        _3051 = _3054;\n    }\n    else\n    {\n        _3051 = _3053;\n    }\n    float _2614 = _1103.y;\n    float2 _2667 = _1145 * 4.19999980926513671875;\n    float2 _2669 = floor(_2667);\n    float2 _2671 = fract(_2667);\n    float3 _3060;\n    _3060 = (((mix(mix(float3(0.014999999664723873138427734375, 0.0199999995529651641845703125, 0.039999999105930328369140625), float3(0.07500000298023223876953125, 0.0500000007450580596923828125, 0.0900000035762786865234375), float3(smoothstep(0.0, 0.64999997615814208984375, _2614))), float3(0.01200000010430812835693359375, 0.01400000043213367462158203125, 0.02199999988079071044921875), float3(smoothstep(0.64999997615814208984375, 1.0, _2614))) + (float3(0.2199999988079071044921875, 0.1495999991893768310546875, 0.06599999964237213134765625) * exp(length(_1145 - float2(-0.449999988079071044921875, -0.0500000007450580596923828125)) * (-3.2000000476837158203125)))) + (float3(0.070000000298023223876953125, 0.1599999964237213134765625, 0.20000000298023223876953125) * exp(length(_1145 - float2(0.4000000059604644775390625, 0.07999999821186065673828125)) * (-3.5)))) + (float3(0.23999999463558197021484375, 0.09600000083446502685546875, 0.04320000112056732177734375) * exp(length(_1145 - float2(-0.0500000007450580596923828125, 0.1500000059604644775390625)) * (-3.0)))) + (float3(0.1360000073909759521484375, 0.03519999980926513671875, 0.1040000021457672119140625) * exp(length(_1145 - float2(0.180000007152557373046875, -0.1500000059604644775390625)) * (-3.7999999523162841796875)));\n    float3 _3086;\n    for (int _3055 = -1; _3055 <= 1; _3060 = _3086, _3055++)\n    {\n        _3086 = _3060;\n        float3 _3203;\n        for (int _3080 = -1; _3080 <= 1; _3086 = _3203, _3080++)\n        {\n            float2 _2686 = float2(float(_3080), float(_3055));\n            float2 _2689 = _2669 + _2686;\n            float3 _2902 = fract(float3(_2689, 17.299999237060546875) * float3(0.103100001811981201171875, 0.10300000011920928955078125, 0.097300000488758087158203125));\n            float3 _2911 = _2902 + float3(dot(_2902, _2902.yxz + float3(33.3300018310546875)));\n            float3 _2920 = fract((_2911.xxy + _2911.yzz) * _2911.zyx);\n            float _2701 = _2920.x;\n            if ((_2701 < 0.60000002384185791015625) && (((_2689.y + 0.5) * 0.2380952537059783935546875) > (-0.60000002384185791015625)))\n            {\n                float _2717 = length(_2671 - ((_2686 + float2(0.25)) + (_2920.yz * 0.5)));\n                float _2721 = 0.180000007152557373046875 + (0.180000007152557373046875 * _2701);\n                float3 _3204;\n                if (_2717 < _2721)\n                {\n                    float _2728 = _2717 / _2721;\n                    float _2745 = _2920.z;\n                    float3 _3082;\n                    if (_2745 < 0.36000001430511474609375)\n                    {\n                        _3082 = float3(1.0, 0.7200000286102294921875, 0.36000001430511474609375);\n                    }\n                    else\n                    {\n                        float3 _3083;\n                        if (_2745 < 0.62000000476837158203125)\n                        {\n                            _3083 = float3(0.4000000059604644775390625, 0.85000002384185791015625, 1.0);\n                        }\n                        else\n                        {\n                            _3083 = select(float3(0.2800000011920928955078125, 0.949999988079071044921875, 0.64999997615814208984375), float3(1.0, 0.2199999988079071044921875, 0.2599999904632568359375), bool3(_2745 < 0.819999992847442626953125));\n                        }\n                        _3082 = _3083;\n                    }\n                    _3204 = _3086 + ((_3082 * (((smoothstep(0.699999988079071044921875, 0.980000019073486328125, _2728) * (1.0 - smoothstep(0.980000019073486328125, 1.0, _2728))) * 1.35000002384185791015625) + ((1.0 - (_2728 * _2728)) * 0.449999988079071044921875))) * (0.3499999940395355224609375 + (uEnergy * 0.180000007152557373046875)));\n                }\n                else\n                {\n                    _3204 = _3086;\n                }\n                _3203 = _3204;\n            }\n            else\n            {\n                _3203 = _3086;\n            }\n        }\n    }\n    float _2784 = _1145.y;\n    bool _2785 = _2784 > (-0.20000000298023223876953125);\n    bool _2791;\n    if (_2785)\n    {\n        _2791 = _2784 < 0.60000002384185791015625;\n    }\n    else\n    {\n        _2791 = _2785;\n    }\n    float3 _3058;\n    if (_2791)\n    {\n        float _2796 = floor(_2784 * 7.0);\n        float _2800 = (mod(_2796, 2.0) == 0.0) ? 1.0 : (-1.0);\n        float2 _3019 = _1145;\n        _3019.x = _1145.x + ((_2015 * _2800) * (0.699999988079071044921875 + (0.300000011920928955078125 * fract(_2796 * 0.4099999964237213134765625))));\n        float2 _2816 = _3019 * 7.0;\n        float2 _2818 = floor(_2816);\n        float2 _2820 = fract(_2816);\n        float3 _3061;\n        _3061 = _3060;\n        float3 _3077;\n        for (int _3057 = -1; _3057 <= 1; _3061 = _3077, _3057++)\n        {\n            _3077 = _3061;\n            float3 _3196;\n            for (int _3075 = -1; _3075 <= 1; _3077 = _3196, _3075++)\n            {\n                float2 _2835 = float2(float(_3075), float(_3057));\n                float3 _2925 = fract(float3(_2818 + _2835, 43.09999847412109375) * float3(0.103100001811981201171875, 0.10300000011920928955078125, 0.097300000488758087158203125));\n                float3 _2934 = _2925 + float3(dot(_2925, _2925.yxz + float3(33.3300018310546875)));\n                float3 _2943 = fract((_2934.xxy + _2934.yzz) * _2934.zyx);\n                if (_2943.x < 0.519999980926513671875)\n                {\n                    float _2858 = length(_2820 - ((_2835 + float2(0.2800000011920928955078125)) + (_2943.yz * 0.439999997615814208984375)));\n                    float _2862 = 0.12999999523162841796875 + (0.14000000059604644775390625 * _2943.y);\n                    float3 _3197;\n                    if (_2858 < _2862)\n                    {\n                        float _2869 = _2858 / _2862;\n                        _3197 = _3077 + ((select(float3(1.0, 0.1599999964237213134765625, 0.20000000298023223876953125), float3(1.0, 0.87999999523162841796875, 0.64999997615814208984375), bool3(_2800 > 0.0)) * (smoothstep(1.0, 0.449999988079071044921875, _2869) * (1.0 - (_2869 * 0.3499999940395355224609375)))) * 0.4000000059604644775390625);\n                    }\n                    else\n                    {\n                        _3197 = _3077;\n                    }\n                    _3196 = _3197;\n                }\n                else\n                {\n                    _3196 = _3077;\n                }\n            }\n        }\n        _3058 = _3061;\n    }\n    else\n    {\n        _3058 = _3060;\n    }\n    float3 _1231 = (((float3(_3044.x, _3051.y, _3058.z) + (float3(0.07999999821186065673828125, 0.10999999940395355224609375, 0.1599999964237213134765625) * ((1.0 - _1721) * 0.180000007152557373046875))) * (1.0 - (_3038 * 0.519999980926513671875))) + ((float3(0.85000002384185791015625, 0.939999997615814208984375, 1.0) * (0.4199999868869781494140625 + (uSpark * 0.579999983310699462890625))) * _3038)) + ((float3(1.0) * (powr(fast::max(0.0, dot(fast::normalize(float3(_3040, 0.449999988079071044921875)), float3(-0.566528797149658203125, -0.824041903018951416015625, 0.75))), 22.0) * _1721)) * (0.75 + (uSpark * 0.5)));\n    float3 _3074;\n    if (uSpark > 0.0500000007450580596923828125)\n    {\n        _3074 = _1231 + (float3(0.7200000286102294921875, 0.85000002384185791015625, 1.0) * (uSpark * 0.3499999940395355224609375));\n    }\n    else\n    {\n        _3074 = _1231;\n    }\n    out.fragColor = float4(fast::clamp(_3074, float3(0.0), float3(1.0)), 1.0);\n    return out;\n}\n\n",
@@ -1459,11 +1702,33 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "983306af43dd392787e38f658c3cc3ed90b9c7857e27694315e4bb0fc0fafdc4",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "fcd2bc4da7aad11db6ceea4d68c55e3582b0316852bec87aa580ea4d82e028ac",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }
+    },
+    {
+      "id": "vortice_cosmico",
+      "name": "Vórtice Cósmico",
+      "programId": "creator_vortice_cosmico",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 30,
+      "seed": 42,
+      "colors": [
+        4278386954,
+        4294932258,
+        4281917951,
+        4294967295
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.2
+      },
+      "shaderSource": "vec2 rotate2D(vec2 p, float a) {\n  float c = cos(a);\n  float s = sin(a);\n  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);\n}\n\nfloat hash21(vec2 p) {\n  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);\n}\n\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.3;\n\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float energy = clamp(f.energy, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n  float flow = clamp(f.flow, 0.0, 1.0);\n\n  float t = f.time * f.speed * 0.44;\n\n  float r = length(p);\n  float eventHorizon = 0.26 + 0.05 * bass;\n\n  // Gravitational deflection / Einstein ring lensing\n  vec2 lensP = p;\n  if (r > eventHorizon) {\n    float defl = (eventHorizon * eventHorizon) / (r * r + 0.001);\n    lensP = p * (1.0 - defl * 0.42);\n  }\n\n  // Accretion disk coordinate with tilt and logarithmic spiral\n  vec2 diskP = lensP;\n  diskP.y *= 2.35; // 3D orbital inclination tilt\n  diskP = rotate2D(diskP, 0.38);\n\n  float diskR = length(diskP);\n  // Analytical polar angle\n  float diskAngle = atan(diskP.y / (diskP.x + 0.00001)) + (diskP.x < 0.0 ? 3.14159 : 0.0);\n\n  // Swirling plasma arms in relativistic accretion disk\n  float spiral = diskAngle * 2.0 - log(diskR + 0.001) * 3.4 - t * (2.2 + 1.4 * flow + 1.8 * energy);\n  float arm1 = sin(spiral) * 0.5 + 0.5;\n  float arm2 = sin(spiral * 2.0 + 1.3) * 0.5 + 0.5;\n  float arms = arm1 * 0.7 + arm2 * 0.3;\n\n  // Accretion disk radial bounds\n  float diskMask = smoothstep(eventHorizon * 0.88, eventHorizon * 1.32, diskR) *\n                   smoothstep(1.65, eventHorizon * 1.5, diskR);\n\n  // Doppler boosting: approaching plasma orbital side is brighter and hotter\n  float doppler = 1.0 - clamp(diskP.x * 0.65, -0.65, 0.65);\n\n  // Photon ring radiance directly surrounding event horizon boundary\n  float photonDist = abs(r - eventHorizon);\n  float photonRing = (0.012 + 0.025 * bass) / (photonDist * photonDist + 0.0028);\n\n  // Color temperature ramp: from fiery volcanic orange to burning electric cyan\n  vec3 hotOrange = vec3(1.0, 0.45, 0.12);\n  vec3 electricCyan = vec3(0.25, 0.85, 1.0);\n  vec3 pureWhite = vec3(1.0, 0.98, 0.92);\n\n  vec3 diskColor = mix(hotOrange, electricCyan, arms * 0.5 + energy * 0.45);\n  diskColor = mix(diskColor, pureWhite, pow(arms, 3.0) * (0.45 + spark * 0.8));\n\n  vec3 col = diskColor * arms * diskMask * doppler * (1.6 + bass * 0.85);\n  col += vec3(0.28, 0.72, 1.0) * photonRing * (0.85 + energy * 0.65);\n\n  // Background starfield distorted by gravity\n  vec2 starGrid = floor(lensP * 28.0);\n  float starHash = hash21(starGrid);\n  if (starHash > 0.962) {\n    if (r > eventHorizon * 1.15) {\n      vec2 starFrac = fract(lensP * 28.0) - 0.5;\n      float starDist = length(starFrac);\n      float starTwinkle = 0.5 + 0.5 * sin(t * 3.0 + starHash * 30.0);\n      float starBright = (0.018 * starTwinkle + 0.028 * spark) / (starDist * starDist * 60.0 + 0.05);\n      col += vec3(0.85, 0.92, 1.0) * starBright;\n    }\n  }\n\n  // Black hole pitch black core shadow\n  float shadow = smoothstep(eventHorizon * 0.85, eventHorizon * 1.05, r);\n  col *= shadow;\n\n  // Relativistic polar jet radiance\n  float jetY = abs(p.y);\n  float jetX = abs(p.x);\n  float jet = exp(-jetX * 36.0) * smoothstep(0.18, 1.25, jetY) * (0.15 + 0.85 * bass);\n  col += electricCyan * jet * 0.55;\n\n  // Cinematic tone mapping and soft vignette\n  col = col / (col + vec3(0.92));\n  float vignette = 1.0 - smoothstep(0.55, 1.45, length(p));\n  col *= vignette;\n\n  return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);\n}\n"
     },
     {
       "id": "vortice_hipnotico",
@@ -1492,8 +1757,8 @@
       "images": {},
       "nativeBuild": {
         "abi": 1,
-        "hash": "4d7c58766d14db352db7c162b1167aaa86169db155ffd80387acab7691bb4a9b",
-        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "hash": "8bf23c565342a3631a6f11c9060ebc419fdce5cc07af4aef2d21f0350c07d8f2",
+        "sdkHash": "d13714ceef57fdfae715baf5a039e7b9f4a76f3d4653d7432a404ac61742eaec",
         "materials": {},
         "imageHashes": {}
       }

@@ -118,6 +118,39 @@
       "reactivity": "optional"
     },
     {
+      "id": "ciber_reticula",
+      "name": "Ciber Retícula 3D",
+      "description": "Paisaje cyberpunk infinito en perspectiva 3D con topografía láser, sol sintetizador en el horizonte y ondas de choque.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "retro_future",
+        "cyberpunk",
+        "energetic"
+      ],
+      "concepts": [
+        "cyber_grid",
+        "synthwave",
+        "perspective",
+        "laser",
+        "neon_highway"
+      ],
+      "credits": {
+        "author": "Color Lights 26",
+        "license": "Proprietary",
+        "source": "Color Lights Studio"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "constelacion_viva",
       "name": "Constelación Táctil",
       "description": "Grafo de vecindad con rejilla espacial: los nodos se repelen del centro y las aristas brillan por cercanía.",
@@ -176,6 +209,40 @@
       "reactivity": "optional"
     },
     {
+      "id": "cristal_prismatico",
+      "name": "Cristal Prismático",
+      "description": "Gema cuántica hiperfacetada con dispersión óptica arcoíris, refracción interna y caústicas que estallan al ritmo de la música.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "radiant",
+        "luxurious",
+        "kaleidoscopic"
+      ],
+      "concepts": [
+        "crystal",
+        "gem",
+        "refraction",
+        "rainbow",
+        "prismatic",
+        "diamond"
+      ],
+      "credits": {
+        "author": "Color Lights 26",
+        "license": "Proprietary",
+        "source": "Color Lights Studio"
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "cromo_liquido",
       "name": "Cromo Líquido",
       "description": "Gotas de metal fundido en violeta y rosa flotando sobre fondo oscuro.",
@@ -228,6 +295,75 @@
       },
       "thumbnail": {
         "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "flor_cosmica",
+      "name": "Flor Cósmica",
+      "description": "Loto dimensional y mandala sagrado de pétalos dorados y violetas que florece en espirales de Fibonacci al compás del sonido.",
+      "purposes": [
+        "meditation",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "sacred",
+        "hypnotic",
+        "spiritual",
+        "radiant"
+      ],
+      "concepts": [
+        "mandala",
+        "lotus",
+        "fibonacci",
+        "sacred_geometry",
+        "cosmic_flower"
+      ],
+      "credits": {
+        "author": "Color Lights 26",
+        "license": "Proprietary",
+        "source": "Color Lights Studio"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "furia_estelar",
+      "name": "Furia Estelar",
+      "description": "Supernova viva y fulguraciones solares con arcos magnéticos coronales y convección nuclear que estallan al ritmo de la música.",
+      "purposes": [
+        "party",
+        "rave",
+        "visualizer",
+        "energy"
+      ],
+      "moods": [
+        "epic",
+        "intense",
+        "blazing",
+        "powerful"
+      ],
+      "concepts": [
+        "supernova",
+        "solar_flare",
+        "sun",
+        "plasma",
+        "coronal_mass_ejection"
+      ],
+      "credits": {
+        "author": "Color Lights 26",
+        "license": "Proprietary",
+        "source": "Color Lights Studio"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
       },
       "publication": "draft",
       "role": "background",
@@ -417,6 +553,39 @@
       "reactivity": "optional"
     },
     {
+      "id": "mercurio_liquido",
+      "name": "Mercurio Líquido",
+      "description": "Cromo fundido y mercurio líquido hiperreflectivo con ondas concéntricas y brillos especulares al compás del ritmo.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "sleek",
+        "futuristic",
+        "metallic"
+      ],
+      "concepts": [
+        "chrome",
+        "mercury",
+        "liquid_metal",
+        "reflections",
+        "futuristic"
+      ],
+      "credits": {
+        "author": "Color Lights 26",
+        "license": "Proprietary",
+        "source": "Color Lights Studio"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "neon_lluvia",
       "name": "Neón bajo la Lluvia",
       "description": "Ciudad de neón en cuatro capas con ventanas encendidas, reflejo mojado y lluvia arrastrada por el viento.",
@@ -440,6 +609,70 @@
       },
       "thumbnail": {
         "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "plasma_scene",
+      "name": "Campo de Plasma",
+      "description": "Interferencia fluida de ondas de plasma en color puro con pulsos armónicos y reactividad espectral.",
+      "purposes": [
+        "party",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "hypnotic",
+        "energetic",
+        "trippy"
+      ],
+      "concepts": [
+        "plasma",
+        "waves",
+        "electric"
+      ],
+      "credits": {
+        "author": "Color Lights Team",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "portal_cuantico",
+      "name": "Portal Cuántico",
+      "description": "Túnel hipnótico de geometría sagrada fractal con anillos neón y aberración cromática que pulsa con el ritmo.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "meditation"
+      ],
+      "moods": [
+        "hypnotic",
+        "trippy",
+        "electric"
+      ],
+      "concepts": [
+        "fractal",
+        "sacred_geometry",
+        "tunnel",
+        "quantum",
+        "neon"
+      ],
+      "credits": {
+        "author": "Color Lights 26",
+        "license": "Proprietary",
+        "source": "Color Lights Studio"
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
       },
       "publication": "draft",
       "role": "background",
@@ -495,6 +728,39 @@
         "author": "Chic Apps",
         "license": "",
         "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "seda_bioluminiscente",
+      "name": "Seda Bioluminiscente",
+      "description": "Cintas etéreas de seda bioluminiscente en gravedad cero con ondulaciones fluidas y esporas de luz reactivas al ritmo.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "meditation"
+      ],
+      "moods": [
+        "ethereal",
+        "dreamy",
+        "organic"
+      ],
+      "concepts": [
+        "silk",
+        "bioluminescent",
+        "aurora",
+        "deep_sea",
+        "fluid"
+      ],
+      "credits": {
+        "author": "Color Lights 26",
+        "license": "Proprietary",
+        "source": "Color Lights Studio"
       },
       "thumbnail": {
         "timeSeconds": 2.5
@@ -1070,6 +1336,39 @@
       },
       "thumbnail": {
         "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "vortice_cosmico",
+      "name": "Vórtice Cósmico",
+      "description": "Singularidad cósmica y disco de acreción relativista con curvatura gravitacional, filamentos de plasma y llamaradas al ritmo de la música.",
+      "purposes": [
+        "visualizer",
+        "space",
+        "cinematic"
+      ],
+      "moods": [
+        "epic",
+        "cosmic",
+        "deep"
+      ],
+      "concepts": [
+        "black_hole",
+        "space",
+        "galaxy",
+        "singularity",
+        "accretion_disk"
+      ],
+      "credits": {
+        "author": "Color Lights 26",
+        "license": "Proprietary",
+        "source": "Color Lights Studio"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
       },
       "publication": "draft",
       "role": "background",
