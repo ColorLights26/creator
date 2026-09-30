@@ -128,18 +128,91 @@ class _StudioViewState extends State<StudioView> {
     return widget.visuals.indexWhere((v) => v.id == widget.selectedVisualId);
   }
 
+  List<StudioVisualItem> get _pendingVisuals {
+    return widget.visuals.where((v) {
+      final status =
+          widget.curationStatus[v.id] ?? VisualCurationStatus.pending;
+      return status == VisualCurationStatus.pending;
+    }).toList();
+  }
+
   void _goToPreviousVisual() {
     if (widget.visuals.isEmpty) return;
-    final index = _currentIndex;
-    final prevIndex = index <= 0 ? widget.visuals.length - 1 : index - 1;
-    widget.onSelectVisual(widget.visuals[prevIndex].id);
+    final pending = _pendingVisuals;
+    if (pending.isEmpty) {
+      final index = _currentIndex;
+      final prevIndex = index <= 0 ? widget.visuals.length - 1 : index - 1;
+      widget.onSelectVisual(widget.visuals[prevIndex].id);
+      return;
+    }
+
+    final currentId = widget.selectedVisualId;
+    final pendingIndex = pending.indexWhere((v) => v.id == currentId);
+    if (pendingIndex >= 0) {
+      final prevIndex =
+          pendingIndex <= 0 ? pending.length - 1 : pendingIndex - 1;
+      widget.onSelectVisual(pending[prevIndex].id);
+    } else {
+      final currentIndex = _currentIndex;
+      final prevPending = pending.lastWhere(
+        (v) => widget.visuals.indexOf(v) < currentIndex,
+        orElse: () => pending.last,
+      );
+      widget.onSelectVisual(prevPending.id);
+    }
   }
 
   void _goToNextVisual() {
     if (widget.visuals.isEmpty) return;
-    final index = _currentIndex;
-    final nextIndex = (index + 1) % widget.visuals.length;
-    widget.onSelectVisual(widget.visuals[nextIndex].id);
+    final pending = _pendingVisuals;
+    if (pending.isEmpty) {
+      final index = _currentIndex;
+      final nextIndex = (index + 1) % widget.visuals.length;
+      widget.onSelectVisual(widget.visuals[nextIndex].id);
+      return;
+    }
+
+    final currentId = widget.selectedVisualId;
+    final pendingIndex = pending.indexWhere((v) => v.id == currentId);
+    if (pendingIndex >= 0) {
+      final nextIndex = (pendingIndex + 1) % pending.length;
+      widget.onSelectVisual(pending[nextIndex].id);
+    } else {
+      final currentIndex = _currentIndex;
+      final nextPending = pending.firstWhere(
+        (v) => widget.visuals.indexOf(v) > currentIndex,
+        orElse: () => pending.first,
+      );
+      widget.onSelectVisual(nextPending.id);
+    }
+  }
+
+  void _advanceAfterCuration(String curatedId) {
+    final remainingPending = widget.visuals.where((v) {
+      if (v.id == curatedId) return false;
+      final status =
+          widget.curationStatus[v.id] ?? VisualCurationStatus.pending;
+      return status == VisualCurationStatus.pending;
+    }).toList();
+
+    if (remainingPending.isNotEmpty) {
+      final curatedIndex = widget.visuals.indexWhere((v) => v.id == curatedId);
+      final next = remainingPending.firstWhere(
+        (v) => widget.visuals.indexOf(v) > curatedIndex,
+        orElse: () => remainingPending.first,
+      );
+      widget.onSelectVisual(next.id);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            '🎉 ¡Completado! Has evaluado todos los visuales del catálogo.',
+          ),
+          duration: Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -150,8 +223,32 @@ class _StudioViewState extends State<StudioView> {
 
     final index = _currentIndex;
     final total = widget.visuals.length;
-    final indexString =
-        '${(index >= 0 ? index + 1 : 1).toString().padLeft(2, '0')} / ${total.toString().padLeft(2, '0')}';
+    final pending = _pendingVisuals;
+    final isSelectedPending = selected != null &&
+        (widget.curationStatus[selected.id] ?? VisualCurationStatus.pending) ==
+            VisualCurationStatus.pending;
+    final pendingIndex =
+        isSelectedPending ? pending.indexWhere((v) => v.id == selected.id) : -1;
+
+    final String indexString;
+    final Color counterColor;
+    if (pending.isEmpty) {
+      indexString = '$total/$total';
+      counterColor = const Color(0xFF73F572);
+    } else if (isSelectedPending) {
+      indexString =
+          '${(pendingIndex + 1).toString().padLeft(2, '0')} / ${pending.length.toString().padLeft(2, '0')}';
+      counterColor = const Color(0xFF73F572);
+    } else {
+      final currentStatus = widget.curationStatus[selected?.id];
+      final statusPrefix =
+          currentStatus == VisualCurationStatus.approved ? '✓ ' : '✕ ';
+      indexString =
+          '$statusPrefix${(index >= 0 ? index + 1 : 1).toString().padLeft(2, '0')}/$total';
+      counterColor = currentStatus == VisualCurationStatus.approved
+          ? const Color(0xFF73F572)
+          : const Color(0xFFFF8B80);
+    }
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -168,13 +265,13 @@ class _StudioViewState extends State<StudioView> {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
             child: Text(
               indexString,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 2.0,
-                color: Color(0xFF73F572),
-                fontFeatures: [FontFeature.tabularFigures()],
-                shadows: [
+                color: counterColor,
+                fontFeatures: const [FontFeature.tabularFigures()],
+                shadows: const [
                   Shadow(color: Colors.black87, blurRadius: 10),
                 ],
               ),
@@ -379,7 +476,6 @@ class _StudioViewState extends State<StudioView> {
                 DropdownMenuItem(
                   value: visual.id,
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(6),
@@ -390,15 +486,31 @@ class _StudioViewState extends State<StudioView> {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Flexible(
+                      Expanded(
                         child: Text(
                           visual.name,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
+                      const SizedBox(width: 6),
+                      if (widget.curationStatus[visual.id] ==
+                          VisualCurationStatus.approved)
+                        const Icon(
+                          Icons.check_circle_rounded,
+                          color: Color(0xFF73F572),
+                          size: 16,
+                        )
+                      else if (widget.curationStatus[visual.id] ==
+                          VisualCurationStatus.rejected)
+                        const Icon(
+                          Icons.cancel_rounded,
+                          color: Color(0xFFFF453A),
+                          size: 16,
+                        ),
                     ],
                   ),
                 ),
@@ -542,12 +654,13 @@ class _StudioViewState extends State<StudioView> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              '✕ "${selected.name}" marcado para eliminar.',
+                              '✕ "${selected.name}" descartado.',
                             ),
                             duration: const Duration(seconds: 2),
                             behavior: SnackBarBehavior.floating,
                           ),
                         );
+                        _advanceAfterCuration(selected.id);
                       },
                 icon: const Icon(Icons.close_rounded, size: 16),
                 label: const Text('Descartar'),
@@ -580,12 +693,13 @@ class _StudioViewState extends State<StudioView> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              '✓ "${selected.name}" aprobado para agregar a la app.',
+                              '✓ "${selected.name}" aprobado para la app.',
                             ),
                             duration: const Duration(seconds: 2),
                             behavior: SnackBarBehavior.floating,
                           ),
                         );
+                        _advanceAfterCuration(selected.id);
                       },
                 icon: const Icon(Icons.check_rounded, size: 16),
                 label: const Text('Aprobar'),
@@ -1010,6 +1124,7 @@ class _StudioViewState extends State<StudioView> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (modalContext) {
+        int activeFilterIndex = 0; // 0: Todos, 1: Pendientes, 2: Aprobados, 3: Descartados
         return StatefulBuilder(
           builder: (context, setSheetState) {
             final approved = widget.visuals.where(
@@ -1026,6 +1141,17 @@ class _StudioViewState extends State<StudioView> {
                       VisualCurationStatus.pending) ==
                   VisualCurationStatus.pending,
             );
+
+            final displayedVisuals = widget.visuals.where((v) {
+              final status =
+                  widget.curationStatus[v.id] ?? VisualCurationStatus.pending;
+              return switch (activeFilterIndex) {
+                1 => status == VisualCurationStatus.pending,
+                2 => status == VisualCurationStatus.approved,
+                3 => status == VisualCurationStatus.rejected,
+                _ => true,
+              };
+            }).toList();
 
             return DraggableScrollableSheet(
               initialChildSize: 0.7,
@@ -1088,7 +1214,7 @@ class _StudioViewState extends State<StudioView> {
 
                       const SizedBox(height: 14),
 
-                      // Summary chips
+                      // Summary chips (interactive filter tabs)
                       Row(
                         children: [
                           _buildCountBadge(
@@ -1096,20 +1222,9 @@ class _StudioViewState extends State<StudioView> {
                             '${widget.visuals.length}',
                             Colors.white24,
                             Colors.white,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildCountBadge(
-                            'Aprobados',
-                            '${approved.length}',
-                            const Color(0xFF73F572).withValues(alpha: 0.2),
-                            const Color(0xFF73F572),
-                          ),
-                          const SizedBox(width: 8),
-                          _buildCountBadge(
-                            'Descartados',
-                            '${rejected.length}',
-                            const Color(0xFFFF453A).withValues(alpha: 0.2),
-                            const Color(0xFFFF453A),
+                            isSelected: activeFilterIndex == 0,
+                            onTap: () =>
+                                setSheetState(() => activeFilterIndex = 0),
                           ),
                           const SizedBox(width: 8),
                           _buildCountBadge(
@@ -1117,6 +1232,29 @@ class _StudioViewState extends State<StudioView> {
                             '${pending.length}',
                             Colors.white12,
                             Colors.white70,
+                            isSelected: activeFilterIndex == 1,
+                            onTap: () =>
+                                setSheetState(() => activeFilterIndex = 1),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildCountBadge(
+                            'Aprobados',
+                            '${approved.length}',
+                            const Color(0xFF73F572).withValues(alpha: 0.2),
+                            const Color(0xFF73F572),
+                            isSelected: activeFilterIndex == 2,
+                            onTap: () =>
+                                setSheetState(() => activeFilterIndex = 2),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildCountBadge(
+                            'Descartados',
+                            '${rejected.length}',
+                            const Color(0xFFFF453A).withValues(alpha: 0.2),
+                            const Color(0xFFFF453A),
+                            isSelected: activeFilterIndex == 3,
+                            onTap: () =>
+                                setSheetState(() => activeFilterIndex = 3),
                           ),
                         ],
                       ),
@@ -1125,119 +1263,145 @@ class _StudioViewState extends State<StudioView> {
 
                       // Visuals List
                       Expanded(
-                        child: ListView.separated(
-                          controller: scrollController,
-                          itemCount: widget.visuals.length,
-                          separatorBuilder: (_, __) =>
-                              const Divider(color: Colors.white10, height: 1),
-                          itemBuilder: (context, index) {
-                            final visual = widget.visuals[index];
-                            final status = widget.curationStatus[visual.id] ??
-                                VisualCurationStatus.pending;
-                            final isCurrent =
-                                visual.id == widget.selectedVisualId;
-
-                            return ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 6,
-                              ),
-                              onTap: () {
-                                widget.onSelectVisual(visual.id);
-                                Navigator.of(context).pop();
-                              },
-                              leading: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Container(
-                                  width: 48,
-                                  height: 48,
-                                  color: Colors.black26,
-                                  child: visual.thumbnail,
-                                ),
-                              ),
-                              title: Row(
-                                children: [
-                                  Text(
-                                    '${(index + 1).toString().padLeft(2, '0')}. ',
-                                    style: const TextStyle(
-                                      color: Color(0xFF73F572),
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 13,
-                                    ),
+                        child: displayedVisuals.isEmpty
+                            ? Center(
+                                child: Text(
+                                  switch (activeFilterIndex) {
+                                    1 => 'No hay visuales pendientes.',
+                                    2 => 'No hay visuales aprobados aún.',
+                                    3 => 'No hay visuales descartados.',
+                                    _ => 'No hay visuales en esta sección.',
+                                  },
+                                  style: const TextStyle(
+                                    color: Colors.white54,
+                                    fontSize: 14,
                                   ),
-                                  Expanded(
-                                    child: Text(
-                                      visual.name,
-                                      style: TextStyle(
-                                        color: isCurrent
-                                            ? const Color(0xFF73F572)
-                                            : Colors.white,
-                                        fontWeight: isCurrent
-                                            ? FontWeight.w900
-                                            : FontWeight.w700,
-                                        fontSize: 15,
+                                ),
+                              )
+                            : ListView.separated(
+                                controller: scrollController,
+                                itemCount: displayedVisuals.length,
+                                separatorBuilder: (_, __) => const Divider(
+                                    color: Colors.white10, height: 1),
+                                itemBuilder: (context, index) {
+                                  final visual = displayedVisuals[index];
+                                  final catalogIndex =
+                                      widget.visuals.indexOf(visual);
+                                  final status =
+                                      widget.curationStatus[visual.id] ??
+                                          VisualCurationStatus.pending;
+                                  final isCurrent =
+                                      visual.id == widget.selectedVisualId;
+
+                                  return ListTile(
+                                    contentPadding:
+                                        const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 6,
+                                    ),
+                                    onTap: () {
+                                      widget.onSelectVisual(visual.id);
+                                      Navigator.of(context).pop();
+                                    },
+                                    leading: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Container(
+                                        width: 48,
+                                        height: 48,
+                                        color: Colors.black26,
+                                        child: visual.thumbnail,
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              subtitle: Text(
-                                visual.details,
-                                style: const TextStyle(
-                                  color: Colors.white54,
-                                  fontSize: 11,
-                                ),
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Descartar
-                                  IconButton(
-                                    icon: Icon(
-                                      status == VisualCurationStatus.rejected
-                                          ? Icons.cancel_rounded
-                                          : Icons.cancel_outlined,
-                                      color: status ==
-                                              VisualCurationStatus.rejected
-                                          ? const Color(0xFFFF453A)
-                                          : Colors.white30,
-                                      size: 22,
+                                    title: Row(
+                                      children: [
+                                        Text(
+                                          '${(catalogIndex + 1).toString().padLeft(2, '0')}. ',
+                                          style: const TextStyle(
+                                            color: Color(0xFF73F572),
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                            visual.name,
+                                            style: TextStyle(
+                                              color: isCurrent
+                                                  ? const Color(0xFF73F572)
+                                                  : Colors.white,
+                                              fontWeight: isCurrent
+                                                  ? FontWeight.w900
+                                                  : FontWeight.w700,
+                                              fontSize: 15,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    onPressed: () {
-                                      widget.onCurationChanged?.call(
-                                        visual.id,
-                                        VisualCurationStatus.rejected,
-                                      );
-                                      setSheetState(() {});
-                                      setState(() {});
-                                    },
-                                  ),
-                                  // Aprobar
-                                  IconButton(
-                                    icon: Icon(
-                                      status == VisualCurationStatus.approved
-                                          ? Icons.check_circle_rounded
-                                          : Icons.check_circle_outline_rounded,
-                                      color: status ==
-                                              VisualCurationStatus.approved
-                                          ? const Color(0xFF73F572)
-                                          : Colors.white30,
-                                      size: 22,
+                                    subtitle: Text(
+                                      visual.details,
+                                      style: const TextStyle(
+                                        color: Colors.white54,
+                                        fontSize: 11,
+                                      ),
                                     ),
-                                    onPressed: () {
-                                      widget.onCurationChanged?.call(
-                                        visual.id,
-                                        VisualCurationStatus.approved,
-                                      );
-                                      setSheetState(() {});
-                                      setState(() {});
-                                    },
-                                  ),
-                                ],
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        // Descartar
+                                        IconButton(
+                                          icon: Icon(
+                                            status ==
+                                                    VisualCurationStatus
+                                                        .rejected
+                                                ? Icons.cancel_rounded
+                                                : Icons.cancel_outlined,
+                                            color: status ==
+                                                    VisualCurationStatus
+                                                        .rejected
+                                                ? const Color(0xFFFF453A)
+                                                : Colors.white30,
+                                            size: 22,
+                                          ),
+                                          onPressed: () {
+                                            widget.onCurationChanged?.call(
+                                              visual.id,
+                                              VisualCurationStatus.rejected,
+                                            );
+                                            setSheetState(() {});
+                                            setState(() {});
+                                          },
+                                        ),
+                                        // Aprobar
+                                        IconButton(
+                                          icon: Icon(
+                                            status ==
+                                                    VisualCurationStatus
+                                                        .approved
+                                                ? Icons.check_circle_rounded
+                                                : Icons
+                                                    .check_circle_outline_rounded,
+                                            color: status ==
+                                                    VisualCurationStatus
+                                                        .approved
+                                                ? const Color(0xFF73F572)
+                                                : Colors.white30,
+                                            size: 22,
+                                          ),
+                                          onPressed: () {
+                                            widget.onCurationChanged?.call(
+                                              visual.id,
+                                              VisualCurationStatus.approved,
+                                            );
+                                            setSheetState(() {});
+                                            setState(() {});
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
                       ),
 
                       const SizedBox(height: 12),
@@ -1286,35 +1450,46 @@ class _StudioViewState extends State<StudioView> {
     String label,
     String count,
     Color bg,
-    Color textColor,
-  ) {
+    Color textColor, {
+    bool isSelected = false,
+    VoidCallback? onTap,
+  }) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Text(
-              count,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                color: textColor,
-              ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          decoration: BoxDecoration(
+            color: isSelected ? textColor.withValues(alpha: 0.25) : bg,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? textColor : Colors.transparent,
+              width: 1.5,
             ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: textColor.withValues(alpha: 0.8),
+          ),
+          child: Column(
+            children: [
+              Text(
+                count,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: textColor,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: textColor.withValues(alpha: 0.8),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
