@@ -138,42 +138,76 @@ class _StudioViewState extends State<StudioView> {
 
   void _goToPreviousVisual() {
     if (widget.visuals.isEmpty) return;
-    final pending = _pendingVisuals;
-    if (pending.isEmpty) {
+    final view = _viewVisuals;
+    if (view.isEmpty) {
       widget.onSelectVisual(null);
       return;
     }
 
     final currentId = widget.selectedVisualId;
-    final pendingIndex = pending.indexWhere((v) => v.id == currentId);
-    if (pendingIndex > 0) {
-      widget.onSelectVisual(pending[pendingIndex - 1].id);
-    } else if (pendingIndex == 0) {
-      widget.onSelectVisual(pending.last.id);
+    final viewIndex = view.indexWhere((v) => v.id == currentId);
+    if (viewIndex > 0) {
+      widget.onSelectVisual(view[viewIndex - 1].id);
+    } else if (viewIndex == 0) {
+      widget.onSelectVisual(view.last.id);
     } else {
-      widget.onSelectVisual(pending.first.id);
+      widget.onSelectVisual(view.first.id);
     }
   }
 
   void _goToNextVisual() {
     if (widget.visuals.isEmpty) return;
-    final pending = _pendingVisuals;
-    if (pending.isEmpty) {
+    final view = _viewVisuals;
+    if (view.isEmpty) {
       widget.onSelectVisual(null);
       return;
     }
 
     final currentId = widget.selectedVisualId;
-    final pendingIndex = pending.indexWhere((v) => v.id == currentId);
-    if (pendingIndex >= 0) {
-      final nextIndex = (pendingIndex + 1) % pending.length;
-      widget.onSelectVisual(pending[nextIndex].id);
+    final viewIndex = view.indexWhere((v) => v.id == currentId);
+    if (viewIndex >= 0) {
+      final nextIndex = (viewIndex + 1) % view.length;
+      widget.onSelectVisual(view[nextIndex].id);
     } else {
-      widget.onSelectVisual(pending.first.id);
+      widget.onSelectVisual(view.first.id);
     }
   }
 
   void _advanceAfterCuration(String curatedId) {
+    // En modo vista se avanza dentro del slide actual.
+    if (_viewFilter != null) {
+      final remaining = _viewVisuals.where((v) => v.id != curatedId).toList();
+      if (remaining.isNotEmpty) {
+        final curatedIndex = _viewVisuals.indexWhere(
+          (v) => v.id == curatedId,
+        );
+        final next = remaining.firstWhere(
+          (v) => _viewVisuals.indexOf(v) > curatedIndex,
+          orElse: () => remaining.first,
+        );
+        widget.onSelectVisual(next.id);
+      } else {
+        // Slide terminado: salir del modo y volver a la cola normal.
+        setState(() => _viewFilter = null);
+        final pending = _pendingVisuals.where((v) => v.id != curatedId);
+        if (pending.isNotEmpty) {
+          widget.onSelectVisual(pending.first.id);
+        } else {
+          widget.onSelectVisual(null);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                '🎉 ¡Completado! Has evaluado todos los visuales del catálogo.',
+              ),
+              duration: Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+      return;
+    }
+
     final remainingPending = widget.visuals.where((v) {
       if (v.id == curatedId) return false;
       final status =
@@ -211,6 +245,7 @@ class _StudioViewState extends State<StudioView> {
     final index = _currentIndex;
     final total = widget.visuals.length;
     final pending = _pendingVisuals;
+    final view = _viewVisuals;
     final isSelectedPending = selected != null &&
         (widget.curationStatus[selected.id] ?? VisualCurationStatus.pending) ==
             VisualCurationStatus.pending;
@@ -219,7 +254,20 @@ class _StudioViewState extends State<StudioView> {
 
     final String indexString;
     final Color counterColor;
-    if (selected == null || pending.isEmpty) {
+    if (_viewFilter != null && selected != null) {
+      final viewIndex = view.indexWhere((v) => v.id == selected.id);
+      final prefix = _viewFilter == VisualCurationStatus.rejected ? '↺ ' : '👀 ';
+      if (viewIndex >= 0) {
+        indexString =
+            '$prefix${(viewIndex + 1).toString().padLeft(2, '0')} / ${view.length.toString().padLeft(2, '0')}';
+      } else {
+        indexString =
+            '$prefix${(index >= 0 ? index + 1 : 1).toString().padLeft(2, '0')}/$total';
+      }
+      counterColor = _viewFilter == VisualCurationStatus.rejected
+          ? const Color(0xFFFFB74D)
+          : const Color(0xFF73F572);
+    } else if (selected == null || pending.isEmpty) {
       indexString = '✓ Completado';
       counterColor = const Color(0xFF73F572);
     } else if (isSelectedPending) {
@@ -623,29 +671,53 @@ class _StudioViewState extends State<StudioView> {
     );
   }
 
-  void _giveSecondChanceToRejected() {
-    final rejectedIds = widget.visuals
-        .where(
-          (v) =>
-              widget.curationStatus[v.id] == VisualCurationStatus.rejected,
-        )
-        .map((v) => v.id)
-        .toList();
-    if (rejectedIds.isEmpty) return;
-    for (final id in rejectedIds) {
-      widget.onCurationChanged?.call(id, VisualCurationStatus.pending);
+  /// Modo de vista slide: null = cola normal de pendientes,
+  /// rejected = segunda oportunidad (recorre descartados),
+  /// approved = revisión de aprobados. No cambia estados al entrar;
+  /// SALIR vuelve a la cola sin tocar lo no redecidido.
+  VisualCurationStatus? _viewFilter;
+
+  List<StudioVisualItem> get _viewVisuals {
+    final filter = _viewFilter;
+    if (filter != null) {
+      return widget.visuals
+          .where((v) => widget.curationStatus[v.id] == filter)
+          .toList();
     }
-    widget.onSelectVisual(rejectedIds.first);
+    return _pendingVisuals;
+  }
+
+  void _enterViewMode(VisualCurationStatus filter) {
+    final list = widget.visuals
+        .where((v) => widget.curationStatus[v.id] == filter)
+        .toList();
+    if (list.isEmpty) return;
+    setState(() => _viewFilter = filter);
+    widget.onSelectVisual(list.first.id);
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '🔄 Segunda oportunidad: ${rejectedIds.length} descartados vuelven a la cola.',
+          filter == VisualCurationStatus.rejected
+              ? '🔄 Segunda oportunidad: recorre ${list.length} descartados.'
+              : '👀 Revisando ${list.length} aprobados.',
         ),
         duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+  void _exitViewMode() {
+    setState(() => _viewFilter = null);
+    final pending = _pendingVisuals;
+    widget.onSelectVisual(pending.isNotEmpty ? pending.first.id : null);
+  }
+
+  /// Selección manual (dropdown o lista): sale del modo vista.
+  void _selectVisualManual(String? id) {
+    if (_viewFilter != null) setState(() => _viewFilter = null);
+    widget.onSelectVisual(id);
   }
 
   Widget _buildAllDoneView(BuildContext context) {
@@ -760,7 +832,8 @@ class _StudioViewState extends State<StudioView> {
               if (rejectedCount > 0) ...[
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
-                  onPressed: _giveSecondChanceToRejected,
+                  onPressed: () =>
+                      _enterViewMode(VisualCurationStatus.rejected),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFFFB74D),
                     side: const BorderSide(
@@ -778,6 +851,35 @@ class _StudioViewState extends State<StudioView> {
                   icon: const Icon(Icons.history_rounded, size: 20),
                   label: Text(
                     'SEGUNDA OPORTUNIDAD ($rejectedCount DESCARTADOS)',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+              if (approvedCount > 0) ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () =>
+                      _enterViewMode(VisualCurationStatus.approved),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF73F572),
+                    side: const BorderSide(
+                      color: Color(0xFF73F572),
+                      width: 1.2,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  icon: const Icon(Icons.visibility_rounded, size: 20),
+                  label: Text(
+                    'REVISAR APROBADOS ($approvedCount)',
                     style: const TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: 13,
@@ -836,6 +938,63 @@ class _StudioViewState extends State<StudioView> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Banner de modo vista slide con SALIR fijo
+        if (_viewFilter != null) ...[
+          Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFB74D).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: const Color(0xFFFFB74D).withValues(alpha: 0.6),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.history_rounded,
+                  size: 16,
+                  color: Color(0xFFFFB74D),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _viewFilter == VisualCurationStatus.rejected
+                        ? 'Segunda oportunidad: slide de descartados'
+                        : 'Viendo slide de aprobados',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFFFB74D),
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _exitViewMode,
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    backgroundColor: const Color(0xFFFFB74D),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'SALIR',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
         // Title Selector (Dropdown with bold hero title)
         DropdownButtonHideUnderline(
           child: DropdownButton<String>(
@@ -928,7 +1087,7 @@ class _StudioViewState extends State<StudioView> {
             onChanged: widget.loading
                 ? null
                 : (val) {
-                    if (val != null) widget.onSelectVisual(val);
+                    if (val != null) _selectVisualManual(val);
                   },
           ),
         ),
@@ -1671,6 +1830,80 @@ class _StudioViewState extends State<StudioView> {
 
                       const SizedBox(height: 16),
 
+                      // Bulk requeue: revisar descartados/aprobados sin
+                      // tener que terminar la cola principal
+                      if (rejected.isNotEmpty || approved.isNotEmpty) ...[
+                        Row(
+                          children: [
+                            if (rejected.isNotEmpty)
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    _enterViewMode(
+                                      VisualCurationStatus.rejected,
+                                    );
+                                  },
+                                  icon: const Icon(
+                                    Icons.history_rounded,
+                                    size: 16,
+                                  ),
+                                  label: Text(
+                                    'Ver slide (${rejected.length} descartados)',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFFFFB74D),
+                                    side: const BorderSide(
+                                      color: Color(0xFFFFB74D),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 10,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            if (rejected.isNotEmpty && approved.isNotEmpty)
+                              const SizedBox(width: 8),
+                            if (approved.isNotEmpty)
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    _enterViewMode(
+                                      VisualCurationStatus.approved,
+                                    );
+                                  },
+                                  icon: const Icon(
+                                    Icons.visibility_rounded,
+                                    size: 16,
+                                  ),
+                                  label: Text(
+                                    'Ver slide (${approved.length} aprobados)',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFF73F572),
+                                    side: const BorderSide(
+                                      color: Color(0xFF73F572),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 10,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+
                       // Visuals List
                       Expanded(
                         child: displayedVisuals.isEmpty
@@ -1710,8 +1943,8 @@ class _StudioViewState extends State<StudioView> {
                                       vertical: 6,
                                     ),
                                     onTap: () {
-                                      widget.onSelectVisual(visual.id);
                                       Navigator.of(context).pop();
+                                      _selectVisualManual(visual.id);
                                     },
                                     leading: ClipRRect(
                                       borderRadius: BorderRadius.circular(10),
@@ -1758,7 +1991,7 @@ class _StudioViewState extends State<StudioView> {
                                     trailing: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        // Descartar
+                                        // Descartar (tocar de nuevo = volver a pendiente)
                                         IconButton(
                                           icon: Icon(
                                             status ==
@@ -1776,13 +2009,18 @@ class _StudioViewState extends State<StudioView> {
                                           onPressed: () {
                                             widget.onCurationChanged?.call(
                                               visual.id,
-                                              VisualCurationStatus.rejected,
+                                              status ==
+                                                      VisualCurationStatus
+                                                          .rejected
+                                                  ? VisualCurationStatus.pending
+                                                  : VisualCurationStatus
+                                                      .rejected,
                                             );
                                             setSheetState(() {});
                                             setState(() {});
                                           },
                                         ),
-                                        // Aprobar
+                                        // Aprobar (tocar de nuevo = volver a pendiente)
                                         IconButton(
                                           icon: Icon(
                                             status ==
@@ -1801,7 +2039,12 @@ class _StudioViewState extends State<StudioView> {
                                           onPressed: () {
                                             widget.onCurationChanged?.call(
                                               visual.id,
-                                              VisualCurationStatus.approved,
+                                              status ==
+                                                      VisualCurationStatus
+                                                          .approved
+                                                  ? VisualCurationStatus.pending
+                                                  : VisualCurationStatus
+                                                      .approved,
                                             );
                                             setSheetState(() {});
                                             setState(() {});
