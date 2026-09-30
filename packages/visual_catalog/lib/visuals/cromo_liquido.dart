@@ -6,16 +6,18 @@ class Visual final : public Scene {
   struct Blob { float radius, p1, p2, sx, sy; };
   std::vector<Blob> blobs;
   float energy = 0;
+  float smoothBass = 0;
  public:
   void reset(uint32_t seed) override {
-    Random rng(seed); blobs.clear(); energy = 0;
+    Random rng(seed); blobs.clear(); energy = 0; smoothBass = 0;
     for (int i = 0; i < 7; i++)
       blobs.push_back({0.14f + rng.unit() * 0.13f,
         rng.unit() * 6.2831853f, rng.unit() * 6.2831853f,
         0.23f + float(i) * 0.045f, 0.19f + float(i) * 0.037f});
   }
   void update(const Frame& f) override {
-    energy += (f.music.energy - energy) * float(1.0 - std::exp(-f.delta * 3.0));
+    energy += (f.music.energy - energy) * float(1.0 - std::exp(-f.delta * 4.0));
+    smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-f.delta * 6.0));
   }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
@@ -25,8 +27,8 @@ class Visual final : public Scene {
     std::vector<float> u;
     u.reserve(64);
     u.push_back(t);
-    u.push_back(f.music.bass);
-    u.push_back(energy * f.intensity);
+    u.push_back(std::clamp(smoothBass, 0.0f, 1.0f));
+    u.push_back(std::clamp(energy * f.intensity, 0.0f, 1.0f));
     u.push_back(f.glow);
     for (const auto& b : blobs) {
       u.push_back(w * (0.5f + std::sin(t * b.sx + b.p1) * 0.33f));
@@ -87,7 +89,7 @@ void main() {
   else col = mix(vec3(1.0, 0.820, 0.953), vec3(1.0), (k-0.86)/0.14);
   float spec = pow(max(0.0, k - 0.55) * 2.2, 3.0);
   col += vec3(0.55, 0.45, 0.60) * spec * uGlow;
-  fragColor = vec4(col * (0.85 + 0.30 * uEnergy), 1.0);
+  fragColor = vec4(clamp(col * (0.85 + 0.30 * uEnergy), 0.0, 1.0), 1.0);
 }
 """,
 };

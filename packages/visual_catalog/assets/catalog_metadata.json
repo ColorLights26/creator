@@ -118,35 +118,6 @@
       "reactivity": "optional"
     },
     {
-      "id": "cintas_seda",
-      "name": "Cintas de Seda",
-      "description": "Siete curvas de Lissajous convertidas en cintas rellenas con degradado y bordes luminosos.",
-      "purposes": [
-        "relax",
-        "visualizer"
-      ],
-      "moods": [
-        "silky",
-        "dreamy"
-      ],
-      "concepts": [
-        "ribbons",
-        "lissajous",
-        "gradient"
-      ],
-      "credits": {
-        "author": "Chic Apps",
-        "license": "",
-        "source": ""
-      },
-      "thumbnail": {
-        "timeSeconds": 2.5
-      },
-      "publication": "draft",
-      "role": "background",
-      "reactivity": "optional"
-    },
-    {
       "id": "constelacion_viva",
       "name": "Constelación Táctil",
       "description": "Grafo de vecindad con rejilla espacial: los nodos se repelen del centro y las aristas brillan por cercanía.",
@@ -581,29 +552,524 @@
       "reactivity": "optional"
     },
     {
-      "id": "tinta_agua",
-      "name": "Tinta en Agua",
-      "description": "Doce metaballs de tinta fundiéndose en agua, con vetas y espuma en el frente.",
+      "id": "v01_agujero_negro",
+      "name": "Agujero Negro & Acreción",
+      "description": "Horizonte de sucesos relativista, disco de acreción con corrimiento Doppler, chorros polares y lente gravitacional de Einstein.",
       "purposes": [
-        "relax",
-        "visualizer"
+        "cosmic",
+        "visualizer",
+        "relax"
       ],
       "moods": [
-        "fluid",
-        "calm"
+        "epic",
+        "hypnotic",
+        "deep"
       ],
       "concepts": [
-        "metaballs",
-        "ink",
-        "water"
+        "black hole",
+        "accretion disk",
+        "relativity",
+        "space"
       ],
       "credits": {
-        "author": "Chic Apps",
+        "author": "Visuales Inmersivas",
         "license": "",
         "source": ""
       },
       "thumbnail": {
         "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v02_red_neuronal",
+      "name": "Red Neuronal Cuántica",
+      "description": "Plexo sináptico de bio-computación cuántica con potenciales de acción en cascada disparados por impulsos armónicos.",
+      "purposes": [
+        "brainwave",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "mysterious",
+        "electric",
+        "organic"
+      ],
+      "concepts": [
+        "neural network",
+        "synapse",
+        "quantum",
+        "pulses"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v03_matriz_oceanica",
+      "name": "Matriz Oceánica 3D",
+      "description": "Malla tridimensional retrowave con oleaje armónico multi-frecuencia, sol synthwave con persianas y niebla de profundidad.",
+      "purposes": [
+        "retrowave",
+        "visualizer",
+        "driving"
+      ],
+      "moods": [
+        "cyberpunk",
+        "nostalgic",
+        "energetic"
+      ],
+      "concepts": [
+        "synthwave",
+        "ocean grid",
+        "wireframe",
+        "sun"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v04_tunel_warp",
+      "name": "Túnel Hiperdimensional",
+      "description": "Túnel infinito octagonal de velocidad warp con perspectiva relativista, vigas de torsión longitudinales y singularidad focal.",
+      "purposes": [
+        "warp",
+        "visualizer",
+        "gaming"
+      ],
+      "moods": [
+        "hypnotic",
+        "fast",
+        "futuristic"
+      ],
+      "concepts": [
+        "hyperspace",
+        "tunnel",
+        "octagon",
+        "warp speed"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v05_campo_curl",
+      "name": "Campo de Flujo Vectorial",
+      "description": "Cintas bioluminiscentes guiadas por un campo analítico de rotacional curl noise con estelas de inercia y vórtice central.",
+      "purposes": [
+        "fluid",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "smooth",
+        "hypnotic",
+        "organic"
+      ],
+      "concepts": [
+        "curl noise",
+        "vector field",
+        "particles",
+        "flow"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v06_tesseract_4d",
+      "name": "Hipercubo 4D Tesseract",
+      "description": "Geometría sagrada cuatridimensional con 16 vértices y 32 aristas rotando en planos XW e YZ en doble perspectiva relativista.",
+      "purposes": [
+        "geometry",
+        "visualizer",
+        "meditation"
+      ],
+      "moods": [
+        "sacred",
+        "mystical",
+        "hypnotic"
+      ],
+      "concepts": [
+        "tesseract",
+        "hypercube",
+        "4D",
+        "sacred geometry"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v07_aurora_plasma",
+      "name": "Aurora Boreal de Plasma",
+      "description": "Cortinas de plasma ionizado con ondulación armónica multi-frecuencia, filamentos centrales y siluetas montañosas sobre noche polar.",
+      "purposes": [
+        "atmosphere",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "dreamy",
+        "mystical",
+        "calm"
+      ],
+      "concepts": [
+        "aurora borealis",
+        "plasma",
+        "solar wind",
+        "mountains"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v08_espectro_cosmico",
+      "name": "Espectro Sonoro Cósmico",
+      "description": "Analizador espectral circular con núcleo palpitante de graves, 72 barras radiales y partículas orbitales armónicas.",
+      "purposes": [
+        "spectrum",
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "energetic",
+        "electric",
+        "club"
+      ],
+      "concepts": [
+        "audio spectrum",
+        "equalizer",
+        "circle",
+        "bass"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "music"
+    },
+    {
+      "id": "v09_espiral_aurea",
+      "name": "Espiral Áurea Sagrada",
+      "description": "Espiral de Fibonacci y filotaxis sagrada de 750 nodos con gradiente espectral continuo y singularidad central.",
+      "purposes": [
+        "geometry",
+        "visualizer",
+        "meditation"
+      ],
+      "moods": [
+        "sacred",
+        "calm",
+        "hypnotic"
+      ],
+      "concepts": [
+        "fibonacci",
+        "golden spiral",
+        "phyllotaxis",
+        "sacred geometry"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v10_supernova",
+      "name": "Supernova & Termodinámica",
+      "description": "Explosión estelar relativista con ondas de choque expansivas, 360 partículas termodinámicas con estelas de velocidad y púlsar central.",
+      "purposes": [
+        "physics",
+        "visualizer",
+        "epic"
+      ],
+      "moods": [
+        "explosive",
+        "intense",
+        "cosmic"
+      ],
+      "concepts": [
+        "supernova",
+        "shockwave",
+        "thermodynamics",
+        "stellar explosion"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v11_archivo_corrupto",
+      "name": "Archivo Corrupto",
+      "description": "Fallo digital de archivo y datamosh estructurado, canales RGB cromáticos aditivos, barrido CRT y franja VHS rodante reactiva al ritmo.",
+      "purposes": [
+        "cyberpunk",
+        "visualizer",
+        "glitch"
+      ],
+      "moods": [
+        "intense",
+        "hypnotic",
+        "digital"
+      ],
+      "concepts": [
+        "glitch",
+        "datamosh",
+        "vhs",
+        "cyberpunk",
+        "artifact"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v12_maquinaria_orbital",
+      "name": "Maquinaria Orbital",
+      "description": "Planetario astrológico de relojería en latón y piedra, cuatro esferas orbitantes en planos inclinados con sombras arrojadas y sol central iluminado.",
+      "purposes": [
+        "mechanical",
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "mysterious",
+        "hypnotic",
+        "elegant"
+      ],
+      "concepts": [
+        "orrery",
+        "astrolabe",
+        "clockwork",
+        "planets",
+        "brass",
+        "astronomy"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v13_nubes_volumetricas",
+      "name": "Nubes Volumétricas",
+      "description": "Raymarching 3D volumétrico de manto de nubes al atardecer, absorción de Beer-Lambert, paleta dorada y relámpagos de exposición reactivos.",
+      "purposes": [
+        "atmosphere",
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "dreamy",
+        "epic",
+        "peaceful"
+      ],
+      "concepts": [
+        "volumetric",
+        "clouds",
+        "raymarching",
+        "sunset",
+        "atmosphere"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v14_sismografo",
+      "name": "Sismógrafo",
+      "description": "Tambor sismográfico de metal cepillado con reflejo anisotrópico, aguja mecánica visible y trazo fosforescente cian de ondas sísmicas reactivas.",
+      "purposes": [
+        "scientific",
+        "visualizer",
+        "retro"
+      ],
+      "moods": [
+        "analytical",
+        "tense",
+        "technical"
+      ],
+      "concepts": [
+        "seismograph",
+        "earthquake",
+        "oscilloscope",
+        "drum",
+        "needle",
+        "laboratory"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v15_lluvia_cristal",
+      "name": "Lluvia sobre Cristal",
+      "description": "Gotas de lluvia con física de deslizamiento y coalescencia sobre cristal empañado, refracción de lente y bokeh nocturno de luces de ciudad.",
+      "purposes": [
+        "atmosphere",
+        "relax",
+        "nature"
+      ],
+      "moods": [
+        "peaceful",
+        "nostalgic",
+        "dreamy"
+      ],
+      "concepts": [
+        "rain",
+        "glass",
+        "bokeh",
+        "droplets",
+        "night",
+        "city lights",
+        "refraction"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v16_campo_magnetico",
+      "name": "Campo Magnético Cuántico",
+      "description": "Acelerador magnético de alta energía: dipolo con tubos de flujo aurorales, plasma de Lorentz en espirales ciclotrón, arcos eléctricos Tesla y ferrofluido reactivo.",
+      "purposes": [
+        "scientific",
+        "visualizer",
+        "energy"
+      ],
+      "moods": [
+        "epic",
+        "intense",
+        "hypnotic",
+        "futuristic"
+      ],
+      "concepts": [
+        "magnetic field",
+        "electromagnet",
+        "plasma",
+        "tesla",
+        "lorentz",
+        "ferrofluid"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
       },
       "publication": "draft",
       "role": "background",

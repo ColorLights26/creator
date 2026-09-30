@@ -3,18 +3,21 @@
 // escribe seis uniformes. Zoom e iteraciones se adaptan a la densidad.
 const nativeSource = r'''
 class Visual final : public Scene {
+  float smoothPull = 0.0f;
  public:
-  void reset(uint32_t seed) override { (void)seed; }
-  void update(const Frame& f) override { (void)f; }
+  void reset(uint32_t seed) override { (void)seed; smoothPull = 0.0f; }
+  void update(const Frame& f) override {
+    smoothPull += (f.music.energy - smoothPull) * float(1.0 - std::exp(-f.delta * 4.0));
+  }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
     float t = float(f.time) * f.speed;
     float time = t * 6.2831853f;
-    float pull = f.music.energy;
+    float pull = smoothPull * 0.035f;
     std::vector<float> u;
     u.reserve(8);
-    u.push_back(0.7885f * std::cos(time * 0.17f) + pull * 0.09f);
-    u.push_back(0.7885f * std::sin(time * 0.23f) - pull * 0.09f);
+    u.push_back(0.7885f * std::cos(time * 0.17f) + pull);
+    u.push_back(0.7885f * std::sin(time * 0.23f) - pull);
     u.push_back(time);
     u.push_back(1.35f + std::sin(time * 0.11f) * 0.22f);
     // Iteraciones adaptativas: menos pasos cuanto más densa es la pantalla.
@@ -54,11 +57,11 @@ void main() {
     fragColor = vec4(0.02, 0.015, 0.04, 1.0);
     return;
   }
-  float sl = i - log2(max(1e-4, log2(max(1.0, m2))));
+  float sl = i - log2(max(1e-4, log2(max(1.0001, m2))));
   vec3 col = palette(sl * 0.012 + uTime * 0.02);
   float d = length(uv - 0.5);
   col *= smoothstep(0.95, 0.25, d);
-  fragColor = vec4(pow(col, vec3(0.85)), 1.0);
+  fragColor = vec4(clamp(pow(col, vec3(0.85)), 0.0, 1.0), 1.0);
 }
 """,
 };

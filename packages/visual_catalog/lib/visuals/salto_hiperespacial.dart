@@ -7,15 +7,27 @@ class Visual final : public Scene {
   struct Star { float x, y, z0; };
   std::vector<Ring> rings;
   std::vector<Star> stars;
+  float travel = 0.0f;
+  float rotTime = 0.0f;
+  float smoothEnergy = 0.0f;
+  float smoothBass = 0.0f;
   static float hash11(float p) {
     float s = std::sin(p * 12.9898f) * 43758.5453f;
     return s - std::floor(s);
+  }
+  static float safeMod(float v, float m) {
+    float r = std::fmod(v, m);
+    return r < 0.0f ? r + m : r;
   }
  public:
   void reset(uint32_t seed) override {
     Random rng(seed);
     rings.clear(); stars.clear();
     rings.reserve(90); stars.reserve(260);
+    travel = 0.0f;
+    rotTime = 0.0f;
+    smoothEnergy = 0.0f;
+    smoothBass = 0.0f;
     for (int i = 0; i < 90; i++) {
       float side = 6.0f;
       float h = hash11(float(i) * 1.37f + float(seed % 997) * 0.013f);
@@ -27,18 +39,21 @@ class Visual final : public Scene {
       stars.push_back({rng.unit() * 2.0f - 1.0f, rng.unit() * 2.0f - 1.0f,
         rng.unit() * 1.6f + 0.1f});
   }
-  void update(const Frame& f) override { (void)f; }
+  void update(const Frame& f) override {
+    smoothEnergy += (f.music.energy - smoothEnergy) * float(1.0 - std::exp(-f.delta * 6.0));
+    smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-f.delta * 5.0));
+    float rate = (0.36f + smoothEnergy * 0.50f) * (f.reducedMotion ? 0.35f : 1.0f);
+    travel += float(f.delta) * f.speed * rate;
+    rotTime += float(f.delta) * f.speed;
+  }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
-    float t = float(f.time) * f.speed;
+    float t = rotTime;
     float fmin = std::min(w, h);
     float cx = w * 0.5f + std::sin(t * 1.3f) * 8.0f * f.intensity;
     float cy = h * 0.5f + std::cos(t * 1.1f) * 8.0f * f.intensity;
     float f0 = fmin * 0.62f;
-    float boost = (0.85f + 0.35f * f.music.energy + 0.3f * f.music.bass) * f.intensity;
-    if (boost > 1.0f) boost = 1.0f; if (boost < 0.0f) boost = 0.0f;
-    float rate = (0.36f + f.music.energy * 0.55f) * (f.reducedMotion ? 0.35f : 1.0f);
-    float travel = t * rate;
+    float boost = std::clamp((0.85f + 0.35f * smoothEnergy + 0.3f * smoothBass) * f.intensity, 0.0f, 1.0f);
     Paint bg; bg.color = Color::argb(0xff04060d);
     c.rect({0, 0, w, h}, bg);
 
@@ -47,15 +62,15 @@ class Visual final : public Scene {
     float streakSpan = 1.7f - 0.08f;
     for (size_t i = 0; i < stars.size(); i++) {
       const Star& s = stars[i];
-      float z = std::fmod(s.z0 - travel * 1.3333f, streakSpan);
+      float z = safeMod(s.z0 - travel * 1.3333f, streakSpan);
       if (z < 0.08f) z += streakSpan;
       float k1 = f0 / z;
-      float k2 = f0 / (z + 0.05f * (1.0f + rate));
+      float k2 = f0 / (z + 0.05f * (1.0f + smoothEnergy * 0.5f));
       streaks.moveTo(cx + s.x * k2, cy + s.y * k2);
       streaks.lineTo(cx + s.x * k1, cy + s.y * k1);
     }
     Paint sp; sp.blend = Blend::plus;
-    sp.color = {0.863f, 0.914f, 1, 0.498f * boost};
+    sp.color = {0.863f, 0.914f, 1.0f, std::clamp(0.498f * boost, 0.0f, 1.0f)};
     sp.strokeWidth = 1.1f; sp.strokeCap = 1; sp.strokeJoin = 1;
     c.path(streaks, sp);
 
@@ -63,7 +78,7 @@ class Visual final : public Scene {
     float ringSpan = 2.0f;
     for (size_t i = 0; i < rings.size(); i++) {
       const Ring& r = rings[i];
-      float z = std::fmod(r.z0 - travel, ringSpan);
+      float z = safeMod(r.z0 - travel, ringSpan);
       if (z < 0.1f) z += ringSpan;
       float rad = f0 * 0.62f / z;
       if (rad > std::max(w, h) * 1.6f) continue;
@@ -71,8 +86,6 @@ class Visual final : public Scene {
       if (zt < 0.0f) zt = 0.0f; if (zt > 1.0f) zt = 1.0f;
       float a = zt * (z * 2.2f < 1.0f ? z * 2.2f : 1.0f);
       int n = int(r.sides);
-      // Rotacion continua: cuantizar por vuelta daba un salto grande al
-      // cambiar el entero, y ese entero puede variar entre 30 y 60 FPS.
       float base = r.rot0 + t * 6.2831853f * (0.5f + (1.0f - z) * 0.6f)
         + std::sin(t * 0.7f + float(i) * 1.3f) * 0.35f;
       Path ring;
@@ -84,8 +97,8 @@ class Visual final : public Scene {
       }
       ring.close();
       Paint p; p.blend = Blend::plus;
-      if (n == 6) p.color = {0.345f, 0.780f, 0.953f, a * 0.6f * boost};
-      else p.color = {0.651f, 0.545f, 1, a * 0.6f * boost};
+      if (n == 6) p.color = {0.345f, 0.780f, 0.953f, std::clamp(a * 0.6f * boost, 0.0f, 1.0f)};
+      else p.color = {0.651f, 0.545f, 1.0f, std::clamp(a * 0.6f * boost, 0.0f, 1.0f)};
       p.strokeWidth = 0.6f + a * 3.0f; p.strokeCap = 1; p.strokeJoin = 1;
       c.path(ring, p);
     }
@@ -93,8 +106,8 @@ class Visual final : public Scene {
     // ── Núcleo: degradado radial en vez de blur real ──
     float gr = f0 * 0.5f;
     Paint glow = Paint::radial({cx, cy}, gr,
-      {{1, 1, 1, (0.45f + 0.2f * f.music.spark) * boost},
-       {0.345f, 0.780f, 0.953f, 0.16f * boost}, {0, 0, 0, 0}}, {0.0f, 0.35f, 1.0f});
+      {{1.0f, 1.0f, 1.0f, std::clamp((0.45f + 0.2f * f.music.spark) * boost, 0.0f, 1.0f)},
+       {0.345f, 0.780f, 0.953f, std::clamp(0.16f * boost, 0.0f, 1.0f)}, {0, 0, 0, 0}}, {0.0f, 0.35f, 1.0f});
     glow.blend = Blend::plus;
     c.circle({cx, cy}, gr, glow);
   }
