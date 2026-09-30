@@ -40,11 +40,18 @@ class Visual final : public Scene {
         rng.unit() * 1.6f + 0.1f});
   }
   void update(const Frame& f) override {
-    smoothEnergy += (f.music.energy - smoothEnergy) * float(1.0 - std::exp(-f.delta * 6.0));
-    smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-f.delta * 5.0));
-    float rate = (0.36f + smoothEnergy * 0.50f) * (f.reducedMotion ? 0.35f : 1.0f);
-    travel += float(f.delta) * f.speed * rate;
-    rotTime += float(f.delta) * f.speed;
+    float dt = float(f.delta);
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 6.0));
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+
+    // En silencio reposa en un avance estelar suave y sereno (~0.08f).
+    // Con música acelera al hiperespacio con gran velocidad de fuga y rotación de túnel.
+    float travelDrive = (0.08f + smoothEnergy * 0.72f + smoothBass * 0.40f) * (f.reducedMotion ? 0.35f : 1.0f);
+    travel += dt * f.speed * travelDrive;
+    float rotDrive = 0.08f + smoothEnergy * 0.65f + smoothBass * 0.25f;
+    rotTime += dt * f.speed * rotDrive;
   }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;

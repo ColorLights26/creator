@@ -38,11 +38,17 @@ class Visual final : public Scene {
     smoothEnergy = 0.0f;
   }
   void update(const Frame& f) override {
-    smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-f.delta * 6.0));
-    smoothEnergy += (f.music.energy - smoothEnergy) * float(1.0 - std::exp(-f.delta * 5.0));
-    float rate = 0.20f * (1.0f + smoothEnergy * 0.40f);
-    spiralAngle += float(f.delta) * f.speed * rate;
-    colorTime += float(f.delta) * f.speed;
+    float dt = float(f.delta);
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+
+    // En silencio reposa en un giro áureo meditativo (~0.05f).
+    // Con música la espiral acelera y desata ondas cromáticas al ritmo.
+    float rate = 0.05f + smoothEnergy * 0.35f + smoothBass * 0.20f;
+    spiralAngle += dt * f.speed * rate;
+    colorTime += dt * f.speed * (0.08f + smoothEnergy * 0.72f);
   }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
@@ -57,7 +63,7 @@ class Visual final : public Scene {
     c.rect({0, 0, w, h}, bg);
 
     // Resplandor de la singularidad central
-    float bassBreath = 1.0f + smoothBass * 0.18f;
+    float bassBreath = 1.0f + smoothBass * 0.32f;
     Paint singGlow = Paint::radial(center, 40.0f * bassBreath,
       {{0.0f, 1.0f, 0.84f, std::clamp(0.40f * f.intensity, 0.0f, 1.0f)}, {0, 0, 0, 0}},
       {0.0f, 1.0f});

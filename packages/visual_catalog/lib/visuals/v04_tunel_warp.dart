@@ -20,11 +20,17 @@ class Visual final : public Scene {
     smoothEnergy = 0.0f;
   }
   void update(const Frame& f) override {
-    smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-f.delta * 6.0));
-    smoothEnergy += (f.music.energy - smoothEnergy) * float(1.0 - std::exp(-f.delta * 5.0));
-    float speedMult = 1.0f + smoothEnergy * 0.6f;
-    warpTravel += float(f.delta) * f.speed * speedMult;
-    twistTime += float(f.delta) * f.speed;
+    float dt = float(f.delta);
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+
+    // En silencio reposa en un avance de túnel suave y contemplativo (~0.09f).
+    // Con música acelera a velocidad hiperdimensional y torsión cuántica.
+    float speedMult = 0.09f + smoothEnergy * 0.78f + smoothBass * 0.40f;
+    warpTravel += dt * f.speed * speedMult;
+    twistTime += dt * f.speed * (0.09f + smoothEnergy * 0.75f);
   }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;

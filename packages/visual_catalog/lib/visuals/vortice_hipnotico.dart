@@ -3,18 +3,40 @@
 const nativeSource = r'''
 class Visual final : public Scene {
   float spin = 0;
+  float vortexTime = 0.0f;
+  float smoothBass = 0.0f;
+  float smoothEnergy = 0.0f;
+  float smoothSpark = 0.0f;
  public:
-  void reset(uint32_t seed) override { (void)seed; spin = 0; }
+  void reset(uint32_t seed) override {
+    (void)seed;
+    spin = 0;
+    vortexTime = 0.0f;
+    smoothBass = 0.0f;
+    smoothEnergy = 0.0f;
+    smoothSpark = 0.0f;
+  }
   void update(const Frame& f) override {
-    spin += float(f.delta) * f.speed * (f.reducedMotion ? 0.15f : 0.35f);
+    float dt = float(f.delta);
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    float targetSpark = f.music.active ? f.music.spark : 0.0f;
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+    smoothSpark += (targetSpark - smoothSpark) * float(1.0 - std::exp(-dt * 15.0));
+
+    // En silencio reposa en un giro hipnótico pausado (~0.10f).
+    // Con música acelera la absorción vórtice y los cambios de tono.
+    float audioDrive = 0.10f + smoothEnergy * 0.75f + smoothBass * 0.35f;
+    vortexTime += dt * f.speed * audioDrive;
+    spin += dt * f.speed * audioDrive * (f.reducedMotion ? 0.15f : 0.35f);
   }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
-    float t = float(f.time) * f.speed;
+    float t = vortexTime;
     float cx = w * 0.5f, cy = h * 0.5f;
     float maxR = std::max(w, h) * 0.62f;
-    float boost = (0.75f + 0.5f * f.music.bass) * f.intensity;
-    if (boost > 1.0f) boost = 1.0f; if (boost < 0.0f) boost = 0.0f;
+    float boost = std::clamp((0.75f + 0.5f * smoothBass) * f.intensity, 0.0f, 1.0f);
     Paint bg; bg.color = Color::argb(0xff05010e);
     c.rect({0, 0, w, h}, bg);
     for (int i = 0; i < 42; i++) {

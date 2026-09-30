@@ -50,14 +50,21 @@ class Visual final : public Scene {
 
   void update(const Frame& f) override {
     float dt = float(f.delta);
-    float speedMult = (f.reducedMotion ? 0.25f : 1.0f) * f.speed;
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    float targetSpark = f.music.active ? f.music.spark : 0.0f;
+
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+
+    // En silencio reposa en un barrido CRT limpio con mínima deriva (~0.12f).
+    // Con música acelera el datamosh glitch y los saltos cromáticos.
+    float audioDrive = 0.12f + smoothEnergy * 0.72f + smoothBass * 0.35f;
+    float speedMult = (f.reducedMotion ? 0.25f : 1.0f) * f.speed * audioDrive;
     simTime += dt * speedMult;
 
-    smoothEnergy += (f.music.energy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
-    smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
-
-    // Detección de ráfaga de desplazamiento en bombos fuertes
-    if ((f.music.spark > 0.65f || smoothBass > 0.72f) && (simTime - lastBurstTime >= 1.8f)) {
+    // Detección de ráfaga de desplazamiento en bombos fuertes con música activa
+    if (f.music.active && (targetSpark > 0.65f || smoothBass > 0.72f) && (simTime - lastBurstTime >= 1.8f)) {
       lastBurstTime = simTime;
       Random burstRng(uint32_t(simTime * 1000.0f) ^ 0x30303);
       int centerRow = int(burstRng.unit() * 70.0f) + 10;
@@ -70,8 +77,8 @@ class Visual final : public Scene {
       }
     }
 
-    // Salto cromático de 120ms en chispas agudas
-    if (f.music.spark > 0.60f) {
+    // Salto cromático de 120ms en chispas agudas con música activa
+    if (f.music.active && targetSpark > 0.60f) {
       sparkChromaTimer = 0.12f;
     }
     if (sparkChromaTimer > 0.0f) {

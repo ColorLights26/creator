@@ -22,8 +22,9 @@ class Visual final : public Scene {
 
     for (auto& s : streamers) {
       float rawAngle = std::sin(s.x * freq + time * 0.6f) * std::cos(s.y * freq - time * 0.4f) * 3.14159265f * 3.5f;
-      float targetVx = std::cos(rawAngle) * 0.003f * s.spd;
-      float targetVy = std::sin(rawAngle) * 0.003f * s.spd;
+      float speedFactor = 0.0010f + 0.0030f * fenergy;
+      float targetVx = std::cos(rawAngle) * speedFactor * s.spd;
+      float targetVy = std::sin(rawAngle) * speedFactor * s.spd;
 
       // Vórtice armónico central estimulado por la energía musical
       float dx = 0.5f - s.x;
@@ -88,7 +89,7 @@ class Visual final : public Scene {
   }
 
   void update(const Frame& f) override {
-    fenergy = f.music.energy;
+    fenergy = f.music.active ? f.music.energy : 0.0f;
     float rate = (f.reducedMotion ? 0.3f : 1.0f) * f.speed;
     int target = int(float(f.time) * rate * 60.0f + 0.001f);
     int guard = 0;

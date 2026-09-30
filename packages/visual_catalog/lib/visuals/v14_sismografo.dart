@@ -39,21 +39,27 @@ class Visual final : public Scene {
 
   void update(const Frame& f) override {
     float dt = float(f.delta);
-    float speed = (f.reducedMotion ? 0.3f : 1.0f) * f.speed;
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    float targetSpark = f.music.active ? f.music.spark : 0.0f;
+
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+    smoothSpark += (targetSpark - smoothSpark) * float(1.0 - std::exp(-dt * 15.0));
+
+    // En silencio reposa en un rodillo calmado (~0.12f). Con música rueda a velocidad de registro.
+    float audioDrive = 0.12f + smoothEnergy * 0.72f + smoothBass * 0.35f;
+    float speed = (f.reducedMotion ? 0.3f : 1.0f) * f.speed * audioDrive;
     simTime += dt * speed;
     drumScroll += dt * 48.0f * speed;
 
     currentBpm = (f.music.bpm > 40.0f && f.music.bpm < 240.0f) ? f.music.bpm : 120.0f;
 
-    smoothEnergy += (f.music.energy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
-    smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
-    smoothSpark += (f.music.spark - smoothSpark) * float(1.0 - std::exp(-dt * 15.0));
-
-    // Disparo sísmico ante bombos
-    if (f.music.bass > 0.70f && (simTime - lastShockTime > 0.15f)) {
+    // Disparo sísmico ante bombos con música activa
+    if (f.music.active && f.music.bass > 0.70f && (simTime - lastShockTime > 0.15f)) {
       lastShockTime = simTime;
       float pol = (std::sin(drumScroll * 1.9f) >= 0.0f) ? 1.0f : -1.0f;
-      float mag = 0.35f + smoothEnergy * 0.85f;
+      float mag = 0.40f + smoothEnergy * 0.90f;
       shocks[shockHead] = {simTime, mag, pol};
       shockHead = (shockHead + 1) % kMaxShocks;
     }
@@ -142,12 +148,13 @@ class Visual final : public Scene {
       float px = drumLeft + 8.0f + u * (drumW - 16.0f);
       float tSample = simTime - (1.0f - u) * windowDuration;
 
-      // Armónicos base continuos
+      // Armónicos base continuos: en silencio es un micro-temblor fino (0.006f), con música oscila
+      float tremorAmp = 0.006f + smoothEnergy * 0.14f;
       float baseOsc =
-        std::sin(tSample * 0.7f * 6.2831853f) * 0.06f +
-        std::sin(tSample * 1.3f * 6.2831853f + 1.1f) * 0.05f +
-        std::sin(tSample * 2.9f * 6.2831853f + 2.4f) * 0.04f +
-        std::sin(tSample * osc4Freq * 6.2831853f + 0.5f) * (0.04f + smoothEnergy * 0.09f);
+        (std::sin(tSample * 0.7f * 6.2831853f) * 0.35f +
+         std::sin(tSample * 1.3f * 6.2831853f + 1.1f) * 0.30f +
+         std::sin(tSample * 2.9f * 6.2831853f + 2.4f) * 0.20f +
+         std::sin(tSample * osc4Freq * 6.2831853f + 0.5f) * 0.35f) * tremorAmp;
 
       // Contribución de ondas sísmicas recientes
       float shockContrib = 0.0f;

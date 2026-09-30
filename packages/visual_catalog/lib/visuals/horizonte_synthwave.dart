@@ -3,6 +3,9 @@
 const nativeSource = r'''
 class Visual final : public Scene {
   std::vector<float> ridge;
+  float synthTime = 0.0f;
+  float smoothBass = 0.0f;
+  float smoothEnergy = 0.0f;
   float pulse = 0;
   static float vhash(int x, int y) {
     uint32_t h = uint32_t(x) * 374761393u + uint32_t(y) * 668265263u;
@@ -19,24 +22,36 @@ class Visual final : public Scene {
   }
  public:
   void reset(uint32_t seed) override {
-    (void)seed; ridge.clear(); pulse = 0;
+    (void)seed; ridge.clear(); synthTime = 0.0f; smoothBass = 0.0f; smoothEnergy = 0.0f; pulse = 0;
   }
   void update(const Frame& f) override {
+    float dt = float(f.delta);
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+
+    // En silencio reposa en un rodaje synthwave suave y relajante (~0.10f).
+    // Con música acelera la perspectiva de la rejilla y los destellos del sol.
+    float audioDrive = 0.10f + smoothEnergy * 0.78f + smoothBass * 0.35f;
+    synthTime += dt * f.speed * audioDrive;
+
     if (ridge.size() != 30) {
       ridge.resize(30);
       for (int i = 0; i < 30; i++)
         ridge[i] = (vnoise(float(i) * 0.4f, 1.0f) * 0.5f + vnoise(float(i) * 0.9f, 7.0f) * 0.5f);
     }
-    for (const auto& band : f.music.events)
-      for (const auto& e : band) pulse += e.strength;
-    pulse *= float(std::exp(-f.delta * 4.0));
+    if (f.music.active) {
+      for (const auto& band : f.music.events)
+        for (const auto& e : band) pulse += e.strength;
+    }
+    pulse *= float(std::exp(-dt * 4.0));
   }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
-    float t = float(f.time) * f.speed;
+    float t = synthTime;
     float hz = h * 0.56f;
-    float glowBoost = (0.7f + 0.6f * f.music.bass + 0.8f * pulse) * f.intensity;
-    if (glowBoost > 1.0f) glowBoost = 1.0f; if (glowBoost < 0.0f) glowBoost = 0.0f;
+    float glowBoost = std::clamp((0.7f + 0.6f * smoothBass + 0.8f * pulse) * f.intensity, 0.0f, 1.0f);
     Paint sky = Paint::linear({0, 0}, {0, hz},
       {Color::argb(0xff160034), Color::argb(0xff4a0a6b), Color::argb(0xffff4d78)}, {0, 0.55f, 1.0f});
     c.rect({0, 0, w, hz}, sky);

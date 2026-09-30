@@ -34,10 +34,17 @@ class Visual final : public Scene {
     }
   }
   void update(const Frame& f) override {
-    smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-f.delta * 6.0));
-    smoothEnergy += (f.music.energy - smoothEnergy) * float(1.0 - std::exp(-f.delta * 5.0));
-    angle4D += float(f.delta) * f.speed * 0.55f * (1.0f + smoothEnergy * 0.4f);
-    rotTime += float(f.delta) * f.speed;
+    float dt = float(f.delta);
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 6.0));
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+
+    // En silencio reposa en una rotación 4D mística y serena (~0.08f).
+    // Con música la hiper-geometría acelera sus proyecciones al ritmo.
+    float audioDrive = 0.08f + smoothEnergy * 0.72f + smoothBass * 0.35f;
+    angle4D += dt * f.speed * audioDrive * 0.75f;
+    rotTime += dt * f.speed * audioDrive;
   }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;

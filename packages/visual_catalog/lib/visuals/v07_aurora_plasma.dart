@@ -7,12 +7,14 @@ class Visual final : public Scene {
   static constexpr int kSteps = 24;
   struct Star { float x, y, phase; };
   std::vector<Star> stars;
+  float auroraTime = 0.0f;
   float smoothBass = 0.0f;
   float smoothEnergy = 0.0f;
  public:
   void reset(uint32_t seed) override {
     Random rng(seed);
     stars.clear(); stars.reserve(70);
+    auroraTime = 0.0f;
     smoothBass = 0.0f;
     smoothEnergy = 0.0f;
     for (int i = 0; i < 70; i++) {
@@ -20,12 +22,20 @@ class Visual final : public Scene {
     }
   }
   void update(const Frame& f) override {
-    smoothBass += (f.music.bass - smoothBass) * float(1.0 - std::exp(-f.delta * 5.0));
-    smoothEnergy += (f.music.energy - smoothEnergy) * float(1.0 - std::exp(-f.delta * 5.0));
+    float dt = float(f.delta);
+    float targetEnergy = f.music.active ? f.music.energy : 0.0f;
+    float targetBass = f.music.active ? f.music.bass : 0.0f;
+    smoothBass += (targetBass - smoothBass) * float(1.0 - std::exp(-dt * 5.0));
+    smoothEnergy += (targetEnergy - smoothEnergy) * float(1.0 - std::exp(-dt * 5.0));
+
+    // En silencio reposa en un oleaje majestuoso de noche polar (~0.12f).
+    // Con música acelera la danza de viento solar ionizado y pulsa la amplitud.
+    float audioDrive = 0.12f + smoothEnergy * 0.75f + smoothBass * 0.35f;
+    auroraTime += dt * f.speed * audioDrive;
   }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
-    float t = float(f.time) * f.speed;
+    float t = auroraTime;
     float centerX = w * 0.5f;
 
     // 1. Fondo cielo polar
