@@ -10,6 +10,7 @@ class Visual final : public Scene {
 
  public:
   void reset(uint32_t seed) override {
+    (void)seed;
     rainTime = 0.0f;
     smoothEnergy = 0.0f;
     smoothBass = 0.0f;
