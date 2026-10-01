@@ -10,6 +10,7 @@ void main() {
   _recordingValidation();
   _replay();
   _musicalVariation();
+  _withSessionId();
   stdout.writeln(
     'visual_contract: codec, recording, and replay checks passed.',
   );
@@ -305,6 +306,23 @@ void _musicalVariation() {
       timestamp = event.timestampMicros;
     }
   }
+}
+
+void _withSessionId() {
+  final recording = createSyntheticSceneSignalRecording();
+  final frame = recording.samples.first.frame;
+  final updated = frame.withSessionId(42);
+  _expect(updated.sessionId == 42, 'session ID updated');
+  _expect(updated.sequence == frame.sequence, 'sequence preserved');
+  _expect(
+    updated.dynamics.length == frame.dynamics.length &&
+        updated.dynamics[0] == frame.dynamics[0],
+    'dynamics preserved',
+  );
+  _expect(
+    identical(frame.withSessionId(frame.sessionId), frame),
+    'identity on same session',
+  );
 }
 
 bool _sameBytes(Uint8List a, Uint8List b) {

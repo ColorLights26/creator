@@ -262,6 +262,34 @@ class SceneRenderSignalFrameV2 {
     );
   }
 
+  /// Returns a copy of this frame with [newSessionId] instead of [sessionId],
+  /// preserving all signal vectors, sequence numbers, and events.
+  SceneRenderSignalFrameV2 withSessionId(int newSessionId) {
+    if (newSessionId == sessionId) return this;
+    return SceneRenderSignalFrameV2(
+      sessionId: newSessionId,
+      sequence: sequence,
+      audioTimestampMicros: audioTimestampMicros,
+      available: available,
+      fresh: fresh,
+      musicActive: musicActive,
+      dynamics: dynamics,
+      channels: channels,
+      spectrumSummary: spectrumSummary,
+      instantSpectrum: instantSpectrum,
+      smoothedSpectrum: smoothedSpectrum,
+      semantics: semantics,
+      rhythm: rhythm,
+      onsets: onsets,
+      tonalAvailable: tonalAvailable,
+      tonal: tonal,
+      impact: impact,
+      accent: accent,
+      beat: beat,
+      flash: flash,
+    );
+  }
+
   Uint8List toBytes() {
     final bytes = Uint8List(byteLength);
     final data = ByteData.sublistView(bytes);

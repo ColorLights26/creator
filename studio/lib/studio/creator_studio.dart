@@ -12,6 +12,8 @@ import 'package:visual_catalog/visual_catalog.dart';
 
 import 'studio_view.dart';
 
+export 'studio_view.dart' show VisualCurationStatus;
+
 List<CreatorVisualDefinition> _defaultCatalog() => creatorVisuals;
 
 SceneCompositorController _defaultController() =>
@@ -26,6 +28,7 @@ Widget _defaultThumbnail(CreatorVisualDefinition visual, int index) =>
 
 class CreatorStudio extends StatefulWidget {
   const CreatorStudio({
+    this.initialCuration,
     this.catalogBuilder = _defaultCatalog,
     this.controllerFactory = _defaultController,
     this.thumbnailBuilder = _defaultThumbnail,
@@ -33,6 +36,7 @@ class CreatorStudio extends StatefulWidget {
     super.key,
   });
 
+  final Map<String, VisualCurationStatus>? initialCuration;
   final List<CreatorVisualDefinition> Function() catalogBuilder;
   final SceneCompositorController Function() controllerFactory;
   final Widget Function(CreatorVisualDefinition visual, int index)
@@ -85,10 +89,90 @@ class _CreatorStudioState extends State<CreatorStudio>
     }
   }
 
-  static final List<String> _curationPaths = [
-    '/Users/meee/Projects/colorlights26/creator/creator_curation_review.json',
-    '${Directory.systemTemp.path}/creator_curation_review.json',
-  ];
+  static List<String> get _curationPaths {
+    final candidates = <String>[];
+
+    void addProjectDir(String base) {
+      if (base.isEmpty) return;
+      candidates.add('$base/creator/creator_curation_review.json');
+      candidates.add('$base/creator_curation_review.json');
+    }
+
+    final projectEnv = Platform.environment['PROJECT_ROOT'] ??
+        Platform.environment['APPRUN_PROJECT_ROOT'] ??
+        Platform.environment['CODEX_PROJECT_ROOT'];
+    if (projectEnv != null && projectEnv.isNotEmpty) {
+      addProjectDir(projectEnv);
+    }
+
+    for (final home in [
+      Platform.environment['SIMULATOR_HOST_HOME'],
+      Platform.environment['HOME'],
+    ]) {
+      if (home != null && home.isNotEmpty) {
+        addProjectDir('$home/Projects/colorlights26');
+        addProjectDir('$home/colorlights26');
+        addProjectDir('$home/Developer/colorlights26');
+        addProjectDir('$home/Documents/colorlights26');
+        addProjectDir('$home/Desktop/colorlights26');
+      }
+    }
+
+    try {
+      var dir = Directory.current.absolute;
+      for (int i = 0; i < 5; i++) {
+        candidates.add('${dir.path}/creator_curation_review.json');
+        candidates.add('${dir.path}/creator/creator_curation_review.json');
+        final parent = dir.parent;
+        if (parent.path == dir.path) break;
+        dir = parent;
+      }
+    } catch (_) {}
+
+    candidates.add('${Directory.systemTemp.path}/creator_curation_review.json');
+    return candidates.toSet().toList();
+  }
+
+  static List<String> get _approvedDirPaths {
+    final candidates = <String>[];
+
+    void addApproved(String base) {
+      if (base.isEmpty) return;
+      candidates.add('$base/metadata/creator_catalog/approved');
+    }
+
+    final projectEnv = Platform.environment['PROJECT_ROOT'] ??
+        Platform.environment['APPRUN_PROJECT_ROOT'] ??
+        Platform.environment['CODEX_PROJECT_ROOT'];
+    if (projectEnv != null && projectEnv.isNotEmpty) {
+      addApproved(projectEnv);
+    }
+
+    for (final home in [
+      Platform.environment['SIMULATOR_HOST_HOME'],
+      Platform.environment['HOME'],
+    ]) {
+      if (home != null && home.isNotEmpty) {
+        addApproved('$home/Projects/colorlights26');
+        addApproved('$home/colorlights26');
+        addApproved('$home/Developer/colorlights26');
+        addApproved('$home/Documents/colorlights26');
+        addApproved('$home/Desktop/colorlights26');
+      }
+    }
+
+    try {
+      var dir = Directory.current.absolute;
+      for (int i = 0; i < 5; i++) {
+        candidates.add('${dir.path}/metadata/creator_catalog/approved');
+        final parent = dir.parent;
+        if (parent.path == dir.path) break;
+        dir = parent;
+      }
+    } catch (_) {}
+
+    return candidates.toSet().toList();
+  }
 
   void _setCurationStatus(String id, VisualCurationStatus status) {
     setState(() {
@@ -104,10 +188,47 @@ class _CreatorStudioState extends State<CreatorStudio>
           entry.key: entry.value.name,
       };
       final data = jsonEncode(jsonMap);
+      bool savedToProject = false;
       for (final path in _curationPaths) {
         try {
-          File(path).writeAsStringSync(data);
+          final file = File(path);
+          if (file.existsSync()) {
+            file.writeAsStringSync(data);
+            savedToProject = true;
+          }
         } catch (_) {}
+      }
+      if (!savedToProject) {
+        for (final path in _curationPaths) {
+          try {
+            final file = File(path);
+            file.parent.createSync(recursive: true);
+            file.writeAsStringSync(data);
+            break;
+          } catch (_) {}
+        }
+      }
+      for (final home in [
+        Platform.environment['SIMULATOR_HOST_HOME'],
+        Platform.environment['HOME'],
+      ]) {
+        if (home != null && home.isNotEmpty) {
+          final assetCandidates = [
+            '$home/Projects/colorlights26/creator/studio/assets/creator_curation_review.json',
+            '$home/colorlights26/creator/studio/assets/creator_curation_review.json',
+            '$home/Developer/colorlights26/creator/studio/assets/creator_curation_review.json',
+            '$home/Documents/colorlights26/creator/studio/assets/creator_curation_review.json',
+            '$home/Desktop/colorlights26/creator/studio/assets/creator_curation_review.json',
+          ];
+          for (final assetPath in assetCandidates) {
+            try {
+              final file = File(assetPath);
+              if (file.parent.existsSync()) {
+                file.writeAsStringSync(data);
+              }
+            } catch (_) {}
+          }
+        }
       }
       developer.log(
         'Saved visual curation review: $jsonMap',
@@ -120,23 +241,24 @@ class _CreatorStudioState extends State<CreatorStudio>
 
   void _loadCuration() {
     // 1. Auto-aprobar los visuales que ya están oficialmente en la app (metadata/creator_catalog/approved)
-    final approvedDir = Directory(
-      '/Users/meee/Projects/colorlights26/metadata/creator_catalog/approved',
-    );
-    if (approvedDir.existsSync()) {
-      try {
-        for (final entity in approvedDir.listSync()) {
-          if (entity is File && entity.path.endsWith('.json')) {
-            final id = entity.uri.pathSegments.last.replaceAll('.json', '');
-            _curationStatus[id] = VisualCurationStatus.approved;
+    for (final path in _approvedDirPaths) {
+      final approvedDir = Directory(path);
+      if (approvedDir.existsSync()) {
+        try {
+          for (final entity in approvedDir.listSync()) {
+            if (entity is File && entity.path.endsWith('.json')) {
+              final id = entity.uri.pathSegments.last.replaceAll('.json', '');
+              _curationStatus[id] = VisualCurationStatus.approved;
+            }
           }
-        }
-      } catch (_) {}
+          break;
+        } catch (_) {}
+      }
     }
-    _curationStatus['giroscopio_cuantico'] = VisualCurationStatus.approved;
-    _curationStatus['plasma_scene'] = VisualCurationStatus.approved;
-    _curationStatus['synthwave_scene'] = VisualCurationStatus.approved;
-    _curationStatus['vortice_cosmico'] = VisualCurationStatus.approved;
+    _curationStatus.putIfAbsent('giroscopio_cuantico', () => VisualCurationStatus.approved);
+    _curationStatus.putIfAbsent('plasma_scene', () => VisualCurationStatus.approved);
+    _curationStatus.putIfAbsent('synthwave_scene', () => VisualCurationStatus.approved);
+    _curationStatus.putIfAbsent('vortice_cosmico', () => VisualCurationStatus.approved);
 
     // 2. Cargar decisiones de curación guardadas previamente por el usuario
     for (final path in _curationPaths) {
@@ -229,9 +351,38 @@ class _CreatorStudioState extends State<CreatorStudio>
       ),
     ];
     _replay = SceneSignalReplay(_recordings.first.recording);
+    if (widget.initialCuration != null) {
+      _curationStatus.addAll(widget.initialCuration!);
+    }
     _loadCuration();
+    if (_curationStatus.isEmpty) {
+      unawaited(_loadBundledCurationFallback());
+    }
     _readCatalog();
     unawaited(_loadRecordings());
+  }
+
+  Future<void> _loadBundledCurationFallback() async {
+    try {
+      final assetString =
+          await rootBundle.loadString('assets/creator_curation_review.json');
+      if (_disposed) return;
+      final decoded = jsonDecode(assetString);
+      if (decoded is Map) {
+        for (final entry in decoded.entries) {
+          final status = VisualCurationStatus.values.firstWhere(
+            (s) => s.name == entry.value,
+            orElse: () => VisualCurationStatus.pending,
+          );
+          _curationStatus[entry.key as String] = status;
+        }
+        if (mounted) {
+          setState(() {
+            _readCatalog();
+          });
+        }
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadRecordings() async {
@@ -463,16 +614,21 @@ class _CreatorStudioState extends State<CreatorStudio>
       return;
     }
     final batch = _replay.advance(elapsed);
-    if (batch.resetRequired) {
+    if (!_replayPrimed) {
       await _controller.reset(
         qaSessionSeed: _recordings[_sourceIndex].recording.qaSessionSeed,
       );
+      if (!_isCurrent(revision)) return;
+      _replayPrimed = true;
     }
-    if (!_isCurrent(revision)) return;
-    _replayPrimed = true;
     for (final sample in batch.samples) {
       if (!_isCurrent(revision)) return;
-      final frame = _muted ? sample.frame.toSilent() : sample.frame;
+      var frame = batch.cycle == 0
+          ? sample.frame
+          : sample.frame.withSessionId(sample.frame.sessionId + batch.cycle);
+      if (_muted) {
+        frame = frame.toSilent();
+      }
       await _controller.sendSignal(frame);
       _latestSignal.value = frame;
     }

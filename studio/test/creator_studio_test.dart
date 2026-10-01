@@ -394,39 +394,41 @@ void main() {
     },
   );
 
-  testWidgets('disabling optional reaction stops unused source resets', (
-    tester,
-  ) async {
-    final controller = _Controller();
-    await tester.pumpWidget(
-      MaterialApp(
-        home: CreatorStudio(
-          catalogBuilder: () => [_aurora],
-          controllerFactory: () => controller,
-          recordingsLoader: () async => [],
-          thumbnailBuilder: (_, _) => const SizedBox(),
+  testWidgets(
+    'disabling optional reaction stops unused signals and preserves continuity across loop boundaries',
+    (tester) async {
+      final controller = _Controller();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CreatorStudio(
+            catalogBuilder: () => [_aurora],
+            controllerFactory: () => controller,
+            recordingsLoader: () async => [],
+            thumbnailBuilder: (_, _) => const SizedBox(),
+          ),
         ),
-      ),
-    );
-    await _flush(tester);
-    await tester.pump(
-      createSyntheticSceneSignalRecording().duration +
-          const Duration(seconds: 1),
-    );
-    await _flush(tester);
-    expect(controller.resets, hasLength(2));
-    await tester.ensureVisible(find.byKey(const ValueKey('reaction-switch')));
-    await tester.tap(find.byKey(const ValueKey('reaction-switch')));
-    await _flush(tester);
-    final signalCount = controller.signals.length;
-    await tester.pump(createSyntheticSceneSignalRecording().duration * 2);
-    await _flush(tester);
-    expect(controller.resets, hasLength(2));
-    expect(controller.signals.length, signalCount);
-    expect(controller.playing.last, isTrue);
-    await tester.pumpWidget(const SizedBox());
-    await _flush(tester);
-  });
+      );
+      await _flush(tester);
+      await tester.pump(
+        createSyntheticSceneSignalRecording().duration +
+            const Duration(seconds: 1),
+      );
+      await _flush(tester);
+      expect(controller.resets, hasLength(1));
+      expect(controller.signals.any((s) => s.sessionId > 1), isTrue);
+      await tester.ensureVisible(find.byKey(const ValueKey('reaction-switch')));
+      await tester.tap(find.byKey(const ValueKey('reaction-switch')));
+      await _flush(tester);
+      final signalCount = controller.signals.length;
+      await tester.pump(createSyntheticSceneSignalRecording().duration * 2);
+      await _flush(tester);
+      expect(controller.resets, hasLength(1));
+      expect(controller.signals.length, signalCount);
+      expect(controller.playing.last, isTrue);
+      await tester.pumpWidget(const SizedBox());
+      await _flush(tester);
+    },
+  );
 
   testWidgets(
     'a paused initial visual preserves its first signal until playing',
@@ -459,6 +461,32 @@ void main() {
         controller.actions.indexOf('playing:true'),
         lessThan(controller.actions.indexOf('signal')),
       );
+      await tester.pumpWidget(const SizedBox());
+      await _flush(tester);
+    },
+  );
+
+  testWidgets(
+    'when all visuals are curated via initialCuration, shows completion screen',
+    (tester) async {
+      final controller = _Controller();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CreatorStudio(
+            initialCuration: const {
+              'aurora': VisualCurationStatus.approved,
+              'plasma': VisualCurationStatus.rejected,
+            },
+            catalogBuilder: () => [_aurora, _plasma],
+            controllerFactory: () => controller,
+            recordingsLoader: () async => [],
+            thumbnailBuilder: (_, _) => const SizedBox(),
+          ),
+        ),
+      );
+      await _flush(tester);
+      expect(find.text('¡Revisión Completada!'), findsOneWidget);
+      expect(find.text('VER Y EDITAR LISTA COMPLETA'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
       await _flush(tester);
     },

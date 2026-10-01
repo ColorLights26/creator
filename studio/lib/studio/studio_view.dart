@@ -1,5 +1,3 @@
-import 'dart:developer' as developer;
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -1685,7 +1683,7 @@ class _StudioViewState extends State<StudioView> {
   }
 
   void _showCurationSheet(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: const Color(0xFF0F1715),
