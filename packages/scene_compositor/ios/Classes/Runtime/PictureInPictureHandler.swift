@@ -9740,8 +9740,11 @@ final class PictureInPictureHandler: NSObject {
         sourcesPrepared: Bool = false
     ) -> CIImage? {
         guard !sceneLayers.isEmpty else { return nil }
+        let hasBackgroundLayer = sceneLayers.contains { $0.role == "background" }
         var composed = CIImage(
-            color: CIColor(red: 0, green: 0, blue: 0, alpha: 1)
+            color: hasBackgroundLayer
+                ? CIColor(red: 0, green: 0, blue: 0, alpha: 1)
+                : CIColor(red: 0, green: 0, blue: 0, alpha: 0)
         ).cropped(to: targetRect)
 
         for layer in sceneLayers {
@@ -14335,8 +14338,11 @@ final class SceneSurfaceRenderEngine: NSObject {
         frame: SceneSurfaceReactiveFrame,
         sourcesPrepared: Bool = false
     ) -> CIImage? {
+        let hasBackgroundLayer = document.layers.contains { $0.role == "background" }
         var composed = CIImage(
-            color: CIColor(red: 0, green: 0, blue: 0, alpha: 1)
+            color: hasBackgroundLayer
+                ? CIColor(red: 0, green: 0, blue: 0, alpha: 1)
+                : CIColor(red: 0, green: 0, blue: 0, alpha: 0)
         ).cropped(to: targetRect)
 
         var authoredSources = [CIImage]()
