@@ -71,6 +71,7 @@ vec4 paintVisual(vec2 uv, CreatorFrame f) {
   float fluidAlpha = smoothstep(1.35, 0.65, length(p));
   float alpha = fluidAlpha * smoothstep(0.04, 0.20, max(surface.r, max(surface.g, surface.b)));
 
-  return vec4(clamp(surface * f.intensity * f.glow * alpha, 0.0, 1.0), alpha);
+  // RGBA recto: el motor multiplica por alpha al componer.
+  return vec4(clamp(surface * f.intensity * f.glow, 0.0, 1.0), alpha);
 }
 ''';

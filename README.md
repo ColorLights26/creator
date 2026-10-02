@@ -33,7 +33,7 @@ Usa Android o iOS. La versión de Flutter probada es **3.44.5 stable**; iOS requ
 una Mac con Xcode y CocoaPods. Si tu editor ya tiene preparado el dispositivo,
 también puedes usar su botón **Run**.
 
-Deberías ver **Liquid Chrome**, **Spiral Galaxy**, **Midnight Highway** y
+Deberías ver **Cromo Líquido**, **Spiral Galaxy**, **Midnight Highway** y
 **Golden Drift**, además de los visuales anteriores.
 Primero comprueba que estos funcionan; después crea el tuyo.
 

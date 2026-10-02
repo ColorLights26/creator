@@ -422,12 +422,12 @@ class _CreatorStudioState extends State<CreatorStudio>
       _revisions = {
         for (final visual in catalog) visual.id: visualRevision(visual),
       };
-      final isCurrentPending = _selectedId != null &&
-          catalog.any((v) => v.id == _selectedId) &&
-          (_curationStatus[_selectedId!] ?? VisualCurationStatus.pending) ==
-              VisualCurationStatus.pending;
+      // Recargar conserva lo que se está viendo, incluso un visual ya curado
+      // abierto desde la lista o un modo de repaso.
+      final keepCurrent =
+          _selectedId != null && catalog.any((v) => v.id == _selectedId);
 
-      if (!isCurrentPending) {
+      if (!keepCurrent) {
         // Seleccionar el primer visual pendiente de revisión
         final firstPending = catalog.cast<CreatorVisualDefinition?>().firstWhere(
               (v) =>
@@ -542,7 +542,12 @@ class _CreatorStudioState extends State<CreatorStudio>
     if (id != null) {
       _prepareSelected();
     } else {
+      // Sin visual seleccionado (revisión completada) el compositor no debe
+      // seguir dibujando detrás de la pantalla final.
       _stopReplay();
+      _revision++;
+      _ready = false;
+      _enqueue(() => _controller.setPlaying(false));
       setState(() {});
     }
   }

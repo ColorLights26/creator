@@ -8,7 +8,7 @@ const metadata = CreatorVisualMetadata(
   purposes: ['hud', 'geometry'],
   moods: ['mystic', 'cosmic'],
   concepts: ['tesseract', '4d', 'geometry'],
-  credits: CreatorCredits(author: 'Visuales Inmersivas v06 (Overlay)'),
+  credits: CreatorCredits(author: 'Visuales Inmersivas'),
   thumbnail: CreatorThumbnailSpec(timeSeconds: 2.5),
   role: CreatorRole.overlay,
   reactivity: CreatorReactivity.optional,

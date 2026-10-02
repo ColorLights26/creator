@@ -54,9 +54,9 @@ void main() {
       expect(split[3], 0xabcd);
       expect(split[4], 0x1234);
       expect(() => _state(seed: 0x100000000), throwsArgumentError);
-      expect(() => _state(index: 255), returnsNormally);
-      expect(() => _state(index: 256), throwsArgumentError);
-      expect(() => _state(index: -1), throwsArgumentError);
+      expect(() => _state(visualIndex: 255), returnsNormally);
+      expect(() => _state(visualIndex: 256), throwsArgumentError);
+      expect(() => _state(visualIndex: -1), throwsArgumentError);
     },
   );
 
@@ -141,6 +141,12 @@ void main() {
     },
   );
 
+  test('installed index accepts every position of a full catalog', () {
+    expect(_uniforms(_state(visualIndex: 255))[33], 255);
+    expect(() => _state(visualIndex: 256), throwsArgumentError);
+    expect(() => _state(visualIndex: -1), throwsArgumentError);
+  });
+
   test('loss of music authority clears a pending hit before presentation', () {
     final state = _state()..consume(_frame(strength: 1));
     state.consume(_frame(serial: 4, music: false));
@@ -173,9 +179,9 @@ void main() {
 
 CreatorShaderFrame _state({
   int seed = 42,
-  int index = 7,
   bool reactive = true,
   CreatorReactivity mode = CreatorReactivity.optional,
+  int visualIndex = 7,
 }) => CreatorShaderFrame(
   visual: CreatorVisualDefinition(
     id: 'test_visual',
@@ -191,7 +197,7 @@ CreatorShaderFrame _state({
     ),
     colors: [0x80112233, 0xff000000, 0xffffffff, 0x00ffffff],
   ),
-  visualIndex: index,
+  visualIndex: visualIndex,
   reactive: reactive,
   seed: seed,
 );

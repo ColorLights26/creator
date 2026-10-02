@@ -8,7 +8,7 @@ const metadata = CreatorVisualMetadata(
   purposes: ['energy', 'visualizer'],
   moods: ['tech', 'mystic'],
   concepts: ['magnetism', 'physics', 'energy'],
-  credits: CreatorCredits(author: 'Visuales Inmersivas v16 (Overlay)'),
+  credits: CreatorCredits(author: 'Visuales Inmersivas'),
   thumbnail: CreatorThumbnailSpec(timeSeconds: 2.5),
   role: CreatorRole.overlay,
   reactivity: CreatorReactivity.optional,

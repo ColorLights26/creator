@@ -8,7 +8,7 @@ const metadata = CreatorVisualMetadata(
   purposes: ['hud', 'visualizer'],
   moods: ['tech', 'cosmic'],
   concepts: ['neural', 'network', 'ai'],
-  credits: CreatorCredits(author: 'Visuales Inmersivas v02 (Overlay)'),
+  credits: CreatorCredits(author: 'Visuales Inmersivas'),
   thumbnail: CreatorThumbnailSpec(timeSeconds: 2.5),
   role: CreatorRole.overlay,
   reactivity: CreatorReactivity.optional,

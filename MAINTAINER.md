@@ -39,7 +39,7 @@ al fotograma anterior ni compute shaders.
 
 `const metadata = CreatorVisualMetadata(...)` vive en el compañero. Los visuales
 anteriores con `shaderSource` y `paintVisual` siguen funcionando. Se aceptan
-hasta 64 pares y `_metadata.dart` queda reservado para metadata. La plantilla
+hasta 256 pares y `_metadata.dart` queda reservado para metadata. La plantilla
 se genera del bloque AUTHOR API de `scene_program_native/src/creator_scene.hpp`
 y `templates/visual_template_body.cpp`; `generate_template.dart --check` y CI
 comprueban la referencia y la compilación del ejemplo.
@@ -164,8 +164,9 @@ requieren repetir `validate`. Las versiones ya aprobadas no se modifican.
 Estas muestras no certifican todas las canciones, controles o condiciones,
 ni la calidad perceptual de la reacción.
 
-La aprobación se hace mediante comandos; no hay un botón «Aprobar» en Studio.
-Devuelve una revisión exacta y el comando `approve … --revision … --reviewed`.
+La aprobación se hace mediante comandos. Los botones «Aprobar» y «Descartar» de
+Studio sólo registran la curación en `creator_curation_review.json`; no aprueban
+nada para Color Lights. `validate` devuelve una revisión exacta y el comando `approve … --revision … --reviewed`.
 El responsable lo ejecuta **después de revisar aspecto, transparencia, música
 y rendimiento físico**. Compilar no decide si un visual es bueno.
 

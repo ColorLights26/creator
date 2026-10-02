@@ -9984,7 +9984,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
   private func parseAttach(_ value: Any?) -> Plan? {
     guard
       let envelope = value as? [String: Any],
-      Set(envelope.keys) == Set([
+      Set(envelope.keys).subtracting(["resolvedAssetDigestsById"]) == Set([
         "sessionId", "sceneDocumentV2", "semanticPlanHash", "qualityPlanHash",
         "registryRevision", "initialQuality", "continuityState", "width",
         "height", "devicePixelRatio", "playing", "resolvedResourcePathsById",
@@ -10028,7 +10028,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
       let resolvedPaths = Self.stringMap(envelope["resolvedResourcePathsById"]),
       let materialized = Self.materializeResources(
         document,
-        resolvedPaths: resolvedPaths
+        resolvedPaths: resolvedPaths,
+        assetDigests: envelope["resolvedAssetDigestsById"] == nil ? [:] : Self.stringMap(envelope["resolvedAssetDigestsById"])
       ),
       let parsed = Self.parseDocument(materialized, loadImage: true)
     else {
@@ -10056,11 +10057,14 @@ final class SceneRenderV2ImageSurfaceRuntime {
   /// semantic document used for cross-platform hashes and receipts.
   private static func materializeResources(
     _ document: [String: Any],
-    resolvedPaths: [String: String]?
+    resolvedPaths: [String: String]?,
+    assetDigests: [String: String]? = [:]
   ) -> [String: Any]? {
     guard let rawLayers = document["layers"] as? [[String: Any]] else {
       return nil
     }
+    guard let assetDigests else { return nil }
+    var deliveredAssets = Set<String>()
     var requiredIDs = Set<String>()
     var layers = [[String: Any]]()
     for rawLayer in rawLayers {
@@ -10070,16 +10074,18 @@ final class SceneRenderV2ImageSurfaceRuntime {
       }
       var slots = [[String: Any]]()
       for rawSlot in rawSlots {
-        guard let uri = rawSlot["uri"] as? String else {
-          slots.append(rawSlot)
-          continue
+        guard let resourceID = rawSlot["resourceId"] as? String else { return nil }
+        let uri = rawSlot["uri"] as? String
+        let deliveredAsset = rawSlot["asset"] is String && resolvedPaths?[resourceID] != nil
+        if uri == nil && !deliveredAsset { slots.append(rawSlot); continue }
+        guard validToken(resourceID), requiredIDs.insert(resourceID).inserted else { return nil }
+        if let uri, !Self.isSecureRemoteResourceURI(uri) { return nil }
+        if deliveredAsset {
+          guard let digest = assetDigests[resourceID],
+                digest.range(of: "^[a-f0-9]{64}$", options: .regularExpression) != nil,
+                rawSlot["sha256"] == nil || rawSlot["sha256"] as? String == digest else { return nil }
+          deliveredAssets.insert(resourceID)
         }
-        guard
-          Self.isSecureRemoteResourceURI(uri),
-          let resourceID = rawSlot["resourceId"] as? String,
-          validToken(resourceID),
-          requiredIDs.insert(resourceID).inserted
-        else { return nil }
         let path = resolvedPaths?[resourceID] ?? "/v2-preflight/\(resourceID)"
         guard Self.isCanonicalLocalResourcePath(path),
               resolvedPaths == nil || !path.hasPrefix("/v2-preflight/") else {
@@ -10087,6 +10093,11 @@ final class SceneRenderV2ImageSurfaceRuntime {
         }
         var slot = rawSlot
         slot.removeValue(forKey: "uri")
+        if deliveredAsset {
+          slot.removeValue(forKey: "asset")
+          slot.removeValue(forKey: "assetPackage")
+          slot["sha256"] = assetDigests[resourceID]
+        }
         slot["path"] = path
         slots.append(slot)
       }
@@ -10096,6 +10107,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
       layers.append(layer)
     }
     if let resolvedPaths, Set(resolvedPaths.keys) != requiredIDs { return nil }
+    guard Set(assetDigests.keys) == deliveredAssets else { return nil }
     var result = document
     result["layers"] = layers
     return result

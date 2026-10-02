@@ -107,7 +107,7 @@ class StudioView extends StatefulWidget {
 }
 
 class _StudioViewState extends State<StudioView> {
-  int _fps = 144;
+  int? _fps;
   int _frameCount = 0;
   DateTime _lastFpsTime = DateTime.now();
   bool _showControls = true;
@@ -150,14 +150,13 @@ class _StudioViewState extends State<StudioView> {
       _frameCount++;
       final now = DateTime.now();
       final elapsed = now.difference(_lastFpsTime).inMilliseconds;
-      if (elapsed >= 1000) {
-        final calculated = (_frameCount * 1000 / elapsed).round();
-        setState(() {
-          _fps = calculated.clamp(30, 240);
-          _frameCount = 0;
-          _lastFpsTime = now;
-        });
-      }
+      if (elapsed < 1000) return;
+      // Tras una pausa sin fotogramas la ventana no representa la cadencia.
+      final calculated =
+          elapsed > 2000 ? _fps : (_frameCount * 1000 / elapsed).round();
+      _frameCount = 0;
+      _lastFpsTime = now;
+      if (calculated != _fps) setState(() => _fps = calculated);
     });
   }
 
@@ -216,11 +215,13 @@ class _StudioViewState extends State<StudioView> {
     if (_viewFilter != null) {
       final remaining = _viewVisuals.where((v) => v.id != curatedId).toList();
       if (remaining.isNotEmpty) {
-        final curatedIndex = _viewVisuals.indexWhere(
+        // El estado ya cambió y el visual curado puede haber salido de la
+        // vista; su posición se mide en el catálogo completo.
+        final curatedIndex = widget.visuals.indexWhere(
           (v) => v.id == curatedId,
         );
         final next = remaining.firstWhere(
-          (v) => _viewVisuals.indexOf(v) > curatedIndex,
+          (v) => widget.visuals.indexOf(v) > curatedIndex,
           orElse: () => remaining.first,
         );
         widget.onSelectVisual(next.id);
@@ -354,7 +355,7 @@ class _StudioViewState extends State<StudioView> {
         actions: [
           Center(
             child: Text(
-              '$_fps FPS',
+              '${_fps ?? '--'} FPS',
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
@@ -843,23 +844,26 @@ class _StudioViewState extends State<StudioView> {
                 ),
               ),
               const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildStatBadge(
-                    'Aprobados',
-                    '$approvedCount',
-                    const Color(0xFF73F572),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildStatBadge(
-                    'Descartados',
-                    '$rejectedCount',
-                    const Color(0xFFFF453A),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildStatBadge('Total', '$total', Colors.white70),
-                ],
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildStatBadge(
+                      'Aprobados',
+                      '$approvedCount',
+                      const Color(0xFF73F572),
+                    ),
+                    const SizedBox(width: 8),
+                    _buildStatBadge(
+                      'Descartados',
+                      '$rejectedCount',
+                      const Color(0xFFFF453A),
+                    ),
+                    const SizedBox(width: 8),
+                    _buildStatBadge('Total', '$total', Colors.white70),
+                  ],
+                ),
               ),
               const SizedBox(height: 28),
               FilledButton.icon(
@@ -1286,24 +1290,29 @@ class _StudioViewState extends State<StudioView> {
                   },
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  switch (currentStatus) {
-                    VisualCurationStatus.approved =>
-                      'APROBADO (PARA AGREGAR A LA APP)',
-                    VisualCurationStatus.rejected =>
-                      'DESCARTADO (PARA ELIMINAR)',
-                    VisualCurationStatus.pending =>
-                      'PENDIENTE DE REVISIÓN',
-                  },
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.8,
-                    color: switch (currentStatus) {
-                      VisualCurationStatus.approved => const Color(0xFF73F572),
-                      VisualCurationStatus.rejected => const Color(0xFFFF453A),
-                      VisualCurationStatus.pending => Colors.white70,
+                Flexible(
+                  child: Text(
+                    switch (currentStatus) {
+                      VisualCurationStatus.approved =>
+                        'APROBADO (PARA AGREGAR A LA APP)',
+                      VisualCurationStatus.rejected =>
+                        'DESCARTADO (PARA ELIMINAR)',
+                      VisualCurationStatus.pending =>
+                        'PENDIENTE DE REVISIÓN',
                     },
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                      color: switch (currentStatus) {
+                        VisualCurationStatus.approved =>
+                          const Color(0xFF73F572),
+                        VisualCurationStatus.rejected =>
+                          const Color(0xFFFF453A),
+                        VisualCurationStatus.pending => Colors.white70,
+                      },
+                    ),
                   ),
                 ),
               ],

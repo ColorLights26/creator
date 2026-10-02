@@ -6097,7 +6097,7 @@ private final class PictureInPictureSceneLayerRuntime {
     let rgbGainEffect: SceneSurfaceRGBGainEffectRuntime?
     let naturalReactiveLightEffect: SceneSurfaceNaturalReactiveLightEffectRuntime?
     private(set) var explicitlyAudioReactive: Bool
-    let playbackRate: Float
+    private(set) var playbackRate: Float
 
     private let renderEngine: MusicVibeRenderEngine
     private var image: CIImage? {
@@ -6131,6 +6131,8 @@ private final class PictureInPictureSceneLayerRuntime {
     private var videoPlaybackGeneration = UUID()
     private var videoPlaybackRequested = false
     private var hasDecodedVideoFrame = false
+    private var previousDecodedVideoPTS: CMTime?
+    private(set) var decodedVideoMotionAt: CFTimeInterval?
     var videoDiagnostics: [String: Any]? {
         guard sourceKind == "video" else { return nil }
         return ["id": id, "sourceIdentity": videoPlayer.map { String(describing: ObjectIdentifier($0)) } ?? "retired",
@@ -7105,8 +7107,53 @@ private final class PictureInPictureSceneLayerRuntime {
         videoOutput = nil
         videoPixelBuffer = nil
         hasDecodedVideoFrame = false
+        previousDecodedVideoPTS = nil
+        decodedVideoMotionAt = nil
         videoGeometrySupportsOnePass = false
         videoReservation = nil
+    }
+
+    struct VideoContinuity {
+        let position: CMTime
+        let rate: Float
+        let playing: Bool
+    }
+
+    func videoContinuity() -> VideoContinuity? {
+        videoStateLock.lock()
+        defer { videoStateLock.unlock() }
+        guard let player = videoPlayer else { return nil }
+        let time = player.currentTime()
+        return VideoContinuity(position: time.isValid && time.isNumeric ? time : .zero,
+                               rate: playbackRate, playing: videoPlaybackRequested)
+    }
+
+    /// Operation state is kept outside the canonical scene document.
+    func seekForReplacement(_ continuity: VideoContinuity) -> Bool {
+        videoStateLock.lock()
+        guard let player = videoPlayer else { videoStateLock.unlock(); return false }
+        let generation = videoPlaybackGeneration
+        playbackRate = continuity.rate
+        videoPlaybackRequested = continuity.playing
+        videoRestorePending = true
+        var position = continuity.position
+        if let duration = player.currentItem?.duration, duration.isNumeric,
+           duration.seconds > 0, position.seconds >= duration.seconds {
+            position = CMTime(seconds: position.seconds.truncatingRemainder(dividingBy: duration.seconds),
+                              preferredTimescale: max(position.timescale, 600))
+        }
+        videoStateLock.unlock()
+        player.pause()
+        player.seek(to: position, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self, weak player] completed in
+            guard let self, let player else { return }
+            self.videoStateLock.lock()
+            defer { self.videoStateLock.unlock() }
+            guard completed, generation == self.videoPlaybackGeneration,
+                  self.videoPlayer === player else { return }
+            self.videoRestorePending = false
+            if self.videoPlaybackRequested { player.playImmediately(atRate: self.playbackRate) }
+        }
+        return true
     }
 
     func suspendVideoForReplacement() -> CMTime? {
@@ -7299,10 +7346,11 @@ private final class PictureInPictureSceneLayerRuntime {
     ) -> (ready: Bool, advanced: Bool) {
         let itemTime = output.itemTime(forHostTime: hostTime)
         var advanced = false
+        var presentationTime = CMTime.invalid
         if output.hasNewPixelBuffer(forItemTime: itemTime),
            let buffer = output.copyPixelBuffer(
                 forItemTime: itemTime,
-                itemTimeForDisplay: nil
+                itemTimeForDisplay: &presentationTime
            ) {
             prepareSceneVideoPixelBufferForAlphaMode(
                 buffer,
@@ -7311,6 +7359,11 @@ private final class PictureInPictureSceneLayerRuntime {
             image = CIImage(cvPixelBuffer: buffer)
             videoPixelBuffer = buffer
             hasDecodedVideoFrame = true
+            if presentationTime.isNumeric {
+                if let previous = previousDecodedVideoPTS, CMTimeCompare(previous, presentationTime) != 0,
+                   decodedVideoMotionAt == nil { decodedVideoMotionAt = hostTime }
+                previousDecodedVideoPTS = presentationTime
+            }
             advanced = true
         }
         return (hasDecodedVideoFrame, advanced)
@@ -11575,6 +11628,23 @@ private final class SceneSurfaceDocumentRuntime {
         }
     }
 
+    func videoContinuity(for next: [String: Any]) -> [String: PictureInPictureSceneLayerRuntime.VideoContinuity] {
+        guard next["sceneId"] as? String == sceneId else { return [:] }
+        return Dictionary(uniqueKeysWithValues: layers.compactMap { layer in
+            layer.videoContinuity().map { (layer.id, $0) }
+        })
+    }
+
+    func restoreContinuity(_ continuity: [String: PictureInPictureSceneLayerRuntime.VideoContinuity],
+                           replacing previous: SceneSurfaceDocumentRuntime) -> Bool {
+        for layer in layers {
+            guard layer.sourceKind == "video", let state = continuity[layer.id],
+                  !previous.layers.contains(where: { $0 === layer }) else { continue }
+            guard layer.seekForReplacement(state) else { return false }
+        }
+        return true
+    }
+
     func restoreVideos(_ videos: [SuspendedVideo]) -> Bool {
         var restored = true
         for video in videos {
@@ -12250,6 +12320,7 @@ final class SceneSurfaceRenderEngine: NSObject {
         var editReason: String?
         var editDocumentKey: Data?
         var editObservedBackend: SceneSurfaceObservedBackendReceipt?
+        var firstMovingVideoAt: CFTimeInterval?
         var publishedFrameCount: UInt64 = 0
         var gpuFrameTiming = SceneSurfaceGPUFrameTiming()
         var performanceProbe: PerformanceProbe?
@@ -12575,6 +12646,16 @@ final class SceneSurfaceRenderEngine: NSObject {
                     arguments: call.arguments,
                     result: result
                 )
+            case "readMediaReadiness":
+                guard let args = call.arguments as? [String: Any], let id = args["sessionId"] as? String else {
+                    result(Self.error("invalid_arguments", "A session is required.")); return
+                }
+                self.renderQueue.async {
+                    let age = self.sessions[id]?.firstMovingVideoAt.map { max(0, Int((CACurrentMediaTime() - $0) * 1000)) }
+                    var payload = [String: Any]()
+                    if let age { payload["videoMotionAgeMillis"] = age }
+                    DispatchQueue.main.async { result(payload) }
+                }
             case "attach":
                 self.attach(arguments: call.arguments, result: result)
             case "updateDocument":
@@ -13299,6 +13380,8 @@ final class SceneSurfaceRenderEngine: NSObject {
                     return
                 }
                 self.finishSignal(session, error: "signal_document_replaced")
+                let continuity = arguments["preserveVideoContinuity"] as? Bool == true
+                    ? session.document.videoContinuity(for: documentDefinition) : [:]
                 session.document.pause()
                 let suspended = session.document.suspendReplacedVideosIfNeeded(for: documentDefinition)
                 let rejectAndRestore: (String) -> Void = { code in
@@ -13342,6 +13425,11 @@ final class SceneSurfaceRenderEngine: NSObject {
                 }
                 // Keep the last complete native output while the candidate prepares.
                 replacement.applyBorrowedPresentation()
+                guard replacement.restoreContinuity(continuity, replacing: session.document) else {
+                    replacement.tearDown()
+                    rejectAndRestore("scene_update_continuity_failed")
+                    return
+                }
                 self.prepareInitialVideoFrames(session: session, document: replacement, deadline: deadline) { ready in
                     if !session.playing || !self.applicationActive { replacement.pause() }
                     let current = self.sessions[sessionId] === session
@@ -13353,6 +13441,7 @@ final class SceneSurfaceRenderEngine: NSObject {
                     }
                     let previous = session.document
                     replacement.commitBorrowedPresentation()
+                    if session.sceneId != replacement.sceneId { session.firstMovingVideoAt = nil }
                     session.document = replacement
                     session.sceneId = replacement.sceneId
                     previous.tearDown()
@@ -14256,6 +14345,12 @@ final class SceneSurfaceRenderEngine: NSObject {
             )
             session.texture.publish(buffer)
             published = true
+            if session.firstMovingVideoAt == nil, document === session.document {
+                let videos = document.layers.filter { $0.sourceKind == "video" }
+                if !videos.isEmpty && videos.allSatisfy({ $0.decodedVideoMotionAt != nil }) {
+                    session.firstMovingVideoAt = CACurrentMediaTime()
+                }
+            }
             document.layers.forEach { $0.didPublishNativeProgram(hostTime: hostTime) }
             if document === session.document {
                 finishSignal(session)
