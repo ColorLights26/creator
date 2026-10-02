@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audiovisual_creator/studio/creator_studio.dart';
 import 'package:audiovisual_creator/team_review/team_ranking.dart';
+import 'package:audiovisual_creator/team_review/team_ranking_screen.dart';
 import 'package:audiovisual_creator/team_review/team_review_client.dart';
 import 'package:audiovisual_creator/team_review/team_review_controller.dart';
 import 'package:audiovisual_creator/team_review/visual_revision.dart';
@@ -429,17 +430,29 @@ void main() {
       await tester.pump(const Duration(milliseconds: 60));
     }
     expect(find.text('Ranking del equipo'), findsOneWidget);
-    expect(find.text('Franco'), findsOneWidget);
-    final table = find.byKey(const ValueKey('team-ranking-table'));
+    // Phone width: a list with name, state and average, no wide table.
+    expect(find.byKey(const ValueKey('team-ranking-table')), findsNothing);
+    final tile = find.byKey(const ValueKey('team-ranking-tile-mareas_test'));
     expect(
-      find.descendant(of: table, matching: find.text('7.0')),
+      find.descendant(of: tile, matching: find.text('Mareas')),
       findsOneWidget,
     );
     expect(
-      find.descendant(of: table, matching: find.text('Aprobado')),
+      find.descendant(of: tile, matching: find.text('Aprobado')),
       findsOneWidget,
     );
-    expect(find.textContaining('Me gusta el ritmo'), findsOneWidget);
+    expect(
+      find.descendant(of: tile, matching: find.text('7.0')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: tile,
+        matching: find.textContaining('1 voto · Franco 7'),
+      ),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
 
     await tester.tap(find.text('Mareas'));
     for (var i = 0; i < 20; i++) {
@@ -450,5 +463,54 @@ void main() {
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(milliseconds: 50));
+  });
+
+  testWidgets('wide screens keep the full per-person table', (tester) async {
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final client = _FakeClient();
+    client.stored.add(
+      TeamRating(
+        visualId: 'aurora',
+        revision: visualRevision(_aurora),
+        reviewerId: 'f',
+        reviewerName: 'Franco',
+        score: 8,
+        comment: 'Me gusta el ritmo',
+      ),
+    );
+    final review = TeamReviewController(
+      client: client,
+      store: _MemoryStore('clr_franco'),
+    );
+    await review.start();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TeamRankingScreen(
+          controller: review,
+          entries: [
+            TeamRankingEntry(
+              id: 'aurora',
+              name: 'Aurora',
+              revision: visualRevision(_aurora),
+            ),
+          ],
+          onOpenVisual: (_) {},
+        ),
+      ),
+    );
+    await tester.pump();
+    final table = find.byKey(const ValueKey('team-ranking-table'));
+    expect(table, findsOneWidget);
+    expect(
+      find.descendant(of: table, matching: find.text('Franco')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: table, matching: find.textContaining('Me gusta')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
   });
 }

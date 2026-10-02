@@ -10,6 +10,10 @@ const _good = Color(0xFFB7E1CD);
 const _fair = Color(0xFFFCE8B2);
 const _poor = Color(0xFFF4C7C3);
 
+/// Below this width (phones) the sheet becomes a list of name, average and
+/// state; the full per-person table only fits on wide screens.
+const _tableMinWidth = 720.0;
+
 /// The team's sheet inside Creator: every visual, each person's score,
 /// votes, average and the owner's decision. Replaces the shared Excel.
 class TeamRankingScreen extends StatefulWidget {
@@ -61,41 +65,191 @@ class _TeamRankingScreenState extends State<TeamRankingScreen> {
       ),
       body: ListenableBuilder(
         listenable: widget.controller,
-        builder: (context, _) {
-          final ranking = TeamRanking.build(widget.controller, widget.entries);
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-            children: [
-              Text(
-                'Toca una fila para abrir ese visual. Las notas de los demás '
-                'aparecen cuando votas ese visual.',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.white.withValues(alpha: 0.7),
-                ),
-              ),
-              if (widget.controller.error case final String error) ...[
-                const SizedBox(height: 8),
-                Text(error, style: const TextStyle(color: Color(0xFFFF8B80))),
-              ],
-              const SizedBox(height: 12),
-              _table(ranking),
-              const SizedBox(height: 20),
-              _summary(ranking),
-            ],
-          );
-        },
+        builder:
+            (context, _) => LayoutBuilder(
+              builder: (context, constraints) {
+                final ranking = TeamRanking.build(
+                  widget.controller,
+                  widget.entries,
+                );
+                final rows = _sorted(ranking);
+                return constraints.maxWidth >= _tableMinWidth
+                    ? _wideLayout(ranking, rows)
+                    : _phoneLayout(ranking, rows);
+              },
+            ),
       ),
     );
   }
 
-  Widget _table(TeamRanking ranking) {
+  List<TeamRankingRow> _sorted(TeamRanking ranking) {
     final rows = List.of(ranking.rows);
     if (_byAverage) {
       rows.sort(
         (left, right) => (right.average ?? -1).compareTo(left.average ?? -1),
       );
     }
+    return rows;
+  }
+
+  Widget _hint() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Toca un visual para abrirlo. Las notas de los demás aparecen '
+          'cuando votas ese visual.',
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.white.withValues(alpha: 0.7),
+          ),
+        ),
+        if (widget.controller.error case final String error) ...[
+          const SizedBox(height: 8),
+          Text(error, style: const TextStyle(color: Color(0xFFFF8B80))),
+        ],
+      ],
+    );
+  }
+
+  Widget _wideLayout(TeamRanking ranking, List<TeamRankingRow> rows) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+      children: [
+        _hint(),
+        const SizedBox(height: 12),
+        _table(ranking, rows),
+        const SizedBox(height: 20),
+        _summary(ranking),
+      ],
+    );
+  }
+
+  Widget _phoneLayout(TeamRanking ranking, List<TeamRankingRow> rows) {
+    return ListView.builder(
+      key: const ValueKey('team-ranking-list'),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+      itemCount: rows.length + 2,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [_hint(), const SizedBox(height: 10), _sortChips()],
+            ),
+          );
+        }
+        if (index == rows.length + 1) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: _summary(ranking),
+          );
+        }
+        return _rowTile(rows[index - 1]);
+      },
+    );
+  }
+
+  Widget _sortChips() {
+    return Wrap(
+      spacing: 8,
+      children: [
+        ChoiceChip(
+          label: const Text('Por número'),
+          selected: !_byAverage,
+          onSelected: (_) => setState(() => _byAverage = false),
+        ),
+        ChoiceChip(
+          key: const ValueKey('team-ranking-sort-average'),
+          label: const Text('Mejor promedio'),
+          selected: _byAverage,
+          onSelected: (_) => setState(() => _byAverage = true),
+        ),
+      ],
+    );
+  }
+
+  /// Phone row: name, state and who voted on the left; average on the right.
+  Widget _rowTile(TeamRankingRow row) {
+    final (label, color) = _verdictStyle(row.verdict);
+    final detail = switch (row) {
+      TeamRankingRow(votes: 0) => null,
+      TeamRankingRow(locked: true) =>
+        '${_votesLabel(row.votes)} · vota para ver las notas',
+      _ =>
+        '${_votesLabel(row.votes)} · '
+            '${row.scores.entries.map((e) => '${e.key} ${e.value}').join(' · ')}'
+            '${row.comments.isEmpty ? '' : ' · 💬 ${row.comments.length}'}',
+    };
+    return InkWell(
+      key: ValueKey('team-ranking-tile-${row.entry.id}'),
+      onTap: () => widget.onOpenVisual(row.entry.id),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          ),
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 28,
+              child: Text(
+                '${row.number}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withValues(alpha: 0.45),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    row.entry.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: color,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (detail != null)
+                    Text(
+                      detail,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withValues(alpha: 0.5),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            _averageCell(row),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _votesLabel(int votes) => votes == 1 ? '1 voto' : '$votes votos';
+
+  Widget _table(TeamRanking ranking, List<TeamRankingRow> rows) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: SingleChildScrollView(
@@ -193,11 +347,12 @@ class _TeamRankingScreenState extends State<TeamRankingScreen> {
   Widget _averageCell(TeamRankingRow row) {
     final average = row.average;
     if (average == null) {
-      return Text(
-        row.locked ? 'Vota para ver' : '—',
-        style: TextStyle(
-          fontSize: 12,
-          color: Colors.white.withValues(alpha: 0.45),
+      return SizedBox(
+        width: 56,
+        child: Text(
+          row.locked ? '🔒' : '—',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.45)),
         ),
       );
     }
@@ -224,17 +379,19 @@ class _TeamRankingScreenState extends State<TeamRankingScreen> {
     );
   }
 
+  (String, Color) _verdictStyle(TeamVerdict verdict) => switch (verdict) {
+    TeamVerdict.approved => ('Aprobado', const Color(0xFF73F572)),
+    TeamVerdict.improvable => (
+      'Descarte pero tiene potencial al mejorar',
+      const Color(0xFFFFD27A),
+    ),
+    TeamVerdict.discarded => ('Descarte total', const Color(0xFFFF8B80)),
+    TeamVerdict.locked => ('Vota para ver', Colors.white54),
+    TeamVerdict.noVotes => ('Sin votos', Colors.white38),
+  };
+
   Widget _verdictCell(TeamVerdict verdict) {
-    final (label, color) = switch (verdict) {
-      TeamVerdict.approved => ('Aprobado', const Color(0xFF73F572)),
-      TeamVerdict.improvable => (
-        'Descarte pero tiene potencial al mejorar',
-        const Color(0xFFFFD27A),
-      ),
-      TeamVerdict.discarded => ('Descarte total', const Color(0xFFFF8B80)),
-      TeamVerdict.locked => ('Vota para ver', Colors.white54),
-      TeamVerdict.noVotes => ('Sin votos', Colors.white38),
-    };
+    final (label, color) = _verdictStyle(verdict);
     return SizedBox(
       width: 170,
       child: Text(
