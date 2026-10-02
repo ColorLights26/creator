@@ -96,6 +96,7 @@ vec4 paintVisual(vec2 uv, CreatorFrame f) {
   col *= vignette;
 
   float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.8, 0.0, 1.0);
-  return vec4(clamp(col * f.intensity * f.glow * alpha, 0.0, 1.0), alpha);
+  // RGBA recto: el motor multiplica por alpha al componer.
+  return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), alpha);
 }
 ''';

@@ -8,7 +8,7 @@ const metadata = CreatorVisualMetadata(
   purposes: ['hud', 'ambient'],
   moods: ['steampunk', 'celestial'],
   concepts: ['clockwork', 'astrolabe', 'planets'],
-  credits: CreatorCredits(author: 'Visuales Inmersivas v12 (Overlay)'),
+  credits: CreatorCredits(author: 'Visuales Inmersivas'),
   thumbnail: CreatorThumbnailSpec(timeSeconds: 2.5),
   role: CreatorRole.overlay,
   reactivity: CreatorReactivity.optional,

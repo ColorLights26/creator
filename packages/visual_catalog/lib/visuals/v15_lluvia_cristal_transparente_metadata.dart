@@ -8,7 +8,7 @@ const metadata = CreatorVisualMetadata(
   purposes: ['relax', 'ambient'],
   moods: ['calm', 'rainy'],
   concepts: ['rain', 'glass', 'water'],
-  credits: CreatorCredits(author: 'Visuales Inmersivas v15 (Overlay)'),
+  credits: CreatorCredits(author: 'Visuales Inmersivas'),
   thumbnail: CreatorThumbnailSpec(timeSeconds: 2.5),
   role: CreatorRole.overlay,
   reactivity: CreatorReactivity.optional,
