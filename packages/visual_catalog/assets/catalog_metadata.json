@@ -60,6 +60,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "caleidoscopio_infinito",
+      "name": "Caleidoscopio Infinito",
+      "description": "Viaje sin fin hacia un mandala de geometría de neón que empuja, destella y cambia de simetría con los golpes.",
+      "purposes": [
+        "party",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "hypnotic",
+        "epic",
+        "psychedelic"
+      ],
+      "concepts": [
+        "kaleidoscope",
+        "mandala",
+        "sacred geometry",
+        "infinite zoom"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "campo_flujo",
       "name": "Campo de Flujo",
       "description": "Mil cuatrocientas partículas siguiendo un campo de flujo sinusoidal, con estelas y remolino central.",
@@ -627,6 +659,37 @@
       "reactivity": "optional"
     },
     {
+      "id": "haces_estadio",
+      "name": "Haces de Estadio",
+      "description": "Iluminación de concierto: conos de luz de cabezas móviles que pulsan con cada golpe y cambian de coreografía y color con cada compás.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "epic",
+        "energetic",
+        "concert"
+      ],
+      "concepts": [
+        "stage lights",
+        "moving heads",
+        "beams",
+        "concert"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "hipervelocidad",
       "name": "Hipervelocidad",
       "description": "Viaje a la velocidad de la luz entre estrellas con estelas blancas y azules.",
@@ -790,6 +853,38 @@
         "waves",
         "dots",
         "water"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "mandala_fuego",
+      "name": "Mandala de Fuego",
+      "description": "Mandala de líneas incandescentes sobre negro: estrellas que emanan hacia fuera, un anillo negro que estalla con cada golpe y brasas que suben.",
+      "purposes": [
+        "party",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "epic",
+        "hypnotic",
+        "warm"
+      ],
+      "concepts": [
+        "mandala",
+        "fire",
+        "sacred geometry",
+        "kaleidoscope"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -1291,6 +1386,37 @@
         "tree",
         "fractal",
         "glow"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "show_laser",
+      "name": "Show Láser",
+      "description": "Espectáculo de láseres de festival: abanicos de rayos de colores que barren el humo, se abren y destellan con cada golpe.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "epic",
+        "energetic",
+        "club"
+      ],
+      "concepts": [
+        "lasers",
+        "beams",
+        "festival",
+        "light show"
       ],
       "credits": {
         "author": "Chic Apps",
