@@ -120,14 +120,20 @@ ranking y la exportación a CSV. Revocar una clave conserva sus votos.
   los materiales, las imágenes y los parámetros de render. El nombre y la
   descripción no cuentan.
 - Las notas del equipo de una versión se ocultan hasta que la persona vota.
-- La cola **Faltan N** omite los visuales descartados en la curaduría local.
-- El ranking (`team_ranking.dart` y `team_ranking_screen.dart`) tiene una fila por
-  visual del catálogo actual. El estado sale **solo del promedio**: ≥ 7 Aprobado,
-  5–6,9 «Descarte pero tiene potencial al mejorar», < 5 Descarte total. Los
-  umbrales son `teamApprovalThreshold` y `teamPotentialThreshold`. No usa la
-  curaduría local.
-- Aprobar o descartar sigue siendo tu decisión (`creator_curation_review.json` y
-  `creator_review.dart`). La nota del equipo solo informa.
+- El estado sale **solo del promedio** y con **al menos 2 votos**
+  (`teamMinimumVotes`): ≥ 7 Aprobado, 5–6,9 «Descarte pero tiene potencial al
+  mejorar», < 5 Descarte total; con un solo voto queda «Faltan votos». Los
+  umbrales viven en `team_ranking.dart`; el servidor de `chic-ads` repite el
+  mínimo y el corte de 5 para marcar los descartes que la persona aún no ve.
+- La cola **Faltan N** omite lo que el equipo ya dejó en Descarte total. Si el
+  autor cambia el dibujo, es otra versión y vuelve a la cola.
+- El ranking (`team_ranking.dart` y `team_ranking_screen.dart`) tiene una fila
+  por visual del catálogo actual: lista en el celular y tabla por persona en
+  pantallas anchas.
+- Ya no hay curaduría local: Studio no tiene botones «Aprobar/Descartar» ni
+  `creator_curation_review.json` (su historial queda en git). Tu única decisión
+  es meter un visual en Color Lights con `creator_review.dart`, y solo para los
+  que el equipo dejó en Aprobado.
 - Para probar contra otro servidor:
   `flutter run --dart-define=CREATOR_REVIEW_URL=<url>/api/creator-review`.
 
@@ -164,9 +170,8 @@ requieren repetir `validate`. Las versiones ya aprobadas no se modifican.
 Estas muestras no certifican todas las canciones, controles o condiciones,
 ni la calidad perceptual de la reacción.
 
-La aprobación se hace mediante comandos. Los botones «Aprobar» y «Descartar» de
-Studio sólo registran la curación en `creator_curation_review.json`; no aprueban
-nada para Color Lights. `validate` devuelve una revisión exacta y el comando `approve … --revision … --reviewed`.
+La aprobación se hace mediante comandos, para los visuales que el equipo dejó
+en Aprobado en el ranking de Studio. `validate` devuelve una revisión exacta y el comando `approve … --revision … --reviewed`.
 El responsable lo ejecuta **después de revisar aspecto, transparencia, música
 y rendimiento físico**. Compilar no decide si un visual es bueno.
 

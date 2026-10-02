@@ -50,6 +50,7 @@ class TeamRatingsSnapshot {
     required this.reviewer,
     required this.ratings,
     required this.hiddenCounts,
+    this.hiddenDiscarded = const {},
   });
 
   final TeamReviewer reviewer;
@@ -57,6 +58,10 @@ class TeamRatingsSnapshot {
 
   /// Keyed by [ratingKey].
   final Map<String, int> hiddenCounts;
+
+  /// Hidden revisions the team already discarded ([ratingKey]s). The server
+  /// reveals only this verdict, never the scores, so nobody votes them again.
+  final Set<String> hiddenDiscarded;
 }
 
 String ratingKey(String visualId, String revision) => '$visualId@$revision';
@@ -116,6 +121,14 @@ class HttpTeamReviewClient implements TeamReviewClient {
                   item['revision'] as String? ?? '',
                 ):
                 (item['count'] as num?)?.toInt() ?? 0,
+      },
+      hiddenDiscarded: {
+        for (final item in json['hidden'] as List<Object?>? ?? const [])
+          if (item is Map<String, Object?> && item['discarded'] == true)
+            ratingKey(
+              item['visualId'] as String? ?? '',
+              item['revision'] as String? ?? '',
+            ),
       },
     );
   }

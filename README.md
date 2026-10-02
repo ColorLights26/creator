@@ -233,7 +233,8 @@ Te la da el responsable.
    quieras.
 3. Las notas de los demás aparecen cuando votas tú, para que nadie influya en
    nadie. Con el globo de diálogo puedes dejar un comentario.
-4. **Faltan N** te lleva al siguiente visual que todavía no votaste.
+4. **Faltan N** te lleva al siguiente visual que todavía no votaste. Se salta
+   los que el equipo ya dejó en Descarte total.
 5. El botón de barras verdes abre el **ranking del equipo**: la tabla con todos los
    visuales, la nota de cada persona, el promedio y el estado. Toca una fila para
    abrir ese visual.
@@ -245,6 +246,10 @@ El estado sale solo del promedio:
 | 7 o más | Aprobado |
 | De 5 a 6,9 | Descarte pero tiene potencial al mejorar |
 | Menos de 5 | Descarte total |
+
+Hacen falta **al menos 2 votos** para tener estado; con uno solo dice «Faltan
+votos». Ya no hay botones de aprobar o descartar: decide el voto del equipo, y
+el responsable mete en Color Lights los que quedan en Aprobado.
 
 Si cambias el dibujo de un visual, Creator lo trata como una versión nueva y
 vuelve a pedir votos. Cambiar solo el nombre o la descripción no reinicia los votos.

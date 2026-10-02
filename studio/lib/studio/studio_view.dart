@@ -1,15 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:scene_compositor/scene_compositor.dart';
 
 import 'audio_signal_chart.dart';
-
-enum VisualCurationStatus {
-  pending,
-  approved,
-  rejected,
-}
 
 enum StudioBackgroundMode {
   dark,
@@ -76,8 +69,6 @@ class StudioView extends StatefulWidget {
     this.signalListenable,
     this.onPictureInPicture,
     this.pictureInPictureActive = false,
-    this.curationStatus = const {},
-    this.onCurationChanged,
     this.muted = false,
     this.onToggleMuted,
     this.ratingPanel,
@@ -105,8 +96,6 @@ class StudioView extends StatefulWidget {
   final ValueChanged<bool> onReactiveChanged;
   final VoidCallback onReload;
   final void Function(Size size, double pixelRatio) onViewportChanged;
-  final Map<String, VisualCurationStatus> curationStatus;
-  final void Function(String id, VisualCurationStatus status)? onCurationChanged;
   final ValueListenable<SceneRenderSignalFrameV2?>? signalListenable;
 
   /// Team 1-10 voting for the selected visual, when the studio has it.
@@ -168,14 +157,7 @@ class _StudioViewState extends State<StudioView> {
       if (filtered.isEmpty) {
         widget.onSelectVisual(null);
       } else if (!filtered.any((v) => v.id == widget.selectedVisualId)) {
-        final pending = filtered.where((v) {
-          final status =
-              widget.curationStatus[v.id] ?? VisualCurationStatus.pending;
-          return status == VisualCurationStatus.pending;
-        }).toList();
-        widget.onSelectVisual(
-          pending.isNotEmpty ? pending.first.id : filtered.first.id,
-        );
+        widget.onSelectVisual(filtered.first.id);
       }
     });
   }
@@ -186,17 +168,9 @@ class _StudioViewState extends State<StudioView> {
     return list.indexWhere((v) => v.id == widget.selectedVisualId);
   }
 
-  List<StudioVisualItem> get _pendingVisuals {
-    return _filteredVisuals.where((v) {
-      final status =
-          widget.curationStatus[v.id] ?? VisualCurationStatus.pending;
-      return status == VisualCurationStatus.pending;
-    }).toList();
-  }
-
   void _goToPreviousVisual() {
     if (widget.visuals.isEmpty) return;
-    final view = _viewVisuals;
+    final view = _filteredVisuals;
     if (view.isEmpty) {
       widget.onSelectVisual(null);
       return;
@@ -215,7 +189,7 @@ class _StudioViewState extends State<StudioView> {
 
   void _goToNextVisual() {
     if (widget.visuals.isEmpty) return;
-    final view = _viewVisuals;
+    final view = _filteredVisuals;
     if (view.isEmpty) {
       widget.onSelectVisual(null);
       return;
@@ -231,72 +205,6 @@ class _StudioViewState extends State<StudioView> {
     }
   }
 
-  void _advanceAfterCuration(String curatedId) {
-    final filtered = _filteredVisuals;
-    // En modo vista se avanza dentro del slide actual.
-    if (_viewFilter != null) {
-      final remaining = _viewVisuals.where((v) => v.id != curatedId).toList();
-      if (remaining.isNotEmpty) {
-        // El estado ya cambió y el visual curado puede haber salido de la
-        // vista; su posición se mide en el catálogo filtrado.
-        final curatedIndex = filtered.indexWhere(
-          (v) => v.id == curatedId,
-        );
-        final next = remaining.firstWhere(
-          (v) => filtered.indexOf(v) > curatedIndex,
-          orElse: () => remaining.first,
-        );
-        widget.onSelectVisual(next.id);
-      } else {
-        // Slide terminado: salir del modo y volver a la cola normal.
-        setState(() => _viewFilter = null);
-        final pending = _pendingVisuals.where((v) => v.id != curatedId);
-        if (pending.isNotEmpty) {
-          widget.onSelectVisual(pending.first.id);
-        } else {
-          widget.onSelectVisual(null);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                '🎉 ¡Completado! Has evaluado todos los visuales del catálogo.',
-              ),
-              duration: Duration(seconds: 3),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      }
-      return;
-    }
-
-    final remainingPending = filtered.where((v) {
-      if (v.id == curatedId) return false;
-      final status =
-          widget.curationStatus[v.id] ?? VisualCurationStatus.pending;
-      return status == VisualCurationStatus.pending;
-    }).toList();
-
-    if (remainingPending.isNotEmpty) {
-      final curatedIndex = filtered.indexWhere((v) => v.id == curatedId);
-      final next = remainingPending.firstWhere(
-        (v) => filtered.indexOf(v) > curatedIndex,
-        orElse: () => remainingPending.first,
-      );
-      widget.onSelectVisual(next.id);
-    } else {
-      widget.onSelectVisual(null);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            '🎉 ¡Completado! Has evaluado todos los visuales del catálogo.',
-          ),
-          duration: Duration(seconds: 3),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -306,46 +214,10 @@ class _StudioViewState extends State<StudioView> {
     final filtered = _filteredVisuals;
     final index = _currentIndex;
     final total = filtered.length;
-    final pending = _pendingVisuals;
-    final view = _viewVisuals;
-    final isSelectedPending = selected != null &&
-        (widget.curationStatus[selected.id] ?? VisualCurationStatus.pending) ==
-            VisualCurationStatus.pending;
-    final pendingIndex =
-        isSelectedPending ? pending.indexWhere((v) => v.id == selected.id) : -1;
-
-    final String indexString;
-    final Color counterColor;
-    if (_viewFilter != null && selected != null) {
-      final viewIndex = view.indexWhere((v) => v.id == selected.id);
-      final prefix = _viewFilter == VisualCurationStatus.rejected ? '↺ ' : '👀 ';
-      if (viewIndex >= 0) {
-        indexString =
-            '$prefix${(viewIndex + 1).toString().padLeft(2, '0')} / ${view.length.toString().padLeft(2, '0')}';
-      } else {
-        indexString =
-            '$prefix${(index >= 0 ? index + 1 : 1).toString().padLeft(2, '0')}/$total';
-      }
-      counterColor = _viewFilter == VisualCurationStatus.rejected
-          ? const Color(0xFFFFB74D)
-          : const Color(0xFF73F572);
-    } else if (selected == null || pending.isEmpty) {
-      indexString = '✓ Completado';
-      counterColor = const Color(0xFF73F572);
-    } else if (isSelectedPending) {
-      indexString =
-          '${(pendingIndex + 1).toString().padLeft(2, '0')} / ${pending.length.toString().padLeft(2, '0')}';
-      counterColor = const Color(0xFF73F572);
-    } else {
-      final currentStatus = widget.curationStatus[selected.id];
-      final statusPrefix =
-          currentStatus == VisualCurationStatus.approved ? '✓ ' : '✕ ';
-      indexString =
-          '$statusPrefix${(index >= 0 ? index + 1 : 1).toString().padLeft(2, '0')}/$total';
-      counterColor = currentStatus == VisualCurationStatus.approved
-          ? const Color(0xFF73F572)
-          : const Color(0xFFFF8B80);
-    }
+    final indexString =
+        '${(index >= 0 ? (index + 1).toString().padLeft(2, '0') : '--')} / '
+        '${total.toString().padLeft(2, '0')}';
+    const counterColor = Color(0xFF73F572);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -356,7 +228,7 @@ class _StudioViewState extends State<StudioView> {
         elevation: 0,
         centerTitle: false,
         title: InkWell(
-          onTap: () => _showCurationSheet(context),
+          onTap: () => _showVisualList(context),
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
@@ -603,7 +475,7 @@ class _StudioViewState extends State<StudioView> {
       body: selected == null
           ? (widget.error != null
               ? _preview(context)
-              : _buildAllDoneView(context))
+              : _buildEmptyView())
           : (widget.error != null
               ? _buildErrorView(context, selected)
               : Stack(
@@ -790,44 +662,6 @@ class _StudioViewState extends State<StudioView> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF453A),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 14,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    onPressed: () {
-                      widget.onCurationChanged?.call(
-                        selected.id,
-                        VisualCurationStatus.rejected,
-                      );
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('✕ "${selected.name}" descartado.'),
-                          duration: const Duration(seconds: 2),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                      _advanceAfterCuration(selected.id);
-                    },
-                    icon: const Icon(Icons.close_rounded, size: 20),
-                    label: const Text(
-                      'DESCARTAR ESTE VISUAL',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -877,7 +711,7 @@ class _StudioViewState extends State<StudioView> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onPressed: () => _showCurationSheet(context),
+                        onPressed: () => _showVisualList(context),
                         icon: const Icon(Icons.format_list_bulleted_rounded, size: 16),
                         label: const Text('Lista'),
                       ),
@@ -897,260 +731,18 @@ class _StudioViewState extends State<StudioView> {
     );
   }
 
-  /// Modo de vista slide: null = cola normal de pendientes,
-  /// rejected = segunda oportunidad (recorre descartados),
-  /// approved = revisión de aprobados. No cambia estados al entrar;
-  /// SALIR vuelve a la cola sin tocar lo no redecidido.
-  VisualCurationStatus? _viewFilter;
+  /// Selección manual desde el desplegable o la lista.
+  void _selectVisualManual(String? id) => widget.onSelectVisual(id);
 
-  List<StudioVisualItem> get _viewVisuals {
-    final filter = _viewFilter;
-    if (filter != null) {
-      return _filteredVisuals
-          .where((v) => widget.curationStatus[v.id] == filter)
-          .toList();
-    }
-    return _pendingVisuals;
-  }
-
-  void _enterViewMode(VisualCurationStatus filter) {
-    final list = _filteredVisuals
-        .where((v) => widget.curationStatus[v.id] == filter)
-        .toList();
-    if (list.isEmpty) return;
-    setState(() => _viewFilter = filter);
-    widget.onSelectVisual(list.first.id);
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          filter == VisualCurationStatus.rejected
-              ? '🔄 Segunda oportunidad: recorre ${list.length} descartados.'
-              : '👀 Revisando ${list.length} aprobados.',
-        ),
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  void _exitViewMode() {
-    setState(() => _viewFilter = null);
-    final pending = _pendingVisuals;
-    widget.onSelectVisual(pending.isNotEmpty ? pending.first.id : null);
-  }
-
-  /// Selección manual (dropdown o lista): sale del modo vista.
-  void _selectVisualManual(String? id) {
-    if (_viewFilter != null) setState(() => _viewFilter = null);
-    widget.onSelectVisual(id);
-  }
-
-  Widget _buildAllDoneView(BuildContext context) {
-    final approvedCount = widget.visuals
-        .where(
-          (v) =>
-              widget.curationStatus[v.id] == VisualCurationStatus.approved,
-        )
-        .length;
-    final rejectedCount = widget.visuals
-        .where(
-          (v) =>
-              widget.curationStatus[v.id] == VisualCurationStatus.rejected,
-        )
-        .length;
-    final total = widget.visuals.length;
-
-    return Center(
+  Widget _buildEmptyView() {
+    return const Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          decoration: BoxDecoration(
-            color: const Color(0xFF162521).withValues(alpha: 0.95),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: const Color(0xFF73F572).withValues(alpha: 0.3),
-              width: 1.5,
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black54,
-                blurRadius: 30,
-                offset: Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF73F572).withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.task_alt_rounded,
-                  color: Color(0xFF73F572),
-                  size: 48,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                '¡Revisión Completada!',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Has evaluado todos los visuales del catálogo.\nLos aprobados y descartados no aparecen en la cola principal.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 13,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 24),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildStatBadge(
-                      'Aprobados',
-                      '$approvedCount',
-                      const Color(0xFF73F572),
-                    ),
-                    const SizedBox(width: 8),
-                    _buildStatBadge(
-                      'Descartados',
-                      '$rejectedCount',
-                      const Color(0xFFFF453A),
-                    ),
-                    const SizedBox(width: 8),
-                    _buildStatBadge('Total', '$total', Colors.white70),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 28),
-              FilledButton.icon(
-                onPressed: () => _showCurationSheet(context),
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF73F572),
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 14,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                icon: const Icon(Icons.format_list_bulleted_rounded, size: 20),
-                label: const Text(
-                  'VER Y EDITAR LISTA COMPLETA',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-                ),
-              ),
-              if (rejectedCount > 0) ...[
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () =>
-                      _enterViewMode(VisualCurationStatus.rejected),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFFFB74D),
-                    side: const BorderSide(
-                      color: Color(0xFFFFB74D),
-                      width: 1.2,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 14,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  icon: const Icon(Icons.history_rounded, size: 20),
-                  label: Text(
-                    'SEGUNDA OPORTUNIDAD ($rejectedCount DESCARTADOS)',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ],
-              if (approvedCount > 0) ...[
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () =>
-                      _enterViewMode(VisualCurationStatus.approved),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF73F572),
-                    side: const BorderSide(
-                      color: Color(0xFF73F572),
-                      width: 1.2,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 14,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  icon: const Icon(Icons.visibility_rounded, size: 20),
-                  label: Text(
-                    'REVISAR APROBADOS ($approvedCount)',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
+        padding: EdgeInsets.symmetric(horizontal: 24),
+        child: Text(
+          'No hay visuales para mostrar.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.white70, fontSize: 15),
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatBadge(String label, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w900,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: color.withValues(alpha: 0.9),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1159,71 +751,10 @@ class _StudioViewState extends State<StudioView> {
     BuildContext context,
     StudioVisualItem? selected,
   ) {
-    final currentStatus = selected != null
-        ? (widget.curationStatus[selected.id] ?? VisualCurationStatus.pending)
-        : VisualCurationStatus.pending;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Banner de modo vista slide con SALIR fijo
-        if (_viewFilter != null) ...[
-          Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFB74D).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: const Color(0xFFFFB74D).withValues(alpha: 0.6),
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.history_rounded,
-                  size: 16,
-                  color: Color(0xFFFFB74D),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    _viewFilter == VisualCurationStatus.rejected
-                        ? 'Segunda oportunidad: slide de descartados'
-                        : 'Viendo slide de aprobados',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFFFFB74D),
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: _exitViewMode,
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.black,
-                    backgroundColor: const Color(0xFFFFB74D),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'SALIR',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
         // Title Selector (Dropdown with bold hero title)
         DropdownButtonHideUnderline(
           child: DropdownButton<String>(
@@ -1361,21 +892,6 @@ class _StudioViewState extends State<StudioView> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      if (widget.curationStatus[visual.id] ==
-                          VisualCurationStatus.approved)
-                        const Icon(
-                          Icons.check_circle_rounded,
-                          color: Color(0xFF73F572),
-                          size: 16,
-                        )
-                      else if (widget.curationStatus[visual.id] ==
-                          VisualCurationStatus.rejected)
-                        const Icon(
-                          Icons.cancel_rounded,
-                          color: Color(0xFFFF453A),
-                          size: 16,
-                        ),
                     ],
                   ),
                 ),
@@ -1487,179 +1003,6 @@ class _StudioViewState extends State<StudioView> {
           panel,
           const SizedBox(height: 12),
         ],
-
-        // Curation Status Badge
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              color: switch (currentStatus) {
-                VisualCurationStatus.approved =>
-                  const Color(0xFF73F572).withValues(alpha: 0.2),
-                VisualCurationStatus.rejected =>
-                  const Color(0xFFFF453A).withValues(alpha: 0.2),
-                VisualCurationStatus.pending =>
-                  Colors.white.withValues(alpha: 0.08),
-              },
-              border: Border.all(
-                color: switch (currentStatus) {
-                  VisualCurationStatus.approved => const Color(0xFF73F572),
-                  VisualCurationStatus.rejected => const Color(0xFFFF453A),
-                  VisualCurationStatus.pending => Colors.white30,
-                },
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  switch (currentStatus) {
-                    VisualCurationStatus.approved =>
-                      Icons.check_circle_rounded,
-                    VisualCurationStatus.rejected => Icons.cancel_rounded,
-                    VisualCurationStatus.pending =>
-                      Icons.radio_button_unchecked_rounded,
-                  },
-                  size: 14,
-                  color: switch (currentStatus) {
-                    VisualCurationStatus.approved => const Color(0xFF73F572),
-                    VisualCurationStatus.rejected => const Color(0xFFFF453A),
-                    VisualCurationStatus.pending => Colors.white60,
-                  },
-                ),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    switch (currentStatus) {
-                      VisualCurationStatus.approved =>
-                        'APROBADO (PARA AGREGAR A LA APP)',
-                      VisualCurationStatus.rejected =>
-                        'DESCARTADO (PARA ELIMINAR)',
-                      VisualCurationStatus.pending =>
-                        'PENDIENTE DE REVISIÓN',
-                    },
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.8,
-                      color: switch (currentStatus) {
-                        VisualCurationStatus.approved =>
-                          const Color(0xFF73F572),
-                        VisualCurationStatus.rejected =>
-                          const Color(0xFFFF453A),
-                        VisualCurationStatus.pending => Colors.white70,
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        // Curation Action Buttons: Descartar, Aprobar, Lista
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: selected == null
-                    ? null
-                    : () {
-                        widget.onCurationChanged?.call(
-                          selected.id,
-                          VisualCurationStatus.rejected,
-                        );
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '✕ "${selected.name}" descartado.',
-                            ),
-                            duration: const Duration(seconds: 2),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                        _advanceAfterCuration(selected.id);
-                      },
-                icon: const Icon(Icons.close_rounded, size: 16),
-                label: const Text('Descartar'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFFFF453A),
-                  side: BorderSide(
-                    color: currentStatus == VisualCurationStatus.rejected
-                        ? const Color(0xFFFF453A)
-                        : const Color(0xFFFF453A).withValues(alpha: 0.5),
-                  ),
-                  backgroundColor:
-                      currentStatus == VisualCurationStatus.rejected
-                          ? const Color(0xFFFF453A).withValues(alpha: 0.2)
-                          : Colors.transparent,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: selected == null
-                    ? null
-                    : () {
-                        widget.onCurationChanged?.call(
-                          selected.id,
-                          VisualCurationStatus.approved,
-                        );
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '✓ "${selected.name}" aprobado para la app.',
-                            ),
-                            duration: const Duration(seconds: 2),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                        _advanceAfterCuration(selected.id);
-                      },
-                icon: const Icon(Icons.check_rounded, size: 16),
-                label: const Text('Aprobar'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF73F572),
-                  side: BorderSide(
-                    color: currentStatus == VisualCurationStatus.approved
-                        ? const Color(0xFF73F572)
-                        : const Color(0xFF73F572).withValues(alpha: 0.5),
-                  ),
-                  backgroundColor:
-                      currentStatus == VisualCurationStatus.approved
-                          ? const Color(0xFF73F572).withValues(alpha: 0.2)
-                          : Colors.transparent,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            IconButton(
-              tooltip: 'Ver lista de curaduría',
-              onPressed: () => _showCurationSheet(context),
-              icon: const Icon(
-                Icons.format_list_bulleted_rounded,
-                color: Colors.white70,
-                size: 20,
-              ),
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.white12,
-                padding: const EdgeInsets.all(10),
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 12),
 
         // Navigation Action Bar: < , Play/Pause, SIGUIENTE VISUAL
         Row(
@@ -2047,7 +1390,7 @@ class _StudioViewState extends State<StudioView> {
     );
   }
 
-  void _showCurationSheet(BuildContext context) {
+  void _showVisualList(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -2056,35 +1399,10 @@ class _StudioViewState extends State<StudioView> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (modalContext) {
-        int activeFilterIndex = 0; // 0: Todos, 1: Pendientes, 2: Aprobados, 3: Descartados
         return StatefulBuilder(
           builder: (context, setSheetState) {
             final roleBaseVisuals = _filteredVisuals;
-            final approved = roleBaseVisuals.where(
-              (v) =>
-                  widget.curationStatus[v.id] == VisualCurationStatus.approved,
-            );
-            final rejected = roleBaseVisuals.where(
-              (v) =>
-                  widget.curationStatus[v.id] == VisualCurationStatus.rejected,
-            );
-            final pending = roleBaseVisuals.where(
-              (v) =>
-                  (widget.curationStatus[v.id] ??
-                      VisualCurationStatus.pending) ==
-                  VisualCurationStatus.pending,
-            );
-
-            final displayedVisuals = roleBaseVisuals.where((v) {
-              final status =
-                  widget.curationStatus[v.id] ?? VisualCurationStatus.pending;
-              return switch (activeFilterIndex) {
-                1 => status == VisualCurationStatus.pending,
-                2 => status == VisualCurationStatus.approved,
-                3 => status == VisualCurationStatus.rejected,
-                _ => true,
-              };
-            }).toList();
+            final displayedVisuals = roleBaseVisuals;
 
             final overlaysCount =
                 widget.visuals.where((v) => v.isOverlay).length;
@@ -2123,7 +1441,7 @@ class _StudioViewState extends State<StudioView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Curaduría de Visuales',
+                                  'Visuales',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w900,
@@ -2133,7 +1451,7 @@ class _StudioViewState extends State<StudioView> {
                                 ),
                                 SizedBox(height: 4),
                                 Text(
-                                  'Marca cuáles agregar o eliminar de Color Lights.',
+                                  'Elige uno para verlo. Las notas del equipo están en el ranking.',
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: Colors.white70,
@@ -2261,138 +1579,12 @@ class _StudioViewState extends State<StudioView> {
 
                       const SizedBox(height: 12),
 
-                      // Summary chips (interactive filter tabs)
-                      Row(
-                        children: [
-                          _buildCountBadge(
-                            'Total',
-                            '${roleBaseVisuals.length}',
-                            Colors.white24,
-                            Colors.white,
-                            isSelected: activeFilterIndex == 0,
-                            onTap: () =>
-                                setSheetState(() => activeFilterIndex = 0),
-                          ),
-                          const SizedBox(width: 8),
-                          _buildCountBadge(
-                            'Pendientes',
-                            '${pending.length}',
-                            Colors.white12,
-                            Colors.white70,
-                            isSelected: activeFilterIndex == 1,
-                            onTap: () =>
-                                setSheetState(() => activeFilterIndex = 1),
-                          ),
-                          const SizedBox(width: 8),
-                          _buildCountBadge(
-                            'Aprobados',
-                            '${approved.length}',
-                            const Color(0xFF73F572).withValues(alpha: 0.2),
-                            const Color(0xFF73F572),
-                            isSelected: activeFilterIndex == 2,
-                            onTap: () =>
-                                setSheetState(() => activeFilterIndex = 2),
-                          ),
-                          const SizedBox(width: 8),
-                          _buildCountBadge(
-                            'Descartados',
-                            '${rejected.length}',
-                            const Color(0xFFFF453A).withValues(alpha: 0.2),
-                            const Color(0xFFFF453A),
-                            isSelected: activeFilterIndex == 3,
-                            onTap: () =>
-                                setSheetState(() => activeFilterIndex = 3),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Bulk requeue: revisar descartados/aprobados sin
-                      // tener que terminar la cola principal
-                      if (rejected.isNotEmpty || approved.isNotEmpty) ...[
-                        Row(
-                          children: [
-                            if (rejected.isNotEmpty)
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                    _enterViewMode(
-                                      VisualCurationStatus.rejected,
-                                    );
-                                  },
-                                  icon: const Icon(
-                                    Icons.history_rounded,
-                                    size: 16,
-                                  ),
-                                  label: Text(
-                                    'Ver slide (${rejected.length} descartados)',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: const Color(0xFFFFB74D),
-                                    side: const BorderSide(
-                                      color: Color(0xFFFFB74D),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 10,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            if (rejected.isNotEmpty && approved.isNotEmpty)
-                              const SizedBox(width: 8),
-                            if (approved.isNotEmpty)
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                    _enterViewMode(
-                                      VisualCurationStatus.approved,
-                                    );
-                                  },
-                                  icon: const Icon(
-                                    Icons.visibility_rounded,
-                                    size: 16,
-                                  ),
-                                  label: Text(
-                                    'Ver slide (${approved.length} aprobados)',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: const Color(0xFF73F572),
-                                    side: const BorderSide(
-                                      color: Color(0xFF73F572),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 10,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-
                       // Visuals List
                       Expanded(
                         child: displayedVisuals.isEmpty
                             ? Center(
                                 child: Text(
-                                  switch (activeFilterIndex) {
-                                    1 => 'No hay visuales pendientes.',
-                                    2 => 'No hay visuales aprobados aún.',
-                                    3 => 'No hay visuales descartados.',
-                                    _ => 'No hay visuales en esta sección.',
-                                  },
+                                  'No hay visuales en esta sección.',
                                   style: const TextStyle(
                                     color: Colors.white54,
                                     fontSize: 14,
@@ -2408,9 +1600,6 @@ class _StudioViewState extends State<StudioView> {
                                   final visual = displayedVisuals[index];
                                   final catalogIndex =
                                       widget.visuals.indexOf(visual);
-                                  final status =
-                                      widget.curationStatus[visual.id] ??
-                                          VisualCurationStatus.pending;
                                   final isCurrent =
                                       visual.id == widget.selectedVisualId;
 
@@ -2501,106 +1690,11 @@ class _StudioViewState extends State<StudioView> {
                                         fontSize: 11,
                                       ),
                                     ),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        // Descartar (tocar de nuevo = volver a pendiente)
-                                        IconButton(
-                                          icon: Icon(
-                                            status ==
-                                                    VisualCurationStatus
-                                                        .rejected
-                                                ? Icons.cancel_rounded
-                                                : Icons.cancel_outlined,
-                                            color: status ==
-                                                    VisualCurationStatus
-                                                        .rejected
-                                                ? const Color(0xFFFF453A)
-                                                : Colors.white30,
-                                            size: 22,
-                                          ),
-                                          onPressed: () {
-                                            widget.onCurationChanged?.call(
-                                              visual.id,
-                                              status ==
-                                                      VisualCurationStatus
-                                                          .rejected
-                                                  ? VisualCurationStatus.pending
-                                                  : VisualCurationStatus
-                                                      .rejected,
-                                            );
-                                            setSheetState(() {});
-                                            setState(() {});
-                                          },
-                                        ),
-                                        // Aprobar (tocar de nuevo = volver a pendiente)
-                                        IconButton(
-                                          icon: Icon(
-                                            status ==
-                                                    VisualCurationStatus
-                                                        .approved
-                                                ? Icons.check_circle_rounded
-                                                : Icons
-                                                    .check_circle_outline_rounded,
-                                            color: status ==
-                                                    VisualCurationStatus
-                                                        .approved
-                                                ? const Color(0xFF73F572)
-                                                : Colors.white30,
-                                            size: 22,
-                                          ),
-                                          onPressed: () {
-                                            widget.onCurationChanged?.call(
-                                              visual.id,
-                                              status ==
-                                                      VisualCurationStatus
-                                                          .approved
-                                                  ? VisualCurationStatus.pending
-                                                  : VisualCurationStatus
-                                                      .approved,
-                                            );
-                                            setSheetState(() {});
-                                            setState(() {});
-                                          },
-                                        ),
-                                      ],
-                                    ),
                                   );
                                 },
                               ),
                       ),
 
-                      const SizedBox(height: 12),
-
-                      // Export Action Bar
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () {
-                                final text = _generateCurationReport();
-                                Clipboard.setData(ClipboardData(text: text));
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      '¡Lista de curaduría copiada al portapapeles!',
-                                    ),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.copy_rounded, size: 16),
-                              label: const Text('Copiar lista para la app'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: const Color(0xFF73F572),
-                                side: const BorderSide(
-                                    color: Color(0xFF73F572)),
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 12),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 );
@@ -2612,99 +1706,6 @@ class _StudioViewState extends State<StudioView> {
     );
   }
 
-  Widget _buildCountBadge(
-    String label,
-    String count,
-    Color bg,
-    Color textColor, {
-    bool isSelected = false,
-    VoidCallback? onTap,
-  }) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-          decoration: BoxDecoration(
-            color: isSelected ? textColor.withValues(alpha: 0.25) : bg,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? textColor : Colors.transparent,
-              width: 1.5,
-            ),
-          ),
-          child: Column(
-            children: [
-              Text(
-                count,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: textColor,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: textColor.withValues(alpha: 0.8),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _generateCurationReport() {
-    final approved = widget.visuals.where(
-      (v) => widget.curationStatus[v.id] == VisualCurationStatus.approved,
-    );
-    final rejected = widget.visuals.where(
-      (v) => widget.curationStatus[v.id] == VisualCurationStatus.rejected,
-    );
-    final pending = widget.visuals.where(
-      (v) =>
-          (widget.curationStatus[v.id] ?? VisualCurationStatus.pending) ==
-          VisualCurationStatus.pending,
-    );
-
-    final buffer = StringBuffer();
-    buffer.writeln('=== CURADURÍA DE VISUALES (Color Lights) ===');
-    buffer.writeln();
-    buffer.writeln('✅ PARA AGREGAR A LA APP (${approved.length}):');
-    if (approved.isEmpty) {
-      buffer.writeln('  (Ninguno)');
-    } else {
-      for (final v in approved) {
-        buffer.writeln('  • ${v.name} (id: ${v.id}) - ${v.details}');
-      }
-    }
-    buffer.writeln();
-    buffer.writeln('❌ PARA ELIMINAR / DESCARTADOS (${rejected.length}):');
-    if (rejected.isEmpty) {
-      buffer.writeln('  (Ninguno)');
-    } else {
-      for (final v in rejected) {
-        buffer.writeln('  • ${v.name} (id: ${v.id}) - ${v.details}');
-      }
-    }
-    buffer.writeln();
-    buffer.writeln('⏳ PENDIENTES DE REVISIÓN (${pending.length}):');
-    if (pending.isEmpty) {
-      buffer.writeln('  (Ninguno)');
-    } else {
-      for (final v in pending) {
-        buffer.writeln('  • ${v.name} (id: ${v.id}) - ${v.details}');
-      }
-    }
-    return buffer.toString();
-  }
 }
 
 class CheckerboardPainter extends CustomPainter {

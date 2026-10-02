@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -23,8 +22,7 @@ export 'studio_view.dart'
         StudioBackgroundMode,
         StudioRoleFilter,
         StudioSignalSource,
-        StudioVisualItem,
-        VisualCurationStatus;
+        StudioVisualItem;
 
 List<CreatorVisualDefinition> _defaultCatalog() => creatorVisuals;
 
@@ -40,7 +38,6 @@ Widget _defaultThumbnail(CreatorVisualDefinition visual, int index) =>
 
 class CreatorStudio extends StatefulWidget {
   const CreatorStudio({
-    this.initialCuration,
     this.catalogBuilder = _defaultCatalog,
     this.controllerFactory = _defaultController,
     this.thumbnailBuilder = _defaultThumbnail,
@@ -48,8 +45,6 @@ class CreatorStudio extends StatefulWidget {
     this.teamReview,
     super.key,
   });
-
-  final Map<String, VisualCurationStatus>? initialCuration;
 
   /// Shared 1-10 team voting. Null hides it (tests, offline kits).
   final TeamReviewController? teamReview;
@@ -93,7 +88,6 @@ class _CreatorStudioState extends State<CreatorStudio>
   int _revision = 0;
   final ValueNotifier<SceneRenderSignalFrameV2?> _latestSignal =
       ValueNotifier<SceneRenderSignalFrameV2?>(null);
-  final Map<String, VisualCurationStatus> _curationStatus = {};
 
   void _toggleMuted() {
     setState(() => _muted = !_muted);
@@ -103,198 +97,6 @@ class _CreatorStudioState extends State<CreatorStudio>
         await _controller.sendSignal(silent);
         _latestSignal.value = silent;
       });
-    }
-  }
-
-  static List<String> get _curationPaths {
-    final candidates = <String>[];
-
-    void addProjectDir(String base) {
-      if (base.isEmpty) return;
-      candidates.add('$base/creator/creator_curation_review.json');
-      candidates.add('$base/creator_curation_review.json');
-    }
-
-    final projectEnv = Platform.environment['PROJECT_ROOT'] ??
-        Platform.environment['APPRUN_PROJECT_ROOT'] ??
-        Platform.environment['CODEX_PROJECT_ROOT'];
-    if (projectEnv != null && projectEnv.isNotEmpty) {
-      addProjectDir(projectEnv);
-    }
-
-    for (final home in [
-      Platform.environment['SIMULATOR_HOST_HOME'],
-      Platform.environment['HOME'],
-    ]) {
-      if (home != null && home.isNotEmpty) {
-        addProjectDir('$home/Projects/colorlights26');
-        addProjectDir('$home/colorlights26');
-        addProjectDir('$home/Developer/colorlights26');
-        addProjectDir('$home/Documents/colorlights26');
-        addProjectDir('$home/Desktop/colorlights26');
-      }
-    }
-
-    try {
-      var dir = Directory.current.absolute;
-      for (int i = 0; i < 5; i++) {
-        candidates.add('${dir.path}/creator_curation_review.json');
-        candidates.add('${dir.path}/creator/creator_curation_review.json');
-        final parent = dir.parent;
-        if (parent.path == dir.path) break;
-        dir = parent;
-      }
-    } catch (_) {}
-
-    candidates.add('${Directory.systemTemp.path}/creator_curation_review.json');
-    return candidates.toSet().toList();
-  }
-
-  static List<String> get _approvedDirPaths {
-    final candidates = <String>[];
-
-    void addApproved(String base) {
-      if (base.isEmpty) return;
-      candidates.add('$base/metadata/creator_catalog/approved');
-    }
-
-    final projectEnv = Platform.environment['PROJECT_ROOT'] ??
-        Platform.environment['APPRUN_PROJECT_ROOT'] ??
-        Platform.environment['CODEX_PROJECT_ROOT'];
-    if (projectEnv != null && projectEnv.isNotEmpty) {
-      addApproved(projectEnv);
-    }
-
-    for (final home in [
-      Platform.environment['SIMULATOR_HOST_HOME'],
-      Platform.environment['HOME'],
-    ]) {
-      if (home != null && home.isNotEmpty) {
-        addApproved('$home/Projects/colorlights26');
-        addApproved('$home/colorlights26');
-        addApproved('$home/Developer/colorlights26');
-        addApproved('$home/Documents/colorlights26');
-        addApproved('$home/Desktop/colorlights26');
-      }
-    }
-
-    try {
-      var dir = Directory.current.absolute;
-      for (int i = 0; i < 5; i++) {
-        candidates.add('${dir.path}/metadata/creator_catalog/approved');
-        final parent = dir.parent;
-        if (parent.path == dir.path) break;
-        dir = parent;
-      }
-    } catch (_) {}
-
-    return candidates.toSet().toList();
-  }
-
-  void _setCurationStatus(String id, VisualCurationStatus status) {
-    setState(() {
-      _curationStatus[id] = status;
-    });
-    _saveCuration();
-  }
-
-  void _saveCuration() {
-    try {
-      final jsonMap = {
-        for (final entry in _curationStatus.entries)
-          entry.key: entry.value.name,
-      };
-      final data = jsonEncode(jsonMap);
-      bool savedToProject = false;
-      for (final path in _curationPaths) {
-        try {
-          final file = File(path);
-          if (file.existsSync()) {
-            file.writeAsStringSync(data);
-            savedToProject = true;
-          }
-        } catch (_) {}
-      }
-      if (!savedToProject) {
-        for (final path in _curationPaths) {
-          try {
-            final file = File(path);
-            file.parent.createSync(recursive: true);
-            file.writeAsStringSync(data);
-            break;
-          } catch (_) {}
-        }
-      }
-      for (final home in [
-        Platform.environment['SIMULATOR_HOST_HOME'],
-        Platform.environment['HOME'],
-      ]) {
-        if (home != null && home.isNotEmpty) {
-          final assetCandidates = [
-            '$home/Projects/colorlights26/creator/studio/assets/creator_curation_review.json',
-            '$home/colorlights26/creator/studio/assets/creator_curation_review.json',
-            '$home/Developer/colorlights26/creator/studio/assets/creator_curation_review.json',
-            '$home/Documents/colorlights26/creator/studio/assets/creator_curation_review.json',
-            '$home/Desktop/colorlights26/creator/studio/assets/creator_curation_review.json',
-          ];
-          for (final assetPath in assetCandidates) {
-            try {
-              final file = File(assetPath);
-              if (file.parent.existsSync()) {
-                file.writeAsStringSync(data);
-              }
-            } catch (_) {}
-          }
-        }
-      }
-      developer.log(
-        'Saved visual curation review: $jsonMap',
-        name: 'audiovisual_creator',
-      );
-    } catch (_) {
-      // non-blocking
-    }
-  }
-
-  void _loadCuration() {
-    // 1. Auto-aprobar los visuales que ya están oficialmente en la app (metadata/creator_catalog/approved)
-    for (final path in _approvedDirPaths) {
-      final approvedDir = Directory(path);
-      if (approvedDir.existsSync()) {
-        try {
-          for (final entity in approvedDir.listSync()) {
-            if (entity is File && entity.path.endsWith('.json')) {
-              final id = entity.uri.pathSegments.last.replaceAll('.json', '');
-              _curationStatus[id] = VisualCurationStatus.approved;
-            }
-          }
-          break;
-        } catch (_) {}
-      }
-    }
-    _curationStatus.putIfAbsent('giroscopio_cuantico', () => VisualCurationStatus.approved);
-    _curationStatus.putIfAbsent('plasma_scene', () => VisualCurationStatus.approved);
-    _curationStatus.putIfAbsent('synthwave_scene', () => VisualCurationStatus.approved);
-    _curationStatus.putIfAbsent('vortice_cosmico', () => VisualCurationStatus.approved);
-
-    // 2. Cargar decisiones de curación guardadas previamente por el usuario
-    for (final path in _curationPaths) {
-      try {
-        final file = File(path);
-        if (file.existsSync()) {
-          final decoded = jsonDecode(file.readAsStringSync());
-          if (decoded is Map) {
-            for (final entry in decoded.entries) {
-              final status = VisualCurationStatus.values.firstWhere(
-                (s) => s.name == entry.value,
-                orElse: () => VisualCurationStatus.pending,
-              );
-              _curationStatus[entry.key as String] = status;
-            }
-            break;
-          }
-        }
-      } catch (_) {}
     }
   }
 
@@ -368,41 +170,11 @@ class _CreatorStudioState extends State<CreatorStudio>
       ),
     ];
     _replay = SceneSignalReplay(_recordings.first.recording);
-    if (widget.initialCuration != null) {
-      _curationStatus.addAll(widget.initialCuration!);
-    }
-    _loadCuration();
-    if (_curationStatus.isEmpty) {
-      unawaited(_loadBundledCurationFallback());
-    }
     _readCatalog();
     unawaited(_loadRecordings());
     if (widget.teamReview case final TeamReviewController review) {
       unawaited(review.start());
     }
-  }
-
-  Future<void> _loadBundledCurationFallback() async {
-    try {
-      final assetString =
-          await rootBundle.loadString('assets/creator_curation_review.json');
-      if (_disposed) return;
-      final decoded = jsonDecode(assetString);
-      if (decoded is Map) {
-        for (final entry in decoded.entries) {
-          final status = VisualCurationStatus.values.firstWhere(
-            (s) => s.name == entry.value,
-            orElse: () => VisualCurationStatus.pending,
-          );
-          _curationStatus[entry.key as String] = status;
-        }
-        if (mounted) {
-          setState(() {
-            _readCatalog();
-          });
-        }
-      }
-    } catch (_) {}
   }
 
   Future<void> _loadRecordings() async {
@@ -428,20 +200,12 @@ class _CreatorStudioState extends State<CreatorStudio>
       _revisions = {
         for (final visual in catalog) visual.id: visualRevision(visual),
       };
-      // Recargar conserva lo que se está viendo, incluso un visual ya curado
-      // abierto desde la lista o un modo de repaso.
+      // Recargar conserva el visual que se está viendo.
       final keepCurrent =
           _selectedId != null && catalog.any((v) => v.id == _selectedId);
 
       if (!keepCurrent) {
-        // Seleccionar el primer visual pendiente de revisión
-        final firstPending = catalog.cast<CreatorVisualDefinition?>().firstWhere(
-              (v) =>
-                  (_curationStatus[v?.id] ?? VisualCurationStatus.pending) ==
-                  VisualCurationStatus.pending,
-              orElse: () => null,
-            );
-        _selectedId = firstPending?.id;
+        _selectedId = catalog.isEmpty ? null : catalog.first.id;
       }
       _error = null;
     } on Object catch (error, stack) {
@@ -462,10 +226,10 @@ class _CreatorStudioState extends State<CreatorStudio>
       visualId: visual.id,
       visualName: visual.name,
       revision: revision,
-      // Owner-discarded visuals are on their way out: don't ask for votes.
+      // A visual the team already discarded doesn't need more votes.
       queue: [
         for (final item in _catalog)
-          if (_curationStatus[item.id] != VisualCurationStatus.rejected)
+          if (!review.isTeamDiscarded(item.id, _revisions[item.id]!))
             (id: item.id, revision: _revisions[item.id]!),
       ],
       onSelectVisual: _selectVisual,
@@ -504,7 +268,6 @@ class _CreatorStudioState extends State<CreatorStudio>
     if (_disposed) return;
     _stopReplay();
     _revision++;
-    _loadCuration();
     _readCatalog();
     if (_sourcesReady) {
       _prepareSelected();
@@ -817,8 +580,6 @@ class _CreatorStudioState extends State<CreatorStudio>
       onReload: _reload,
       onViewportChanged: _viewportChanged,
       pictureInPictureActive: _controller.pictureInPictureActive,
-      curationStatus: _curationStatus,
-      onCurationChanged: _setCurationStatus,
       ratingPanel: _ratingPanel(),
       signalListenable: _latestSignal,
       onPictureInPicture:

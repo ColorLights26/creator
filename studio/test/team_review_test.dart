@@ -75,7 +75,21 @@ class _FakeClient implements TeamReviewClient {
             rating,
       ],
       hiddenCounts: hidden,
+      hiddenDiscarded: {
+        for (final slot in hidden.keys)
+          if (hidden[slot]! >= teamMinimumVotes &&
+              _average(slot) < teamPotentialThreshold)
+            slot,
+      },
     );
+  }
+
+  double _average(String slot) {
+    final scores = [
+      for (final rating in stored)
+        if (ratingKey(rating.visualId, rating.revision) == slot) rating.score,
+    ];
+    return scores.reduce((sum, score) => sum + score) / scores.length;
   }
 
   @override
@@ -278,6 +292,18 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     final client = _FakeClient();
+    // Katy and Ana already left Plasma as a total discard (average 2.5).
+    for (final (who, name, score) in [('k', 'Katy', 2), ('a', 'Ana', 3)]) {
+      client.stored.add(
+        TeamRating(
+          visualId: 'plasma',
+          revision: visualRevision(_plasma),
+          reviewerId: who,
+          reviewerName: name,
+          score: score,
+        ),
+      );
+    }
     final review = TeamReviewController(
       client: client,
       store: _MemoryStore('clr_franco'),
@@ -286,7 +312,6 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: CreatorStudio(
-          initialCuration: const {'plasma': VisualCurationStatus.rejected},
           catalogBuilder: () => [_aurora, _plasma, _tides],
           controllerFactory: () => compositor,
           recordingsLoader: () async => [],
@@ -315,7 +340,7 @@ void main() {
     ));
     expect(find.textContaining('Equipo 8'), findsOneWidget);
 
-    // Plasma was discarded by the owner, so the queue skips it.
+    // The team discarded Plasma, so the queue skips it.
     await tester.ensureVisible(find.byKey(const ValueKey('team-rating-next')));
     await tester.tap(find.byKey(const ValueKey('team-rating-next')));
     for (var i = 0; i < 5; i++) {
@@ -348,6 +373,9 @@ void main() {
       vote('plasma', 'f', 3),
       vote('plasma', 'k', 4), // 3.5: total discard
       vote('olas', 'f', 9), // Katy hasn't voted: hidden
+      vote('solo', 'k', 9), // only one vote: not enough to decide
+      vote('feo', 'f', 2),
+      vote('feo', 'a', 3), // hidden from Katy, but already a total discard
     ]);
     final katy = TeamReviewController(
       client: client,
@@ -361,6 +389,8 @@ void main() {
       TeamRankingEntry(id: 'plasma', name: 'Plasma', revision: revision),
       TeamRankingEntry(id: 'olas', name: 'Olas', revision: revision),
       TeamRankingEntry(id: 'nuevo', name: 'Nuevo', revision: revision),
+      TeamRankingEntry(id: 'solo', name: 'Solo', revision: revision),
+      TeamRankingEntry(id: 'feo', name: 'Feo', revision: revision),
     ]);
 
     expect(ranking.voters, ['Franco', 'Katy']);
@@ -370,18 +400,22 @@ void main() {
       TeamVerdict.discarded,
       TeamVerdict.locked,
       TeamVerdict.noVotes,
+      TeamVerdict.needsVotes,
+      TeamVerdict.discarded,
     ]);
+    expect(ranking.rows[6].scores, isEmpty, reason: 'scores stay hidden');
     expect(ranking.rows[0].average, 7.0);
     expect(ranking.rows[1].average, 5.5);
     expect(ranking.rows[2].average, 3.5);
     expect(ranking.rows[3].votes, 1);
     expect(ranking.rows[3].scores, isEmpty);
-    expect(ranking.teamVotes, 7);
-    expect(ranking.myVotes, 3);
-    expect(ranking.overallAverage, closeTo(5.33, 0.01));
+    expect(ranking.teamVotes, 10);
+    expect(ranking.myVotes, 4);
+    expect(ranking.overallAverage, closeTo(5.86, 0.01));
     expect(ranking.count(TeamVerdict.approved), 1);
     expect(ranking.count(TeamVerdict.improvable), 1);
-    expect(ranking.count(TeamVerdict.discarded), 1);
+    expect(ranking.count(TeamVerdict.discarded), 2);
+    expect(ranking.count(TeamVerdict.needsVotes), 1);
   });
 
   testWidgets('ranking opens from the panel and a row opens that visual', (
@@ -399,6 +433,15 @@ void main() {
         reviewerName: 'Franco',
         score: 7,
         comment: 'Me gusta el ritmo',
+      ),
+    );
+    client.stored.add(
+      TeamRating(
+        visualId: 'mareas_test',
+        revision: visualRevision(_tides),
+        reviewerId: 'k',
+        reviewerName: 'Katy',
+        score: 7,
       ),
     );
     final review = TeamReviewController(
@@ -448,7 +491,7 @@ void main() {
     expect(
       find.descendant(
         of: tile,
-        matching: find.textContaining('1 voto · Franco 7'),
+        matching: find.textContaining('2 votos · Franco 7 · Katy 7'),
       ),
       findsOneWidget,
     );

@@ -84,11 +84,6 @@ void main() {
     }
     outputs['${root.path}/assets/recordings.json'] =
         '${jsonEncode(recordings)}\n';
-    final curationFile = File('${root.parent.path}/creator_curation_review.json');
-    if (curationFile.existsSync()) {
-      outputs['${root.path}/assets/creator_curation_review.json'] =
-          curationFile.readAsStringSync();
-    }
     for (final entry in outputs.entries) {
       _writeIfChanged(File(entry.key), entry.value);
     }

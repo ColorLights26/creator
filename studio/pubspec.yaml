@@ -29,4 +29,3 @@ flutter:
   uses-material-design: true
   assets:
     - assets/recordings.json
-    - assets/creator_curation_review.json

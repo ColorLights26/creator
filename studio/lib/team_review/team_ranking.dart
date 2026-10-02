@@ -6,6 +6,10 @@ import 'team_review_controller.dart';
 const teamApprovalThreshold = 7.0;
 const teamPotentialThreshold = 5.0;
 
+/// A single vote never decides: below this the state is "Faltan votos".
+/// The chic-ads server uses the same value to flag hidden total discards.
+const teamMinimumVotes = 2;
+
 enum TeamVerdict {
   /// Average >= [teamApprovalThreshold].
   approved,
@@ -15,6 +19,9 @@ enum TeamVerdict {
 
   /// Average below [teamPotentialThreshold].
   discarded,
+
+  /// Some votes, but fewer than [teamMinimumVotes].
+  needsVotes,
 
   /// Others voted but you didn't yet, so the average stays hidden.
   locked,
@@ -43,6 +50,7 @@ class TeamRankingRow {
     required this.locked,
     required this.average,
     required this.comments,
+    this.discardedByTeam = false,
   });
 
   /// 1-based position in the catalog, like the N° column of the old sheet.
@@ -62,15 +70,19 @@ class TeamRankingRow {
   final double? average;
   final List<TeamRating> comments;
 
-  TeamVerdict get verdict => switch (average) {
-    final double value when value >= teamApprovalThreshold =>
-      TeamVerdict.approved,
-    final double value when value >= teamPotentialThreshold =>
-      TeamVerdict.improvable,
-    double() => TeamVerdict.discarded,
-    null when locked => TeamVerdict.locked,
-    null => TeamVerdict.noVotes,
-  };
+  /// The team discarded it even if you can't see the scores yet.
+  final bool discardedByTeam;
+
+  TeamVerdict get verdict {
+    if (discardedByTeam) return TeamVerdict.discarded;
+    if (locked) return TeamVerdict.locked;
+    final value = average;
+    if (value == null) return TeamVerdict.noVotes;
+    if (scores.length < teamMinimumVotes) return TeamVerdict.needsVotes;
+    if (value >= teamApprovalThreshold) return TeamVerdict.approved;
+    if (value >= teamPotentialThreshold) return TeamVerdict.improvable;
+    return TeamVerdict.discarded;
+  }
 }
 
 /// The team table: one row per visual in the current catalog revision.
@@ -119,6 +131,7 @@ class TeamRanking {
             for (final rating in ratings)
               if (rating.comment.isNotEmpty) rating,
           ],
+          discardedByTeam: controller.isTeamDiscarded(entry.id, entry.revision),
         ),
       );
     }

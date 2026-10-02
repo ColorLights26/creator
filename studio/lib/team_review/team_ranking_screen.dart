@@ -386,6 +386,10 @@ class _TeamRankingScreenState extends State<TeamRankingScreen> {
       const Color(0xFFFFD27A),
     ),
     TeamVerdict.discarded => ('Descarte total', const Color(0xFFFF8B80)),
+    TeamVerdict.needsVotes => (
+      'Faltan votos (mínimo $teamMinimumVotes)',
+      Colors.white70,
+    ),
     TeamVerdict.locked => ('Vota para ver', Colors.white54),
     TeamVerdict.noVotes => ('Sin votos', Colors.white38),
   };
@@ -443,6 +447,7 @@ class _TeamRankingScreenState extends State<TeamRankingScreen> {
             '${teamPotentialThreshold.toStringAsFixed(0)})',
         '${ranking.count(TeamVerdict.discarded)}',
       ),
+      ('Faltan votos', '${ranking.count(TeamVerdict.needsVotes)}'),
       ('Te faltan por votar', '${ranking.count(TeamVerdict.locked)}'),
       ('Sin votos', '${ranking.count(TeamVerdict.noVotes)}'),
     ];

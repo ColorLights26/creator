@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'team_ranking.dart';
 import 'team_review_client.dart';
 
 /// Where the reviewer's personal key lives on this device.
@@ -41,6 +42,7 @@ class TeamReviewController extends ChangeNotifier {
   TeamReviewer? _reviewer;
   Map<String, List<TeamRating>> _visible = {};
   Map<String, int> _hidden = {};
+  Set<String> _hiddenDiscarded = {};
   final Set<String> _saving = {};
   bool _started = false;
   bool _loading = false;
@@ -73,6 +75,18 @@ class TeamReviewController extends ChangeNotifier {
 
   int hiddenCount(String visualId, String revision) =>
       _hidden[ratingKey(visualId, revision)] ?? 0;
+
+  /// The team already left this revision as "Descarte total": enough votes
+  /// and an average below [teamPotentialThreshold].
+  bool isTeamDiscarded(String visualId, String revision) {
+    if (_hiddenDiscarded.contains(ratingKey(visualId, revision))) return true;
+    final ratings = ratingsFor(visualId, revision);
+    if (ratings.length < teamMinimumVotes) return false;
+    final average =
+        ratings.fold<int>(0, (sum, rating) => sum + rating.score) /
+        ratings.length;
+    return average < teamPotentialThreshold;
+  }
 
   Future<void> start() async {
     if (_started) return;
@@ -197,6 +211,7 @@ class TeamReviewController extends ChangeNotifier {
     }
     _visible = visible;
     _hidden = snapshot.hiddenCounts;
+    _hiddenDiscarded = snapshot.hiddenDiscarded;
   }
 
   Future<void> _forget() async {
@@ -204,6 +219,7 @@ class TeamReviewController extends ChangeNotifier {
     _reviewer = null;
     _visible = {};
     _hidden = {};
+    _hiddenDiscarded = {};
     try {
       await store.write(null);
     } on Object catch (error, stack) {

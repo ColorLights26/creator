@@ -467,16 +467,12 @@ void main() {
   );
 
   testWidgets(
-    'when all visuals are curated via initialCuration, shows completion screen',
+    'opens the first visual and no longer offers local approve or discard',
     (tester) async {
       final controller = _Controller();
       await tester.pumpWidget(
         MaterialApp(
           home: CreatorStudio(
-            initialCuration: const {
-              'aurora': VisualCurationStatus.approved,
-              'plasma': VisualCurationStatus.rejected,
-            },
             catalogBuilder: () => [_aurora, _plasma],
             controllerFactory: () => controller,
             recordingsLoader: () async => [],
@@ -485,8 +481,11 @@ void main() {
         ),
       );
       await _flush(tester);
-      expect(find.text('¡Revisión Completada!'), findsOneWidget);
-      expect(find.text('VER Y EDITAR LISTA COMPLETA'), findsOneWidget);
+      expect(controller.visuals.last, 'aurora');
+      // The team's vote decides now; the studio has no curation buttons.
+      expect(find.text('Aprobar'), findsNothing);
+      expect(find.text('Descartar'), findsNothing);
+      expect(find.text('PENDIENTE DE REVISIÓN'), findsNothing);
       await tester.pumpWidget(const SizedBox());
       await _flush(tester);
     },
@@ -510,18 +509,24 @@ void main() {
 
       // Initially dark mode: no checkerboard custom paint
       expect(
-        find.byWidgetPredicate((w) => w is CustomPaint && w.painter is CheckerboardPainter),
+        find.byWidgetPredicate(
+          (w) => w is CustomPaint && w.painter is CheckerboardPainter,
+        ),
         findsNothing,
       );
 
       // Tap to switch to checkerboard mode
-      final toggleButton = find.byKey(const ValueKey('toggle-background-mode-button'));
+      final toggleButton = find.byKey(
+        const ValueKey('toggle-background-mode-button'),
+      );
       expect(toggleButton, findsOneWidget);
       await tester.tap(toggleButton);
       await tester.pump();
 
       expect(
-        find.byWidgetPredicate((w) => w is CustomPaint && w.painter is CheckerboardPainter),
+        find.byWidgetPredicate(
+          (w) => w is CustomPaint && w.painter is CheckerboardPainter,
+        ),
         findsOneWidget,
       );
 
@@ -530,17 +535,23 @@ void main() {
       await tester.pump();
 
       expect(
-        find.byWidgetPredicate((w) => w is CustomPaint && w.painter is CheckerboardPainter),
+        find.byWidgetPredicate(
+          (w) => w is CustomPaint && w.painter is CheckerboardPainter,
+        ),
         findsNothing,
       );
-      final surface = tester.widget<ColoredBox>(find.byKey(const ValueKey('visual-surface')));
+      final surface = tester.widget<ColoredBox>(
+        find.byKey(const ValueKey('visual-surface')),
+      );
       expect(surface.color, const Color(0xFFF2F2F7));
 
       // Tap to return to dark mode
       await tester.tap(toggleButton);
       await tester.pump();
       expect(
-        find.byWidgetPredicate((w) => w is CustomPaint && w.painter is CheckerboardPainter),
+        find.byWidgetPredicate(
+          (w) => w is CustomPaint && w.painter is CheckerboardPainter,
+        ),
         findsNothing,
       );
 
