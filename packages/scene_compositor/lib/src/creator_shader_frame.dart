@@ -16,7 +16,7 @@ class CreatorShaderFrame {
   }) : seed = seed ?? visual.seed {
     validateCreatorCatalog([visual]);
     if (visualIndex < 0 ||
-        visualIndex >= 64 ||
+        visualIndex >= 256 ||
         this.seed < 0 ||
         this.seed > 0xffffffff) {
       throw ArgumentError('Invalid installed visual index or uint32 seed.');
