@@ -197,7 +197,8 @@ class Visual final : public Scene {
     float bassGlow = std::clamp(0.35f + smoothBass * 0.65f, 0.0f, 1.0f);
 
     Paint sunCorona = Paint::radial(center, sunR * 2.8f,
-      {{1.0f, 0.85f, 0.40f, std::clamp(0.45f * bassGlow * boost, 0.0f, 1.0f)},
+      {{1.0f, 0.88f, 0.59f, std::clamp(0.85f * bassGlow * boost, 0.0f, 1.0f)},
+       {0.85f, 0.55f, 0.29f, std::clamp(0.28f * bassGlow * boost, 0.0f, 1.0f)},
        {0, 0, 0, 0}}, {0.0f, 0.45f, 1.0f});
     sunCorona.blend = Blend::plus;
     c.circle(center, sunR * 2.8f, sunCorona);
