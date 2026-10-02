@@ -52,7 +52,7 @@ void main() {
   col = mix(col, vec3(1.0, 0.85, 0.24), smoothstep(0.4, 0.7, k));
   col = mix(col, vec3(1.0, 0.18, 0.73), smoothstep(0.7, 1.0, k));
   col = col * (0.80 + 0.35 * uEnergy);
-  float alpha = smoothstep(0.18, 0.55, k);
+  float alpha = smoothstep(0.40, 0.70, k);
   fragColor = vec4(clamp(col * alpha, 0.0, 1.0), alpha);
 }
 """,
