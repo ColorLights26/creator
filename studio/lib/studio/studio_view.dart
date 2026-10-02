@@ -53,10 +53,14 @@ class StudioSignalSource {
     required this.id,
     required this.name,
     required this.description,
+    this.shortName,
   });
   final String id;
   final String name;
   final String description;
+  final String? shortName;
+
+  String get label => shortName ?? name.split(' (').first;
 }
 
 class StudioView extends StatefulWidget {
@@ -1270,48 +1274,57 @@ class _StudioViewState extends State<StudioView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          widget.reactionEnabled || widget.reactive
-              ? 'PRUÉBALO CON'
-              : 'ESTE VISUAL NO REACCIONA A LA MÚSICA',
-          style: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.8,
-            color: Colors.white54,
-          ),
+        // Silence is its own fixed button: never scrolled or wrapped away.
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                widget.reactionEnabled || widget.reactive
+                    ? 'PRUÉBALO CON'
+                    : 'ESTE VISUAL NO REACCIONA A LA MÚSICA',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                  color: Colors.white54,
+                ),
+              ),
+            ),
+            chip(
+              key: const ValueKey('audio-chip-silence'),
+              label: widget.muted ? 'En silencio' : 'Silencio',
+              icon: widget.muted
+                  ? Icons.volume_off_rounded
+                  : Icons.volume_up_rounded,
+              selected: widget.muted,
+              onTap: canMute || widget.muted ? widget.onToggleMuted : null,
+            ),
+          ],
         ),
         const SizedBox(height: 6),
-        SingleChildScrollView(
+        // Every track visible at once: they wrap to a new line, no sliding.
+        Wrap(
           key: const ValueKey('audio-quick-bar'),
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
+          runSpacing: 6,
+          children: [
+            for (final source in widget.sources)
               chip(
-                key: const ValueKey('audio-chip-silence'),
-                label: 'Silencio',
-                icon: Icons.volume_off_rounded,
-                selected: widget.muted,
-                onTap: canMute && !widget.muted ? widget.onToggleMuted : null,
+                key: ValueKey('audio-chip-${source.id}'),
+                label: source.label,
+                icon: Icons.music_note_rounded,
+                selected:
+                    !widget.muted && source.id == widget.selectedSourceId,
+                onTap: widget.loading
+                    ? null
+                    : () {
+                        // Choosing a track always means "with music".
+                        if (widget.muted) widget.onToggleMuted?.call();
+                        if (source.id != widget.selectedSourceId) {
+                          widget.onSelectSource(source.id);
+                        }
+                      },
               ),
-              for (final source in widget.sources)
-                chip(
-                  key: ValueKey('audio-chip-${source.id}'),
-                  label: source.name.split(' (').first,
-                  icon: Icons.music_note_rounded,
-                  selected: !widget.muted && source.id == widget.selectedSourceId,
-                  onTap: widget.loading
-                      ? null
-                      : () {
-                          // Choosing a track always means "with music".
-                          if (widget.muted) widget.onToggleMuted?.call();
-                          if (source.id != widget.selectedSourceId) {
-                            widget.onSelectSource(source.id);
-                          }
-                        },
-                ),
-            ],
-          ),
+          ],
         ),
       ],
     );

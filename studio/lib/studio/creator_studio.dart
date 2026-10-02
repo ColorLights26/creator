@@ -137,36 +137,42 @@ class _CreatorStudioState extends State<CreatorStudio>
     _recordings = [
       StudioRecording(
         name: 'Demo sintética',
+        shortName: 'Demo',
         description:
             'Showcase dinámico de 32 s: Ambient → Build-up acelerado → Drop EDM contundente → Trap 808 → Clímax espectral.',
         recording: createDynamicShowcaseSignalRecording(),
       ),
       StudioRecording(
         name: 'EDM & Club Drop (128 BPM)',
+        shortName: 'EDM',
         description:
             'Bombo 4-on-the-floor, subgraves masivos, eventos de beat en cada golpe y cajas a contratiempo.',
         recording: createEdmClubDropSignalRecording(),
       ),
       StudioRecording(
         name: 'Trap 808 & Hi-Hats (140 BPM)',
+        shortName: 'Trap',
         description:
             'Sub-bass 808 profundo y sostenido, rolls rápidos de hi-hats (32 notas) en agudos y clap seco.',
         recording: createTrap808SignalRecording(),
       ),
       StudioRecording(
         name: 'Ambient & Chillout (75 BPM)',
+        shortName: 'Ambient',
         description:
             'Pads armónicos fluidos y respiración etérea. Flujo orgánico sin percusión agresiva.',
         recording: createAmbientChilloutSignalRecording(),
       ),
       StudioRecording(
         name: 'Barrido Espectral (20Hz - 20kHz)',
+        shortName: 'Barrido',
         description:
             'Barrido analítico banda por banda para auditar la respuesta del shader a cada frecuencia.',
         recording: createSpectralSweepSignalRecording(),
       ),
       StudioRecording(
         name: 'Demo clásica (32s)',
+        shortName: 'Clásica',
         description:
             'Pista de referencia clásica de 32 s con partes suaves y acentos.',
         recording: createSyntheticSceneSignalRecording(),
@@ -614,6 +620,7 @@ class _CreatorStudioState extends State<CreatorStudio>
           StudioSignalSource(
             id: '$index',
             name: _recordings[index].name,
+            shortName: _recordings[index].shortName,
             description: _recordings[index].description,
           ),
       ],
@@ -656,9 +663,13 @@ class StudioRecording {
     required this.name,
     required this.description,
     required this.recording,
+    this.shortName,
   });
 
   final String name;
+
+  /// Label for the one-tap track buttons; falls back to [name].
+  final String? shortName;
   final String description;
   final SceneSignalRecording recording;
 }

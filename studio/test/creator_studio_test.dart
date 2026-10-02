@@ -163,7 +163,8 @@ void main() {
     expect(controller.visuals.last, 'aurora');
     expect(find.byType(Texture), findsOneWidget);
     expect(controller.viewports.last, tester.getSize(find.byType(Texture)));
-    expect(find.text('Demo sintética'), findsOneWidget);
+    expect(find.byKey(const ValueKey('audio-chip-0')), findsOneWidget);
+    expect(find.text('Demo'), findsOneWidget);
     expect(
       controller.resets.single,
       createSyntheticSceneSignalRecording().qaSessionSeed,

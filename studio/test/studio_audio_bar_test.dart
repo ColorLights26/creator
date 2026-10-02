@@ -47,22 +47,19 @@ void main() {
     await tester.pumpWidget(studio(muted: false));
     expect(find.text('PRUÉBALO CON'), findsOneWidget);
     expect(find.text('EDM & Club Drop'), findsOneWidget, reason: 'short name');
+    // Silence and every track are on screen without sliding anything.
+    for (final key in ['audio-chip-silence', 'audio-chip-0', 'audio-chip-1']) {
+      final rect = tester.getRect(find.byKey(ValueKey(key)));
+      expect(rect.right, lessThanOrEqualTo(390), reason: key);
+    }
 
-    await tester.ensureVisible(find.byKey(const ValueKey('audio-chip-1')));
-    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('audio-chip-1')));
     expect(selected, ['1']);
-    await tester.ensureVisible(
-      find.byKey(const ValueKey('audio-chip-silence')),
-    );
-    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('audio-chip-silence')));
     expect(mutedToggles, 1);
 
     // While in silence, picking a track brings the music back.
     await tester.pumpWidget(studio(muted: true));
-    await tester.ensureVisible(find.byKey(const ValueKey('audio-chip-0')));
-    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('audio-chip-0')));
     expect(mutedToggles, 2);
     expect(selected, ['1'], reason: 'already the selected track');
