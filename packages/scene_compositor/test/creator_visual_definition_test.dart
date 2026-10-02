@@ -137,7 +137,7 @@ void _catalogAdmission() {
   }
   _throws<FormatException>(
     () => validateCreatorCatalog([
-      for (var i = 0; i < 65; i++) _visual(id: 'visual_$i'),
+      for (var i = 0; i < 257; i++) _visual(id: 'visual_$i'),
     ]),
     'bounded catalog count',
   );

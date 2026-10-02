@@ -119,11 +119,25 @@ void main() {
               for (var i = 3; i < pixels.lengthInBytes; i += 4)
                 pixels.getUint8(i),
             ];
-            expect(alpha.any((a) => a > 16), isTrue, reason: visual.id);
-            if (visual.role == CreatorRole.background)
-              expect(alpha.every((a) => a == 255), isTrue, reason: visual.id);
-            else
-              expect(alpha.any((a) => a < 16), isTrue, reason: visual.id);
+            expect(
+              alpha.any((a) => a > 16),
+              isTrue,
+              reason: '${visual.id} must draw visible pixels (alpha > 16)',
+            );
+            if (visual.role == CreatorRole.background) {
+              expect(
+                alpha.every((a) => a == 255),
+                isTrue,
+                reason: '${visual.id} background must be fully opaque',
+              );
+            } else {
+              expect(
+                alpha.any((a) => a < 16),
+                isTrue,
+                reason: '${visual.id} overlay must leave transparent areas (alpha < 16)',
+              );
+            }
+            stdout.writeln('PASS pixel: ${visual.id}');
           } finally {
             image?.dispose();
             picture?.dispose();

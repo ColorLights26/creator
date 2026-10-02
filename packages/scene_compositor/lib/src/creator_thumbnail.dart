@@ -129,7 +129,7 @@ class _FrozenPosters {
       },
     );
     _cache[key] = next;
-    while (_cache.length > 64) {
+    while (_cache.length > 256) {
       _cache.remove(_cache.keys.first);
     }
     return next;

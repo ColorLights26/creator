@@ -297,9 +297,9 @@ List<CreatorVisualDefinition> validateCreatorCatalog(
   List<CreatorVisualDefinition> visuals, {
   bool allowEmpty = false,
 }) {
-  if ((!allowEmpty && visuals.isEmpty) || visuals.length > 64) {
+  if ((!allowEmpty && visuals.isEmpty) || visuals.length > 256) {
     throw const FormatException(
-      'El catálogo debe tener entre 1 y 64 visuales.',
+      'El catálogo debe tener entre 1 y 256 visuales.',
     );
   }
   final ids = <String>{};

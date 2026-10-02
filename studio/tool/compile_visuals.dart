@@ -84,9 +84,9 @@ String generateCreatorRegistry(Directory visualsDirectory) {
     }
   }
   names.sort();
-  if (names.isEmpty || names.length > 64) {
+  if (names.isEmpty || names.length > 256) {
     throw const FormatException(
-      'Añade entre 1 y 64 pares de visual y metadata.',
+      'Añade entre 1 y 256 pares de visual y metadata.',
     );
   }
   for (final name in names) {
