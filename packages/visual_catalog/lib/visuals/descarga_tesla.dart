@@ -7,8 +7,8 @@ const nativeSource = r'''
 class Visual final : public Scene {
   float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;
   float kick = 0, flash = 0, drive = 0;
-  std::array<float, 8> bands{}, base{}, seeds{}, power{};
-  float phase = 0;
+  std::array<float, 8> bands{}, base{}, goal{}, seeds{}, power{};
+  float phase = 0, crackle = 0;
   Random rng{3};
 
   static float follow(float v, float target, float up, float down, float dt) {
@@ -23,9 +23,11 @@ class Visual final : public Scene {
     power.fill(0);
     for (int i = 0; i < 8; i++) {
       base[i] = rng.unit() * 6.2831853f;
+      goal[i] = base[i];
       seeds[i] = rng.unit() * 10.0f;
     }
     phase = rng.unit() * 10.0f;
+    crackle = 0;
   }
 
   void update(const Frame& f) override {
@@ -59,10 +61,15 @@ class Visual final : public Scene {
       // Tres filamentos siempre vivos; el resto aparece con su banda.
       float target = (i < 4 ? 0.5f : 0.0f) + bands[i] * 1.1f + kick * (i < 6 ? 0.7f : 0.4f);
       power[i] = follow(power[i], target, 25.0f, 5.0f, dt);
-      if (strike) base[i] += (rng.unit() - 0.5f) * 2.2f;
-      base[i] += dt * f.speed * (i % 2 ? 1.0f : -1.0f) * (0.08f + 0.25f * drive);
+      // El golpe fija un destino nuevo y el rayo se desliza hasta él en
+      // unas décimas de segundo, como un latigazo continuo.
+      if (strike) goal[i] += (rng.unit() - 0.5f) * 2.2f;
+      goal[i] += dt * f.speed * (i % 2 ? 1.0f : -1.0f) * (0.08f + 0.25f * drive);
+      base[i] += (goal[i] - base[i]) * (1.0f - std::exp(-dt * 9.0f));
     }
-    phase += dt * f.speed * (0.6f + 1.6f * drive + 1.2f * kick);
+    phase += dt * f.speed * (0.6f + 1.4f * drive + 0.6f * kick);
+    // Reloj propio del chisporroteo: cambia de forma continua, sin parpadeo.
+    crackle += dt * (1.6f + 2.4f * spark);
   }
 
   void render(const Frame& f, Canvas& c) const override {
@@ -75,7 +82,7 @@ class Visual final : public Scene {
     u.insert(u.end(), {angle[0], angle[1], angle[2], angle[3]});
     u.insert(u.end(), {angle[4], angle[5], angle[6], angle[7]});
     for (int i = 0; i < 8; i++) u.push_back(std::min(power[i] * amp, 2.0f));
-    u.insert(u.end(), {spark * amp, flash, f.glow, f.detail});
+    u.insert(u.end(), {spark * amp, flash, f.glow, crackle});
     for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});
     c.material("plasma", {0, 0, f.width, f.height}, u);
   }
@@ -92,7 +99,7 @@ uniform vec4 uAng0;
 uniform vec4 uAng1;
 uniform vec4 uPow0;
 uniform vec4 uPow1;
-uniform vec4 uM;     // agudos, destello, glow, detalle
+uniform vec4 uM;     // agudos, destello, glow, reloj del chisporroteo
 uniform vec3 uC0;
 uniform vec3 uC1;
 uniform vec3 uC2;
@@ -122,23 +129,32 @@ float wander(float s, float len, float seed) {
 }
 
 // Rayo de plasma desde `origin` en la dirección `dir`; devuelve (núcleo, halo).
-// El halo usa el trazado suave y la distancia a una cápsula, así no hay cortes
-// ni estrías; el chisporroteo de alta frecuencia sólo afecta al núcleo.
+// Lejos del rayo sólo se calcula su halo; la forma y el chisporroteo se
+// evalúan cerca, con una transición suave entre ambos cálculos.
 vec2 bolt(vec2 p, vec2 origin, vec2 dir, float len, float power, float seed, float width0) {
   vec2 nrm = vec2(-dir.y, dir.x);
   vec2 q = p - origin;
   float along = dot(q, dir);
-  float s = clamp(along / len, 0.0, 1.0);
-  float env = sin(3.14159 * s);
-  float smoothLat = dot(q, nrm) - wander(s, len, seed);
-  float crackle = (noise(vec2(s * 40.0 + seed * 3.0, uA.x * 9.0)) - 0.5) * (0.035 + 0.09 * uM.x) * min(len, 0.7) * env;
-  float lateral = smoothLat - crackle;
+  float lat0 = dot(q, nrm);
   float beyond = along < 0.0 ? -along : max(along - len, 0.0);
-  float dist2 = smoothLat * smoothLat + beyond * beyond;
+  float reach = 0.13 * min(len, 0.7);
+  float k = 0.00005 + 0.0001 * power;
+  if (abs(lat0) > reach + 0.2 || beyond > 0.2) {
+    return vec2(0.0, k / (lat0 * lat0 + beyond * beyond + 0.0004) * power);
+  }
+  float s = clamp(along / len, 0.0, 1.0);
+  float smoothLat = lat0 - wander(s, len, seed);
+  float lateral = smoothLat;
+  if (abs(smoothLat) < 0.06) {
+    float env = sin(3.14159 * s);
+    lateral -= (noise(vec2(s * 40.0 + seed * 3.0, uM.w)) - 0.5) * (0.035 + 0.09 * uM.x) * min(len, 0.7) * env;
+  }
+  float blend = smoothstep(reach + 0.08, reach + 0.2, abs(lat0));
+  float haloLat = mix(smoothLat, lat0, blend);
   float inside = step(0.0, along) * step(along, len);
   float width = (width0 + 0.005 * min(power, 1.5)) * (1.0 - 0.5 * s);
   float core = exp(-lateral * lateral / (width * width)) * inside;
-  float halo = (0.00005 + 0.0001 * power) / (dist2 + 0.0004);
+  float halo = k / (haloLat * haloLat + beyond * beyond + 0.0004);
   return vec2(core * 1.5 * power, halo * power);
 }
 
@@ -151,7 +167,7 @@ vec2 tendril(vec2 p, float ang, float power, float seed, vec2 halfSize) {
   // Punto de contacto con el borde: la descarga ilumina donde toca.
   vec2 tip = dir * len;
   acc.x += exp(-dot(p - tip, p - tip) / (0.0012 + 0.002 * power)) * power;
-  if (power > 0.25) {
+  if (power > 0.35) {
     float fork = 0.42 + 0.2 * fract(seed * 0.37);
     vec2 nrm = vec2(-dir.y, dir.x);
     vec2 origin = dir * len * fork + nrm * wander(fork, len, seed);
@@ -174,7 +190,7 @@ void main() {
   float t = uA.x;
 
   // Gas eléctrico en toda la pantalla, más vivo con la música y el golpe.
-  float gas = noise(p * 2.2 + vec2(t * 0.12, -t * 0.08)) * 0.6 + noise(p * 5.0 - t * 0.2) * 0.4;
+  float gas = noise(p * 2.2 + vec2(t * 0.12, -t * 0.08));
   vec3 col = uC0 + mix(uC2, uC1, gas) * gas * (0.006 + 0.03 * uA.w + 0.12 * kick) * uM.z;
   col += mix(uC1, uC2, 0.5) * exp(-r * r * 2.5) * (0.015 + 0.04 * uA.w + 0.2 * kick);
 
