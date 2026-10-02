@@ -14,152 +14,144 @@ import '../visuals/catedral_luz.dart' as visual_5;
 import '../visuals/catedral_luz_metadata.dart' as metadata_5;
 import '../visuals/causticas.dart' as visual_6;
 import '../visuals/causticas_metadata.dart' as metadata_6;
-import '../visuals/ciber_reticula.dart' as visual_7;
-import '../visuals/ciber_reticula_metadata.dart' as metadata_7;
-import '../visuals/constelacion_viva.dart' as visual_8;
-import '../visuals/constelacion_viva_metadata.dart' as metadata_8;
-import '../visuals/corona_solar.dart' as visual_9;
-import '../visuals/corona_solar_metadata.dart' as metadata_9;
-import '../visuals/cristal_prismatico.dart' as visual_10;
-import '../visuals/cristal_prismatico_metadata.dart' as metadata_10;
-import '../visuals/cromo_liquido.dart' as visual_11;
-import '../visuals/cromo_liquido_metadata.dart' as metadata_11;
-import '../visuals/cromo_liquido_transparente.dart' as visual_12;
-import '../visuals/cromo_liquido_transparente_metadata.dart' as metadata_12;
-import '../visuals/deriva_julia.dart' as visual_13;
-import '../visuals/deriva_julia_metadata.dart' as metadata_13;
-import '../visuals/deriva_julia_transparente.dart' as visual_14;
-import '../visuals/deriva_julia_transparente_metadata.dart' as metadata_14;
-import '../visuals/descarga_tesla.dart' as visual_15;
-import '../visuals/descarga_tesla_metadata.dart' as metadata_15;
-import '../visuals/ferrofluido.dart' as visual_16;
-import '../visuals/ferrofluido_metadata.dart' as metadata_16;
-import '../visuals/flor_cosmica.dart' as visual_17;
-import '../visuals/flor_cosmica_metadata.dart' as metadata_17;
-import '../visuals/flor_cosmica_transparente.dart' as visual_18;
-import '../visuals/flor_cosmica_transparente_metadata.dart' as metadata_18;
-import '../visuals/furia_estelar.dart' as visual_19;
-import '../visuals/furia_estelar_metadata.dart' as metadata_19;
-import '../visuals/galaxy_scene.dart' as visual_20;
-import '../visuals/galaxy_scene_metadata.dart' as metadata_20;
-import '../visuals/globo_tesla.dart' as visual_21;
-import '../visuals/globo_tesla_metadata.dart' as metadata_21;
-import '../visuals/golden_particles_scene.dart' as visual_22;
-import '../visuals/golden_particles_scene_metadata.dart' as metadata_22;
-import '../visuals/hipervelocidad.dart' as visual_23;
-import '../visuals/hipervelocidad_metadata.dart' as metadata_23;
-import '../visuals/hipervelocidad_transparente.dart' as visual_24;
-import '../visuals/hipervelocidad_transparente_metadata.dart' as metadata_24;
-import '../visuals/horizonte_sucesos.dart' as visual_25;
-import '../visuals/horizonte_sucesos_metadata.dart' as metadata_25;
-import '../visuals/horizonte_synthwave.dart' as visual_26;
-import '../visuals/horizonte_synthwave_metadata.dart' as metadata_26;
-import '../visuals/llamarada.dart' as visual_27;
-import '../visuals/llamarada_metadata.dart' as metadata_27;
-import '../visuals/malla_ondas.dart' as visual_28;
-import '../visuals/malla_ondas_metadata.dart' as metadata_28;
-import '../visuals/malla_topografica.dart' as visual_29;
-import '../visuals/malla_topografica_metadata.dart' as metadata_29;
-import '../visuals/mercurio_liquido.dart' as visual_30;
-import '../visuals/mercurio_liquido_metadata.dart' as metadata_30;
-import '../visuals/mercurio_liquido_transparente.dart' as visual_31;
-import '../visuals/mercurio_liquido_transparente_metadata.dart' as metadata_31;
-import '../visuals/metal_tornasol.dart' as visual_32;
-import '../visuals/metal_tornasol_metadata.dart' as metadata_32;
-import '../visuals/nebulosa_viva.dart' as visual_33;
-import '../visuals/nebulosa_viva_metadata.dart' as metadata_33;
-import '../visuals/neon_lluvia.dart' as visual_34;
-import '../visuals/neon_lluvia_metadata.dart' as metadata_34;
-import '../visuals/pelicula_iridiscente.dart' as visual_35;
-import '../visuals/pelicula_iridiscente_metadata.dart' as metadata_35;
-import '../visuals/planeta_anillado.dart' as visual_36;
-import '../visuals/planeta_anillado_metadata.dart' as metadata_36;
-import '../visuals/plasma_scene.dart' as visual_37;
-import '../visuals/plasma_scene_metadata.dart' as metadata_37;
-import '../visuals/plasma_scene_transparente.dart' as visual_38;
-import '../visuals/plasma_scene_transparente_metadata.dart' as metadata_38;
-import '../visuals/portal_cuantico.dart' as visual_39;
-import '../visuals/portal_cuantico_metadata.dart' as metadata_39;
-import '../visuals/portal_cuantico_transparente.dart' as visual_40;
-import '../visuals/portal_cuantico_transparente_metadata.dart' as metadata_40;
-import '../visuals/prismatic_halo.dart' as visual_41;
-import '../visuals/prismatic_halo_metadata.dart' as metadata_41;
-import '../visuals/proyeccion_liquida.dart' as visual_42;
-import '../visuals/proyeccion_liquida_metadata.dart' as metadata_42;
-import '../visuals/salto_hiperespacial.dart' as visual_43;
-import '../visuals/salto_hiperespacial_metadata.dart' as metadata_43;
-import '../visuals/seda_bioluminiscente.dart' as visual_44;
-import '../visuals/seda_bioluminiscente_metadata.dart' as metadata_44;
-import '../visuals/selva_bioluminiscente.dart' as visual_45;
-import '../visuals/selva_bioluminiscente_metadata.dart' as metadata_45;
-import '../visuals/synthwave_scene.dart' as visual_46;
-import '../visuals/synthwave_scene_metadata.dart' as metadata_46;
-import '../visuals/tormenta_electrica.dart' as visual_47;
-import '../visuals/tormenta_electrica_metadata.dart' as metadata_47;
-import '../visuals/v01_agujero_negro.dart' as visual_48;
-import '../visuals/v01_agujero_negro_metadata.dart' as metadata_48;
-import '../visuals/v02_red_neuronal.dart' as visual_49;
-import '../visuals/v02_red_neuronal_metadata.dart' as metadata_49;
-import '../visuals/v02_red_neuronal_transparente.dart' as visual_50;
-import '../visuals/v02_red_neuronal_transparente_metadata.dart' as metadata_50;
-import '../visuals/v03_matriz_oceanica.dart' as visual_51;
-import '../visuals/v03_matriz_oceanica_metadata.dart' as metadata_51;
-import '../visuals/v04_tunel_warp.dart' as visual_52;
-import '../visuals/v04_tunel_warp_metadata.dart' as metadata_52;
-import '../visuals/v04_tunel_warp_transparente.dart' as visual_53;
-import '../visuals/v04_tunel_warp_transparente_metadata.dart' as metadata_53;
-import '../visuals/v05_campo_curl.dart' as visual_54;
-import '../visuals/v05_campo_curl_metadata.dart' as metadata_54;
-import '../visuals/v05_campo_curl_transparente.dart' as visual_55;
-import '../visuals/v05_campo_curl_transparente_metadata.dart' as metadata_55;
-import '../visuals/v06_tesseract_4d.dart' as visual_56;
-import '../visuals/v06_tesseract_4d_metadata.dart' as metadata_56;
-import '../visuals/v06_tesseract_4d_transparente.dart' as visual_57;
-import '../visuals/v06_tesseract_4d_transparente_metadata.dart' as metadata_57;
-import '../visuals/v07_aurora_plasma.dart' as visual_58;
-import '../visuals/v07_aurora_plasma_metadata.dart' as metadata_58;
-import '../visuals/v08_espectro_cosmico.dart' as visual_59;
-import '../visuals/v08_espectro_cosmico_metadata.dart' as metadata_59;
-import '../visuals/v08_espectro_cosmico_transparente.dart' as visual_60;
-import '../visuals/v08_espectro_cosmico_transparente_metadata.dart' as metadata_60;
-import '../visuals/v09_espiral_aurea.dart' as visual_61;
-import '../visuals/v09_espiral_aurea_metadata.dart' as metadata_61;
-import '../visuals/v10_supernova.dart' as visual_62;
-import '../visuals/v10_supernova_metadata.dart' as metadata_62;
-import '../visuals/v10_supernova_transparente.dart' as visual_63;
-import '../visuals/v10_supernova_transparente_metadata.dart' as metadata_63;
-import '../visuals/v11_archivo_corrupto.dart' as visual_64;
-import '../visuals/v11_archivo_corrupto_metadata.dart' as metadata_64;
-import '../visuals/v11_archivo_corrupto_transparente.dart' as visual_65;
-import '../visuals/v11_archivo_corrupto_transparente_metadata.dart' as metadata_65;
-import '../visuals/v12_maquinaria_orbital.dart' as visual_66;
-import '../visuals/v12_maquinaria_orbital_metadata.dart' as metadata_66;
-import '../visuals/v12_maquinaria_orbital_transparente.dart' as visual_67;
-import '../visuals/v12_maquinaria_orbital_transparente_metadata.dart' as metadata_67;
-import '../visuals/v13_nubes_volumetricas.dart' as visual_68;
-import '../visuals/v13_nubes_volumetricas_metadata.dart' as metadata_68;
-import '../visuals/v13_nubes_volumetricas_transparente.dart' as visual_69;
-import '../visuals/v13_nubes_volumetricas_transparente_metadata.dart' as metadata_69;
-import '../visuals/v14_sismografo.dart' as visual_70;
-import '../visuals/v14_sismografo_metadata.dart' as metadata_70;
-import '../visuals/v14_sismografo_transparente.dart' as visual_71;
-import '../visuals/v14_sismografo_transparente_metadata.dart' as metadata_71;
-import '../visuals/v15_lluvia_cristal.dart' as visual_72;
-import '../visuals/v15_lluvia_cristal_metadata.dart' as metadata_72;
-import '../visuals/v15_lluvia_cristal_transparente.dart' as visual_73;
-import '../visuals/v15_lluvia_cristal_transparente_metadata.dart' as metadata_73;
-import '../visuals/v16_campo_magnetico.dart' as visual_74;
-import '../visuals/v16_campo_magnetico_metadata.dart' as metadata_74;
-import '../visuals/v16_campo_magnetico_transparente.dart' as visual_75;
-import '../visuals/v16_campo_magnetico_transparente_metadata.dart' as metadata_75;
-import '../visuals/vortice_cosmico.dart' as visual_76;
-import '../visuals/vortice_cosmico_metadata.dart' as metadata_76;
-import '../visuals/vortice_cosmico_transparente.dart' as visual_77;
-import '../visuals/vortice_cosmico_transparente_metadata.dart' as metadata_77;
-import '../visuals/vortice_hipnotico.dart' as visual_78;
-import '../visuals/vortice_hipnotico_metadata.dart' as metadata_78;
-import '../visuals/vortice_hipnotico_transparente.dart' as visual_79;
-import '../visuals/vortice_hipnotico_transparente_metadata.dart' as metadata_79;
+import '../visuals/constelacion_viva.dart' as visual_7;
+import '../visuals/constelacion_viva_metadata.dart' as metadata_7;
+import '../visuals/cristal_prismatico.dart' as visual_8;
+import '../visuals/cristal_prismatico_metadata.dart' as metadata_8;
+import '../visuals/cromo_liquido.dart' as visual_9;
+import '../visuals/cromo_liquido_metadata.dart' as metadata_9;
+import '../visuals/cromo_liquido_transparente.dart' as visual_10;
+import '../visuals/cromo_liquido_transparente_metadata.dart' as metadata_10;
+import '../visuals/deriva_julia.dart' as visual_11;
+import '../visuals/deriva_julia_metadata.dart' as metadata_11;
+import '../visuals/deriva_julia_transparente.dart' as visual_12;
+import '../visuals/deriva_julia_transparente_metadata.dart' as metadata_12;
+import '../visuals/descarga_tesla.dart' as visual_13;
+import '../visuals/descarga_tesla_metadata.dart' as metadata_13;
+import '../visuals/ferrofluido.dart' as visual_14;
+import '../visuals/ferrofluido_metadata.dart' as metadata_14;
+import '../visuals/flor_cosmica.dart' as visual_15;
+import '../visuals/flor_cosmica_metadata.dart' as metadata_15;
+import '../visuals/flor_cosmica_transparente.dart' as visual_16;
+import '../visuals/flor_cosmica_transparente_metadata.dart' as metadata_16;
+import '../visuals/furia_estelar.dart' as visual_17;
+import '../visuals/furia_estelar_metadata.dart' as metadata_17;
+import '../visuals/galaxy_scene.dart' as visual_18;
+import '../visuals/galaxy_scene_metadata.dart' as metadata_18;
+import '../visuals/globo_tesla.dart' as visual_19;
+import '../visuals/globo_tesla_metadata.dart' as metadata_19;
+import '../visuals/golden_particles_scene.dart' as visual_20;
+import '../visuals/golden_particles_scene_metadata.dart' as metadata_20;
+import '../visuals/hipervelocidad.dart' as visual_21;
+import '../visuals/hipervelocidad_metadata.dart' as metadata_21;
+import '../visuals/hipervelocidad_transparente.dart' as visual_22;
+import '../visuals/hipervelocidad_transparente_metadata.dart' as metadata_22;
+import '../visuals/horizonte_sucesos.dart' as visual_23;
+import '../visuals/horizonte_sucesos_metadata.dart' as metadata_23;
+import '../visuals/horizonte_synthwave.dart' as visual_24;
+import '../visuals/horizonte_synthwave_metadata.dart' as metadata_24;
+import '../visuals/llamarada.dart' as visual_25;
+import '../visuals/llamarada_metadata.dart' as metadata_25;
+import '../visuals/malla_ondas.dart' as visual_26;
+import '../visuals/malla_ondas_metadata.dart' as metadata_26;
+import '../visuals/mercurio_liquido.dart' as visual_27;
+import '../visuals/mercurio_liquido_metadata.dart' as metadata_27;
+import '../visuals/mercurio_liquido_transparente.dart' as visual_28;
+import '../visuals/mercurio_liquido_transparente_metadata.dart' as metadata_28;
+import '../visuals/metal_tornasol.dart' as visual_29;
+import '../visuals/metal_tornasol_metadata.dart' as metadata_29;
+import '../visuals/nebulosa_viva.dart' as visual_30;
+import '../visuals/nebulosa_viva_metadata.dart' as metadata_30;
+import '../visuals/neon_lluvia.dart' as visual_31;
+import '../visuals/neon_lluvia_metadata.dart' as metadata_31;
+import '../visuals/pelicula_iridiscente.dart' as visual_32;
+import '../visuals/pelicula_iridiscente_metadata.dart' as metadata_32;
+import '../visuals/planeta_anillado.dart' as visual_33;
+import '../visuals/planeta_anillado_metadata.dart' as metadata_33;
+import '../visuals/plasma_scene.dart' as visual_34;
+import '../visuals/plasma_scene_metadata.dart' as metadata_34;
+import '../visuals/plasma_scene_transparente.dart' as visual_35;
+import '../visuals/plasma_scene_transparente_metadata.dart' as metadata_35;
+import '../visuals/portal_cuantico.dart' as visual_36;
+import '../visuals/portal_cuantico_metadata.dart' as metadata_36;
+import '../visuals/portal_cuantico_transparente.dart' as visual_37;
+import '../visuals/portal_cuantico_transparente_metadata.dart' as metadata_37;
+import '../visuals/prismatic_halo.dart' as visual_38;
+import '../visuals/prismatic_halo_metadata.dart' as metadata_38;
+import '../visuals/proyeccion_liquida.dart' as visual_39;
+import '../visuals/proyeccion_liquida_metadata.dart' as metadata_39;
+import '../visuals/salto_hiperespacial.dart' as visual_40;
+import '../visuals/salto_hiperespacial_metadata.dart' as metadata_40;
+import '../visuals/seda_bioluminiscente.dart' as visual_41;
+import '../visuals/seda_bioluminiscente_metadata.dart' as metadata_41;
+import '../visuals/selva_bioluminiscente.dart' as visual_42;
+import '../visuals/selva_bioluminiscente_metadata.dart' as metadata_42;
+import '../visuals/synthwave_scene.dart' as visual_43;
+import '../visuals/synthwave_scene_metadata.dart' as metadata_43;
+import '../visuals/v01_agujero_negro.dart' as visual_44;
+import '../visuals/v01_agujero_negro_metadata.dart' as metadata_44;
+import '../visuals/v02_red_neuronal.dart' as visual_45;
+import '../visuals/v02_red_neuronal_metadata.dart' as metadata_45;
+import '../visuals/v02_red_neuronal_transparente.dart' as visual_46;
+import '../visuals/v02_red_neuronal_transparente_metadata.dart' as metadata_46;
+import '../visuals/v03_matriz_oceanica.dart' as visual_47;
+import '../visuals/v03_matriz_oceanica_metadata.dart' as metadata_47;
+import '../visuals/v04_tunel_warp.dart' as visual_48;
+import '../visuals/v04_tunel_warp_metadata.dart' as metadata_48;
+import '../visuals/v04_tunel_warp_transparente.dart' as visual_49;
+import '../visuals/v04_tunel_warp_transparente_metadata.dart' as metadata_49;
+import '../visuals/v05_campo_curl.dart' as visual_50;
+import '../visuals/v05_campo_curl_metadata.dart' as metadata_50;
+import '../visuals/v05_campo_curl_transparente.dart' as visual_51;
+import '../visuals/v05_campo_curl_transparente_metadata.dart' as metadata_51;
+import '../visuals/v06_tesseract_4d.dart' as visual_52;
+import '../visuals/v06_tesseract_4d_metadata.dart' as metadata_52;
+import '../visuals/v06_tesseract_4d_transparente.dart' as visual_53;
+import '../visuals/v06_tesseract_4d_transparente_metadata.dart' as metadata_53;
+import '../visuals/v07_aurora_plasma.dart' as visual_54;
+import '../visuals/v07_aurora_plasma_metadata.dart' as metadata_54;
+import '../visuals/v08_espectro_cosmico.dart' as visual_55;
+import '../visuals/v08_espectro_cosmico_metadata.dart' as metadata_55;
+import '../visuals/v08_espectro_cosmico_transparente.dart' as visual_56;
+import '../visuals/v08_espectro_cosmico_transparente_metadata.dart' as metadata_56;
+import '../visuals/v09_espiral_aurea.dart' as visual_57;
+import '../visuals/v09_espiral_aurea_metadata.dart' as metadata_57;
+import '../visuals/v10_supernova.dart' as visual_58;
+import '../visuals/v10_supernova_metadata.dart' as metadata_58;
+import '../visuals/v10_supernova_transparente.dart' as visual_59;
+import '../visuals/v10_supernova_transparente_metadata.dart' as metadata_59;
+import '../visuals/v11_archivo_corrupto.dart' as visual_60;
+import '../visuals/v11_archivo_corrupto_metadata.dart' as metadata_60;
+import '../visuals/v11_archivo_corrupto_transparente.dart' as visual_61;
+import '../visuals/v11_archivo_corrupto_transparente_metadata.dart' as metadata_61;
+import '../visuals/v12_maquinaria_orbital.dart' as visual_62;
+import '../visuals/v12_maquinaria_orbital_metadata.dart' as metadata_62;
+import '../visuals/v12_maquinaria_orbital_transparente.dart' as visual_63;
+import '../visuals/v12_maquinaria_orbital_transparente_metadata.dart' as metadata_63;
+import '../visuals/v13_nubes_volumetricas.dart' as visual_64;
+import '../visuals/v13_nubes_volumetricas_metadata.dart' as metadata_64;
+import '../visuals/v13_nubes_volumetricas_transparente.dart' as visual_65;
+import '../visuals/v13_nubes_volumetricas_transparente_metadata.dart' as metadata_65;
+import '../visuals/v14_sismografo.dart' as visual_66;
+import '../visuals/v14_sismografo_metadata.dart' as metadata_66;
+import '../visuals/v14_sismografo_transparente.dart' as visual_67;
+import '../visuals/v14_sismografo_transparente_metadata.dart' as metadata_67;
+import '../visuals/v15_lluvia_cristal.dart' as visual_68;
+import '../visuals/v15_lluvia_cristal_metadata.dart' as metadata_68;
+import '../visuals/v15_lluvia_cristal_transparente.dart' as visual_69;
+import '../visuals/v15_lluvia_cristal_transparente_metadata.dart' as metadata_69;
+import '../visuals/v16_campo_magnetico.dart' as visual_70;
+import '../visuals/v16_campo_magnetico_metadata.dart' as metadata_70;
+import '../visuals/v16_campo_magnetico_transparente.dart' as visual_71;
+import '../visuals/v16_campo_magnetico_transparente_metadata.dart' as metadata_71;
+import '../visuals/vortice_cosmico.dart' as visual_72;
+import '../visuals/vortice_cosmico_metadata.dart' as metadata_72;
+import '../visuals/vortice_cosmico_transparente.dart' as visual_73;
+import '../visuals/vortice_cosmico_transparente_metadata.dart' as metadata_73;
+import '../visuals/vortice_hipnotico.dart' as visual_74;
+import '../visuals/vortice_hipnotico_metadata.dart' as metadata_74;
+import '../visuals/vortice_hipnotico_transparente.dart' as visual_75;
+import '../visuals/vortice_hipnotico_transparente_metadata.dart' as metadata_75;
 
 final creatorSourceVisuals = <CreatorVisualDefinition>[
   metadata_0.metadata.withShader(visual_0.shaderSource),
@@ -169,77 +161,73 @@ final creatorSourceVisuals = <CreatorVisualDefinition>[
   metadata_4.metadata.withNative(visual_4.nativeSource, shaderSources: visual_4.shaderSources, sourceFile: 'campo_plasma_transparente.dart', sourceLine: 2),
   metadata_5.metadata.withNative(visual_5.nativeSource, shaderSources: visual_5.shaderSources, sourceFile: 'catedral_luz.dart', sourceLine: 5),
   metadata_6.metadata.withNative(visual_6.nativeSource, shaderSources: visual_6.shaderSources, sourceFile: 'causticas.dart', sourceLine: 5),
-  metadata_7.metadata.withShader(visual_7.shaderSource),
-  metadata_8.metadata.withNative(visual_8.nativeSource, shaderSources: visual_8.shaderSources, sourceFile: 'constelacion_viva.dart', sourceLine: 6),
-  metadata_9.metadata.withNative(visual_9.nativeSource, shaderSources: const {}, sourceFile: 'corona_solar.dart', sourceLine: 4),
-  metadata_10.metadata.withShader(visual_10.shaderSource),
-  metadata_11.metadata.withNative(visual_11.nativeSource, shaderSources: visual_11.shaderSources, sourceFile: 'cromo_liquido.dart', sourceLine: 4),
-  metadata_12.metadata.withNative(visual_12.nativeSource, shaderSources: visual_12.shaderSources, sourceFile: 'cromo_liquido_transparente.dart', sourceLine: 2),
-  metadata_13.metadata.withNative(visual_13.nativeSource, shaderSources: visual_13.shaderSources, sourceFile: 'deriva_julia.dart', sourceLine: 5),
-  metadata_14.metadata.withNative(visual_14.nativeSource, shaderSources: visual_14.shaderSources, sourceFile: 'deriva_julia_transparente.dart', sourceLine: 2),
-  metadata_15.metadata.withNative(visual_15.nativeSource, shaderSources: visual_15.shaderSources, sourceFile: 'descarga_tesla.dart', sourceLine: 6),
-  metadata_16.metadata.withNative(visual_16.nativeSource, shaderSources: visual_16.shaderSources, sourceFile: 'ferrofluido.dart', sourceLine: 5),
+  metadata_7.metadata.withNative(visual_7.nativeSource, shaderSources: visual_7.shaderSources, sourceFile: 'constelacion_viva.dart', sourceLine: 6),
+  metadata_8.metadata.withShader(visual_8.shaderSource),
+  metadata_9.metadata.withNative(visual_9.nativeSource, shaderSources: visual_9.shaderSources, sourceFile: 'cromo_liquido.dart', sourceLine: 4),
+  metadata_10.metadata.withNative(visual_10.nativeSource, shaderSources: visual_10.shaderSources, sourceFile: 'cromo_liquido_transparente.dart', sourceLine: 2),
+  metadata_11.metadata.withNative(visual_11.nativeSource, shaderSources: visual_11.shaderSources, sourceFile: 'deriva_julia.dart', sourceLine: 5),
+  metadata_12.metadata.withNative(visual_12.nativeSource, shaderSources: visual_12.shaderSources, sourceFile: 'deriva_julia_transparente.dart', sourceLine: 2),
+  metadata_13.metadata.withNative(visual_13.nativeSource, shaderSources: visual_13.shaderSources, sourceFile: 'descarga_tesla.dart', sourceLine: 6),
+  metadata_14.metadata.withNative(visual_14.nativeSource, shaderSources: visual_14.shaderSources, sourceFile: 'ferrofluido.dart', sourceLine: 5),
+  metadata_15.metadata.withShader(visual_15.shaderSource),
+  metadata_16.metadata.withShader(visual_16.shaderSource),
   metadata_17.metadata.withShader(visual_17.shaderSource),
-  metadata_18.metadata.withShader(visual_18.shaderSource),
-  metadata_19.metadata.withShader(visual_19.shaderSource),
-  metadata_20.metadata.withNative(visual_20.nativeSource, shaderSources: const {}, sourceFile: 'galaxy_scene.dart', sourceLine: 2),
-  metadata_21.metadata.withNative(visual_21.nativeSource, shaderSources: visual_21.shaderSources, sourceFile: 'globo_tesla.dart', sourceLine: 5),
-  metadata_22.metadata.withNative(visual_22.nativeSource, shaderSources: const {}, sourceFile: 'golden_particles_scene.dart', sourceLine: 2),
-  metadata_23.metadata.withNative(visual_23.nativeSource, shaderSources: const {}, sourceFile: 'hipervelocidad.dart', sourceLine: 4),
-  metadata_24.metadata.withNative(visual_24.nativeSource, shaderSources: const {}, sourceFile: 'hipervelocidad_transparente.dart', sourceLine: 2),
-  metadata_25.metadata.withNative(visual_25.nativeSource, shaderSources: const {}, sourceFile: 'horizonte_sucesos.dart', sourceLine: 5),
-  metadata_26.metadata.withNative(visual_26.nativeSource, shaderSources: const {}, sourceFile: 'horizonte_synthwave.dart', sourceLine: 3),
-  metadata_27.metadata.withNative(visual_27.nativeSource, shaderSources: visual_27.shaderSources, sourceFile: 'llamarada.dart', sourceLine: 5),
-  metadata_28.metadata.withNative(visual_28.nativeSource, shaderSources: const {}, sourceFile: 'malla_ondas.dart', sourceLine: 3),
-  metadata_29.metadata.withNative(visual_29.nativeSource, shaderSources: const {}, sourceFile: 'malla_topografica.dart', sourceLine: 5),
-  metadata_30.metadata.withShader(visual_30.shaderSource),
-  metadata_31.metadata.withShader(visual_31.shaderSource),
-  metadata_32.metadata.withNative(visual_32.nativeSource, shaderSources: visual_32.shaderSources, sourceFile: 'metal_tornasol.dart', sourceLine: 6),
-  metadata_33.metadata.withNative(visual_33.nativeSource, shaderSources: visual_33.shaderSources, sourceFile: 'nebulosa_viva.dart', sourceLine: 6),
-  metadata_34.metadata.withNative(visual_34.nativeSource, shaderSources: const {}, sourceFile: 'neon_lluvia.dart', sourceLine: 5),
-  metadata_35.metadata.withNative(visual_35.nativeSource, shaderSources: visual_35.shaderSources, sourceFile: 'pelicula_iridiscente.dart', sourceLine: 6),
-  metadata_36.metadata.withNative(visual_36.nativeSource, shaderSources: visual_36.shaderSources, sourceFile: 'planeta_anillado.dart', sourceLine: 5),
-  metadata_37.metadata.withNative(visual_37.nativeSource, shaderSources: visual_37.shaderSources, sourceFile: 'plasma_scene.dart', sourceLine: 3),
-  metadata_38.metadata.withNative(visual_38.nativeSource, shaderSources: visual_38.shaderSources, sourceFile: 'plasma_scene_transparente.dart', sourceLine: 2),
-  metadata_39.metadata.withShader(visual_39.shaderSource),
-  metadata_40.metadata.withShader(visual_40.shaderSource),
+  metadata_18.metadata.withNative(visual_18.nativeSource, shaderSources: const {}, sourceFile: 'galaxy_scene.dart', sourceLine: 2),
+  metadata_19.metadata.withNative(visual_19.nativeSource, shaderSources: visual_19.shaderSources, sourceFile: 'globo_tesla.dart', sourceLine: 5),
+  metadata_20.metadata.withNative(visual_20.nativeSource, shaderSources: const {}, sourceFile: 'golden_particles_scene.dart', sourceLine: 2),
+  metadata_21.metadata.withNative(visual_21.nativeSource, shaderSources: const {}, sourceFile: 'hipervelocidad.dart', sourceLine: 4),
+  metadata_22.metadata.withNative(visual_22.nativeSource, shaderSources: const {}, sourceFile: 'hipervelocidad_transparente.dart', sourceLine: 2),
+  metadata_23.metadata.withNative(visual_23.nativeSource, shaderSources: const {}, sourceFile: 'horizonte_sucesos.dart', sourceLine: 5),
+  metadata_24.metadata.withNative(visual_24.nativeSource, shaderSources: const {}, sourceFile: 'horizonte_synthwave.dart', sourceLine: 3),
+  metadata_25.metadata.withNative(visual_25.nativeSource, shaderSources: visual_25.shaderSources, sourceFile: 'llamarada.dart', sourceLine: 5),
+  metadata_26.metadata.withNative(visual_26.nativeSource, shaderSources: const {}, sourceFile: 'malla_ondas.dart', sourceLine: 3),
+  metadata_27.metadata.withShader(visual_27.shaderSource),
+  metadata_28.metadata.withShader(visual_28.shaderSource),
+  metadata_29.metadata.withNative(visual_29.nativeSource, shaderSources: visual_29.shaderSources, sourceFile: 'metal_tornasol.dart', sourceLine: 6),
+  metadata_30.metadata.withNative(visual_30.nativeSource, shaderSources: visual_30.shaderSources, sourceFile: 'nebulosa_viva.dart', sourceLine: 6),
+  metadata_31.metadata.withNative(visual_31.nativeSource, shaderSources: const {}, sourceFile: 'neon_lluvia.dart', sourceLine: 5),
+  metadata_32.metadata.withNative(visual_32.nativeSource, shaderSources: visual_32.shaderSources, sourceFile: 'pelicula_iridiscente.dart', sourceLine: 6),
+  metadata_33.metadata.withNative(visual_33.nativeSource, shaderSources: visual_33.shaderSources, sourceFile: 'planeta_anillado.dart', sourceLine: 5),
+  metadata_34.metadata.withNative(visual_34.nativeSource, shaderSources: visual_34.shaderSources, sourceFile: 'plasma_scene.dart', sourceLine: 3),
+  metadata_35.metadata.withNative(visual_35.nativeSource, shaderSources: visual_35.shaderSources, sourceFile: 'plasma_scene_transparente.dart', sourceLine: 2),
+  metadata_36.metadata.withShader(visual_36.shaderSource),
+  metadata_37.metadata.withShader(visual_37.shaderSource),
+  metadata_38.metadata.withShader(visual_38.shaderSource),
+  metadata_39.metadata.withNative(visual_39.nativeSource, shaderSources: visual_39.shaderSources, sourceFile: 'proyeccion_liquida.dart', sourceLine: 6),
+  metadata_40.metadata.withNative(visual_40.nativeSource, shaderSources: const {}, sourceFile: 'salto_hiperespacial.dart', sourceLine: 4),
   metadata_41.metadata.withShader(visual_41.shaderSource),
-  metadata_42.metadata.withNative(visual_42.nativeSource, shaderSources: visual_42.shaderSources, sourceFile: 'proyeccion_liquida.dart', sourceLine: 6),
-  metadata_43.metadata.withNative(visual_43.nativeSource, shaderSources: const {}, sourceFile: 'salto_hiperespacial.dart', sourceLine: 4),
-  metadata_44.metadata.withShader(visual_44.shaderSource),
-  metadata_45.metadata.withNative(visual_45.nativeSource, shaderSources: const {}, sourceFile: 'selva_bioluminiscente.dart', sourceLine: 3),
-  metadata_46.metadata.withNative(visual_46.nativeSource, shaderSources: const {}, sourceFile: 'synthwave_scene.dart', sourceLine: 2),
-  metadata_47.metadata.withNative(visual_47.nativeSource, shaderSources: visual_47.shaderSources, sourceFile: 'tormenta_electrica.dart', sourceLine: 6),
-  metadata_48.metadata.withNative(visual_48.nativeSource, shaderSources: const {}, sourceFile: 'v01_agujero_negro.dart', sourceLine: 4),
-  metadata_49.metadata.withNative(visual_49.nativeSource, shaderSources: const {}, sourceFile: 'v02_red_neuronal.dart', sourceLine: 4),
-  metadata_50.metadata.withNative(visual_50.nativeSource, shaderSources: const {}, sourceFile: 'v02_red_neuronal_transparente.dart', sourceLine: 4),
-  metadata_51.metadata.withNative(visual_51.nativeSource, shaderSources: const {}, sourceFile: 'v03_matriz_oceanica.dart', sourceLine: 4),
-  metadata_52.metadata.withNative(visual_52.nativeSource, shaderSources: const {}, sourceFile: 'v04_tunel_warp.dart', sourceLine: 4),
-  metadata_53.metadata.withNative(visual_53.nativeSource, shaderSources: const {}, sourceFile: 'v04_tunel_warp_transparente.dart', sourceLine: 2),
-  metadata_54.metadata.withNative(visual_54.nativeSource, shaderSources: const {}, sourceFile: 'v05_campo_curl.dart', sourceLine: 4),
-  metadata_55.metadata.withNative(visual_55.nativeSource, shaderSources: const {}, sourceFile: 'v05_campo_curl_transparente.dart', sourceLine: 2),
-  metadata_56.metadata.withNative(visual_56.nativeSource, shaderSources: const {}, sourceFile: 'v06_tesseract_4d.dart', sourceLine: 4),
-  metadata_57.metadata.withNative(visual_57.nativeSource, shaderSources: const {}, sourceFile: 'v06_tesseract_4d_transparente.dart', sourceLine: 4),
-  metadata_58.metadata.withNative(visual_58.nativeSource, shaderSources: const {}, sourceFile: 'v07_aurora_plasma.dart', sourceLine: 4),
-  metadata_59.metadata.withNative(visual_59.nativeSource, shaderSources: const {}, sourceFile: 'v08_espectro_cosmico.dart', sourceLine: 4),
-  metadata_60.metadata.withNative(visual_60.nativeSource, shaderSources: const {}, sourceFile: 'v08_espectro_cosmico_transparente.dart', sourceLine: 4),
-  metadata_61.metadata.withNative(visual_61.nativeSource, shaderSources: const {}, sourceFile: 'v09_espiral_aurea.dart', sourceLine: 4),
-  metadata_62.metadata.withNative(visual_62.nativeSource, shaderSources: const {}, sourceFile: 'v10_supernova.dart', sourceLine: 4),
-  metadata_63.metadata.withNative(visual_63.nativeSource, shaderSources: const {}, sourceFile: 'v10_supernova_transparente.dart', sourceLine: 2),
-  metadata_64.metadata.withNative(visual_64.nativeSource, shaderSources: const {}, sourceFile: 'v11_archivo_corrupto.dart', sourceLine: 4),
-  metadata_65.metadata.withNative(visual_65.nativeSource, shaderSources: const {}, sourceFile: 'v11_archivo_corrupto_transparente.dart', sourceLine: 4),
-  metadata_66.metadata.withNative(visual_66.nativeSource, shaderSources: const {}, sourceFile: 'v12_maquinaria_orbital.dart', sourceLine: 4),
-  metadata_67.metadata.withNative(visual_67.nativeSource, shaderSources: const {}, sourceFile: 'v12_maquinaria_orbital_transparente.dart', sourceLine: 4),
-  metadata_68.metadata.withNative(visual_68.nativeSource, shaderSources: visual_68.shaderSources, sourceFile: 'v13_nubes_volumetricas.dart', sourceLine: 4),
-  metadata_69.metadata.withNative(visual_69.nativeSource, shaderSources: visual_69.shaderSources, sourceFile: 'v13_nubes_volumetricas_transparente.dart', sourceLine: 2),
-  metadata_70.metadata.withNative(visual_70.nativeSource, shaderSources: const {}, sourceFile: 'v14_sismografo.dart', sourceLine: 4),
-  metadata_71.metadata.withNative(visual_71.nativeSource, shaderSources: const {}, sourceFile: 'v14_sismografo_transparente.dart', sourceLine: 3),
-  metadata_72.metadata.withNative(visual_72.nativeSource, shaderSources: visual_72.shaderSources, sourceFile: 'v15_lluvia_cristal.dart', sourceLine: 4),
-  metadata_73.metadata.withNative(visual_73.nativeSource, shaderSources: visual_73.shaderSources, sourceFile: 'v15_lluvia_cristal_transparente.dart', sourceLine: 4),
-  metadata_74.metadata.withNative(visual_74.nativeSource, shaderSources: const {}, sourceFile: 'v16_campo_magnetico.dart', sourceLine: 5),
-  metadata_75.metadata.withNative(visual_75.nativeSource, shaderSources: const {}, sourceFile: 'v16_campo_magnetico_transparente.dart', sourceLine: 4),
-  metadata_76.metadata.withShader(visual_76.shaderSource),
-  metadata_77.metadata.withShader(visual_77.shaderSource),
-  metadata_78.metadata.withNative(visual_78.nativeSource, shaderSources: const {}, sourceFile: 'vortice_hipnotico.dart', sourceLine: 3),
-  metadata_79.metadata.withNative(visual_79.nativeSource, shaderSources: const {}, sourceFile: 'vortice_hipnotico_transparente.dart', sourceLine: 2),
+  metadata_42.metadata.withNative(visual_42.nativeSource, shaderSources: const {}, sourceFile: 'selva_bioluminiscente.dart', sourceLine: 3),
+  metadata_43.metadata.withNative(visual_43.nativeSource, shaderSources: const {}, sourceFile: 'synthwave_scene.dart', sourceLine: 2),
+  metadata_44.metadata.withNative(visual_44.nativeSource, shaderSources: const {}, sourceFile: 'v01_agujero_negro.dart', sourceLine: 4),
+  metadata_45.metadata.withNative(visual_45.nativeSource, shaderSources: const {}, sourceFile: 'v02_red_neuronal.dart', sourceLine: 4),
+  metadata_46.metadata.withNative(visual_46.nativeSource, shaderSources: const {}, sourceFile: 'v02_red_neuronal_transparente.dart', sourceLine: 4),
+  metadata_47.metadata.withNative(visual_47.nativeSource, shaderSources: const {}, sourceFile: 'v03_matriz_oceanica.dart', sourceLine: 4),
+  metadata_48.metadata.withNative(visual_48.nativeSource, shaderSources: const {}, sourceFile: 'v04_tunel_warp.dart', sourceLine: 4),
+  metadata_49.metadata.withNative(visual_49.nativeSource, shaderSources: const {}, sourceFile: 'v04_tunel_warp_transparente.dart', sourceLine: 2),
+  metadata_50.metadata.withNative(visual_50.nativeSource, shaderSources: const {}, sourceFile: 'v05_campo_curl.dart', sourceLine: 4),
+  metadata_51.metadata.withNative(visual_51.nativeSource, shaderSources: const {}, sourceFile: 'v05_campo_curl_transparente.dart', sourceLine: 2),
+  metadata_52.metadata.withNative(visual_52.nativeSource, shaderSources: const {}, sourceFile: 'v06_tesseract_4d.dart', sourceLine: 4),
+  metadata_53.metadata.withNative(visual_53.nativeSource, shaderSources: const {}, sourceFile: 'v06_tesseract_4d_transparente.dart', sourceLine: 4),
+  metadata_54.metadata.withNative(visual_54.nativeSource, shaderSources: const {}, sourceFile: 'v07_aurora_plasma.dart', sourceLine: 4),
+  metadata_55.metadata.withNative(visual_55.nativeSource, shaderSources: const {}, sourceFile: 'v08_espectro_cosmico.dart', sourceLine: 4),
+  metadata_56.metadata.withNative(visual_56.nativeSource, shaderSources: const {}, sourceFile: 'v08_espectro_cosmico_transparente.dart', sourceLine: 4),
+  metadata_57.metadata.withNative(visual_57.nativeSource, shaderSources: const {}, sourceFile: 'v09_espiral_aurea.dart', sourceLine: 4),
+  metadata_58.metadata.withNative(visual_58.nativeSource, shaderSources: const {}, sourceFile: 'v10_supernova.dart', sourceLine: 4),
+  metadata_59.metadata.withNative(visual_59.nativeSource, shaderSources: const {}, sourceFile: 'v10_supernova_transparente.dart', sourceLine: 2),
+  metadata_60.metadata.withNative(visual_60.nativeSource, shaderSources: const {}, sourceFile: 'v11_archivo_corrupto.dart', sourceLine: 4),
+  metadata_61.metadata.withNative(visual_61.nativeSource, shaderSources: const {}, sourceFile: 'v11_archivo_corrupto_transparente.dart', sourceLine: 4),
+  metadata_62.metadata.withNative(visual_62.nativeSource, shaderSources: const {}, sourceFile: 'v12_maquinaria_orbital.dart', sourceLine: 4),
+  metadata_63.metadata.withNative(visual_63.nativeSource, shaderSources: const {}, sourceFile: 'v12_maquinaria_orbital_transparente.dart', sourceLine: 4),
+  metadata_64.metadata.withNative(visual_64.nativeSource, shaderSources: visual_64.shaderSources, sourceFile: 'v13_nubes_volumetricas.dart', sourceLine: 4),
+  metadata_65.metadata.withNative(visual_65.nativeSource, shaderSources: visual_65.shaderSources, sourceFile: 'v13_nubes_volumetricas_transparente.dart', sourceLine: 2),
+  metadata_66.metadata.withNative(visual_66.nativeSource, shaderSources: const {}, sourceFile: 'v14_sismografo.dart', sourceLine: 4),
+  metadata_67.metadata.withNative(visual_67.nativeSource, shaderSources: const {}, sourceFile: 'v14_sismografo_transparente.dart', sourceLine: 3),
+  metadata_68.metadata.withNative(visual_68.nativeSource, shaderSources: visual_68.shaderSources, sourceFile: 'v15_lluvia_cristal.dart', sourceLine: 4),
+  metadata_69.metadata.withNative(visual_69.nativeSource, shaderSources: visual_69.shaderSources, sourceFile: 'v15_lluvia_cristal_transparente.dart', sourceLine: 4),
+  metadata_70.metadata.withNative(visual_70.nativeSource, shaderSources: const {}, sourceFile: 'v16_campo_magnetico.dart', sourceLine: 5),
+  metadata_71.metadata.withNative(visual_71.nativeSource, shaderSources: const {}, sourceFile: 'v16_campo_magnetico_transparente.dart', sourceLine: 4),
+  metadata_72.metadata.withShader(visual_72.shaderSource),
+  metadata_73.metadata.withShader(visual_73.shaderSource),
+  metadata_74.metadata.withNative(visual_74.nativeSource, shaderSources: const {}, sourceFile: 'vortice_hipnotico.dart', sourceLine: 3),
+  metadata_75.metadata.withNative(visual_75.nativeSource, shaderSources: const {}, sourceFile: 'vortice_hipnotico_transparente.dart', sourceLine: 2),
 ];

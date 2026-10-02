@@ -211,39 +211,6 @@
       "reactivity": "optional"
     },
     {
-      "id": "ciber_reticula",
-      "name": "Ciber Retícula 3D",
-      "description": "Paisaje cyberpunk infinito en perspectiva 3D con topografía láser, sol sintetizador en el horizonte y ondas de choque.",
-      "purposes": [
-        "visualizer",
-        "party",
-        "focus"
-      ],
-      "moods": [
-        "retro_future",
-        "cyberpunk",
-        "energetic"
-      ],
-      "concepts": [
-        "cyber_grid",
-        "synthwave",
-        "perspective",
-        "laser",
-        "neon_highway"
-      ],
-      "credits": {
-        "author": "Color Lights 26",
-        "license": "Proprietary",
-        "source": "Color Lights Studio"
-      },
-      "thumbnail": {
-        "timeSeconds": 2.0
-      },
-      "publication": "draft",
-      "role": "background",
-      "reactivity": "optional"
-    },
-    {
       "id": "constelacion_viva",
       "name": "Constelación Táctil",
       "description": "Constelación 3D de estrellas luminosas unidas por líneas de luz con pulsos de energía; estalla y se expande con cada golpe.",
@@ -262,35 +229,6 @@
         "stars",
         "network",
         "energy"
-      ],
-      "credits": {
-        "author": "Chic Apps",
-        "license": "",
-        "source": ""
-      },
-      "thumbnail": {
-        "timeSeconds": 2.5
-      },
-      "publication": "draft",
-      "role": "background",
-      "reactivity": "optional"
-    },
-    {
-      "id": "corona_solar",
-      "name": "Corona Solar",
-      "description": "Limbo solar deformado por siete armónicos, con filamentos de corona y gránulos de plasma.",
-      "purposes": [
-        "party",
-        "visualizer"
-      ],
-      "moods": [
-        "fiery",
-        "energetic"
-      ],
-      "concepts": [
-        "sun",
-        "corona",
-        "plasma"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -866,35 +804,6 @@
       "reactivity": "optional"
     },
     {
-      "id": "malla_topografica",
-      "name": "Malla Topográfica",
-      "description": "Terreno en perspectiva con rejilla proyectada, sol en el horizonte y scroll continuo.",
-      "purposes": [
-        "relax",
-        "visualizer"
-      ],
-      "moods": [
-        "calm",
-        "retro"
-      ],
-      "concepts": [
-        "terrain",
-        "grid",
-        "perspective"
-      ],
-      "credits": {
-        "author": "Chic Apps",
-        "license": "",
-        "source": ""
-      },
-      "thumbnail": {
-        "timeSeconds": 2.5
-      },
-      "publication": "draft",
-      "role": "background",
-      "reactivity": "optional"
-    },
-    {
       "id": "mercurio_liquido",
       "name": "Mercurio Líquido",
       "description": "Cromo fundido y mercurio líquido hiperreflectivo con ondas concéntricas y brillos especulares al compás del ritmo.",
@@ -1404,37 +1313,6 @@
       "concepts": [],
       "credits": {
         "author": "Creator SDK",
-        "license": "",
-        "source": ""
-      },
-      "thumbnail": {
-        "timeSeconds": 2.5
-      },
-      "publication": "draft",
-      "role": "background",
-      "reactivity": "optional"
-    },
-    {
-      "id": "tormenta_electrica",
-      "name": "Tormenta Eléctrica",
-      "description": "Cielo de tormenta donde cada golpe dispara un rayo que ilumina las nubes desde dentro y se refleja en el suelo mojado.",
-      "purposes": [
-        "party",
-        "visualizer"
-      ],
-      "moods": [
-        "dramatic",
-        "dark",
-        "epic"
-      ],
-      "concepts": [
-        "storm",
-        "lightning",
-        "clouds",
-        "rain"
-      ],
-      "credits": {
-        "author": "Chic Apps",
         "license": "",
         "source": ""
       },
