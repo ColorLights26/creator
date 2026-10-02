@@ -10,6 +10,11 @@ import 'package:flutter/services.dart';
 import 'package:scene_compositor/scene_compositor.dart';
 import 'package:visual_catalog/visual_catalog.dart';
 
+import '../team_review/team_ranking.dart';
+import '../team_review/team_ranking_screen.dart';
+import '../team_review/team_rating_panel.dart';
+import '../team_review/team_review_controller.dart';
+import '../team_review/visual_revision.dart';
 import 'studio_view.dart';
 
 export 'studio_view.dart'
@@ -34,10 +39,14 @@ class CreatorStudio extends StatefulWidget {
     this.controllerFactory = _defaultController,
     this.thumbnailBuilder = _defaultThumbnail,
     this.recordingsLoader = loadStudioRecordings,
+    this.teamReview,
     super.key,
   });
 
   final Map<String, VisualCurationStatus>? initialCuration;
+
+  /// Shared 1-10 team voting. Null hides it (tests, offline kits).
+  final TeamReviewController? teamReview;
   final List<CreatorVisualDefinition> Function() catalogBuilder;
   final SceneCompositorController Function() controllerFactory;
   final Widget Function(CreatorVisualDefinition visual, int index)
@@ -56,6 +65,7 @@ class _CreatorStudioState extends State<CreatorStudio>
   Duration _tickerStartElapsed = Duration.zero;
   Future<void> _commands = Future<void>.value();
   List<CreatorVisualDefinition> _catalog = [];
+  Map<String, String> _revisions = {};
   late final List<StudioRecording> _recordings;
   late SceneSignalReplay _replay;
   String? _selectedId;
@@ -361,6 +371,9 @@ class _CreatorStudioState extends State<CreatorStudio>
     }
     _readCatalog();
     unawaited(_loadRecordings());
+    if (widget.teamReview case final TeamReviewController review) {
+      unawaited(review.start());
+    }
   }
 
   Future<void> _loadBundledCurationFallback() async {
@@ -406,6 +419,9 @@ class _CreatorStudioState extends State<CreatorStudio>
     try {
       final catalog = validateCreatorCatalog(widget.catalogBuilder());
       _catalog = catalog;
+      _revisions = {
+        for (final visual in catalog) visual.id: visualRevision(visual),
+      };
       final isCurrentPending = _selectedId != null &&
           catalog.any((v) => v.id == _selectedId) &&
           (_curationStatus[_selectedId!] ?? VisualCurationStatus.pending) ==
@@ -424,9 +440,52 @@ class _CreatorStudioState extends State<CreatorStudio>
       _error = null;
     } on Object catch (error, stack) {
       _catalog = [];
+      _revisions = {};
       _selectedId = null;
       _fail(error, stack);
     }
+  }
+
+  Widget? _ratingPanel() {
+    final review = widget.teamReview;
+    final visual = _selected;
+    final revision = visual == null ? null : _revisions[visual.id];
+    if (review == null || visual == null || revision == null) return null;
+    return TeamRatingPanel(
+      controller: review,
+      visualId: visual.id,
+      visualName: visual.name,
+      revision: revision,
+      // Owner-discarded visuals are on their way out: don't ask for votes.
+      queue: [
+        for (final item in _catalog)
+          if (_curationStatus[item.id] != VisualCurationStatus.rejected)
+            (id: item.id, revision: _revisions[item.id]!),
+      ],
+      onSelectVisual: _selectVisual,
+      onOpenRanking: () => unawaited(_openRanking(review)),
+    );
+  }
+
+  Future<void> _openRanking(TeamReviewController review) async {
+    final entries = [
+      for (final visual in _catalog)
+        TeamRankingEntry(
+          id: visual.id,
+          name: visual.name,
+          revision: _revisions[visual.id]!,
+        ),
+    ];
+    final chosen = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (context) => TeamRankingScreen(
+          controller: review,
+          entries: entries,
+          onOpenVisual: (id) => Navigator.of(context).pop(id),
+        ),
+      ),
+    );
+    if (chosen != null && !_disposed) _selectVisual(chosen);
   }
 
   @override
@@ -748,6 +807,7 @@ class _CreatorStudioState extends State<CreatorStudio>
       pictureInPictureActive: _controller.pictureInPictureActive,
       curationStatus: _curationStatus,
       onCurationChanged: _setCurationStatus,
+      ratingPanel: _ratingPanel(),
       signalListenable: _latestSignal,
       onPictureInPicture:
           defaultTargetPlatform == TargetPlatform.iOS

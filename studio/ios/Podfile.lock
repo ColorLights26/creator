@@ -7,12 +7,16 @@ PODS:
     - Flutter
     - scene_compositor (= 1.0.0)
   - scene_program_native (1.0.0)
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - scene_compositor (from `../../packages/scene_compositor/ios`)
   - scene_compositor_host (from `.symlinks/plugins/scene_compositor_host/ios`)
   - scene_program_native (from `.symlinks/plugins/scene_program_native/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
 
 EXTERNAL SOURCES:
   Flutter:
@@ -23,12 +27,15 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/scene_compositor_host/ios"
   scene_program_native:
     :path: ".symlinks/plugins/scene_program_native/ios"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   scene_compositor: da14940e2a98b3757fb8db6f5346622318904a87
   scene_compositor_host: d40c1e8f54c3a722ba9cb4a03832569c00350746
   scene_program_native: 182c9190752554ac35e9705100b7925867be7677
+  shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
 
 PODFILE CHECKSUM: 93366c33d36fdd1ed3ab3d194222ad587bd8f493
 

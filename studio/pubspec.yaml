@@ -9,6 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Votación del equipo: huella de cada visual y clave personal del evaluador.
+  crypto: ^3.0.6
+  shared_preferences: ^2.5.3
   scene_compositor:
     path: ../packages/scene_compositor
   scene_compositor_host:

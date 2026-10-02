@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:visual_catalog/visual_catalog.dart';
 
 import 'studio/creator_studio.dart';
+import 'team_review/team_review_client.dart';
+import 'team_review/team_review_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,6 +46,10 @@ Future<void> main() async {
   runApp(VisualStudioApp(
     initializationError: failure,
     initialCuration: initialCuration,
+    teamReview: TeamReviewController(
+      client: HttpTeamReviewClient(),
+      store: PreferencesReviewerKeyStore(),
+    ),
   ));
 }
 
@@ -52,10 +58,12 @@ class VisualStudioApp extends StatelessWidget {
     super.key,
     this.initializationError,
     this.initialCuration,
+    this.teamReview,
   });
 
   final String? initializationError;
   final Map<String, VisualCurationStatus>? initialCuration;
+  final TeamReviewController? teamReview;
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +88,10 @@ class VisualStudioApp extends StatelessWidget {
       ),
       home:
           initializationError == null
-              ? CreatorStudio(initialCuration: initialCuration)
+              ? CreatorStudio(
+                initialCuration: initialCuration,
+                teamReview: teamReview,
+              )
               : Scaffold(
                 appBar: AppBar(title: const Text('Revisa el catálogo')),
                 body: Center(

@@ -70,6 +70,7 @@ class StudioView extends StatefulWidget {
     this.onCurationChanged,
     this.muted = false,
     this.onToggleMuted,
+    this.ratingPanel,
     super.key,
   });
 
@@ -97,6 +98,9 @@ class StudioView extends StatefulWidget {
   final Map<String, VisualCurationStatus> curationStatus;
   final void Function(String id, VisualCurationStatus status)? onCurationChanged;
   final ValueListenable<SceneRenderSignalFrameV2?>? signalListenable;
+
+  /// Team 1-10 voting for the selected visual, when the studio has it.
+  final Widget? ratingPanel;
 
   @override
   State<StudioView> createState() => _StudioViewState();
@@ -1234,6 +1238,11 @@ class _StudioViewState extends State<StudioView> {
         ],
 
         const SizedBox(height: 12),
+
+        if (widget.ratingPanel case final Widget panel) ...[
+          panel,
+          const SizedBox(height: 12),
+        ],
 
         // Curation Status Badge
         Align(

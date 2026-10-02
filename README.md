@@ -221,4 +221,32 @@ Si algo sale mal en un borrador, no sustituye la versión aprobada que ya tenga
 Color Lights. Comenta cualquier tirón o calentamiento que notes al probar: que
 compile correctamente no demuestra que el efecto sea ligero.
 
+## 8. Vota los visuales del equipo
+
+Cada visual se califica del 1 al 10 dentro de Creator; no hace falta ninguna hoja
+de cálculo. Necesitas internet y una **clave personal** que empieza por `clr_`.
+Te la da el responsable.
+
+1. Toca **Votar** en el panel de abajo y pega tu clave. Solo se hace una vez por
+   dispositivo.
+2. Toca un número del 1 al 10. Se guarda al instante y puedes cambiarlo cuando
+   quieras.
+3. Las notas de los demás aparecen cuando votas tú, para que nadie influya en
+   nadie. Con el globo de diálogo puedes dejar un comentario.
+4. **Faltan N** te lleva al siguiente visual que todavía no votaste.
+5. El botón de barras verdes abre el **ranking del equipo**: la tabla con todos los
+   visuales, la nota de cada persona, el promedio y el estado. Toca una fila para
+   abrir ese visual.
+
+El estado sale solo del promedio:
+
+| Promedio | Estado |
+| --- | --- |
+| 7 o más | Aprobado |
+| De 5 a 6,9 | Descarte pero tiene potencial al mejorar |
+| Menos de 5 | Descarte total |
+
+Si cambias el dibujo de un visual, Creator lo trata como una versión nueva y
+vuelve a pedir votos. Cambiar solo el nombre o la descripción no reinicia los votos.
+
 [Guía del responsable: aprobación, integración y detalles técnicos](MAINTAINER.md).

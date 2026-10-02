@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Votación del equipo: guarda las notas en Chic Team. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="Visual Studio"
         android:name="${applicationName}"

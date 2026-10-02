@@ -107,6 +107,30 @@ sintética sólo alimenta señales mientras Flutter está activo. El audio real 
 producción conserva su autoridad existente. Una compilación o simulador no
 certifica PiP en segundo plano, consumo ni temperatura: requieren hardware.
 
+## Votación del equipo
+
+Las notas del 1 al 10 viven en Chic Team (proyecto `chic-ads`), no en el repo.
+El estudio llama por HTTPS a `/api/creator-review` con una clave personal
+(`clr_…`); no usa Firebase ni cuentas. Las claves se crean y revocan en
+`chic-ads.web.app/team` → Color Lights → **Evaluación**, donde está también el
+ranking y la exportación a CSV. Revocar una clave conserva sus votos.
+
+- Cada voto corresponde a un visual y a su **versión**:
+  `studio/lib/team_review/visual_revision.dart` calcula una huella del código,
+  los materiales, las imágenes y los parámetros de render. El nombre y la
+  descripción no cuentan.
+- Las notas del equipo de una versión se ocultan hasta que la persona vota.
+- La cola **Faltan N** omite los visuales descartados en la curaduría local.
+- El ranking (`team_ranking.dart` y `team_ranking_screen.dart`) tiene una fila por
+  visual del catálogo actual. El estado sale **solo del promedio**: ≥ 7 Aprobado,
+  5–6,9 «Descarte pero tiene potencial al mejorar», < 5 Descarte total. Los
+  umbrales son `teamApprovalThreshold` y `teamPotentialThreshold`. No usa la
+  curaduría local.
+- Aprobar o descartar sigue siendo tu decisión (`creator_curation_review.json` y
+  `creator_review.dart`). La nota del equipo solo informa.
+- Para probar contra otro servidor:
+  `flutter run --dart-define=CREATOR_REVIEW_URL=<url>/api/creator-review`.
+
 ## Entregar y actualizar la app
 
 Comparte los dos archivos del visual y, si existe, su miniatura propia mediante Git.
