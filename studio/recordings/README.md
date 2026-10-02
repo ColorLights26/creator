@@ -8,5 +8,6 @@ Capturar después de `SceneRenderSignalAuthorityV2.project`, en la entrada del
 compositor, conserva las decisiones de Music Map, seguridad y eventos. Una
 grabación tomada antes no es equivalente y no debe etiquetarse como tal.
 
-El proyecto incluye únicamente una demostración sintética, identificada en la
-interfaz. No se incluye ninguna grabación de sensores reales ni audio personal.
+El proyecto incluye únicamente demostraciones sintéticas (la Demo sintética y
+otras cinco con estilos de prueba), identificadas en la interfaz. No se incluye
+ninguna grabación de sensores reales ni audio personal.
