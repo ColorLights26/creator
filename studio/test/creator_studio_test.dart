@@ -491,4 +491,61 @@ void main() {
       await _flush(tester);
     },
   );
+
+  testWidgets(
+    'cycling background mode switches between dark, checkerboard and light',
+    (tester) async {
+      final controller = _Controller();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CreatorStudio(
+            catalogBuilder: () => [_aurora],
+            controllerFactory: () => controller,
+            recordingsLoader: () async => [],
+            thumbnailBuilder: (_, _) => const SizedBox(),
+          ),
+        ),
+      );
+      await _flush(tester);
+
+      // Initially dark mode: no checkerboard custom paint
+      expect(
+        find.byWidgetPredicate((w) => w is CustomPaint && w.painter is CheckerboardPainter),
+        findsNothing,
+      );
+
+      // Tap to switch to checkerboard mode
+      final toggleButton = find.byKey(const ValueKey('toggle-background-mode-button'));
+      expect(toggleButton, findsOneWidget);
+      await tester.tap(toggleButton);
+      await tester.pump();
+
+      expect(
+        find.byWidgetPredicate((w) => w is CustomPaint && w.painter is CheckerboardPainter),
+        findsOneWidget,
+      );
+
+      // Tap to switch to light mode
+      await tester.tap(toggleButton);
+      await tester.pump();
+
+      expect(
+        find.byWidgetPredicate((w) => w is CustomPaint && w.painter is CheckerboardPainter),
+        findsNothing,
+      );
+      final surface = tester.widget<ColoredBox>(find.byKey(const ValueKey('visual-surface')));
+      expect(surface.color, const Color(0xFFF2F2F7));
+
+      // Tap to return to dark mode
+      await tester.tap(toggleButton);
+      await tester.pump();
+      expect(
+        find.byWidgetPredicate((w) => w is CustomPaint && w.painter is CheckerboardPainter),
+        findsNothing,
+      );
+
+      await tester.pumpWidget(const SizedBox());
+      await _flush(tester);
+    },
+  );
 }

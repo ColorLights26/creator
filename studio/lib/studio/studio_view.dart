@@ -12,6 +12,12 @@ enum VisualCurationStatus {
   rejected,
 }
 
+enum StudioBackgroundMode {
+  dark,
+  checkerboard,
+  light,
+}
+
 class StudioVisualItem {
   const StudioVisualItem({
     required this.id,
@@ -101,6 +107,36 @@ class _StudioViewState extends State<StudioView> {
   int _frameCount = 0;
   DateTime _lastFpsTime = DateTime.now();
   bool _showControls = true;
+  StudioBackgroundMode _bgMode = StudioBackgroundMode.dark;
+
+  void _cycleBackgroundMode() {
+    setState(() {
+      _bgMode = switch (_bgMode) {
+        StudioBackgroundMode.dark => StudioBackgroundMode.checkerboard,
+        StudioBackgroundMode.checkerboard => StudioBackgroundMode.light,
+        StudioBackgroundMode.light => StudioBackgroundMode.dark,
+      };
+    });
+  }
+
+  IconData get _bgModeIcon => switch (_bgMode) {
+    StudioBackgroundMode.dark => Icons.grid_4x4_rounded,
+    StudioBackgroundMode.checkerboard => Icons.texture_rounded,
+    StudioBackgroundMode.light => Icons.light_mode_rounded,
+  };
+
+  String get _bgModeLabel => switch (_bgMode) {
+    StudioBackgroundMode.dark => 'Fondo oscuro',
+    StudioBackgroundMode.checkerboard => 'Cuadrícula alpha',
+    StudioBackgroundMode.light => 'Fondo claro',
+  };
+
+  String get _bgModeTooltip => switch (_bgMode) {
+    StudioBackgroundMode.dark => 'Fondo: Oscuro (toca para cuadrícula alpha)',
+    StudioBackgroundMode.checkerboard =>
+        'Fondo: Cuadrícula alpha (toca para fondo claro)',
+    StudioBackgroundMode.light => 'Fondo: Claro (toca para fondo oscuro)',
+  };
 
   @override
   void initState() {
@@ -343,6 +379,20 @@ class _StudioViewState extends State<StudioView> {
                 backgroundColor: Colors.black.withValues(alpha: 0.4),
               ),
             ),
+          IconButton(
+            tooltip: _bgModeTooltip,
+            onPressed: _cycleBackgroundMode,
+            icon: Icon(
+              _bgModeIcon,
+              color: _bgMode == StudioBackgroundMode.dark
+                  ? Colors.white70
+                  : const Color(0xFF73F572),
+              size: 20,
+            ),
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.black.withValues(alpha: 0.4),
+            ),
+          ),
           IconButton(
             tooltip: _showControls ? 'Ocultar interfaz' : 'Mostrar interfaz',
             onPressed: () => setState(() => _showControls = !_showControls),
@@ -1109,28 +1159,77 @@ class _StudioViewState extends State<StudioView> {
         // Spec / Tech details pill chip (e.g. C++17 · Impeller Metal/Vulkan · Reactivo al audio)
         if (selected != null && selected.details.isNotEmpty) ...[
           const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-              decoration: BoxDecoration(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFF73F572).withValues(alpha: 0.35),
+                    width: 1.2,
+                  ),
+                  color: const Color(0xFF162521).withValues(alpha: 0.65),
+                ),
+                child: Text(
+                  selected.details,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                    color: Color(0xFF73F572),
+                  ),
+                ),
+              ),
+              InkWell(
+                key: const ValueKey('toggle-background-mode-button'),
+                onTap: _cycleBackgroundMode,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: const Color(0xFF73F572).withValues(alpha: 0.35),
-                  width: 1.2,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _bgMode == StudioBackgroundMode.dark
+                          ? Colors.white24
+                          : const Color(0xFF73F572).withValues(alpha: 0.6),
+                      width: 1.0,
+                    ),
+                    color: _bgMode == StudioBackgroundMode.dark
+                        ? Colors.black45
+                        : const Color(0xFF162521).withValues(alpha: 0.8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _bgModeIcon,
+                        size: 14,
+                        color: _bgMode == StudioBackgroundMode.dark
+                            ? Colors.white70
+                            : const Color(0xFF73F572),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        _bgModeLabel,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: _bgMode == StudioBackgroundMode.dark
+                              ? Colors.white70
+                              : const Color(0xFF73F572),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                color: const Color(0xFF162521).withValues(alpha: 0.65),
               ),
-              child: Text(
-                selected.details,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                  color: Color(0xFF73F572),
-                ),
-              ),
-            ),
+            ],
           ),
         ],
 
@@ -1572,10 +1671,18 @@ class _StudioViewState extends State<StudioView> {
         });
         return ColoredBox(
           key: const ValueKey('visual-surface'),
-          color: colors.surfaceContainerLowest,
+          color: _bgMode == StudioBackgroundMode.light
+              ? const Color(0xFFF2F2F7)
+              : colors.surfaceContainerLowest,
           child: Stack(
             fit: StackFit.expand,
             children: [
+              if (_bgMode == StudioBackgroundMode.checkerboard)
+                const Positioned.fill(
+                  child: CustomPaint(
+                    painter: CheckerboardPainter(),
+                  ),
+                ),
               if (widget.preview case final Widget surface)
                 surface
               else if (nativeTextureId != null)
@@ -2190,4 +2297,47 @@ class _StudioViewState extends State<StudioView> {
     }
     return buffer.toString();
   }
+}
+
+class CheckerboardPainter extends CustomPainter {
+  const CheckerboardPainter({
+    this.squareSize = 20.0,
+    this.lightColor = const Color(0xFF383842),
+    this.darkColor = const Color(0xFF1C1C22),
+  });
+
+  final double squareSize;
+  final Color lightColor;
+  final Color darkColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final darkPaint = Paint()..color = darkColor;
+    final lightPaint = Paint()..color = lightColor;
+    canvas.drawRect(Offset.zero & size, darkPaint);
+
+    final xCount = (size.width / squareSize).ceil();
+    final yCount = (size.height / squareSize).ceil();
+
+    for (var y = 0; y < yCount; y++) {
+      final isEvenRow = y % 2 == 0;
+      for (var x = isEvenRow ? 0 : 1; x < xCount; x += 2) {
+        canvas.drawRect(
+          Rect.fromLTWH(
+            x * squareSize,
+            y * squareSize,
+            squareSize,
+            squareSize,
+          ),
+          lightPaint,
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CheckerboardPainter oldDelegate) =>
+      oldDelegate.squareSize != squareSize ||
+      oldDelegate.lightColor != lightColor ||
+      oldDelegate.darkColor != darkColor;
 }

@@ -12,7 +12,8 @@ import 'package:visual_catalog/visual_catalog.dart';
 
 import 'studio_view.dart';
 
-export 'studio_view.dart' show VisualCurationStatus;
+export 'studio_view.dart'
+    show VisualCurationStatus, StudioBackgroundMode, CheckerboardPainter;
 
 List<CreatorVisualDefinition> _defaultCatalog() => creatorVisuals;
 
