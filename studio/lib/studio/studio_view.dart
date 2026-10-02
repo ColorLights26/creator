@@ -1091,6 +1091,9 @@ class _StudioViewState extends State<StudioView> {
 
         const SizedBox(height: 12),
 
+        _buildAudioQuickBar(),
+        const SizedBox(height: 10),
+
         if (widget.ratingPanel case final Widget panel) ...[
           panel,
           const SizedBox(height: 12),
@@ -1211,10 +1214,111 @@ class _StudioViewState extends State<StudioView> {
     );
   }
 
+  /// One tap to hear the visual with another track or in silence: judging a
+  /// reactive visual needs both, so this sits right above the vote.
+  Widget _buildAudioQuickBar() {
+    final canMute = widget.reactive && widget.playing;
+    Widget chip({
+      required Key key,
+      required String label,
+      required IconData icon,
+      required bool selected,
+      VoidCallback? onTap,
+    }) {
+      final color = selected ? const Color(0xFF73F572) : Colors.white70;
+      return Padding(
+        padding: const EdgeInsets.only(right: 6),
+        child: Material(
+          color: selected
+              ? const Color(0xFF73F572).withValues(alpha: 0.2)
+              : Colors.black.withValues(alpha: 0.35),
+          shape: StadiumBorder(
+            side: BorderSide(
+              color: selected ? const Color(0xFF73F572) : Colors.white24,
+            ),
+          ),
+          child: InkWell(
+            key: key,
+            customBorder: const StadiumBorder(),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 15, color: onTap == null && !selected
+                      ? Colors.white24
+                      : color),
+                  const SizedBox(width: 5),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                      color: onTap == null && !selected ? Colors.white30 : color,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          widget.reactionEnabled || widget.reactive
+              ? 'PRUÉBALO CON'
+              : 'ESTE VISUAL NO REACCIONA A LA MÚSICA',
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.8,
+            color: Colors.white54,
+          ),
+        ),
+        const SizedBox(height: 6),
+        SingleChildScrollView(
+          key: const ValueKey('audio-quick-bar'),
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              chip(
+                key: const ValueKey('audio-chip-silence'),
+                label: 'Silencio',
+                icon: Icons.volume_off_rounded,
+                selected: widget.muted,
+                onTap: canMute && !widget.muted ? widget.onToggleMuted : null,
+              ),
+              for (final source in widget.sources)
+                chip(
+                  key: ValueKey('audio-chip-${source.id}'),
+                  label: source.name.split(' (').first,
+                  icon: Icons.music_note_rounded,
+                  selected: !widget.muted && source.id == widget.selectedSourceId,
+                  onTap: widget.loading
+                      ? null
+                      : () {
+                          // Choosing a track always means "with music".
+                          if (widget.muted) widget.onToggleMuted?.call();
+                          if (source.id != widget.selectedSourceId) {
+                            widget.onSelectSource(source.id);
+                          }
+                        },
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildTechnicalPanel(BuildContext context) {
     final theme = Theme.of(context);
-    final source = widget.sources
-        .firstWhere((item) => item.id == widget.selectedSourceId);
 
     return Material(
       color: const Color(0xFF162521).withValues(alpha: 0.75),
@@ -1240,72 +1344,6 @@ class _StudioViewState extends State<StudioView> {
                     letterSpacing: 1.2,
                   ),
                 ),
-                // Botón interactivo de Silenciado (simula música sonando / en silencio en vivo)
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    key: const ValueKey('mute-button'),
-                    onTap: widget.playing && widget.reactive
-                        ? widget.onToggleMuted
-                        : null,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: widget.muted
-                            ? const Color(0xFFFF9F0A).withValues(alpha: 0.22)
-                            : (widget.reactive && widget.playing
-                                ? const Color(0xFF73F572).withValues(alpha: 0.15)
-                                : Colors.white10),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: widget.muted
-                              ? const Color(0xFFFF9F0A)
-                              : (widget.reactive && widget.playing
-                                  ? const Color(0xFF73F572).withValues(alpha: 0.6)
-                                  : Colors.white24),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            widget.muted
-                                ? Icons.volume_off_rounded
-                                : (widget.reactive && widget.playing
-                                    ? Icons.volume_up_rounded
-                                    : Icons.pause_circle_outline_rounded),
-                            size: 13,
-                            color: widget.muted
-                                ? const Color(0xFFFF9F0A)
-                                : (widget.reactive && widget.playing
-                                    ? const Color(0xFF73F572)
-                                    : Colors.white38),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            widget.muted
-                                ? 'SILENCIADO (TOCAR)'
-                                : (widget.reactive && widget.playing
-                                    ? 'SILENCIAR'
-                                    : 'PAUSA'),
-                            style: TextStyle(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w800,
-                              color: widget.muted
-                                  ? const Color(0xFFFF9F0A)
-                                  : (widget.reactive && widget.playing
-                                      ? const Color(0xFF73F572)
-                                      : Colors.white38),
-                              letterSpacing: 0.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 10),
@@ -1315,23 +1353,7 @@ class _StudioViewState extends State<StudioView> {
               playing: widget.playing,
               muted: widget.muted,
             ),
-            const SizedBox(height: 12),
-            _selector(
-              context,
-              key: const ValueKey('source-selector'),
-              label: 'Señal de prueba',
-              value: widget.selectedSourceId,
-              items: [
-                for (final item in widget.sources)
-                  DropdownMenuItem(value: item.id, child: Text(item.name)),
-              ],
-              onChanged: widget.loading ? null : widget.onSelectSource,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              source.description,
-              style: theme.textTheme.bodySmall?.copyWith(color: Colors.white70),
-            ),
+            const SizedBox(height: 4),
             SwitchListTile.adaptive(
               key: const ValueKey('reaction-switch'),
               contentPadding: EdgeInsets.zero,
@@ -1440,45 +1462,6 @@ class _StudioViewState extends State<StudioView> {
           ),
         );
       },
-    );
-  }
-
-  Widget _selector(
-    BuildContext context, {
-    required Key key,
-    required String label,
-    required String? value,
-    required List<DropdownMenuItem<String>> items,
-    required ValueChanged<String>? onChanged,
-  }) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFF162521).withValues(alpha: 0.75),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF28544B), width: 1.2),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            key: key,
-            isExpanded: true,
-            value: value,
-            hint: Text(
-              label,
-              style: const TextStyle(color: Colors.white70, fontSize: 13),
-            ),
-            dropdownColor: const Color(0xFF162521),
-            borderRadius: BorderRadius.circular(16),
-            items: items,
-            onChanged: onChanged == null
-                ? null
-                : (val) {
-                    if (val != null) onChanged(val);
-                  },
-          ),
-        ),
-      ),
     );
   }
 

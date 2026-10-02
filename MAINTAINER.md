@@ -120,6 +120,11 @@ ranking y la exportación a CSV. Revocar una clave conserva sus votos.
   los materiales, las imágenes y los parámetros de render. El nombre y la
   descripción no cuentan.
 - Las notas del equipo de una versión se ocultan hasta que la persona vota.
+- El voto se elige y luego se **confirma**; confirmado es definitivo (el
+  servidor rechaza cambiarlo con `vote-final`). Solo cambia el comentario. Para
+  corregir un error: Chic Team → Evaluación → ↺ junto al voto («Reiniciar voto»).
+- La barra **Pruébalo con** (encima del voto) cambia de pista o pasa a silencio
+  con un toque; reemplaza al selector escondido de «Señal de audio».
 - El estado sale **solo del promedio** y con **al menos 2 votos**
   (`teamMinimumVotes`): ≥ 7 Aprobado, 5–6,9 «Descarte pero tiene potencial al
   mejorar», < 5 Descarte total; con un solo voto queda «Faltan votos». Los

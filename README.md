@@ -229,13 +229,15 @@ Te la da el responsable.
 
 1. Toca **Votar** en el panel de abajo y pega tu clave. Solo se hace una vez por
    dispositivo.
-2. Toca un número del 1 al 10. Se guarda al instante y puedes cambiarlo cuando
-   quieras.
-3. Las notas de los demás aparecen cuando votas tú, para que nadie influya en
+2. Antes de votar, pruébalo con varias pistas y en silencio: la barra
+   **Pruébalo con** está justo encima de tu nota (un toque por pista).
+3. Elige un número del 1 al 10 y toca **Confirmar**. El voto queda definitivo;
+   solo se vota de nuevo si el visual cambia o si el responsable lo reinicia.
+4. Las notas de los demás aparecen cuando votas tú, para que nadie influya en
    nadie. Con el globo de diálogo puedes dejar un comentario.
-4. **Faltan N** te lleva al siguiente visual que todavía no votaste. Se salta
+5. **Faltan N** te lleva al siguiente visual que todavía no votaste. Se salta
    los que el equipo ya dejó en Descarte total.
-5. El botón de barras verdes abre el **ranking del equipo**: la tabla con todos los
+6. El botón de barras verdes abre el **ranking del equipo**: la tabla con todos los
    visuales, la nota de cada persona, el promedio y el estado. Toca una fila para
    abrir ese visual.
 

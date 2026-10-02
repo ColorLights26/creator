@@ -15,7 +15,10 @@ typedef TeamRatingCandidate = ({String id, String revision});
 
 /// "Tu nota" 1-10 for the selected visual, the team's scores once you have
 /// voted, and a shortcut to the next visual still waiting for your vote.
-class TeamRatingPanel extends StatelessWidget {
+///
+/// Picking a number is only a choice until "Confirmar": the confirmed vote is
+/// final, because confirming reveals the team's scores.
+class TeamRatingPanel extends StatefulWidget {
   const TeamRatingPanel({
     required this.controller,
     required this.visualId,
@@ -36,6 +39,48 @@ class TeamRatingPanel extends StatelessWidget {
 
   /// Opens the whole team table (every visual, every voter).
   final VoidCallback? onOpenRanking;
+
+  @override
+  State<TeamRatingPanel> createState() => _TeamRatingPanelState();
+}
+
+class _TeamRatingPanelState extends State<TeamRatingPanel> {
+  /// The number picked but not yet confirmed (nothing sent, nothing seen).
+  int? _pending;
+  bool _confirming = false;
+
+  TeamReviewController get controller => widget.controller;
+  String get visualId => widget.visualId;
+  String get visualName => widget.visualName;
+  String get revision => widget.revision;
+  List<TeamRatingCandidate> get queue => widget.queue;
+  ValueChanged<String> get onSelectVisual => widget.onSelectVisual;
+  VoidCallback? get onOpenRanking => widget.onOpenRanking;
+
+  @override
+  void didUpdateWidget(TeamRatingPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.visualId != visualId || oldWidget.revision != revision) {
+      _pending = null;
+    }
+  }
+
+  Future<void> _confirm() async {
+    final score = _pending;
+    if (score == null || _confirming) return;
+    setState(() => _confirming = true);
+    final error = await controller.rate(
+      visualId: visualId,
+      visualName: visualName,
+      revision: revision,
+      score: score,
+    );
+    if (!mounted) return;
+    setState(() {
+      _confirming = false;
+      if (error == null) _pending = null;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,26 +146,35 @@ class TeamRatingPanel extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Text(
-              'TU NOTA',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.8,
-                color: Colors.white70,
+            Expanded(
+              child: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      mine == null ? 'TU NOTA' : 'TU VOTO · DEFINITIVO',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ),
+                  if (saving) ...[
+                    const SizedBox(width: 8),
+                    const SizedBox.square(
+                      dimension: 10,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.5,
+                        color: _accent,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-            if (saving) ...[
-              const SizedBox(width: 8),
-              const SizedBox.square(
-                dimension: 10,
-                child: CircularProgressIndicator(
-                  strokeWidth: 1.5,
-                  color: _accent,
-                ),
-              ),
-            ],
-            const Spacer(),
             _buildNextButton(),
             _buildReviewerMenu(context),
           ],
@@ -130,10 +184,59 @@ class TeamRatingPanel extends StatelessWidget {
           children: [
             for (var score = 1; score <= 10; score++) ...[
               if (score > 1) const SizedBox(width: 4),
-              Expanded(child: _scoreButton(score, mine?.score == score)),
+              Expanded(
+                child: _scoreButton(
+                  score,
+                  selected:
+                      mine?.score == score ||
+                      (mine == null && _pending == score),
+                  locked: mine != null,
+                ),
+              ),
             ],
           ],
         ),
+        if (mine == null) ...[
+          const SizedBox(height: 8),
+          if (_pending == null)
+            Text(
+              'Antes de votar, pruébalo con varias pistas y en silencio.',
+              style: TextStyle(
+                fontSize: 11.5,
+                color: _warning.withValues(alpha: 0.9),
+                fontWeight: FontWeight.w600,
+              ),
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Al confirmar ya no se puede cambiar y verás las notas '
+                    'del equipo.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                FilledButton(
+                  key: const ValueKey('team-rating-confirm'),
+                  onPressed: _confirming ? null : () => unawaited(_confirm()),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _accent,
+                    foregroundColor: Colors.black,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  child: Text(
+                    _confirming ? 'Guardando…' : 'Confirmar $_pending',
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ],
+            ),
+        ],
         const SizedBox(height: 8),
         Row(
           children: [
@@ -175,28 +278,32 @@ class TeamRatingPanel extends StatelessWidget {
     );
   }
 
-  Widget _scoreButton(int score, bool selected) {
+  Widget _scoreButton(
+    int score, {
+    required bool selected,
+    required bool locked,
+  }) {
     return Semantics(
-      button: true,
+      button: !locked,
       selected: selected,
       label: 'Nota $score',
       child: Material(
-        color: selected ? _accent : Colors.white.withValues(alpha: 0.1),
+        color:
+            selected
+                ? _accent
+                : Colors.white.withValues(alpha: locked ? 0.04 : 0.1),
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           key: ValueKey('team-rating-score-$score'),
           borderRadius: BorderRadius.circular(10),
-          onTap: () {
-            unawaited(HapticFeedback.selectionClick());
-            unawaited(
-              controller.rate(
-                visualId: visualId,
-                visualName: visualName,
-                revision: revision,
-                score: score,
-              ),
-            );
-          },
+          // A confirmed vote is final: the numbers no longer react.
+          onTap:
+              locked
+                  ? null
+                  : () {
+                    unawaited(HapticFeedback.selectionClick());
+                    setState(() => _pending = score);
+                  },
           child: SizedBox(
             height: 36,
             child: Center(
@@ -205,7 +312,12 @@ class TeamRatingPanel extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w900,
-                  color: selected ? Colors.black : Colors.white,
+                  color:
+                      selected
+                          ? Colors.black
+                          : locked
+                          ? Colors.white30
+                          : Colors.white,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
