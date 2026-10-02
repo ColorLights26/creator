@@ -92,7 +92,7 @@ void main() {
   else col = mix(vec3(1.0, 0.820, 0.953), vec3(1.0), (k-0.86)/0.14);
   float spec = pow(max(0.0, k - 0.55) * 2.2, 3.0);
   col += vec3(0.55, 0.45, 0.60) * spec * uGlow;
-  float alpha = smoothstep(0.08, 0.25, k);
+  float alpha = smoothstep(0.38, 0.65, k);
   fragColor = vec4(clamp(col * (0.85 + 0.30 * uEnergy), 0.0, 1.0) * alpha, alpha);
 }
 """,
