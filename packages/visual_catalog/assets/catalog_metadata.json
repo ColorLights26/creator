@@ -94,19 +94,22 @@
     {
       "id": "campo_flujo",
       "name": "Campo de Flujo",
-      "description": "Mil cuatrocientas partículas siguiendo un campo de flujo sinusoidal, con estelas y remolino central.",
+      "description": "Corrientes de partículas luminosas con estelas de cometa que giran en grandes remolinos y estallan con cada golpe.",
       "purposes": [
+        "party",
         "relax",
         "visualizer"
       ],
       "moods": [
         "fluid",
-        "calm"
+        "epic",
+        "hypnotic"
       ],
       "concepts": [
         "particles",
         "flow field",
-        "trails"
+        "trails",
+        "vortex"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -1439,6 +1442,38 @@
       "concepts": [],
       "credits": {
         "author": "Creator SDK",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "torbellino_igneo",
+      "name": "Torbellino Ígneo",
+      "description": "Torbellino de estelas de luz naranja que giran en espiral hacia un núcleo incandescente y estallan hacia fuera con cada golpe.",
+      "purposes": [
+        "party",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "epic",
+        "hypnotic",
+        "warm"
+      ],
+      "concepts": [
+        "particles",
+        "vortex",
+        "trails",
+        "spiral"
+      ],
+      "credits": {
+        "author": "Chic Apps",
         "license": "",
         "source": ""
       },
