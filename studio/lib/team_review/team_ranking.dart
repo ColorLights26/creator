@@ -42,6 +42,36 @@ class TeamRankingEntry {
 }
 
 class TeamRankingRow {
+  /// What [controller] lets this reviewer see about one visual.
+  factory TeamRankingRow.of(
+    TeamReviewController controller,
+    TeamRankingEntry entry, {
+    int number = 0,
+  }) {
+    final ratings = controller.ratingsFor(entry.id, entry.revision);
+    final hidden = controller.hiddenCount(entry.id, entry.revision);
+    final scores = {
+      for (final rating in ratings) rating.reviewerName: rating.score,
+    };
+    return TeamRankingRow(
+      number: number,
+      entry: entry,
+      scores: scores,
+      votes: ratings.length + hidden,
+      locked: hidden > 0,
+      average:
+          scores.isEmpty
+              ? null
+              : scores.values.reduce((sum, score) => sum + score) /
+                  scores.length,
+      comments: [
+        for (final rating in ratings)
+          if (rating.comment.isNotEmpty) rating,
+      ],
+      discardedByTeam: controller.isTeamDiscarded(entry.id, entry.revision),
+    );
+  }
+
   const TeamRankingRow({
     required this.number,
     required this.entry,
@@ -70,11 +100,12 @@ class TeamRankingRow {
   final double? average;
   final List<TeamRating> comments;
 
-  /// The team discarded it even if you can't see the scores yet.
+  /// The team already discarded it. Only used to keep it out of the voting
+  /// queue: someone who hasn't voted never sees others' opinion, not even
+  /// the verdict, so this does not change [verdict].
   final bool discardedByTeam;
 
   TeamVerdict get verdict {
-    if (discardedByTeam) return TeamVerdict.discarded;
     if (locked) return TeamVerdict.locked;
     final value = average;
     if (value == null) return TeamVerdict.noVotes;
@@ -106,34 +137,12 @@ class TeamRanking {
     final rows = <TeamRankingRow>[];
     for (var index = 0; index < entries.length; index++) {
       final entry = entries[index];
-      final ratings = controller.ratingsFor(entry.id, entry.revision);
-      final hidden = controller.hiddenCount(entry.id, entry.revision);
-      final scores = {
-        for (final rating in ratings) rating.reviewerName: rating.score,
-      };
-      voters.addAll(scores.keys);
-      visibleScores.addAll(scores.values);
-      teamVotes += ratings.length + hidden;
+      final row = TeamRankingRow.of(controller, entry, number: index + 1);
+      voters.addAll(row.scores.keys);
+      visibleScores.addAll(row.scores.values);
+      teamVotes += row.votes;
       if (controller.hasVoted(entry.id, entry.revision)) myVotes++;
-      rows.add(
-        TeamRankingRow(
-          number: index + 1,
-          entry: entry,
-          scores: scores,
-          votes: ratings.length + hidden,
-          locked: hidden > 0,
-          average:
-              scores.isEmpty
-                  ? null
-                  : scores.values.reduce((sum, score) => sum + score) /
-                      scores.length,
-          comments: [
-            for (final rating in ratings)
-              if (rating.comment.isNotEmpty) rating,
-          ],
-          discardedByTeam: controller.isTeamDiscarded(entry.id, entry.revision),
-        ),
-      );
+      rows.add(row);
     }
     return TeamRanking(
       rows: rows,

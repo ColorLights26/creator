@@ -220,12 +220,6 @@ class TeamRatingPanel extends StatelessWidget {
     const style = TextStyle(fontSize: 12, color: Colors.white70, height: 1.3);
     if (mine == null) {
       final hidden = controller.hiddenCount(visualId, revision);
-      if (controller.isTeamDiscarded(visualId, revision)) {
-        return Text(
-          'El equipo ya lo descartó ($hidden votos) · no hace falta votarlo',
-          style: style.copyWith(color: _danger),
-        );
-      }
       return Text(
         hidden == 0
             ? 'Nadie ha votado esta versión todavía.'

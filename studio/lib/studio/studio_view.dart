@@ -36,6 +36,18 @@ class StudioVisualItem {
   bool get isBackground => role == CreatorRole.background;
 }
 
+/// An extra filter offered in the top filter menu (for example, by vote).
+class StudioFilterOption {
+  const StudioFilterOption({
+    required this.id,
+    required this.label,
+    required this.count,
+  });
+  final String id;
+  final String label;
+  final int count;
+}
+
 class StudioSignalSource {
   const StudioSignalSource({
     required this.id,
@@ -72,6 +84,9 @@ class StudioView extends StatefulWidget {
     this.muted = false,
     this.onToggleMuted,
     this.ratingPanel,
+    this.voteFilters = const [],
+    this.selectedVoteFilter,
+    this.onVoteFilterChanged,
     super.key,
   });
 
@@ -100,6 +115,12 @@ class StudioView extends StatefulWidget {
 
   /// Team 1-10 voting for the selected visual, when the studio has it.
   final Widget? ratingPanel;
+
+  /// Vote filters shown under the type filter; the first one means "all".
+  /// [visuals] already arrive filtered by the selected one.
+  final List<StudioFilterOption> voteFilters;
+  final String? selectedVoteFilter;
+  final ValueChanged<String>? onVoteFilterChanged;
 
   @override
   State<StudioView> createState() => _StudioViewState();
@@ -138,6 +159,18 @@ class _StudioViewState extends State<StudioView> {
         'Fondo: Cuadrícula alpha (toca para fondo claro)',
     StudioBackgroundMode.light => 'Fondo: Claro (toca para fondo oscuro)',
   };
+
+  /// The selected vote filter, unless it is the first ("all") one.
+  StudioFilterOption? get _activeVoteFilter {
+    if (widget.voteFilters.isEmpty) return null;
+    final selected = widget.voteFilters
+        .where((option) => option.id == widget.selectedVoteFilter)
+        .firstOrNull;
+    return selected == widget.voteFilters.first ? null : selected;
+  }
+
+  bool get _anyFilterActive =>
+      _roleFilter != StudioRoleFilter.all || _activeVoteFilter != null;
 
   List<StudioVisualItem> get _filteredVisuals {
     return switch (_roleFilter) {
@@ -248,7 +281,7 @@ class _StudioViewState extends State<StudioView> {
           ),
         ),
         actions: [
-          PopupMenuButton<StudioRoleFilter>(
+          PopupMenuButton<Object>(
             key: const ValueKey('role-filter-button'),
             tooltip: switch (_roleFilter) {
               StudioRoleFilter.all => 'Filtrar tipo: Todos',
@@ -256,7 +289,10 @@ class _StudioViewState extends State<StudioView> {
               StudioRoleFilter.backgrounds => 'Filtrar tipo: Solo Fondos',
             },
             initialValue: _roleFilter,
-            onSelected: _setRoleFilter,
+            onSelected: (value) {
+              if (value is StudioRoleFilter) _setRoleFilter(value);
+              if (value is String) widget.onVoteFilterChanged?.call(value);
+            },
             icon: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -271,6 +307,17 @@ class _StudioViewState extends State<StudioView> {
                       : const Color(0xFF73F572),
                   size: 19,
                 ),
+                if (_activeVoteFilter case final StudioFilterOption vote) ...[
+                  const SizedBox(width: 4),
+                  Text(
+                    vote.label,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF73F572),
+                    ),
+                  ),
+                ],
                 if (_roleFilter != StudioRoleFilter.all) ...[
                   const SizedBox(width: 4),
                   Text(
@@ -287,10 +334,10 @@ class _StudioViewState extends State<StudioView> {
               ],
             ),
             style: IconButton.styleFrom(
-              backgroundColor: _roleFilter == StudioRoleFilter.all
+              backgroundColor: !_anyFilterActive
                   ? Colors.black.withValues(alpha: 0.4)
                   : const Color(0xFF73F572).withValues(alpha: 0.2),
-              side: _roleFilter == StudioRoleFilter.all
+              side: !_anyFilterActive
                   ? BorderSide.none
                   : const BorderSide(color: Color(0xFF73F572), width: 1.0),
             ),
@@ -402,6 +449,51 @@ class _StudioViewState extends State<StudioView> {
                     ],
                   ),
                 ),
+                if (widget.voteFilters.isNotEmpty) ...[
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<Object>(
+                    enabled: false,
+                    height: 28,
+                    child: Text(
+                      'VOTACIÓN',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
+                        color: Colors.white54,
+                      ),
+                    ),
+                  ),
+                  for (final option in widget.voteFilters)
+                    PopupMenuItem<Object>(
+                      key: ValueKey('vote-filter-${option.id}'),
+                      value: option.id,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${option.label} (${option.count})',
+                              style: TextStyle(
+                                fontWeight:
+                                    option.id == widget.selectedVoteFilter
+                                        ? FontWeight.w800
+                                        : FontWeight.normal,
+                                color: option.id == widget.selectedVoteFilter
+                                    ? const Color(0xFF73F572)
+                                    : Colors.white,
+                              ),
+                            ),
+                          ),
+                          if (option.id == widget.selectedVoteFilter)
+                            const Icon(
+                              Icons.check_rounded,
+                              size: 18,
+                              color: Color(0xFF73F572),
+                            ),
+                        ],
+                      ),
+                    ),
+                ],
               ];
             },
           ),
@@ -739,7 +831,7 @@ class _StudioViewState extends State<StudioView> {
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24),
         child: Text(
-          'No hay visuales para mostrar.',
+          'No hay visuales en este filtro.',
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.white70, fontSize: 15),
         ),

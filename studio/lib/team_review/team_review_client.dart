@@ -63,8 +63,8 @@ class TeamRatingsSnapshot {
   /// Keyed by [ratingKey].
   final Map<String, int> hiddenCounts;
 
-  /// Hidden revisions the team already discarded ([ratingKey]s). The server
-  /// reveals only this verdict, never the scores, so nobody votes them again.
+  /// Hidden revisions the team already discarded ([ratingKey]s). Only used
+  /// to skip them in the voting queue; never shown before you vote.
   final Set<String> hiddenDiscarded;
 }
 

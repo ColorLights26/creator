@@ -13,6 +13,7 @@ import '../team_review/team_ranking.dart';
 import '../team_review/team_ranking_screen.dart';
 import '../team_review/team_rating_panel.dart';
 import '../team_review/team_review_controller.dart';
+import '../team_review/team_vote_filter.dart';
 import '../team_review/visual_revision.dart';
 import 'studio_view.dart';
 
@@ -20,6 +21,7 @@ export 'studio_view.dart'
     show
         CheckerboardPainter,
         StudioBackgroundMode,
+        StudioFilterOption,
         StudioRoleFilter,
         StudioSignalSource,
         StudioVisualItem;
@@ -67,6 +69,7 @@ class _CreatorStudioState extends State<CreatorStudio>
   Future<void> _commands = Future<void>.value();
   List<CreatorVisualDefinition> _catalog = [];
   Map<String, String> _revisions = {};
+  TeamVoteFilter _voteFilter = TeamVoteFilter.all;
   late final List<StudioRecording> _recordings;
   late SceneSignalReplay _replay;
   String? _selectedId;
@@ -173,6 +176,7 @@ class _CreatorStudioState extends State<CreatorStudio>
     _readCatalog();
     unawaited(_loadRecordings());
     if (widget.teamReview case final TeamReviewController review) {
+      review.addListener(_teamReviewChanged);
       unawaited(review.start());
     }
   }
@@ -214,6 +218,33 @@ class _CreatorStudioState extends State<CreatorStudio>
       _selectedId = null;
       _fail(error, stack);
     }
+  }
+
+  // Live votes can move visuals between vote filters.
+  void _teamReviewChanged() {
+    if (!_disposed) setState(() {});
+  }
+
+  bool _matchesVoteFilter(CreatorVisualDefinition visual, TeamVoteFilter filter) {
+    final review = widget.teamReview;
+    final revision = _revisions[visual.id];
+    if (review == null || revision == null) return true;
+    return filter.matches(
+      review,
+      TeamRankingEntry(id: visual.id, name: visual.name, revision: revision),
+    );
+  }
+
+  void _setVoteFilter(String id) {
+    final filter = TeamVoteFilter.values.byName(id);
+    if (filter == _voteFilter) return;
+    setState(() => _voteFilter = filter);
+    final current = _selected;
+    if (current != null && _matchesVoteFilter(current, filter)) return;
+    final first = _catalog
+        .where((visual) => _matchesVoteFilter(visual, filter))
+        .firstOrNull;
+    _selectVisual(first?.id);
   }
 
   Widget? _ratingPanel() {
@@ -515,6 +546,7 @@ class _CreatorStudioState extends State<CreatorStudio>
     _disposed = true;
     _revision++;
     WidgetsBinding.instance.removeObserver(this);
+    widget.teamReview?.removeListener(_teamReviewChanged);
     _controller.removeListener(_controllerChanged);
     _ticker.dispose();
     _latestSignal.dispose();
@@ -535,9 +567,31 @@ class _CreatorStudioState extends State<CreatorStudio>
 
   @override
   Widget build(BuildContext context) {
+    // The visual on screen stays listed even if a vote just moved it out of
+    // the filter, so voting never yanks it away; "Siguiente" moves on.
+    final shown = [
+      for (var index = 0; index < _catalog.length; index++)
+        if (_catalog[index].id == _selectedId ||
+            _matchesVoteFilter(_catalog[index], _voteFilter))
+          index,
+    ];
     return StudioView(
+      voteFilters: widget.teamReview == null
+          ? const []
+          : [
+              for (final filter in TeamVoteFilter.values)
+                StudioFilterOption(
+                  id: filter.name,
+                  label: filter.label,
+                  count: _catalog
+                      .where((visual) => _matchesVoteFilter(visual, filter))
+                      .length,
+                ),
+            ],
+      selectedVoteFilter: _voteFilter.name,
+      onVoteFilterChanged: _setVoteFilter,
       visuals: [
-        for (var index = 0; index < _catalog.length; index++)
+        for (final index in shown)
           StudioVisualItem(
             id: _catalog[index].id,
             name: _catalog[index].name,

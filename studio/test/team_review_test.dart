@@ -450,7 +450,8 @@ void main() {
       TeamVerdict.locked,
       TeamVerdict.noVotes,
       TeamVerdict.needsVotes,
-      TeamVerdict.discarded,
+      // Hidden from Katy: even a team discard isn't revealed before voting.
+      TeamVerdict.locked,
     ]);
     expect(ranking.rows[6].scores, isEmpty, reason: 'scores stay hidden');
     expect(ranking.rows[0].average, 7.0);
@@ -463,7 +464,7 @@ void main() {
     expect(ranking.overallAverage, closeTo(5.86, 0.01));
     expect(ranking.count(TeamVerdict.approved), 1);
     expect(ranking.count(TeamVerdict.improvable), 1);
-    expect(ranking.count(TeamVerdict.discarded), 2);
+    expect(ranking.count(TeamVerdict.discarded), 1);
     expect(ranking.count(TeamVerdict.needsVotes), 1);
   });
 
@@ -604,5 +605,82 @@ void main() {
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the top filter shows visuals by how the vote is going', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final client = _FakeClient();
+    TeamRating vote(CreatorVisualDefinition visual, String who, int score) =>
+        TeamRating(
+          visualId: visual.id,
+          revision: visualRevision(visual),
+          reviewerId: who,
+          reviewerName: who == 'f' ? 'Franco' : 'Katy',
+          score: score,
+        );
+    client.stored.addAll([
+      vote(_aurora, 'f', 8),
+      vote(_aurora, 'k', 8), // approved
+      vote(_plasma, 'f', 4),
+      vote(_plasma, 'k', 3), // discarded
+    ]);
+    final review = TeamReviewController(
+      client: client,
+      store: _MemoryStore('clr_franco'),
+    );
+    final compositor = _Controller();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CreatorStudio(
+          catalogBuilder: () => [_aurora, _plasma, _tides],
+          controllerFactory: () => compositor,
+          recordingsLoader: () async => [],
+          thumbnailBuilder: (_, _) => const SizedBox(),
+          teamReview: review,
+        ),
+      ),
+    );
+    Future<void> pick(String filter) async {
+      await tester.tap(find.byKey(const ValueKey('role-filter-button')));
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.byKey(ValueKey('vote-filter-$filter')));
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+    }
+
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    expect(find.text('01 / 03'), findsOneWidget);
+
+    await pick('toVote');
+    expect(compositor.visuals.last, 'mareas_test');
+    expect(find.text('01 / 01'), findsOneWidget);
+
+    await pick('approved');
+    expect(compositor.visuals.last, 'aurora');
+    expect(find.text('01 / 01'), findsOneWidget);
+
+    await pick('discarded');
+    expect(compositor.visuals.last, 'plasma');
+
+    await tester.tap(find.byKey(const ValueKey('role-filter-button')));
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 60));
+    }
+    expect(find.text('Por votar (1)'), findsOneWidget);
+    expect(find.text('Ya votados (2)'), findsOneWidget);
+    expect(find.text('Aprobados (1)'), findsOneWidget);
+    expect(find.text('Descartados (1)'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 50));
   });
 }
