@@ -749,17 +749,25 @@ vec4 creator_40_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_41_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_42_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_43_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec2 creator_44_rotate2D(vec2 p, float a) {
+vec4 creator_44_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_45_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_46_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_47_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_48_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_49_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_50_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_51_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec2 creator_52_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-float creator_44_hash21(vec2 p) {
+float creator_52_hash21(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 }
 
-vec4 creator_44_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_52_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.3;
 
@@ -783,7 +791,7 @@ vec4 creator_44_paintVisual(vec2 uv, CreatorFrame f) {
   
   vec2 diskP = lensP;
   diskP.y *= 2.35; 
-  diskP = creator_44_rotate2D(diskP, 0.38);
+  diskP = creator_52_rotate2D(diskP, 0.38);
 
   float diskR = length(diskP);
   
@@ -819,7 +827,7 @@ vec4 creator_44_paintVisual(vec2 uv, CreatorFrame f) {
 
   
   vec2 starGrid = floor(lensP * 28.0);
-  float starHash = creator_44_hash21(starGrid);
+  float starHash = creator_52_hash21(starGrid);
   if (starHash > 0.962) {
     if (r > eventHorizon * 1.15) {
       vec2 starFrac = fract(lensP * 28.0) - 0.5;
@@ -848,7 +856,7 @@ vec4 creator_44_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);
 }
 
-vec4 creator_45_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_53_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 void main() {
   CreatorFrame f;
   f.size=uSize; f.time=uTime; f.seedLow=uSeedLow; f.seedHigh=uSeedHigh;
@@ -904,6 +912,14 @@ void main() {
   if (abs(uVisualIndex - 43.0) < 0.5) color=creator_43_paintVisual(uv,f);
   if (abs(uVisualIndex - 44.0) < 0.5) color=creator_44_paintVisual(uv,f);
   if (abs(uVisualIndex - 45.0) < 0.5) color=creator_45_paintVisual(uv,f);
+  if (abs(uVisualIndex - 46.0) < 0.5) color=creator_46_paintVisual(uv,f);
+  if (abs(uVisualIndex - 47.0) < 0.5) color=creator_47_paintVisual(uv,f);
+  if (abs(uVisualIndex - 48.0) < 0.5) color=creator_48_paintVisual(uv,f);
+  if (abs(uVisualIndex - 49.0) < 0.5) color=creator_49_paintVisual(uv,f);
+  if (abs(uVisualIndex - 50.0) < 0.5) color=creator_50_paintVisual(uv,f);
+  if (abs(uVisualIndex - 51.0) < 0.5) color=creator_51_paintVisual(uv,f);
+  if (abs(uVisualIndex - 52.0) < 0.5) color=creator_52_paintVisual(uv,f);
+  if (abs(uVisualIndex - 53.0) < 0.5) color=creator_53_paintVisual(uv,f);
   if (any(isnan(color)) || any(isinf(color))) color=vec4(0.0);
   color=clamp(color,0.0,1.0);
   fragColor=vec4(color.rgb*color.a,color.a);

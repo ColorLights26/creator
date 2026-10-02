@@ -882,6 +882,35 @@
       "reactivity": "optional"
     },
     {
+      "id": "v02_red_neuronal_transparente",
+      "name": "Red Neuronal Cuántica Transparente",
+      "description": "Plexo neuronal transparente con potenciales de acción, sinapsis bioluminiscentes e impulsos reactivos.",
+      "purposes": [
+        "hud",
+        "visualizer"
+      ],
+      "moods": [
+        "tech",
+        "cosmic"
+      ],
+      "concepts": [
+        "neural",
+        "network",
+        "ai"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas v02 (Overlay)",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "v03_matriz_oceanica",
       "name": "Matriz Oceánica 3D",
       "description": "Malla tridimensional retrowave con oleaje armónico multi-frecuencia, sol synthwave con persianas y niebla de profundidad.",
@@ -1010,6 +1039,35 @@
       "reactivity": "optional"
     },
     {
+      "id": "v06_tesseract_4d_transparente",
+      "name": "Hipercubo 4D Tesseract Transparente",
+      "description": "Proyección 4D de hipercubo transparente rotando en planos XW e YZ con aristas luminosas y núcleo reactivo.",
+      "purposes": [
+        "hud",
+        "geometry"
+      ],
+      "moods": [
+        "mystic",
+        "cosmic"
+      ],
+      "concepts": [
+        "tesseract",
+        "4d",
+        "geometry"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas v06 (Overlay)",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "v07_aurora_plasma",
       "name": "Aurora Boreal de Plasma",
       "description": "Cortinas de plasma ionizado con ondulación armónica multi-frecuencia, filamentos centrales y siluetas montañosas sobre noche polar.",
@@ -1072,6 +1130,35 @@
       "publication": "draft",
       "role": "background",
       "reactivity": "music"
+    },
+    {
+      "id": "v08_espectro_cosmico_transparente",
+      "name": "Espectro Sonoro Cósmico Transparente",
+      "description": "Ecualizador radial transparente de 72 barras con núcleo reactivo a los graves y chispas de agudos.",
+      "purposes": [
+        "visualizer",
+        "hud"
+      ],
+      "moods": [
+        "energetic",
+        "futuristic"
+      ],
+      "concepts": [
+        "spectrum",
+        "audio",
+        "circle"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas v08 (Overlay)",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
     },
     {
       "id": "v09_espiral_aurea",
@@ -1171,6 +1258,35 @@
       "reactivity": "optional"
     },
     {
+      "id": "v11_archivo_corrupto_transparente",
+      "name": "Archivo Corrupto Transparente",
+      "description": "Filtro glitch transparente con aberración cromática RGB aditiva, datamosh y saltos de escaneo en los bombos.",
+      "purposes": [
+        "hud",
+        "fx"
+      ],
+      "moods": [
+        "glitch",
+        "cyberpunk"
+      ],
+      "concepts": [
+        "glitch",
+        "crt",
+        "datamosh"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas v11 (Overlay)",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "v12_maquinaria_orbital",
       "name": "Maquinaria Orbital",
       "description": "Planetario astrológico de relojería en latón y piedra, cuatro esferas orbitantes en planos inclinados con sombras arrojadas y sol central iluminado.",
@@ -1202,6 +1318,35 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v12_maquinaria_orbital_transparente",
+      "name": "Maquinaria Orbital Transparente",
+      "description": "Astrolabio astronómico transparente de relojería en latón, engranajes móviles, órbitas y planetas.",
+      "purposes": [
+        "hud",
+        "ambient"
+      ],
+      "moods": [
+        "steampunk",
+        "celestial"
+      ],
+      "concepts": [
+        "clockwork",
+        "astrolabe",
+        "planets"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas v12 (Overlay)",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -1272,6 +1417,35 @@
       "reactivity": "optional"
     },
     {
+      "id": "v14_sismografo_transparente",
+      "name": "Sismógrafo Transparente",
+      "description": "Trazo sismográfico analítico transparente con cuadrícula milimétrica flotante y aguja reactiva al bajo.",
+      "purposes": [
+        "hud",
+        "visualizer"
+      ],
+      "moods": [
+        "tech",
+        "analytical"
+      ],
+      "concepts": [
+        "seismograph",
+        "oscillator",
+        "neon"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas v14 (Overlay)",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "v15_lluvia_cristal",
       "name": "Lluvia sobre Cristal",
       "description": "Gotas de lluvia con física de deslizamiento y coalescencia sobre cristal empañado, refracción de lente y bokeh nocturno de luces de ciudad.",
@@ -1307,6 +1481,35 @@
       "reactivity": "optional"
     },
     {
+      "id": "v15_lluvia_cristal_transparente",
+      "name": "Lluvia sobre Cristal Transparente",
+      "description": "Gotas de lluvia realistas con física de escurrimiento, meniscos y reflejos cáusticos sobre cristal transparente.",
+      "purposes": [
+        "relax",
+        "ambient"
+      ],
+      "moods": [
+        "calm",
+        "rainy"
+      ],
+      "concepts": [
+        "rain",
+        "glass",
+        "water"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas v15 (Overlay)",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "v16_campo_magnetico",
       "name": "Campo Magnético Cuántico",
       "description": "Acelerador magnético de alta energía: dipolo con tubos de flujo aurorales, plasma de Lorentz en espirales ciclotrón, arcos eléctricos Tesla y ferrofluido reactivo.",
@@ -1339,6 +1542,35 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v16_campo_magnetico_transparente",
+      "name": "Campo Magnético Cuántico Transparente",
+      "description": "Líneas de campo electromagnético transparentes con flujo de Lorentz, ferrofluido vibratorio y arcos Tesla.",
+      "purposes": [
+        "energy",
+        "visualizer"
+      ],
+      "moods": [
+        "tech",
+        "mystic"
+      ],
+      "concepts": [
+        "magnetism",
+        "physics",
+        "energy"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas v16 (Overlay)",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
