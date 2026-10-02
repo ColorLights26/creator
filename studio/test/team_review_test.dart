@@ -54,9 +54,14 @@ class _FakeClient implements TeamReviewClient {
   @override
   Future<TeamReviewer> me(String key) async => _auth(key);
 
+  int version = 0;
+  int fullReads = 0;
+
   @override
-  Future<TeamRatingsSnapshot> ratings(String key) async {
+  Future<TeamRatingsSnapshot?> ratings(String key, {String? since}) async {
     final reviewer = _auth(key);
+    if (since == '$version') return null;
+    fullReads++;
     final voted = {
       for (final rating in stored)
         if (rating.reviewerId == reviewer.id)
@@ -68,6 +73,7 @@ class _FakeClient implements TeamReviewClient {
       if (!voted.contains(slot)) hidden[slot] = (hidden[slot] ?? 0) + 1;
     }
     return TeamRatingsSnapshot(
+      version: '$version',
       reviewer: reviewer,
       ratings: [
         for (final rating in stored)
@@ -103,6 +109,7 @@ class _FakeClient implements TeamReviewClient {
   }) async {
     final reviewer = _auth(key);
     rateCalls.add((visualId: visualId, revision: revision, score: score));
+    version++;
     stored.removeWhere(
       (rating) =>
           rating.reviewerId == reviewer.id &&
@@ -284,6 +291,48 @@ void main() {
       expect(controller.myRating('olas', 'abcdef1234567890'), isNull);
     });
   });
+
+  test(
+    'live updates bring the team\'s new votes without touching anything',
+    () async {
+      final client = _FakeClient();
+      final katy = TeamReviewController(
+        client: client,
+        store: _MemoryStore('clr_katy'),
+        liveInterval: const Duration(milliseconds: 20),
+      );
+      final franco = TeamReviewController(
+        client: client,
+        store: _MemoryStore('clr_franco'),
+      );
+      var repaints = 0;
+      await katy.start();
+      katy.addListener(() => repaints++);
+      await Future<void>.delayed(const Duration(milliseconds: 90));
+      expect(repaints, 0, reason: 'idle polls must not repaint');
+      final readsBefore = client.fullReads;
+
+      await franco.start();
+      await franco.rate(
+        visualId: 'olas',
+        visualName: 'Olas',
+        revision: 'abcdef1234567890',
+        score: 9,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 90));
+      expect(katy.hiddenCount('olas', 'abcdef1234567890'), 1);
+      expect(repaints, greaterThan(0));
+      expect(client.fullReads - readsBefore, lessThanOrEqualTo(3));
+
+      katy.setActive(false);
+      final pausedReads = client.fullReads;
+      client.version++;
+      await Future<void>.delayed(const Duration(milliseconds: 90));
+      expect(client.fullReads, pausedReads, reason: 'no polling in background');
+      katy.dispose();
+      franco.dispose();
+    },
+  );
 
   testWidgets('studio votes on the visible revision and jumps to the next', (
     tester,

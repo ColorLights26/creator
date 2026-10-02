@@ -52,6 +52,17 @@ class _TeamRankingScreenState extends State<TeamRankingScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ranking del equipo'),
+        // Votes refresh on their own every few seconds while this is open.
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(18),
+          child: Padding(
+            padding: EdgeInsets.only(bottom: 6),
+            child: Text(
+              '● En vivo',
+              style: TextStyle(fontSize: 11, color: Color(0xFF73F572)),
+            ),
+          ),
+        ),
         actions: [
           IconButton(
             tooltip: 'Actualizar',

@@ -394,6 +394,7 @@ class _CreatorStudioState extends State<CreatorStudio>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _foreground = state == AppLifecycleState.resumed;
+    widget.teamReview?.setActive(_foreground);
     if (!_foreground) _stopReplay();
     _enqueue(() async {
       await _controller.setPlaying(_shouldPlay);

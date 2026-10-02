@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
@@ -33,10 +34,18 @@ class PreferencesReviewerKeyStore implements ReviewerKeyStore {
 /// Team 1-10 ratings for the studio: who is voting, what they may see and
 /// which visual revisions still need their vote.
 class TeamReviewController extends ChangeNotifier {
-  TeamReviewController({required this.client, required this.store});
+  TeamReviewController({
+    required this.client,
+    required this.store,
+    this.liveInterval,
+  });
 
   final TeamReviewClient client;
   final ReviewerKeyStore store;
+
+  /// How often to look for the team's new votes while the studio is open.
+  /// Null disables live updates (tests).
+  final Duration? liveInterval;
 
   String? _key;
   TeamReviewer? _reviewer;
@@ -47,6 +56,9 @@ class TeamReviewController extends ChangeNotifier {
   bool _started = false;
   bool _loading = false;
   bool _disposed = false;
+  bool _active = true;
+  String? _version;
+  Timer? _liveTimer;
   String? _error;
 
   TeamReviewer? get reviewer => _reviewer;
@@ -99,23 +111,60 @@ class TeamReviewController extends ChangeNotifier {
     if (_key != null) await refresh();
   }
 
-  Future<void> refresh() async {
+  /// Fetches the team's votes. A [quiet] refresh is the live poll: it asks
+  /// only for changes since the last version and repaints only if any.
+  Future<void> refresh({bool quiet = false}) async {
     final key = _key;
     if (key == null || _disposed) return;
+    if (quiet && (_loading || _saving.isNotEmpty)) return;
     _loading = true;
-    _notify();
+    if (!quiet) _notify();
     try {
-      _apply(await client.ratings(key));
-      _error = null;
+      final snapshot = await client.ratings(
+        key,
+        since: quiet ? _version : null,
+      );
+      if (snapshot != null && _saving.isEmpty) {
+        _apply(snapshot);
+        _error = null;
+        if (quiet) _notify();
+      }
+      if (!quiet) _error = null;
     } on TeamReviewException catch (error) {
       if (error.unauthorized) {
         await _forget();
       }
-      _error = error.message;
+      if (!quiet || error.unauthorized) {
+        _error = error.message;
+        if (quiet) _notify();
+      }
     } finally {
       _loading = false;
-      _notify();
+      if (!quiet) _notify();
+      _scheduleLive();
     }
+  }
+
+  /// The studio went to the background (false) or came back (true).
+  void setActive(bool active) {
+    if (_active == active) return;
+    _active = active;
+    if (active) {
+      unawaited(refresh(quiet: true));
+    } else {
+      _liveTimer?.cancel();
+      _liveTimer = null;
+    }
+  }
+
+  void _scheduleLive() {
+    final interval = liveInterval;
+    if (interval == null || _disposed || !_active || _key == null) return;
+    if (_liveTimer?.isActive ?? false) return;
+    _liveTimer = Timer(interval, () {
+      _liveTimer = null;
+      unawaited(refresh(quiet: true));
+    });
   }
 
   /// Returns an error message, or null when the key was accepted.
@@ -205,6 +254,7 @@ class TeamReviewController extends ChangeNotifier {
 
   void _apply(TeamRatingsSnapshot snapshot) {
     _reviewer = snapshot.reviewer;
+    _version = snapshot.version;
     final visible = <String, List<TeamRating>>{};
     for (final rating in snapshot.ratings) {
       (visible[ratingKey(rating.visualId, rating.revision)] ??= []).add(rating);
@@ -220,6 +270,9 @@ class TeamReviewController extends ChangeNotifier {
     _visible = {};
     _hidden = {};
     _hiddenDiscarded = {};
+    _version = null;
+    _liveTimer?.cancel();
+    _liveTimer = null;
     try {
       await store.write(null);
     } on Object catch (error, stack) {
@@ -243,6 +296,7 @@ class TeamReviewController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _liveTimer?.cancel();
     super.dispose();
   }
 }

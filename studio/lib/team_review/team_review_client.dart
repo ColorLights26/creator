@@ -51,9 +51,13 @@ class TeamRatingsSnapshot {
     required this.ratings,
     required this.hiddenCounts,
     this.hiddenDiscarded = const {},
+    this.version,
   });
 
   final TeamReviewer reviewer;
+
+  /// Server token of this state; send it back as `since` when polling.
+  final String? version;
   final List<TeamRating> ratings;
 
   /// Keyed by [ratingKey].
@@ -78,7 +82,9 @@ class TeamReviewException implements Exception {
 
 abstract interface class TeamReviewClient {
   Future<TeamReviewer> me(String key);
-  Future<TeamRatingsSnapshot> ratings(String key);
+
+  /// Null when nothing changed since [since] (a previous snapshot version).
+  Future<TeamRatingsSnapshot?> ratings(String key, {String? since});
   Future<TeamRating> rate(
     String key, {
     required String visualId,
@@ -105,9 +111,16 @@ class HttpTeamReviewClient implements TeamReviewClient {
   }
 
   @override
-  Future<TeamRatingsSnapshot> ratings(String key) async {
-    final json = await _send('GET', '/ratings', key);
+  Future<TeamRatingsSnapshot?> ratings(String key, {String? since}) async {
+    final json = await _send(
+      'GET',
+      '/ratings',
+      key,
+      query: since == null ? null : {'since': since},
+    );
+    if (json['unchanged'] == true) return null;
     return TeamRatingsSnapshot(
+      version: json['version'] as String?,
       reviewer: _reviewer(json['reviewer']),
       ratings: [
         for (final item in json['ratings'] as List<Object?>? ?? const [])
@@ -142,13 +155,18 @@ class HttpTeamReviewClient implements TeamReviewClient {
     required int score,
     String? comment,
   }) async {
-    final json = await _send('POST', '/ratings', key, {
-      'visualId': visualId,
-      'visualName': visualName,
-      'revision': revision,
-      'score': score,
-      if (comment != null) 'comment': comment,
-    });
+    final json = await _send(
+      'POST',
+      '/ratings',
+      key,
+      body: {
+        'visualId': visualId,
+        'visualName': visualName,
+        'revision': revision,
+        'score': score,
+        if (comment != null) 'comment': comment,
+      },
+    );
     final rating = json['rating'];
     if (rating is! Map<String, Object?>) {
       throw const TeamReviewException('Respuesta inválida del servidor.');
@@ -171,12 +189,16 @@ class HttpTeamReviewClient implements TeamReviewClient {
   Future<Map<String, Object?>> _send(
     String method,
     String path,
-    String key, [
+    String key, {
     Map<String, Object?>? body,
-  ]) async {
+    Map<String, String>? query,
+  }) async {
     final client = HttpClient()..connectionTimeout = timeout;
     try {
-      final uri = baseUri.replace(path: '${baseUri.path}$path');
+      final uri = baseUri.replace(
+        path: '${baseUri.path}$path',
+        queryParameters: query,
+      );
       final request = await client.openUrl(method, uri).timeout(timeout);
       request.headers
         ..set(HttpHeaders.authorizationHeader, 'Bearer $key')

@@ -27,6 +27,7 @@ Future<void> main() async {
     teamReview: TeamReviewController(
       client: HttpTeamReviewClient(),
       store: PreferencesReviewerKeyStore(),
+      liveInterval: const Duration(seconds: 5),
     ),
   ));
 }
