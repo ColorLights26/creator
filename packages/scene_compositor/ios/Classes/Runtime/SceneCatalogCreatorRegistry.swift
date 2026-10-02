@@ -89,7 +89,7 @@ enum SceneCreatorCatalog {
     guard data.count <= maximumCatalogBytes,
       let root = try JSONSerialization.jsonObject(with: data) as? [String: Any],
       Set(root.keys) == ["schemaVersion", "visuals"], number(root["schemaVersion"]) == 1,
-      let values = root["visuals"] as? [[String: Any]], values.count <= 64
+      let values = root["visuals"] as? [[String: Any]], values.count <= 256
     else { throw CatalogError("catalog_header_invalid") }
     var result = [String: Program]()
     var ids = Set<String>()

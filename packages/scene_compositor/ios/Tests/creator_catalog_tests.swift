@@ -39,6 +39,14 @@ enum CreatorCatalogTests {
     precondition(parsed.count == 4 && parsed["creator_test"]?.shader?.floatCount == 32)
     do { _ = try SceneCreatorCatalog.decode(data([entry, entry])); preconditionFailure("Duplicate accepted") }
     catch {}
+    let overLimit = (0...256).map { i -> [String: Any] in
+      var item = entry
+      item["id"] = "test_\(i)"
+      item["programId"] = "creator_test_\(i)"
+      return item
+    }
+    do { _ = try SceneCreatorCatalog.decode(data(overLimit)); preconditionFailure("Over-limit visuals accepted") }
+    catch {}
     var invalid = entry
     invalid["shaderSource"] = "#include <another_runtime>"
     do { _ = try SceneCreatorCatalog.decode(data([invalid])); preconditionFailure("Extra runtime accepted") }

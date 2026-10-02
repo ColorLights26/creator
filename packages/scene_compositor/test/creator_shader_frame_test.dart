@@ -54,6 +54,9 @@ void main() {
       expect(split[3], 0xabcd);
       expect(split[4], 0x1234);
       expect(() => _state(seed: 0x100000000), throwsArgumentError);
+      expect(() => _state(index: 255), returnsNormally);
+      expect(() => _state(index: 256), throwsArgumentError);
+      expect(() => _state(index: -1), throwsArgumentError);
     },
   );
 
@@ -170,6 +173,7 @@ void main() {
 
 CreatorShaderFrame _state({
   int seed = 42,
+  int index = 7,
   bool reactive = true,
   CreatorReactivity mode = CreatorReactivity.optional,
 }) => CreatorShaderFrame(
@@ -187,7 +191,7 @@ CreatorShaderFrame _state({
     ),
     colors: [0x80112233, 0xff000000, 0xffffffff, 0x00ffffff],
   ),
-  visualIndex: 7,
+  visualIndex: index,
   reactive: reactive,
   seed: seed,
 );
