@@ -8,7 +8,7 @@ const metadata = CreatorVisualMetadata(
   purposes: ['hud', 'fx'],
   moods: ['glitch', 'cyberpunk'],
   concepts: ['glitch', 'crt', 'datamosh'],
-  credits: CreatorCredits(author: 'Visuales Inmersivas v11 (Overlay)'),
+  credits: CreatorCredits(author: 'Visuales Inmersivas'),
   thumbnail: CreatorThumbnailSpec(timeSeconds: 2.5),
   role: CreatorRole.overlay,
   reactivity: CreatorReactivity.optional,

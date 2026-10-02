@@ -43,13 +43,15 @@ class _AudioSignalChartState extends State<AudioSignalChart>
   double _energy = 0.0;
   bool _isBeat = false;
   double _wavePhase = 0.0;
-  Ticker? _ticker;
+  // Sólo corre mientras las barras se desvanecen; con señal activa cada
+  // fotograma recibido redibuja, y en reposo no se piden fotogramas.
+  late final Ticker _ticker;
 
   @override
   void initState() {
     super.initState();
+    _ticker = createTicker(_onTick);
     widget.signalListenable?.addListener(_onSignalFrame);
-    _ticker = createTicker(_onTick)..start();
   }
 
   @override
@@ -59,18 +61,31 @@ class _AudioSignalChartState extends State<AudioSignalChart>
       oldWidget.signalListenable?.removeListener(_onSignalFrame);
       widget.signalListenable?.addListener(_onSignalFrame);
     }
+    if (!_receiving) _startDecay();
   }
 
   @override
   void dispose() {
-    _ticker?.dispose();
+    _ticker.dispose();
     widget.signalListenable?.removeListener(_onSignalFrame);
     super.dispose();
   }
 
+  bool get _receiving =>
+      widget.playing &&
+      widget.reactive &&
+      !widget.muted &&
+      widget.signalListenable?.value != null;
+
+  void _startDecay() {
+    if (!_ticker.isActive) _ticker.start();
+  }
+
   void _onSignalFrame() {
     final frame = widget.signalListenable?.value;
-    if (!mounted || frame == null || !widget.reactive || !widget.playing || widget.muted) {
+    if (!mounted) return;
+    if (frame == null || !widget.reactive || !widget.playing || widget.muted) {
+      _startDecay();
       return;
     }
 
@@ -97,33 +112,37 @@ class _AudioSignalChartState extends State<AudioSignalChart>
   }
 
   void _onTick(Duration elapsed) {
-    if (!widget.playing || !widget.reactive || widget.muted || widget.signalListenable?.value == null) {
-      var changed = false;
-      for (var i = 0; i < _displayBands.length; i++) {
-        if (_displayBands[i] > 0.005) {
-          _displayBands[i] *= 0.90;
-          changed = true;
-        } else {
-          _displayBands[i] = 0.0;
-        }
-      }
-      for (var i = 0; i < _waveformHistory.length; i++) {
-        if (_waveformHistory[i].abs() > 0.005) {
-          _waveformHistory[i] *= 0.88;
-          changed = true;
-        } else {
-          _waveformHistory[i] = 0.0;
-        }
-      }
-      if (_energy > 0.005) {
-        _energy *= 0.90;
+    if (_receiving) {
+      _ticker.stop();
+      return;
+    }
+    var changed = false;
+    for (var i = 0; i < _displayBands.length; i++) {
+      if (_displayBands[i] > 0.005) {
+        _displayBands[i] *= 0.90;
         changed = true;
       } else {
-        _energy = 0.0;
+        _displayBands[i] = 0.0;
       }
-      if (changed && mounted) {
-        setState(() {});
+    }
+    for (var i = 0; i < _waveformHistory.length; i++) {
+      if (_waveformHistory[i].abs() > 0.005) {
+        _waveformHistory[i] *= 0.88;
+        changed = true;
+      } else {
+        _waveformHistory[i] = 0.0;
       }
+    }
+    if (_energy > 0.005) {
+      _energy *= 0.90;
+      changed = true;
+    } else {
+      _energy = 0.0;
+    }
+    if (!changed) {
+      _ticker.stop();
+    } else if (mounted) {
+      setState(() {});
     }
   }
 

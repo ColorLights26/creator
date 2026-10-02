@@ -98,7 +98,8 @@ vec4 paintVisual(vec2 uv, CreatorFrame f) {
   float vig = 1.0 - smoothstep(0.5, 1.5, r);
   col = col * vig * f.intensity * f.glow;
 
+  // RGBA recto: el motor multiplica por alpha al componer.
   float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.6, 0.0, 1.0);
-  return vec4(clamp(col * alpha, 0.0, 1.0), alpha);
+  return vec4(clamp(col, 0.0, 1.0), alpha);
 }
 ''';

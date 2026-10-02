@@ -112,7 +112,7 @@ class _FrozenPosters {
       _cache[key] = cached;
       return cached;
     }
-    // Only one 256px raster/readback at a time; at most 64 compressed posters.
+    // Only one 256px raster/readback at a time; at most 256 compressed posters.
     final next = _pending.then(
       (_) => _render(visual, index, shaderAsset, time),
     );

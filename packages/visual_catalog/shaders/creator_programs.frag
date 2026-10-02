@@ -462,8 +462,9 @@ vec4 creator_14_paintVisual(vec2 uv, CreatorFrame f) {
   float vig = 1.0 - smoothstep(0.5, 1.5, r);
   col = col * vig * f.intensity * f.glow;
 
+  
   float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.6, 0.0, 1.0);
-  return vec4(clamp(col * alpha, 0.0, 1.0), alpha);
+  return vec4(clamp(col, 0.0, 1.0), alpha);
 }
 
 vec2 creator_15_rotate2D(vec2 p, float a) {
@@ -750,7 +751,8 @@ vec4 creator_25_paintVisual(vec2 uv, CreatorFrame f) {
   float fluidAlpha = smoothstep(1.35, 0.65, length(p));
   float alpha = fluidAlpha * smoothstep(0.04, 0.20, max(surface.r, max(surface.g, surface.b)));
 
-  return vec4(clamp(surface * f.intensity * f.glow * alpha, 0.0, 1.0), alpha);
+  
+  return vec4(clamp(surface * f.intensity * f.glow, 0.0, 1.0), alpha);
 }
 
 vec4 creator_26_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
@@ -905,8 +907,9 @@ vec4 creator_30_paintVisual(vec2 uv, CreatorFrame f) {
   float vignette = 1.0 - smoothstep(0.45, 1.45, length(p));
   col *= vignette;
 
+  
   float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.6, 0.0, 1.0);
-  return vec4(clamp(col * alpha, 0.0, 1.0), alpha);
+  return vec4(clamp(col, 0.0, 1.0), alpha);
 }
 
 vec4 creator_31_paintVisual(vec2 uv, CreatorFrame f) {
@@ -1217,7 +1220,8 @@ vec4 creator_65_paintVisual(vec2 uv, CreatorFrame f) {
   col *= vignette;
 
   float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.8, 0.0, 1.0);
-  return vec4(clamp(col * f.intensity * f.glow * alpha, 0.0, 1.0), alpha);
+  
+  return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), alpha);
 }
 
 vec4 creator_66_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
