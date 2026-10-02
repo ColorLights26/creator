@@ -147,6 +147,70 @@
       "reactivity": "optional"
     },
     {
+      "id": "catedral_luz",
+      "name": "Catedral de Luz",
+      "description": "Haces volumétricos a través de un rosetón de vidrieras que se encienden con el espectro y estallan en cada golpe.",
+      "purposes": [
+        "relax",
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "epic",
+        "spiritual",
+        "cinematic"
+      ],
+      "concepts": [
+        "god rays",
+        "stained glass",
+        "light",
+        "cathedral"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "causticas",
+      "name": "Cáusticas Profundas",
+      "description": "Fondo marino bajo la red de luz del oleaje: los graves agitan las cáusticas, los golpes salpican la luz y los agudos encienden el plancton.",
+      "purposes": [
+        "relax",
+        "visualizer",
+        "chill"
+      ],
+      "moods": [
+        "calm",
+        "aquatic",
+        "dreamy"
+      ],
+      "concepts": [
+        "caustics",
+        "underwater",
+        "ocean",
+        "light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "ciber_reticula",
       "name": "Ciber Retícula 3D",
       "description": "Paisaje cyberpunk infinito en perspectiva 3D con topografía láser, sol sintetizador en el horizonte y ondas de choque.",
@@ -388,6 +452,37 @@
       "reactivity": "optional"
     },
     {
+      "id": "ferrofluido",
+      "name": "Ferrofluido",
+      "description": "Charco de líquido magnético negro cuyas púas se levantan con los graves y el espectro bajo luz de estudio.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "dark",
+        "glossy",
+        "energetic"
+      ],
+      "concepts": [
+        "ferrofluid",
+        "liquid",
+        "magnetic",
+        "spikes"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "flor_cosmica",
       "name": "Flor Cósmica",
       "description": "Loto dimensional y mandala sagrado de pétalos dorados y violetas que florece en espirales de Fibonacci al compás del sonido.",
@@ -499,6 +594,37 @@
       "concepts": [],
       "credits": {
         "author": "Creator SDK",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "globo_tesla",
+      "name": "Globo Tesla",
+      "description": "Lámpara de plasma cuyos filamentos siguen el espectro y saltan a nuevas posiciones con cada golpe.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "electric",
+        "energetic",
+        "mysterious"
+      ],
+      "concepts": [
+        "plasma globe",
+        "electricity",
+        "tesla",
+        "lightning"
+      ],
+      "credits": {
+        "author": "Chic Apps",
         "license": "",
         "source": ""
       },
@@ -645,6 +771,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "llamarada",
+      "name": "Llamarada",
+      "description": "Fuego vivo que ruge con los graves, lanza llamaradas y lluvias de chispas con cada golpe y multiplica las brasas con los agudos.",
+      "purposes": [
+        "party",
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "warm",
+        "energetic",
+        "cozy"
+      ],
+      "concepts": [
+        "fire",
+        "flames",
+        "embers",
+        "sparks"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "malla_ondas",
       "name": "Malla de Ondas",
       "description": "Miles de puntos azules ondulando como agua vista desde arriba.",
@@ -769,6 +927,69 @@
       "reactivity": "optional"
     },
     {
+      "id": "metal_tornasol",
+      "name": "Metal Tornasol",
+      "description": "Metal líquido con reflejos tornasolados vivos que estalla en ondas de choque y cambia de tono con cada golpe.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "energetic",
+        "glossy",
+        "epic"
+      ],
+      "concepts": [
+        "liquid metal",
+        "iridescence",
+        "chrome",
+        "shockwave"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "nebulosa_viva",
+      "name": "Nebulosa Viva",
+      "description": "Nebulosa volumétrica iluminada desde dentro: cada golpe enciende su estrella y lanza una onda de choque a través del gas.",
+      "purposes": [
+        "relax",
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "cosmic",
+        "dreamy",
+        "epic"
+      ],
+      "concepts": [
+        "nebula",
+        "space",
+        "gas",
+        "stars"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "neon_lluvia",
       "name": "Neón bajo la Lluvia",
       "description": "Ciudad de neón en cuatro capas con ventanas encendidas, reflejo mojado y lluvia arrastrada por el viento.",
@@ -784,6 +1005,70 @@
         "city",
         "rain",
         "neon"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "pelicula_iridiscente",
+      "name": "Película Iridiscente",
+      "description": "Macro de una película de jabón con colores de interferencia que fluyen, se agitan con los graves y estallan en anillos con cada golpe.",
+      "purposes": [
+        "relax",
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "dreamy",
+        "fluid",
+        "elegant"
+      ],
+      "concepts": [
+        "soap film",
+        "iridescence",
+        "interference",
+        "bubble"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "planeta_anillado",
+      "name": "Planeta Anillado",
+      "description": "Gigante gaseoso cuyos anillos se encienden como un ecualizador; los golpes lanzan ondas por los anillos y auroras en los polos.",
+      "purposes": [
+        "relax",
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "cosmic",
+        "epic",
+        "elegant"
+      ],
+      "concepts": [
+        "planet",
+        "rings",
+        "space",
+        "spectrum"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -955,6 +1240,37 @@
       "reactivity": "optional"
     },
     {
+      "id": "proyeccion_liquida",
+      "name": "Proyección Líquida",
+      "description": "Espectáculo de luz líquida: tintes de aceite que se mezclan en el proyector, se presionan con cada golpe y ondulan con los graves.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "psychedelic",
+        "retro",
+        "fluid"
+      ],
+      "concepts": [
+        "liquid light show",
+        "oil",
+        "dye",
+        "projector"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "salto_hiperespacial",
       "name": "Salto Hiperespacial",
       "description": "Túnel de aros hexagonales y octogonales con 260 estelas estelares que se aceleran con los graves.",
@@ -1054,6 +1370,37 @@
       "concepts": [],
       "credits": {
         "author": "Creator SDK",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "tormenta_electrica",
+      "name": "Tormenta Eléctrica",
+      "description": "Cielo de tormenta donde cada golpe dispara un rayo que ilumina las nubes desde dentro y se refleja en el suelo mojado.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "dramatic",
+        "dark",
+        "epic"
+      ],
+      "concepts": [
+        "storm",
+        "lightning",
+        "clouds",
+        "rain"
+      ],
+      "credits": {
+        "author": "Chic Apps",
         "license": "",
         "source": ""
       },
