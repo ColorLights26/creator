@@ -18,7 +18,13 @@ import '../team_review/visual_revision.dart';
 import 'studio_view.dart';
 
 export 'studio_view.dart'
-    show VisualCurationStatus, StudioBackgroundMode, CheckerboardPainter;
+    show
+        CheckerboardPainter,
+        StudioBackgroundMode,
+        StudioRoleFilter,
+        StudioSignalSource,
+        StudioVisualItem,
+        VisualCurationStatus;
 
 List<CreatorVisualDefinition> _defaultCatalog() => creatorVisuals;
 
@@ -772,6 +778,7 @@ class _CreatorStudioState extends State<CreatorStudio>
             id: _catalog[index].id,
             name: _catalog[index].name,
             description: _catalog[index].description,
+            role: _catalog[index].role,
             details: [
               _catalog[index].publication == CreatorPublication.draft
                   ? 'Borrador'

@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:scene_compositor/scene_compositor.dart';
 
@@ -18,19 +17,30 @@ enum StudioBackgroundMode {
   light,
 }
 
+enum StudioRoleFilter {
+  all,
+  overlays,
+  backgrounds,
+}
+
 class StudioVisualItem {
   const StudioVisualItem({
     required this.id,
     required this.name,
     required this.thumbnail,
+    this.role = CreatorRole.background,
     this.description = '',
     this.details = '',
   });
   final String id;
   final String name;
   final Widget thumbnail;
+  final CreatorRole role;
   final String description;
   final String details;
+
+  bool get isOverlay => role == CreatorRole.overlay;
+  bool get isBackground => role == CreatorRole.background;
 }
 
 class StudioSignalSource {
@@ -107,11 +117,9 @@ class StudioView extends StatefulWidget {
 }
 
 class _StudioViewState extends State<StudioView> {
-  int? _fps;
-  int _frameCount = 0;
-  DateTime _lastFpsTime = DateTime.now();
   bool _showControls = true;
   StudioBackgroundMode _bgMode = StudioBackgroundMode.dark;
+  StudioRoleFilter _roleFilter = StudioRoleFilter.all;
 
   void _cycleBackgroundMode() {
     setState(() {
@@ -142,31 +150,44 @@ class _StudioViewState extends State<StudioView> {
     StudioBackgroundMode.light => 'Fondo: Claro (toca para fondo oscuro)',
   };
 
-  @override
-  void initState() {
-    super.initState();
-    SchedulerBinding.instance.addPersistentFrameCallback((_) {
-      if (!mounted) return;
-      _frameCount++;
-      final now = DateTime.now();
-      final elapsed = now.difference(_lastFpsTime).inMilliseconds;
-      if (elapsed < 1000) return;
-      // Tras una pausa sin fotogramas la ventana no representa la cadencia.
-      final calculated =
-          elapsed > 2000 ? _fps : (_frameCount * 1000 / elapsed).round();
-      _frameCount = 0;
-      _lastFpsTime = now;
-      if (calculated != _fps) setState(() => _fps = calculated);
+  List<StudioVisualItem> get _filteredVisuals {
+    return switch (_roleFilter) {
+      StudioRoleFilter.all => widget.visuals,
+      StudioRoleFilter.overlays =>
+        widget.visuals.where((v) => v.isOverlay).toList(),
+      StudioRoleFilter.backgrounds =>
+        widget.visuals.where((v) => v.isBackground).toList(),
+    };
+  }
+
+  void _setRoleFilter(StudioRoleFilter filter) {
+    if (_roleFilter == filter) return;
+    setState(() {
+      _roleFilter = filter;
+      final filtered = _filteredVisuals;
+      if (filtered.isEmpty) {
+        widget.onSelectVisual(null);
+      } else if (!filtered.any((v) => v.id == widget.selectedVisualId)) {
+        final pending = filtered.where((v) {
+          final status =
+              widget.curationStatus[v.id] ?? VisualCurationStatus.pending;
+          return status == VisualCurationStatus.pending;
+        }).toList();
+        widget.onSelectVisual(
+          pending.isNotEmpty ? pending.first.id : filtered.first.id,
+        );
+      }
     });
   }
 
   int get _currentIndex {
-    if (widget.visuals.isEmpty || widget.selectedVisualId == null) return -1;
-    return widget.visuals.indexWhere((v) => v.id == widget.selectedVisualId);
+    final list = _filteredVisuals;
+    if (list.isEmpty || widget.selectedVisualId == null) return -1;
+    return list.indexWhere((v) => v.id == widget.selectedVisualId);
   }
 
   List<StudioVisualItem> get _pendingVisuals {
-    return widget.visuals.where((v) {
+    return _filteredVisuals.where((v) {
       final status =
           widget.curationStatus[v.id] ?? VisualCurationStatus.pending;
       return status == VisualCurationStatus.pending;
@@ -211,17 +232,18 @@ class _StudioViewState extends State<StudioView> {
   }
 
   void _advanceAfterCuration(String curatedId) {
+    final filtered = _filteredVisuals;
     // En modo vista se avanza dentro del slide actual.
     if (_viewFilter != null) {
       final remaining = _viewVisuals.where((v) => v.id != curatedId).toList();
       if (remaining.isNotEmpty) {
         // El estado ya cambió y el visual curado puede haber salido de la
-        // vista; su posición se mide en el catálogo completo.
-        final curatedIndex = widget.visuals.indexWhere(
+        // vista; su posición se mide en el catálogo filtrado.
+        final curatedIndex = filtered.indexWhere(
           (v) => v.id == curatedId,
         );
         final next = remaining.firstWhere(
-          (v) => widget.visuals.indexOf(v) > curatedIndex,
+          (v) => filtered.indexOf(v) > curatedIndex,
           orElse: () => remaining.first,
         );
         widget.onSelectVisual(next.id);
@@ -247,7 +269,7 @@ class _StudioViewState extends State<StudioView> {
       return;
     }
 
-    final remainingPending = widget.visuals.where((v) {
+    final remainingPending = filtered.where((v) {
       if (v.id == curatedId) return false;
       final status =
           widget.curationStatus[v.id] ?? VisualCurationStatus.pending;
@@ -255,9 +277,9 @@ class _StudioViewState extends State<StudioView> {
     }).toList();
 
     if (remainingPending.isNotEmpty) {
-      final curatedIndex = widget.visuals.indexWhere((v) => v.id == curatedId);
+      final curatedIndex = filtered.indexWhere((v) => v.id == curatedId);
       final next = remainingPending.firstWhere(
-        (v) => widget.visuals.indexOf(v) > curatedIndex,
+        (v) => filtered.indexOf(v) > curatedIndex,
         orElse: () => remainingPending.first,
       );
       widget.onSelectVisual(next.id);
@@ -281,8 +303,9 @@ class _StudioViewState extends State<StudioView> {
     final selected =
         widget.visuals.where((v) => v.id == widget.selectedVisualId).firstOrNull;
 
+    final filtered = _filteredVisuals;
     final index = _currentIndex;
-    final total = widget.visuals.length;
+    final total = filtered.length;
     final pending = _pendingVisuals;
     final view = _viewVisuals;
     final isSelectedPending = selected != null &&
@@ -353,37 +376,163 @@ class _StudioViewState extends State<StudioView> {
           ),
         ),
         actions: [
-          Center(
-            child: Text(
-              '${_fps ?? '--'} FPS',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.5,
-                color: Colors.white70,
-                fontFeatures: [FontFeature.tabularFigures()],
-                shadows: [
-                  Shadow(color: Colors.black87, blurRadius: 10),
+          PopupMenuButton<StudioRoleFilter>(
+            key: const ValueKey('role-filter-button'),
+            tooltip: switch (_roleFilter) {
+              StudioRoleFilter.all => 'Filtrar tipo: Todos',
+              StudioRoleFilter.overlays => 'Filtrar tipo: Solo Transparencias',
+              StudioRoleFilter.backgrounds => 'Filtrar tipo: Solo Fondos',
+            },
+            initialValue: _roleFilter,
+            onSelected: _setRoleFilter,
+            icon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  switch (_roleFilter) {
+                    StudioRoleFilter.all => Icons.filter_alt_outlined,
+                    StudioRoleFilter.overlays => Icons.layers_rounded,
+                    StudioRoleFilter.backgrounds => Icons.wallpaper_rounded,
+                  },
+                  color: _roleFilter == StudioRoleFilter.all
+                      ? Colors.white70
+                      : const Color(0xFF73F572),
+                  size: 19,
+                ),
+                if (_roleFilter != StudioRoleFilter.all) ...[
+                  const SizedBox(width: 4),
+                  Text(
+                    _roleFilter == StudioRoleFilter.overlays
+                        ? 'Overlay'
+                        : 'Fondo',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF73F572),
+                    ),
+                  ),
                 ],
-              ),
+              ],
             ),
+            style: IconButton.styleFrom(
+              backgroundColor: _roleFilter == StudioRoleFilter.all
+                  ? Colors.black.withValues(alpha: 0.4)
+                  : const Color(0xFF73F572).withValues(alpha: 0.2),
+              side: _roleFilter == StudioRoleFilter.all
+                  ? BorderSide.none
+                  : const BorderSide(color: Color(0xFF73F572), width: 1.0),
+            ),
+            color: const Color(0xFF1E1E24),
+            itemBuilder: (context) {
+              final overlaysCount =
+                  widget.visuals.where((v) => v.isOverlay).length;
+              final backgroundsCount =
+                  widget.visuals.where((v) => v.isBackground).length;
+              return [
+                PopupMenuItem(
+                  value: StudioRoleFilter.all,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.apps_rounded,
+                        size: 18,
+                        color: _roleFilter == StudioRoleFilter.all
+                            ? const Color(0xFF73F572)
+                            : Colors.white70,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Todos (${widget.visuals.length})',
+                          style: TextStyle(
+                            fontWeight: _roleFilter == StudioRoleFilter.all
+                                ? FontWeight.w800
+                                : FontWeight.normal,
+                            color: _roleFilter == StudioRoleFilter.all
+                                ? const Color(0xFF73F572)
+                                : Colors.white,
+                          ),
+                        ),
+                      ),
+                      if (_roleFilter == StudioRoleFilter.all)
+                        const Icon(
+                          Icons.check_rounded,
+                          size: 18,
+                          color: Color(0xFF73F572),
+                        ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: StudioRoleFilter.overlays,
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.layers_rounded,
+                        size: 18,
+                        color: Color(0xFF73F572),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Solo Transparencias ($overlaysCount)',
+                          style: TextStyle(
+                            fontWeight: _roleFilter == StudioRoleFilter.overlays
+                                ? FontWeight.w800
+                                : FontWeight.normal,
+                            color: _roleFilter == StudioRoleFilter.overlays
+                                ? const Color(0xFF73F572)
+                                : Colors.white,
+                          ),
+                        ),
+                      ),
+                      if (_roleFilter == StudioRoleFilter.overlays)
+                        const Icon(
+                          Icons.check_rounded,
+                          size: 18,
+                          color: Color(0xFF73F572),
+                        ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: StudioRoleFilter.backgrounds,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.wallpaper_rounded,
+                        size: 18,
+                        color: _roleFilter == StudioRoleFilter.backgrounds
+                            ? const Color(0xFF73F572)
+                            : Colors.white70,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Solo Fondos ($backgroundsCount)',
+                          style: TextStyle(
+                            fontWeight:
+                                _roleFilter == StudioRoleFilter.backgrounds
+                                    ? FontWeight.w800
+                                    : FontWeight.normal,
+                            color: _roleFilter == StudioRoleFilter.backgrounds
+                                ? const Color(0xFF73F572)
+                                : Colors.white,
+                          ),
+                        ),
+                      ),
+                      if (_roleFilter == StudioRoleFilter.backgrounds)
+                        const Icon(
+                          Icons.check_rounded,
+                          size: 18,
+                          color: Color(0xFF73F572),
+                        ),
+                    ],
+                  ),
+                ),
+              ];
+            },
           ),
-          const SizedBox(width: 10),
-          if (widget.onPictureInPicture != null)
-            IconButton(
-              tooltip: widget.pictureInPictureActive
-                  ? 'Volver de PiP'
-                  : 'Probar PiP',
-              onPressed: widget.loading ? null : widget.onPictureInPicture,
-              icon: const Icon(
-                Icons.picture_in_picture_alt,
-                color: Colors.white,
-                size: 20,
-              ),
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.black.withValues(alpha: 0.4),
-              ),
-            ),
           IconButton(
             tooltip: _bgModeTooltip,
             onPressed: _cycleBackgroundMode,
@@ -398,6 +547,30 @@ class _StudioViewState extends State<StudioView> {
               backgroundColor: Colors.black.withValues(alpha: 0.4),
             ),
           ),
+          if (widget.onPictureInPicture != null)
+            IconButton(
+              tooltip: widget.pictureInPictureActive
+                  ? 'Volver de PiP'
+                  : 'Probar PiP',
+              onPressed: widget.loading ? null : widget.onPictureInPicture,
+              icon: Icon(
+                widget.pictureInPictureActive
+                    ? Icons.picture_in_picture_alt_rounded
+                    : Icons.picture_in_picture_rounded,
+                color: widget.pictureInPictureActive
+                    ? const Color(0xFF73F572)
+                    : Colors.white,
+                size: 20,
+              ),
+              style: IconButton.styleFrom(
+                backgroundColor: widget.pictureInPictureActive
+                    ? const Color(0xFF73F572).withValues(alpha: 0.25)
+                    : Colors.black.withValues(alpha: 0.4),
+                side: widget.pictureInPictureActive
+                    ? const BorderSide(color: Color(0xFF73F572), width: 1.2)
+                    : BorderSide.none,
+              ),
+            ),
           IconButton(
             tooltip: _showControls ? 'Ocultar interfaz' : 'Mostrar interfaz',
             onPressed: () => setState(() => _showControls = !_showControls),
@@ -733,7 +906,7 @@ class _StudioViewState extends State<StudioView> {
   List<StudioVisualItem> get _viewVisuals {
     final filter = _viewFilter;
     if (filter != null) {
-      return widget.visuals
+      return _filteredVisuals
           .where((v) => widget.curationStatus[v.id] == filter)
           .toList();
     }
@@ -741,7 +914,7 @@ class _StudioViewState extends State<StudioView> {
   }
 
   void _enterViewMode(VisualCurationStatus filter) {
-    final list = widget.visuals
+    final list = _filteredVisuals
         .where((v) => widget.curationStatus[v.id] == filter)
         .toList();
     if (list.isEmpty) return;
@@ -1055,7 +1228,9 @@ class _StudioViewState extends State<StudioView> {
         DropdownButtonHideUnderline(
           child: DropdownButton<String>(
             key: const ValueKey('visual-selector'),
-            value: widget.selectedVisualId,
+            value: _filteredVisuals.any((v) => v.id == widget.selectedVisualId)
+                ? widget.selectedVisualId
+                : null,
             isExpanded: true,
             dropdownColor: const Color(0xFF162521),
             borderRadius: BorderRadius.circular(16),
@@ -1073,31 +1248,66 @@ class _StudioViewState extends State<StudioView> {
               ),
             ),
             selectedItemBuilder: (context) => [
-              for (final visual in widget.visuals)
+              for (final visual in _filteredVisuals)
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Text(
-                    visual.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black87,
-                          blurRadius: 16,
-                          offset: Offset(0, 2),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          visual.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black87,
+                                blurRadius: 16,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: visual.isOverlay
+                              ? const Color(0xFF73F572).withValues(alpha: 0.2)
+                              : Colors.white.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: visual.isOverlay
+                                ? const Color(0xFF73F572).withValues(alpha: 0.6)
+                                : Colors.white24,
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          visual.isOverlay ? 'Overlay' : 'Fondo',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: visual.isOverlay
+                                ? const Color(0xFF73F572)
+                                : Colors.white70,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
             ],
             items: [
-              for (final visual in widget.visuals)
+              for (final visual in _filteredVisuals)
                 DropdownMenuItem(
                   value: visual.id,
                   child: Row(
@@ -1117,7 +1327,37 @@ class _StudioViewState extends State<StudioView> {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Colors.white,
+                            fontSize: 15,
                             fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: visual.isOverlay
+                              ? const Color(0xFF73F572).withValues(alpha: 0.15)
+                              : Colors.white.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: visual.isOverlay
+                                ? const Color(0xFF73F572).withValues(alpha: 0.4)
+                                : Colors.white12,
+                            width: 0.6,
+                          ),
+                        ),
+                        child: Text(
+                          visual.isOverlay ? 'Overlay' : 'Fondo',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: visual.isOverlay
+                                ? const Color(0xFF73F572)
+                                : Colors.white60,
                           ),
                         ),
                       ),
@@ -1819,22 +2059,23 @@ class _StudioViewState extends State<StudioView> {
         int activeFilterIndex = 0; // 0: Todos, 1: Pendientes, 2: Aprobados, 3: Descartados
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            final approved = widget.visuals.where(
+            final roleBaseVisuals = _filteredVisuals;
+            final approved = roleBaseVisuals.where(
               (v) =>
                   widget.curationStatus[v.id] == VisualCurationStatus.approved,
             );
-            final rejected = widget.visuals.where(
+            final rejected = roleBaseVisuals.where(
               (v) =>
                   widget.curationStatus[v.id] == VisualCurationStatus.rejected,
             );
-            final pending = widget.visuals.where(
+            final pending = roleBaseVisuals.where(
               (v) =>
                   (widget.curationStatus[v.id] ??
                       VisualCurationStatus.pending) ==
                   VisualCurationStatus.pending,
             );
 
-            final displayedVisuals = widget.visuals.where((v) {
+            final displayedVisuals = roleBaseVisuals.where((v) {
               final status =
                   widget.curationStatus[v.id] ?? VisualCurationStatus.pending;
               return switch (activeFilterIndex) {
@@ -1844,6 +2085,11 @@ class _StudioViewState extends State<StudioView> {
                 _ => true,
               };
             }).toList();
+
+            final overlaysCount =
+                widget.visuals.where((v) => v.isOverlay).length;
+            final backgroundsCount =
+                widget.visuals.where((v) => v.isBackground).length;
 
             return DraggableScrollableSheet(
               initialChildSize: 0.7,
@@ -1904,14 +2150,123 @@ class _StudioViewState extends State<StudioView> {
                         ],
                       ),
 
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 12),
+
+                      // Role filter row (Todos / Transparencias / Fondos)
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            ChoiceChip(
+                              avatar: const Icon(Icons.apps_rounded, size: 14),
+                              label: Text('Todos (${widget.visuals.length})'),
+                              selected: _roleFilter == StudioRoleFilter.all,
+                              onSelected: (_) {
+                                _setRoleFilter(StudioRoleFilter.all);
+                                setSheetState(() {});
+                              },
+                              selectedColor: const Color(0xFF73F572)
+                                  .withValues(alpha: 0.25),
+                              backgroundColor:
+                                  Colors.white.withValues(alpha: 0.08),
+                              labelStyle: TextStyle(
+                                fontSize: 12,
+                                fontWeight: _roleFilter == StudioRoleFilter.all
+                                    ? FontWeight.w800
+                                    : FontWeight.w600,
+                                color: _roleFilter == StudioRoleFilter.all
+                                    ? const Color(0xFF73F572)
+                                    : Colors.white70,
+                              ),
+                              side: BorderSide(
+                                color: _roleFilter == StudioRoleFilter.all
+                                    ? const Color(0xFF73F572)
+                                    : Colors.transparent,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            ChoiceChip(
+                              avatar: const Icon(
+                                Icons.layers_rounded,
+                                size: 14,
+                                color: Color(0xFF73F572),
+                              ),
+                              label: Text(
+                                'Solo Transparencias ($overlaysCount)',
+                              ),
+                              selected: _roleFilter == StudioRoleFilter.overlays,
+                              onSelected: (_) {
+                                _setRoleFilter(StudioRoleFilter.overlays);
+                                setSheetState(() {});
+                              },
+                              selectedColor: const Color(0xFF73F572)
+                                  .withValues(alpha: 0.25),
+                              backgroundColor:
+                                  Colors.white.withValues(alpha: 0.08),
+                              labelStyle: TextStyle(
+                                fontSize: 12,
+                                fontWeight:
+                                    _roleFilter == StudioRoleFilter.overlays
+                                        ? FontWeight.w800
+                                        : FontWeight.w600,
+                                color: _roleFilter == StudioRoleFilter.overlays
+                                    ? const Color(0xFF73F572)
+                                    : Colors.white70,
+                              ),
+                              side: BorderSide(
+                                color: _roleFilter == StudioRoleFilter.overlays
+                                    ? const Color(0xFF73F572)
+                                    : Colors.transparent,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            ChoiceChip(
+                              avatar: const Icon(
+                                Icons.wallpaper_rounded,
+                                size: 14,
+                                color: Colors.white70,
+                              ),
+                              label: Text('Solo Fondos ($backgroundsCount)'),
+                              selected:
+                                  _roleFilter == StudioRoleFilter.backgrounds,
+                              onSelected: (_) {
+                                _setRoleFilter(StudioRoleFilter.backgrounds);
+                                setSheetState(() {});
+                              },
+                              selectedColor: const Color(0xFF73F572)
+                                  .withValues(alpha: 0.25),
+                              backgroundColor:
+                                  Colors.white.withValues(alpha: 0.08),
+                              labelStyle: TextStyle(
+                                fontSize: 12,
+                                fontWeight:
+                                    _roleFilter == StudioRoleFilter.backgrounds
+                                        ? FontWeight.w800
+                                        : FontWeight.w600,
+                                color:
+                                    _roleFilter == StudioRoleFilter.backgrounds
+                                        ? const Color(0xFF73F572)
+                                        : Colors.white70,
+                              ),
+                              side: BorderSide(
+                                color:
+                                    _roleFilter == StudioRoleFilter.backgrounds
+                                        ? const Color(0xFF73F572)
+                                        : Colors.transparent,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
 
                       // Summary chips (interactive filter tabs)
                       Row(
                         children: [
                           _buildCountBadge(
                             'Total',
-                            '${widget.visuals.length}',
+                            '${roleBaseVisuals.length}',
                             Colors.white24,
                             Colors.white,
                             isSelected: activeFilterIndex == 0,
@@ -2099,6 +2454,41 @@ class _StudioViewState extends State<StudioView> {
                                                   ? FontWeight.w900
                                                   : FontWeight.w700,
                                               fontSize: 15,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 5,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: visual.isOverlay
+                                                ? const Color(0xFF73F572)
+                                                    .withValues(alpha: 0.15)
+                                                : Colors.white
+                                                    .withValues(alpha: 0.08),
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                            border: Border.all(
+                                              color: visual.isOverlay
+                                                  ? const Color(0xFF73F572)
+                                                      .withValues(alpha: 0.4)
+                                                  : Colors.white12,
+                                              width: 0.6,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            visual.isOverlay
+                                                ? 'Overlay'
+                                                : 'Fondo',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w700,
+                                              color: visual.isOverlay
+                                                  ? const Color(0xFF73F572)
+                                                  : Colors.white60,
                                             ),
                                           ),
                                         ),
