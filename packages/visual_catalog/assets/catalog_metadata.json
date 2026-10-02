@@ -246,19 +246,22 @@
     {
       "id": "constelacion_viva",
       "name": "Constelación Táctil",
-      "description": "Grafo de vecindad con rejilla espacial: los nodos se repelen del centro y las aristas brillan por cercanía.",
+      "description": "Constelación 3D de estrellas luminosas unidas por líneas de luz con pulsos de energía; estalla y se expande con cada golpe.",
       "purposes": [
+        "party",
         "relax",
         "visualizer"
       ],
       "moods": [
-        "dreamy",
-        "calm"
+        "cosmic",
+        "epic",
+        "dreamy"
       ],
       "concepts": [
-        "graph",
-        "nodes",
-        "network"
+        "constellation",
+        "stars",
+        "network",
+        "energy"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -449,6 +452,37 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "descarga_tesla",
+      "name": "Descarga Tesla",
+      "description": "Plasma eléctrico a pantalla completa: rayos ramificados desde un núcleo de energía que siguen el espectro y estallan con cada golpe.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "electric",
+        "energetic",
+        "mysterious"
+      ],
+      "concepts": [
+        "plasma",
+        "electricity",
+        "tesla",
+        "lightning"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {

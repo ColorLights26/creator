@@ -260,13 +260,14 @@ vec4 creator_12_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_13_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_14_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_15_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec2 creator_16_rotate2D(vec2 p, float a) {
+vec4 creator_16_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec2 creator_17_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-float creator_16_getAngle(vec2 p) {
+float creator_17_getAngle(vec2 p) {
   float r = length(p);
   if (r < 0.00001) { return 0.0; }
   float a = asin(clamp(p.y / r, -1.0, 1.0));
@@ -279,12 +280,12 @@ float creator_16_getAngle(vec2 p) {
   return a;
 }
 
-vec4 creator_16_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_17_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;
 
   float r = length(p);
-  float a = creator_16_getAngle(p);
+  float a = creator_17_getAngle(p);
 
   float beat = clamp(f.pulse, 0.0, 1.0);
   float bass = clamp(f.bass, 0.0, 1.0);
@@ -366,13 +367,13 @@ vec4 creator_16_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(col, 0.0, 1.0), 1.0);
 }
 
-vec2 creator_17_rotate2D(vec2 p, float a) {
+vec2 creator_18_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-float creator_17_getAngle(vec2 p) {
+float creator_18_getAngle(vec2 p) {
   float r = length(p);
   if (r < 0.00001) { return 0.0; }
   float a = asin(clamp(p.y / r, -1.0, 1.0));
@@ -385,12 +386,12 @@ float creator_17_getAngle(vec2 p) {
   return a;
 }
 
-vec4 creator_17_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_18_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;
 
   float r = length(p);
-  float a = creator_17_getAngle(p);
+  float a = creator_18_getAngle(p);
 
   float beat = clamp(f.pulse, 0.0, 1.0);
   float bass = clamp(f.bass, 0.0, 1.0);
@@ -470,13 +471,13 @@ vec4 creator_17_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(col, 0.0, 1.0), alpha);
 }
 
-vec2 creator_18_rotate2D(vec2 p, float a) {
+vec2 creator_19_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-float creator_18_getAngle(vec2 p) {
+float creator_19_getAngle(vec2 p) {
   float r = length(p);
   if (r < 0.00001) { return 0.0; }
   float a = asin(clamp(p.y / r, -1.0, 1.0));
@@ -490,7 +491,7 @@ float creator_18_getAngle(vec2 p) {
 }
 
 
-float creator_18_solarNoise(vec2 p, float t) {
+float creator_19_solarNoise(vec2 p, float t) {
   float n = 0.0;
   n = n + sin(p.x * 6.0 + t * 1.2) * cos(p.y * 6.0 - t * 0.9);
   n = n + sin(p.x * 14.0 - t * 1.8 + p.y * 5.0) * 0.5;
@@ -500,7 +501,7 @@ float creator_18_solarNoise(vec2 p, float t) {
 }
 
 
-vec3 creator_18_blackbody(float heat) {
+vec3 creator_19_blackbody(float heat) {
   vec3 col = vec3(0.0);
   col = mix(col, vec3(0.65, 0.03, 0.0), smoothstep(0.0, 0.32, heat));
   col = mix(col, vec3(1.0, 0.32, 0.02), smoothstep(0.24, 0.62, heat));
@@ -509,7 +510,7 @@ vec3 creator_18_blackbody(float heat) {
   return col;
 }
 
-vec4 creator_18_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_19_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;
 
@@ -519,7 +520,7 @@ vec4 creator_18_paintVisual(vec2 uv, CreatorFrame f) {
   float spark = clamp(f.spark, 0.0, 1.0);
 
   float r = length(p);
-  float a = creator_18_getAngle(p);
+  float a = creator_19_getAngle(p);
 
   
   float coreRadius = 0.34 + bass * 0.09 + beat * 0.04;
@@ -562,13 +563,13 @@ vec4 creator_18_paintVisual(vec2 uv, CreatorFrame f) {
 
   
   if (r < coreRadius * 1.25) {
-    vec2 surfCoord = creator_18_rotate2D(p, t * 0.18);
-    float granulation = creator_18_solarNoise(surfCoord * 5.0, t * 1.5);
+    vec2 surfCoord = creator_19_rotate2D(p, t * 0.18);
+    float granulation = creator_19_solarNoise(surfCoord * 5.0, t * 1.5);
     
     
     float radialFactor = clamp((coreRadius - r) / coreRadius, 0.0, 1.0);
     float heat = radialFactor * 0.92 + granulation * 0.32 + bass * 0.35;
-    vec3 sunSurface = creator_18_blackbody(clamp(heat, 0.0, 1.25));
+    vec3 sunSurface = creator_19_blackbody(clamp(heat, 0.0, 1.25));
 
     
     float diskAlpha = smoothstep(coreRadius + 0.02, coreRadius - 0.02, r);
@@ -598,7 +599,6 @@ vec4 creator_18_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(col, 0.0, 1.0), 1.0);
 }
 
-vec4 creator_19_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_20_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_21_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_22_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
@@ -608,82 +608,7 @@ vec4 creator_25_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_26_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_27_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_28_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-float creator_29_liquidField(vec2 p, float t, float bass, float spark, float flow) {
-  float r = length(p);
-  
-  float ripple = sin(r * (14.0 + 3.0 * flow) - t * 3.8) * (0.035 + 0.055 * bass);
-
-  
-  vec2 c1 = vec2(sin(t * 0.7) * 0.42, cos(t * 0.8) * 0.35);
-  vec2 c2 = vec2(cos(t * 0.9 + 1.8) * 0.38, sin(t * 0.6) * 0.42);
-  float wave1 = sin(length(p - c1) * 16.0 - t * 4.2) * (0.025 + 0.035 * bass);
-  float wave2 = sin(length(p - c2) * 18.0 - t * 3.6) * (0.020 + 0.030 * spark);
-
-  
-  float sizzle = sin(p.x * 32.0 + t * 4.5) * cos(p.y * 32.0 + t * 4.0) * (0.006 + 0.018 * spark);
-
-  
-  float dome = exp(-r * r * 2.2) * 0.16;
-
-  return dome + ripple + wave1 + wave2 + sizzle;
-}
-
-vec4 creator_29_paintVisual(vec2 uv, CreatorFrame f) {
-  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
-  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.1;
-
-  float bass = clamp(f.bass, 0.0, 1.0);
-  float energy = clamp(f.energy, 0.0, 1.0);
-  float spark = clamp(f.spark, 0.0, 1.0);
-  float flow = clamp(f.flow, 0.0, 1.0);
-
-  float t = f.time * f.speed * 0.48;
-
-  
-  float eps = 0.0035;
-  float hC = creator_29_liquidField(p, t, bass, spark, flow);
-  float hR = creator_29_liquidField(p + vec2(eps, 0.0), t, bass, spark, flow);
-  float hU = creator_29_liquidField(p + vec2(0.0, eps), t, bass, spark, flow);
-
-  vec3 normal = normalize(vec3((hC - hR) / eps, (hC - hU) / eps, 0.32));
-
-  
-  vec3 view = normalize(vec3(p * 0.22, 1.0));
-  vec3 ref = reflect(-view, normal);
-
-  
-  float horizon = smoothstep(-0.25, 0.25, ref.y);
-  float stripe = sin(ref.y * 12.0 + ref.x * 6.0 + t * 0.25);
-  float studioStripe = smoothstep(0.35, 0.75, stripe);
-
-  vec3 deepMetal = vec3(0.02, 0.035, 0.07);
-  vec3 silver = vec3(0.85, 0.90, 0.98);
-  vec3 neonCyan = vec3(0.20, 0.85, 1.0);
-  vec3 neonMagenta = vec3(0.95, 0.20, 0.65);
-
-  vec3 chrome = mix(deepMetal, silver, horizon * 0.8 + studioStripe * 0.25);
-
-  
-  vec3 lightDir1 = normalize(vec3(-0.45, 0.7, 0.6));
-  float spec1 = pow(max(dot(ref, lightDir1), 0.0), 36.0) * (1.6 + 2.4 * spark);
-  vec3 lightDir2 = normalize(vec3(0.55, -0.5, 0.55));
-  float spec2 = pow(max(dot(ref, lightDir2), 0.0), 22.0) * (0.8 + 1.4 * bass);
-
-  
-  float fresnel = pow(1.0 - max(dot(normal, view), 0.0), 2.6);
-  vec3 rimColor = mix(neonCyan, neonMagenta, 0.5 + 0.5 * sin(t * 0.35 + p.y * 2.2));
-
-  
-  vec3 surface = chrome + (spec1 + spec2) * vec3(1.0, 0.98, 0.93) + fresnel * rimColor * (0.65 + 0.85 * energy);
-
-  
-  float fluidAlpha = smoothstep(1.4, 0.85, length(p));
-  vec3 bg = vec3(0.015, 0.02, 0.035) * (1.0 - 0.45 * length(p));
-  vec3 finalColor = mix(bg, surface, fluidAlpha);
-
-  return vec4(clamp(finalColor * f.intensity * f.glow, 0.0, 1.0), 1.0);
-}
-
+vec4 creator_29_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 float creator_30_liquidField(vec2 p, float t, float bass, float spark, float flow) {
   float r = length(p);
   
@@ -753,6 +678,82 @@ vec4 creator_30_paintVisual(vec2 uv, CreatorFrame f) {
   vec3 surface = chrome + (spec1 + spec2) * vec3(1.0, 0.98, 0.93) + fresnel * rimColor * (0.65 + 0.85 * energy);
 
   
+  float fluidAlpha = smoothstep(1.4, 0.85, length(p));
+  vec3 bg = vec3(0.015, 0.02, 0.035) * (1.0 - 0.45 * length(p));
+  vec3 finalColor = mix(bg, surface, fluidAlpha);
+
+  return vec4(clamp(finalColor * f.intensity * f.glow, 0.0, 1.0), 1.0);
+}
+
+float creator_31_liquidField(vec2 p, float t, float bass, float spark, float flow) {
+  float r = length(p);
+  
+  float ripple = sin(r * (14.0 + 3.0 * flow) - t * 3.8) * (0.035 + 0.055 * bass);
+
+  
+  vec2 c1 = vec2(sin(t * 0.7) * 0.42, cos(t * 0.8) * 0.35);
+  vec2 c2 = vec2(cos(t * 0.9 + 1.8) * 0.38, sin(t * 0.6) * 0.42);
+  float wave1 = sin(length(p - c1) * 16.0 - t * 4.2) * (0.025 + 0.035 * bass);
+  float wave2 = sin(length(p - c2) * 18.0 - t * 3.6) * (0.020 + 0.030 * spark);
+
+  
+  float sizzle = sin(p.x * 32.0 + t * 4.5) * cos(p.y * 32.0 + t * 4.0) * (0.006 + 0.018 * spark);
+
+  
+  float dome = exp(-r * r * 2.2) * 0.16;
+
+  return dome + ripple + wave1 + wave2 + sizzle;
+}
+
+vec4 creator_31_paintVisual(vec2 uv, CreatorFrame f) {
+  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
+  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.1;
+
+  float bass = clamp(f.bass, 0.0, 1.0);
+  float energy = clamp(f.energy, 0.0, 1.0);
+  float spark = clamp(f.spark, 0.0, 1.0);
+  float flow = clamp(f.flow, 0.0, 1.0);
+
+  float t = f.time * f.speed * 0.48;
+
+  
+  float eps = 0.0035;
+  float hC = creator_31_liquidField(p, t, bass, spark, flow);
+  float hR = creator_31_liquidField(p + vec2(eps, 0.0), t, bass, spark, flow);
+  float hU = creator_31_liquidField(p + vec2(0.0, eps), t, bass, spark, flow);
+
+  vec3 normal = normalize(vec3((hC - hR) / eps, (hC - hU) / eps, 0.32));
+
+  
+  vec3 view = normalize(vec3(p * 0.22, 1.0));
+  vec3 ref = reflect(-view, normal);
+
+  
+  float horizon = smoothstep(-0.25, 0.25, ref.y);
+  float stripe = sin(ref.y * 12.0 + ref.x * 6.0 + t * 0.25);
+  float studioStripe = smoothstep(0.35, 0.75, stripe);
+
+  vec3 deepMetal = vec3(0.02, 0.035, 0.07);
+  vec3 silver = vec3(0.85, 0.90, 0.98);
+  vec3 neonCyan = vec3(0.20, 0.85, 1.0);
+  vec3 neonMagenta = vec3(0.95, 0.20, 0.65);
+
+  vec3 chrome = mix(deepMetal, silver, horizon * 0.8 + studioStripe * 0.25);
+
+  
+  vec3 lightDir1 = normalize(vec3(-0.45, 0.7, 0.6));
+  float spec1 = pow(max(dot(ref, lightDir1), 0.0), 36.0) * (1.6 + 2.4 * spark);
+  vec3 lightDir2 = normalize(vec3(0.55, -0.5, 0.55));
+  float spec2 = pow(max(dot(ref, lightDir2), 0.0), 22.0) * (0.8 + 1.4 * bass);
+
+  
+  float fresnel = pow(1.0 - max(dot(normal, view), 0.0), 2.6);
+  vec3 rimColor = mix(neonCyan, neonMagenta, 0.5 + 0.5 * sin(t * 0.35 + p.y * 2.2));
+
+  
+  vec3 surface = chrome + (spec1 + spec2) * vec3(1.0, 0.98, 0.93) + fresnel * rimColor * (0.65 + 0.85 * energy);
+
+  
   float fluidAlpha = smoothstep(1.35, 0.65, length(p));
   float alpha = fluidAlpha * smoothstep(0.04, 0.20, max(surface.r, max(surface.g, surface.b)));
 
@@ -760,89 +761,13 @@ vec4 creator_30_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(surface * f.intensity * f.glow, 0.0, 1.0), alpha);
 }
 
-vec4 creator_31_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_32_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_33_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_34_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_35_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_36_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_37_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec2 creator_38_rotate2D(vec2 p, float a) {
-  float c = cos(a);
-  float s = sin(a);
-  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
-}
-
-vec3 creator_38_paletteCos(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
-  return a + b * cos(6.28318 * (c * t + d));
-}
-
-vec4 creator_38_paintVisual(vec2 uv, CreatorFrame f) {
-  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
-  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;
-
-  float bass = clamp(f.bass, 0.0, 1.0);
-  float energy = clamp(f.energy, 0.0, 1.0);
-  float spark = clamp(f.spark, 0.0, 1.0);
-  float flow = clamp(f.flow, 0.0, 1.0);
-
-  float t = f.time * f.speed * 0.42;
-  vec3 col = vec3(0.0);
-
-  
-  for (int ch = 0; ch < 3; ch++) {
-    float dispersion = float(ch - 1) * (0.012 + 0.022 * spark);
-    vec2 cp = p * (1.0 + dispersion);
-
-    float r = length(cp);
-    
-    float z = 1.0 / (r + 0.06);
-    float tunnelDepth = z * 0.55 - t * (1.1 + 0.9 * energy);
-
-    
-    vec2 q = creator_38_rotate2D(cp, t * 0.25 + z * 0.12 + bass * 0.35);
-
-    
-    float accum = 0.0;
-    vec2 k = q * (1.8 + 0.4 * flow);
-    for (int i = 0; i < 4; i++) {
-      float fi = float(i);
-      k = abs(k) - vec2(0.32 + 0.12 * sin(t * 0.6 + fi * 1.3), 0.22 + 0.08 * cos(t * 0.45));
-      k = creator_38_rotate2D(k, 0.785398 + 0.25 * bass + fi * 0.3);
-      accum += 1.0 / (length(k) * 22.0 + 1.0);
-    }
-
-    
-    float ringPattern = abs(sin(tunnelDepth * 3.14159));
-    float ringGlow = (0.025 + 0.035 * bass) / (ringPattern * ringPattern + 0.007);
-
-    
-    float core = (0.10 + 0.35 * bass) / (r * r * 18.0 + 0.12);
-
-    
-    vec3 pal = creator_38_paletteCos(
-      tunnelDepth * 0.16 + float(ch) * 0.06 + t * 0.05,
-      vec3(0.5, 0.5, 0.5),
-      vec3(0.5, 0.5, 0.5),
-      vec3(1.0, 1.0, 1.0),
-      vec3(0.05, 0.33, 0.67)
-    );
-
-    float intensity = (accum * 0.42 + ringGlow * 0.48 + core * 0.6) * f.intensity * f.glow;
-
-    if (ch == 0) col.r += intensity * pal.r;
-    else if (ch == 1) col.g += intensity * pal.g;
-    else if (ch == 2) col.b += intensity * pal.b;
-  }
-
-  
-  col = col / (col + vec3(0.85));
-  float vignette = 1.0 - smoothstep(0.45, 1.45, length(p));
-  col *= vignette;
-
-  return vec4(col, 1.0);
-}
-
+vec4 creator_38_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec2 creator_39_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
@@ -916,12 +841,88 @@ vec4 creator_39_paintVisual(vec2 uv, CreatorFrame f) {
   float vignette = 1.0 - smoothstep(0.45, 1.45, length(p));
   col *= vignette;
 
+  return vec4(col, 1.0);
+}
+
+vec2 creator_40_rotate2D(vec2 p, float a) {
+  float c = cos(a);
+  float s = sin(a);
+  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
+}
+
+vec3 creator_40_paletteCos(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
+  return a + b * cos(6.28318 * (c * t + d));
+}
+
+vec4 creator_40_paintVisual(vec2 uv, CreatorFrame f) {
+  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
+  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;
+
+  float bass = clamp(f.bass, 0.0, 1.0);
+  float energy = clamp(f.energy, 0.0, 1.0);
+  float spark = clamp(f.spark, 0.0, 1.0);
+  float flow = clamp(f.flow, 0.0, 1.0);
+
+  float t = f.time * f.speed * 0.42;
+  vec3 col = vec3(0.0);
+
+  
+  for (int ch = 0; ch < 3; ch++) {
+    float dispersion = float(ch - 1) * (0.012 + 0.022 * spark);
+    vec2 cp = p * (1.0 + dispersion);
+
+    float r = length(cp);
+    
+    float z = 1.0 / (r + 0.06);
+    float tunnelDepth = z * 0.55 - t * (1.1 + 0.9 * energy);
+
+    
+    vec2 q = creator_40_rotate2D(cp, t * 0.25 + z * 0.12 + bass * 0.35);
+
+    
+    float accum = 0.0;
+    vec2 k = q * (1.8 + 0.4 * flow);
+    for (int i = 0; i < 4; i++) {
+      float fi = float(i);
+      k = abs(k) - vec2(0.32 + 0.12 * sin(t * 0.6 + fi * 1.3), 0.22 + 0.08 * cos(t * 0.45));
+      k = creator_40_rotate2D(k, 0.785398 + 0.25 * bass + fi * 0.3);
+      accum += 1.0 / (length(k) * 22.0 + 1.0);
+    }
+
+    
+    float ringPattern = abs(sin(tunnelDepth * 3.14159));
+    float ringGlow = (0.025 + 0.035 * bass) / (ringPattern * ringPattern + 0.007);
+
+    
+    float core = (0.10 + 0.35 * bass) / (r * r * 18.0 + 0.12);
+
+    
+    vec3 pal = creator_40_paletteCos(
+      tunnelDepth * 0.16 + float(ch) * 0.06 + t * 0.05,
+      vec3(0.5, 0.5, 0.5),
+      vec3(0.5, 0.5, 0.5),
+      vec3(1.0, 1.0, 1.0),
+      vec3(0.05, 0.33, 0.67)
+    );
+
+    float intensity = (accum * 0.42 + ringGlow * 0.48 + core * 0.6) * f.intensity * f.glow;
+
+    if (ch == 0) col.r += intensity * pal.r;
+    else if (ch == 1) col.g += intensity * pal.g;
+    else if (ch == 2) col.b += intensity * pal.b;
+  }
+
+  
+  col = col / (col + vec3(0.85));
+  float vignette = 1.0 - smoothstep(0.45, 1.45, length(p));
+  col *= vignette;
+
   
   float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.6, 0.0, 1.0);
   return vec4(clamp(col, 0.0, 1.0), alpha);
 }
 
-vec4 creator_40_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_41_paintVisual(vec2 uv, CreatorFrame f) {
   vec2 p = (uv - 0.5) * vec2(f.size.x / max(f.size.y, 1.0), 1.0);
   float radius = 0.27 + 0.015 * sin(f.time * f.speed) + 0.025 * f.bass;
   float distance = abs(length(p) - radius);
@@ -932,15 +933,15 @@ vec4 creator_40_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(ink, alpha);
 }
 
-vec4 creator_41_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_42_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec2 creator_43_rotate2D(vec2 p, float a) {
+vec4 creator_43_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec2 creator_44_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-vec4 creator_43_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_44_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;
 
@@ -964,7 +965,7 @@ vec4 creator_43_paintVisual(vec2 uv, CreatorFrame f) {
 
   
   vec2 warpedP = p + r * (0.35 + 0.15 * flow);
-  warpedP = creator_43_rotate2D(warpedP, t * 0.12 + bass * 0.2);
+  warpedP = creator_44_rotate2D(warpedP, t * 0.12 + bass * 0.2);
 
   float ribbon1 = sin(warpedP.y * 4.2 + warpedP.x * 2.1 + t * 1.2);
   float ribbon2 = cos(warpedP.y * 5.6 - warpedP.x * 2.8 - t * 0.95);
@@ -1004,7 +1005,6 @@ vec4 creator_43_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);
 }
 
-vec4 creator_44_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_45_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_46_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_47_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
@@ -1035,105 +1035,7 @@ vec4 creator_71_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_72_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_73_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_74_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec2 creator_75_rotate2D(vec2 p, float a) {
-  float c = cos(a);
-  float s = sin(a);
-  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
-}
-
-float creator_75_hash21(vec2 p) {
-  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-}
-
-vec4 creator_75_paintVisual(vec2 uv, CreatorFrame f) {
-  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
-  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.3;
-
-  float bass = clamp(f.bass, 0.0, 1.0);
-  float energy = clamp(f.energy, 0.0, 1.0);
-  float spark = clamp(f.spark, 0.0, 1.0);
-  float flow = clamp(f.flow, 0.0, 1.0);
-
-  float t = f.time * f.speed * 0.44;
-
-  float r = length(p);
-  float eventHorizon = 0.26 + 0.05 * bass;
-
-  
-  vec2 lensP = p;
-  if (r > eventHorizon) {
-    float defl = (eventHorizon * eventHorizon) / (r * r + 0.001);
-    lensP = p * (1.0 - defl * 0.42);
-  }
-
-  
-  vec2 diskP = lensP;
-  diskP.y *= 2.35; 
-  diskP = creator_75_rotate2D(diskP, 0.38);
-
-  float diskR = length(diskP);
-  
-  float diskAngle = atan(diskP.y / (diskP.x + 0.00001)) + (diskP.x < 0.0 ? 3.14159 : 0.0);
-
-  
-  float spiral = diskAngle * 2.0 - log(diskR + 0.001) * 3.4 - t * (2.2 + 1.4 * flow + 1.8 * energy);
-  float arm1 = sin(spiral) * 0.5 + 0.5;
-  float arm2 = sin(spiral * 2.0 + 1.3) * 0.5 + 0.5;
-  float arms = arm1 * 0.7 + arm2 * 0.3;
-
-  
-  float diskMask = smoothstep(eventHorizon * 0.88, eventHorizon * 1.32, diskR) *
-                   smoothstep(1.65, eventHorizon * 1.5, diskR);
-
-  
-  float doppler = 1.0 - clamp(diskP.x * 0.65, -0.65, 0.65);
-
-  
-  float photonDist = abs(r - eventHorizon);
-  float photonRing = (0.012 + 0.025 * bass) / (photonDist * photonDist + 0.0028);
-
-  
-  vec3 hotOrange = vec3(1.0, 0.45, 0.12);
-  vec3 electricCyan = vec3(0.25, 0.85, 1.0);
-  vec3 pureWhite = vec3(1.0, 0.98, 0.92);
-
-  vec3 diskColor = mix(hotOrange, electricCyan, arms * 0.5 + energy * 0.45);
-  diskColor = mix(diskColor, pureWhite, pow(arms, 3.0) * (0.45 + spark * 0.8));
-
-  vec3 col = diskColor * arms * diskMask * doppler * (1.6 + bass * 0.85);
-  col += vec3(0.28, 0.72, 1.0) * photonRing * (0.85 + energy * 0.65);
-
-  
-  vec2 starGrid = floor(lensP * 28.0);
-  float starHash = creator_75_hash21(starGrid);
-  if (starHash > 0.962) {
-    if (r > eventHorizon * 1.15) {
-      vec2 starFrac = fract(lensP * 28.0) - 0.5;
-      float starDist = length(starFrac);
-      float starTwinkle = 0.5 + 0.5 * sin(t * 3.0 + starHash * 30.0);
-      float starBright = (0.018 * starTwinkle + 0.028 * spark) / (starDist * starDist * 60.0 + 0.05);
-      col += vec3(0.85, 0.92, 1.0) * starBright;
-    }
-  }
-
-  
-  float shadow = smoothstep(eventHorizon * 0.85, eventHorizon * 1.05, r);
-  col *= shadow;
-
-  
-  float jetY = abs(p.y);
-  float jetX = abs(p.x);
-  float jet = exp(-jetX * 36.0) * smoothstep(0.18, 1.25, jetY) * (0.15 + 0.85 * bass);
-  col += electricCyan * jet * 0.55;
-
-  
-  col = col / (col + vec3(0.92));
-  float vignette = 1.0 - smoothstep(0.55, 1.45, length(p));
-  col *= vignette;
-
-  return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);
-}
-
+vec4 creator_75_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec2 creator_76_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
@@ -1230,13 +1132,112 @@ vec4 creator_76_paintVisual(vec2 uv, CreatorFrame f) {
   float vignette = 1.0 - smoothstep(0.55, 1.45, length(p));
   col *= vignette;
 
+  return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);
+}
+
+vec2 creator_77_rotate2D(vec2 p, float a) {
+  float c = cos(a);
+  float s = sin(a);
+  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
+}
+
+float creator_77_hash21(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+vec4 creator_77_paintVisual(vec2 uv, CreatorFrame f) {
+  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
+  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.3;
+
+  float bass = clamp(f.bass, 0.0, 1.0);
+  float energy = clamp(f.energy, 0.0, 1.0);
+  float spark = clamp(f.spark, 0.0, 1.0);
+  float flow = clamp(f.flow, 0.0, 1.0);
+
+  float t = f.time * f.speed * 0.44;
+
+  float r = length(p);
+  float eventHorizon = 0.26 + 0.05 * bass;
+
+  
+  vec2 lensP = p;
+  if (r > eventHorizon) {
+    float defl = (eventHorizon * eventHorizon) / (r * r + 0.001);
+    lensP = p * (1.0 - defl * 0.42);
+  }
+
+  
+  vec2 diskP = lensP;
+  diskP.y *= 2.35; 
+  diskP = creator_77_rotate2D(diskP, 0.38);
+
+  float diskR = length(diskP);
+  
+  float diskAngle = atan(diskP.y / (diskP.x + 0.00001)) + (diskP.x < 0.0 ? 3.14159 : 0.0);
+
+  
+  float spiral = diskAngle * 2.0 - log(diskR + 0.001) * 3.4 - t * (2.2 + 1.4 * flow + 1.8 * energy);
+  float arm1 = sin(spiral) * 0.5 + 0.5;
+  float arm2 = sin(spiral * 2.0 + 1.3) * 0.5 + 0.5;
+  float arms = arm1 * 0.7 + arm2 * 0.3;
+
+  
+  float diskMask = smoothstep(eventHorizon * 0.88, eventHorizon * 1.32, diskR) *
+                   smoothstep(1.65, eventHorizon * 1.5, diskR);
+
+  
+  float doppler = 1.0 - clamp(diskP.x * 0.65, -0.65, 0.65);
+
+  
+  float photonDist = abs(r - eventHorizon);
+  float photonRing = (0.012 + 0.025 * bass) / (photonDist * photonDist + 0.0028);
+
+  
+  vec3 hotOrange = vec3(1.0, 0.45, 0.12);
+  vec3 electricCyan = vec3(0.25, 0.85, 1.0);
+  vec3 pureWhite = vec3(1.0, 0.98, 0.92);
+
+  vec3 diskColor = mix(hotOrange, electricCyan, arms * 0.5 + energy * 0.45);
+  diskColor = mix(diskColor, pureWhite, pow(arms, 3.0) * (0.45 + spark * 0.8));
+
+  vec3 col = diskColor * arms * diskMask * doppler * (1.6 + bass * 0.85);
+  col += vec3(0.28, 0.72, 1.0) * photonRing * (0.85 + energy * 0.65);
+
+  
+  vec2 starGrid = floor(lensP * 28.0);
+  float starHash = creator_77_hash21(starGrid);
+  if (starHash > 0.962) {
+    if (r > eventHorizon * 1.15) {
+      vec2 starFrac = fract(lensP * 28.0) - 0.5;
+      float starDist = length(starFrac);
+      float starTwinkle = 0.5 + 0.5 * sin(t * 3.0 + starHash * 30.0);
+      float starBright = (0.018 * starTwinkle + 0.028 * spark) / (starDist * starDist * 60.0 + 0.05);
+      col += vec3(0.85, 0.92, 1.0) * starBright;
+    }
+  }
+
+  
+  float shadow = smoothstep(eventHorizon * 0.85, eventHorizon * 1.05, r);
+  col *= shadow;
+
+  
+  float jetY = abs(p.y);
+  float jetX = abs(p.x);
+  float jet = exp(-jetX * 36.0) * smoothstep(0.18, 1.25, jetY) * (0.15 + 0.85 * bass);
+  col += electricCyan * jet * 0.55;
+
+  
+  col = col / (col + vec3(0.92));
+  float vignette = 1.0 - smoothstep(0.55, 1.45, length(p));
+  col *= vignette;
+
   float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.8, 0.0, 1.0);
   
   return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), alpha);
 }
 
-vec4 creator_77_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_78_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_79_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 void main() {
   CreatorFrame f;
   f.size=uSize; f.time=uTime; f.seedLow=uSeedLow; f.seedHigh=uSeedHigh;
@@ -1325,6 +1326,7 @@ void main() {
   if (abs(uVisualIndex - 76.0) < 0.5) color=creator_76_paintVisual(uv,f);
   if (abs(uVisualIndex - 77.0) < 0.5) color=creator_77_paintVisual(uv,f);
   if (abs(uVisualIndex - 78.0) < 0.5) color=creator_78_paintVisual(uv,f);
+  if (abs(uVisualIndex - 79.0) < 0.5) color=creator_79_paintVisual(uv,f);
   if (any(isnan(color)) || any(isinf(color))) color=vec4(0.0);
   color=clamp(color,0.0,1.0);
   fragColor=vec4(color.rgb*color.a,color.a);
