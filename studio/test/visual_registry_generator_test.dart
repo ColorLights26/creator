@@ -97,11 +97,11 @@ void main() {
   });
 
   test('the limit counts complete pairs rather than both files', () {
-    for (var i = 0; i < 64; i++) {
+    for (var i = 0; i < 256; i++) {
       writePair('visual_$i');
     }
-    expect(generateCreatorRegistry(visuals), contains('metadata_63.metadata'));
-    writePair('visual_64');
+    expect(generateCreatorRegistry(visuals), contains('metadata_255.metadata'));
+    writePair('visual_256');
     expect(() => generateCreatorRegistry(visuals), throwsFormatException);
   });
 

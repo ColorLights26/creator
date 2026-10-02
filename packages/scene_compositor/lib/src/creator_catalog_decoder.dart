@@ -21,7 +21,7 @@ List<CreatorVisualDefinition> decodeCreatorCatalog({
   final programs = _list(runtime['visuals'], 'runtime.visuals');
   final descriptions = _list(metadata['visuals'], 'metadata.visuals');
   if ((!allowEmpty && programs.isEmpty) ||
-      programs.length > 64 ||
+      programs.length > 256 ||
       programs.length != descriptions.length) {
     throw const FormatException(
       'Los catálogos no contienen los mismos visuales.',

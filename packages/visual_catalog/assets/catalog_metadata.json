@@ -118,6 +118,35 @@
       "reactivity": "optional"
     },
     {
+      "id": "campo_plasma_transparente",
+      "name": "Campo de Plasma Transparente",
+      "description": "Niebla de color turquesa, lima y rosa en movimiento sobre fondo transparente.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "dreamy",
+        "fluid"
+      ],
+      "concepts": [
+        "plasma",
+        "fog",
+        "gradient"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "ciber_reticula",
       "name": "Ciber Retícula 3D",
       "description": "Paisaje cyberpunk infinito en perspectiva 3D con topografía láser, sol sintetizador en el horizonte y ondas de choque.",
@@ -272,6 +301,35 @@
       "reactivity": "optional"
     },
     {
+      "id": "cromo_liquido_transparente",
+      "name": "Cromo Líquido Transparente",
+      "description": "Gotas de metal fundido en violeta y rosa flotando sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "energetic",
+        "glossy"
+      ],
+      "concepts": [
+        "chrome",
+        "liquid",
+        "blobs"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "deriva_julia",
       "name": "Deriva de Julia",
       "description": "Conjunto de Julia iterado por píxel en la GPU, con paleta coseno y coloración suave.",
@@ -298,6 +356,35 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "deriva_julia_transparente",
+      "name": "Deriva de Julia Transparente",
+      "description": "Conjunto de Julia iterado por píxel en la GPU sobre fondo transparente.",
+      "purposes": [
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "dreamy",
+        "hypnotic"
+      ],
+      "concepts": [
+        "fractal",
+        "julia",
+        "iteration"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -332,6 +419,40 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "flor_cosmica_transparente",
+      "name": "Flor Cósmica Transparente",
+      "description": "Loto dimensional y mandala sagrado de pétalos dorados y violetas que florece en espirales de Fibonacci sobre fondo transparente.",
+      "purposes": [
+        "meditation",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "sacred",
+        "hypnotic",
+        "spiritual",
+        "radiant"
+      ],
+      "concepts": [
+        "mandala",
+        "lotus",
+        "fibonacci",
+        "sacred_geometry",
+        "cosmic_flower"
+      ],
+      "credits": {
+        "author": "Color Lights 26",
+        "license": "Proprietary",
+        "source": "Color Lights Studio"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -434,6 +555,35 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "hipervelocidad_transparente",
+      "name": "Hipervelocidad Transparente",
+      "description": "Viaje a la velocidad de la luz entre estrellas con estelas blancas y azules sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "energetic",
+        "cosmic"
+      ],
+      "concepts": [
+        "warp",
+        "stars",
+        "speed"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -586,6 +736,39 @@
       "reactivity": "optional"
     },
     {
+      "id": "mercurio_liquido_transparente",
+      "name": "Mercurio Líquido Transparente",
+      "description": "Cromo fundido y mercurio líquido hiperreflectivo con ondas concéntricas y brillos sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "sleek",
+        "futuristic",
+        "metallic"
+      ],
+      "concepts": [
+        "chrome",
+        "mercury",
+        "liquid_metal",
+        "reflections",
+        "futuristic"
+      ],
+      "credits": {
+        "author": "Color Lights 26",
+        "license": "Proprietary",
+        "source": "Color Lights Studio"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "neon_lluvia",
       "name": "Neón bajo la Lluvia",
       "description": "Ciudad de neón en cuatro capas con ventanas encendidas, reflejo mojado y lluvia arrastrada por el viento.",
@@ -646,6 +829,37 @@
       "reactivity": "optional"
     },
     {
+      "id": "plasma_scene_transparente",
+      "name": "Campo de Plasma Transparente (Scene)",
+      "description": "Interferencia fluida de ondas de plasma en color puro con pulsos armónicos sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "hypnotic",
+        "energetic",
+        "trippy"
+      ],
+      "concepts": [
+        "plasma",
+        "waves",
+        "electric"
+      ],
+      "credits": {
+        "author": "Color Lights Team",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "portal_cuantico",
       "name": "Portal Cuántico",
       "description": "Túnel hipnótico de geometría sagrada fractal con anillos neón y aberración cromática que pulsa con el ritmo.",
@@ -676,6 +890,39 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "portal_cuantico_transparente",
+      "name": "Portal Cuántico Transparente",
+      "description": "Túnel hipnótico de geometría sagrada fractal con anillos neón sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "meditation"
+      ],
+      "moods": [
+        "hypnotic",
+        "trippy",
+        "electric"
+      ],
+      "concepts": [
+        "fractal",
+        "sacred_geometry",
+        "tunnel",
+        "quantum",
+        "neon"
+      ],
+      "credits": {
+        "author": "Color Lights 26",
+        "license": "Proprietary",
+        "source": "Color Lights Studio"
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -975,6 +1222,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "v04_tunel_warp_transparente",
+      "name": "Túnel Hiperdimensional Transparente",
+      "description": "Túnel infinito octagonal de velocidad warp con perspectiva relativista y vigas de torsión sobre fondo transparente.",
+      "purposes": [
+        "warp",
+        "visualizer",
+        "gaming"
+      ],
+      "moods": [
+        "hypnotic",
+        "fast",
+        "futuristic"
+      ],
+      "concepts": [
+        "hyperspace",
+        "tunnel",
+        "octagon",
+        "warp speed"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "v05_campo_curl",
       "name": "Campo de Flujo Vectorial",
       "description": "Cintas bioluminiscentes guiadas por un campo analítico de rotacional curl noise con estelas de inercia y vórtice central.",
@@ -1004,6 +1283,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v05_campo_curl_transparente",
+      "name": "Campo de Flujo Vectorial Transparente",
+      "description": "Cintas bioluminiscentes guiadas por un campo analítico de rotacional curl noise sobre fondo transparente.",
+      "purposes": [
+        "fluid",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "smooth",
+        "hypnotic",
+        "organic"
+      ],
+      "concepts": [
+        "curl noise",
+        "vector field",
+        "particles",
+        "flow"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -1225,6 +1536,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "v10_supernova_transparente",
+      "name": "Supernova & Termodinámica Transparente",
+      "description": "Explosión estelar relativista con ondas de choque expansivas y partículas termodinámicas sobre fondo transparente.",
+      "purposes": [
+        "physics",
+        "visualizer",
+        "epic"
+      ],
+      "moods": [
+        "explosive",
+        "intense",
+        "cosmic"
+      ],
+      "concepts": [
+        "supernova",
+        "shockwave",
+        "thermodynamics",
+        "stellar explosion"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "v11_archivo_corrupto",
       "name": "Archivo Corrupto",
       "description": "Fallo digital de archivo y datamosh estructurado, canales RGB cromáticos aditivos, barrido CRT y franja VHS rodante reactiva al ritmo.",
@@ -1380,6 +1723,39 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v13_nubes_volumetricas_transparente",
+      "name": "Nubes Volumétricas Transparente",
+      "description": "Raymarching 3D volumétrico de manto de nubes al atardecer sobre cielo transparente.",
+      "purposes": [
+        "atmosphere",
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "dreamy",
+        "epic",
+        "peaceful"
+      ],
+      "concepts": [
+        "volumetric",
+        "clouds",
+        "raymarching",
+        "sunset",
+        "atmosphere"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -1607,6 +1983,39 @@
       "reactivity": "optional"
     },
     {
+      "id": "vortice_cosmico_transparente",
+      "name": "Vórtice Cósmico Transparente",
+      "description": "Singularidad cósmica y disco de acreción relativista con curvatura gravitacional y filamentos sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "space",
+        "cinematic"
+      ],
+      "moods": [
+        "epic",
+        "cosmic",
+        "deep"
+      ],
+      "concepts": [
+        "black_hole",
+        "space",
+        "galaxy",
+        "singularity",
+        "accretion_disk"
+      ],
+      "credits": {
+        "author": "Color Lights 26",
+        "license": "Proprietary",
+        "source": "Color Lights Studio"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "vortice_hipnotico",
       "name": "Vórtice Hipnótico",
       "description": "Anillos hexagonales de colores girando hacia un centro luminoso.",
@@ -1633,6 +2042,35 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "vortice_hipnotico_transparente",
+      "name": "Vórtice Hipnótico Transparente",
+      "description": "Anillos hexagonales de colores girando hacia un centro luminoso sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "hypnotic",
+        "energetic"
+      ],
+      "concepts": [
+        "vortex",
+        "rings",
+        "tunnel"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     }
   ]
