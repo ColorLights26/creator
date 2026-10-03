@@ -7,16 +7,17 @@
 const nativeSource = r'''
 class Visual final : public Scene {
   static constexpr int NX = 36, NY = 64;
-  // El fluido avanza en pasos fijos de 1/60 s contados con el tiempo absoluto:
-  // es idéntico a 30 y a 60 FPS y la tinta se dibuja interpolada.
-  static constexpr double kHz = 60.0;
+  // El fluido avanza en pasos fijos de 1/30 s contados con el tiempo absoluto:
+  // es idéntico a 30 y a 60 FPS, gasta la mitad de CPU y la tinta se dibuja
+  // interpolada.
+  static constexpr double kHz = 30.0;
   static constexpr float kStep = float(1.0 / kHz);
   struct Dye { float x, y, px, py; int color; };
   struct Splat { float x, y, dx, dy, radius; int color; };
   std::vector<float> u, v, u0, v0, pr, dv, cu;
   std::vector<Dye> dye;
   std::vector<Splat> pending;
-  int64_t steps = -1, stepCount = 0, nextAuto = 20;
+  int64_t steps = -1, stepCount = 0, nextAuto = 10;
   float frac = 0;
   float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;
   float kick = 0, flash = 0, drive = 0;
@@ -76,7 +77,7 @@ class Visual final : public Scene {
     }
     bound(dv, 0);
     bound(pr, 0);
-    for (int k = 0; k < 18; k++) {
+    for (int k = 0; k < 14; k++) {
       for (int j = 1; j <= NY; j++) {
         for (int i = 1; i <= NX; i++) {
           pr[I(i, j)] = (dv[I(i, j)] + pr[I(i - 1, j)] + pr[I(i + 1, j)] + pr[I(i, j - 1)] + pr[I(i, j + 1)]) * 0.25f;
@@ -154,8 +155,8 @@ class Visual final : public Scene {
     advect(v, v0, 2);
     project();
     for (size_t k = 0; k < u.size(); k++) {
-      u[k] = std::clamp(u[k] * 0.992f, -120.0f, 120.0f);
-      v[k] = std::clamp(v[k] * 0.992f, -120.0f, 120.0f);
+      u[k] = std::clamp(u[k] * 0.984f, -120.0f, 120.0f);
+      v[k] = std::clamp(v[k] * 0.984f, -120.0f, 120.0f);
     }
     for (Dye& d : dye) {
       d.px = d.x;
@@ -168,7 +169,7 @@ class Visual final : public Scene {
     // Sin golpes: un chorro cada segundo y medio, en pasos fijos.
     if (stepCount >= nextAuto) {
       queueSplat(0.75f, turn++ % 3);
-      nextAuto = stepCount + 90;
+      nextAuto = stepCount + 45;
     }
   }
 
@@ -187,7 +188,7 @@ class Visual final : public Scene {
     pending.clear();
     steps = -1;
     stepCount = 0;
-    nextAuto = 20;
+    nextAuto = 10;
     frac = 0;
     bass = body = spark = energy = slowBass = kick = flash = drive = 0;
     turn = 0;
@@ -228,7 +229,7 @@ class Visual final : public Scene {
       } else {
         queueSplat(0.6f + 0.6f * hit, turn++ % 3);
       }
-      nextAuto = stepCount + 110;
+      nextAuto = stepCount + 55;
     }
     kick = std::max(kick * std::exp(-dt * 5.0f), hit);
     flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));

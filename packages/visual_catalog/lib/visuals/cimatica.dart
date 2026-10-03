@@ -77,11 +77,17 @@ class Visual final : public Scene {
     for (auto& g : grains) {
       g.px = g.x;
       g.py = g.y;
-      float ax, ay, bx, by;
-      float fa = plate(modeA, g.x, g.y, ax, ay, *this);
-      float fb = plate(modeB, g.x, g.y, bx, by, *this);
-      float fv = fa + (fb - fa) * w;
-      float gx = ax + (bx - ax) * w, gy = ay + (by - ay) * w;
+      float bx, by;
+      float fv = plate(modeB, g.x, g.y, bx, by, *this);
+      float gx = bx, gy = by;
+      // La figura anterior sólo se calcula durante la transición.
+      if (w < 1.0f) {
+        float ax, ay;
+        float fa = plate(modeA, g.x, g.y, ax, ay, *this);
+        fv = fa + (fv - fa) * w;
+        gx = ax + (bx - ax) * w;
+        gy = ay + (by - ay) * w;
+      }
       float gl = std::sqrt(gx * gx + gy * gy) + 1e-3f;
       // La arena baja por la pendiente de |f| hacia las líneas quietas y salta
       // más donde la placa vibra con fuerza.

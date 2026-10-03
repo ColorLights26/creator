@@ -7,11 +7,11 @@
 const nativeSource = r'''
 class Visual final : public Scene {
   static constexpr int kTrail = 14;
-  // La simulación avanza en pasos fijos de 1/120 s contados con el tiempo
+  // La simulación avanza en pasos fijos de 1/60 s contados con el tiempo
   // absoluto: es idéntica a 30 y a 60 FPS y se dibuja interpolada.
-  static constexpr double kHz = 120.0;
+  static constexpr double kHz = 60.0;
   static constexpr float kStep = float(1.0 / kHz);
-  static constexpr int kRecordEvery = 4;  // una muestra de estela cada 1/30 s
+  static constexpr int kRecordEvery = 2;  // una muestra de estela cada 1/30 s
   struct Particle { float x, y, px, py, vx, vy, life, size; int group; };
   std::vector<Particle> ps;
   std::vector<float> trail;  // anillo de posiciones: partícula * kTrail * 2
