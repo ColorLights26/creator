@@ -8,6 +8,7 @@ import 'package:audiovisual_creator/team_review/team_review_client.dart';
 import 'package:audiovisual_creator/team_review/team_review_controller.dart';
 import 'package:audiovisual_creator/team_review/visual_revision.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scene_compositor/scene_compositor.dart';
 
@@ -756,6 +757,12 @@ void main() {
     await pick('toVote');
     expect(compositor.visuals.last, 'mareas_test');
     expect(find.text('01 / 01'), findsOneWidget);
+    // The filter's name widens the actions: the count shrinks, never cut.
+    final counter = tester.renderObject<RenderParagraph>(find.text('01 / 01'));
+    expect(
+      counter.size.width,
+      greaterThanOrEqualTo(counter.getMaxIntrinsicWidth(double.infinity) - 0.5),
+    );
 
     await pick('approved');
     expect(compositor.visuals.last, 'aurora');

@@ -294,17 +294,22 @@ class _StudioViewState extends State<StudioView> {
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-            child: Text(
-              indexString,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 2.0,
-                color: counterColor,
-                fontFeatures: const [FontFeature.tabularFigures()],
-                shadows: const [
-                  Shadow(color: Colors.black87, blurRadius: 10),
-                ],
+            // Shrinks rather than cutting the count when the actions are wide.
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                indexString,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2.0,
+                  color: counterColor,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                  shadows: const [
+                    Shadow(color: Colors.black87, blurRadius: 10),
+                  ],
+                ),
               ),
             ),
           ),
