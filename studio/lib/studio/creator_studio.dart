@@ -134,48 +134,58 @@ class _CreatorStudioState extends State<CreatorStudio>
       _replayElapsed = _tickerStartElapsed + elapsed;
       _pumpReplay();
     });
+    // Every musical demo has contrast (calm, build-up, drop, silence) so a
+    // reactive visual can be judged; the sweep is a frequency test.
     _recordings = [
       StudioRecording(
         name: 'Demo sintética',
         shortName: 'Demo',
         description:
-            'Showcase dinámico de 32 s: Ambient → Build-up acelerado → Drop EDM contundente → Trap 808 → Clímax espectral.',
+            'Recorrido de 32 s: calma → build-up → silencio → drop (lo más fuerte) → trap → clímax y fundido.',
         recording: createDynamicShowcaseSignalRecording(),
       ),
       StudioRecording(
         name: 'EDM & Club Drop (128 BPM)',
         shortName: 'EDM',
         description:
-            'Bombo 4-on-the-floor, subgraves masivos, eventos de beat en cada golpe y cajas a contratiempo.',
+            'Intro, build-up, 1 s de silencio, drop con bombo en cada pulso, breakdown y segundo drop.',
         recording: createEdmClubDropSignalRecording(),
       ),
       StudioRecording(
         name: 'Trap 808 & Hi-Hats (140 BPM)',
         shortName: 'Trap',
         description:
-            'Sub-bass 808 profundo y sostenido, rolls rápidos de hi-hats (32 notas) en agudos y clap seco.',
+            'Versos tranquilos y drops de 808 con rolls de hi-hats, un hueco de silencio y un segundo drop.',
         recording: createTrap808SignalRecording(),
       ),
       StudioRecording(
-        name: 'Ambient & Chillout (75 BPM)',
+        name: 'Ambient & Chillout (72 BPM)',
         shortName: 'Ambient',
         description:
-            'Pads armónicos fluidos y respiración etérea. Flujo orgánico sin percusión agresiva.',
+            'Respiraciones irregulares, un pulso suave al medio, un valle casi en silencio y un crescendo final.',
         recording: createAmbientChilloutSignalRecording(),
       ),
       StudioRecording(
-        name: 'Barrido Espectral (20Hz - 20kHz)',
-        shortName: 'Barrido',
+        name: 'Cortes y silencios (124 BPM)',
+        shortName: 'Cortes',
         description:
-            'Barrido analítico banda por banda para auditar la respuesta del shader a cada frecuencia.',
-        recording: createSpectralSweepSignalRecording(),
+            'Música a tope que se corta y vuelve de golpe: huecos cortos, un silencio largo y tartamudeos.',
+        recording: createCutsSignalRecording(),
       ),
       StudioRecording(
         name: 'Demo clásica (32s)',
         shortName: 'Clásica',
         description:
-            'Pista de referencia clásica de 32 s con partes suaves y acentos.',
+            'Pista de referencia: arranca en silencio, crece, se corta y vuelve.',
         recording: createSyntheticSceneSignalRecording(),
+      ),
+      StudioRecording(
+        name: 'Barrido Espectral (20Hz - 20kHz)',
+        shortName: 'Barrido de frecuencias',
+        description:
+            'Barrido analítico banda por banda para auditar la respuesta del shader a cada frecuencia.',
+        recording: createSpectralSweepSignalRecording(),
+        technical: true,
       ),
     ];
     _replay = SceneSignalReplay(_recordings.first.recording);
@@ -621,6 +631,7 @@ class _CreatorStudioState extends State<CreatorStudio>
             id: '$index',
             name: _recordings[index].name,
             shortName: _recordings[index].shortName,
+            technical: _recordings[index].technical,
             description: _recordings[index].description,
           ),
       ],
@@ -664,9 +675,13 @@ class StudioRecording {
     required this.description,
     required this.recording,
     this.shortName,
+    this.technical = false,
   });
 
   final String name;
+
+  /// A test signal, not music: offered in the signal detail, not as a track.
+  final bool technical;
 
   /// Label for the one-tap track buttons; falls back to [name].
   final String? shortName;

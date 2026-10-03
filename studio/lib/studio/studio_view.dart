@@ -54,11 +54,15 @@ class StudioSignalSource {
     required this.name,
     required this.description,
     this.shortName,
+    this.technical = false,
   });
   final String id;
   final String name;
   final String description;
   final String? shortName;
+
+  /// A test signal (e.g. a frequency sweep) rather than music.
+  final bool technical;
 
   String get label => shortName ?? name.split(' (').first;
 }
@@ -1303,7 +1307,7 @@ class _StudioViewState extends State<StudioView> {
           key: const ValueKey('audio-quick-bar'),
           runSpacing: 6,
           children: [
-            for (final source in widget.sources)
+            for (final source in widget.sources.where((s) => !s.technical))
               chip(
                 key: ValueKey('audio-chip-${source.id}'),
                 label: source.label,
@@ -1349,6 +1353,43 @@ class _StudioViewState extends State<StudioView> {
             playing: widget.playing,
             muted: widget.muted,
           ),
+          if (widget.sources.any((s) => s.technical)) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: Text(
+                    'PRUEBA TÉCNICA',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                      color: Colors.white54,
+                    ),
+                  ),
+                ),
+                for (final source in widget.sources.where((s) => s.technical))
+                  chip(
+                    key: ValueKey('audio-chip-${source.id}'),
+                    label: source.label,
+                    icon: Icons.graphic_eq_rounded,
+                    selected:
+                        !widget.muted && source.id == widget.selectedSourceId,
+                    onTap: widget.loading
+                        ? null
+                        : () {
+                            if (widget.muted) widget.onToggleMuted?.call();
+                            if (source.id != widget.selectedSourceId) {
+                              widget.onSelectSource(source.id);
+                            }
+                          },
+                  ),
+              ],
+            ),
+          ],
           SwitchListTile.adaptive(
             key: const ValueKey('reaction-switch'),
             contentPadding: EdgeInsets.zero,

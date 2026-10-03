@@ -23,6 +23,12 @@ void main() {
             name: 'EDM & Club Drop (128 BPM)',
             description: '',
           ),
+          StudioSignalSource(
+            id: '2',
+            name: 'Barrido Espectral',
+            description: '',
+            technical: true,
+          ),
         ],
         selectedVisualId: 'a',
         selectedSourceId: '0',
@@ -61,9 +67,12 @@ void main() {
     // The live strip sits right under the tracks; tap opens the detail.
     expect(find.byKey(const ValueKey('audio-strip')), findsOneWidget);
     expect(find.byKey(const ValueKey('reaction-switch')), findsNothing);
+    // The sweep is a test signal, not music: not among the track buttons.
+    expect(find.byKey(const ValueKey('audio-chip-2')), findsNothing);
     await tester.tap(find.byKey(const ValueKey('audio-strip')));
     await tester.pump();
     expect(find.byKey(const ValueKey('reaction-switch')), findsOneWidget);
+    expect(find.byKey(const ValueKey('audio-chip-2')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('audio-strip')));
     await tester.pump();
     expect(find.byKey(const ValueKey('reaction-switch')), findsNothing);
