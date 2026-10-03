@@ -665,7 +665,8 @@ class _StudioViewState extends State<StudioView> {
                 if (widget.performanceOverlay case final Widget overlay)
                   Positioned(
                     top: MediaQuery.paddingOf(context).top + kToolbarHeight,
-                    left: 12,
+                    // Clear the side system bar (Android buttons in landscape).
+                    left: MediaQuery.paddingOf(context).left + 12,
                     child: AnimatedOpacity(
                       opacity: _showControls ? 1.0 : 0.0,
                       duration: const Duration(milliseconds: 250),
