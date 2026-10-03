@@ -139,11 +139,19 @@ class StudioView extends StatefulWidget {
 }
 
 class _StudioViewState extends State<StudioView> {
+  /// Name search in the visual list; cleared every time the list opens.
+  final TextEditingController _visualSearch = TextEditingController();
   bool _showControls = true;
   bool _audioDetail = false;
   // Alpha grid first: it shows at a glance what an overlay leaves transparent.
   StudioBackgroundMode _bgMode = StudioBackgroundMode.checkerboard;
   StudioRoleFilter _roleFilter = StudioRoleFilter.all;
+
+  @override
+  void dispose() {
+    _visualSearch.dispose();
+    super.dispose();
+  }
 
   void _cycleBackgroundMode() {
     setState(() {
@@ -289,6 +297,19 @@ class _StudioViewState extends State<StudioView> {
           ),
         ),
         actions: [
+          IconButton(
+            key: const ValueKey('visual-search-button'),
+            tooltip: 'Buscar visual por nombre',
+            onPressed: () => _showVisualList(context, search: true),
+            icon: const Icon(
+              Icons.search_rounded,
+              color: Colors.white70,
+              size: 20,
+            ),
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.black.withValues(alpha: 0.4),
+            ),
+          ),
           PopupMenuButton<Object>(
             key: const ValueKey('role-filter-button'),
             tooltip: switch (_roleFilter) {
@@ -1469,7 +1490,8 @@ class _StudioViewState extends State<StudioView> {
     );
   }
 
-  void _showVisualList(BuildContext context) {
+  void _showVisualList(BuildContext context, {bool search = false}) {
+    _visualSearch.clear();
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -1481,7 +1503,11 @@ class _StudioViewState extends State<StudioView> {
         return StatefulBuilder(
           builder: (context, setSheetState) {
             final roleBaseVisuals = _filteredVisuals;
-            final displayedVisuals = roleBaseVisuals;
+            final query = _visualSearch.text;
+            final displayedVisuals = [
+              for (final visual in roleBaseVisuals)
+                if (_matchesSearch(visual.name, query)) visual,
+            ];
 
             final overlaysCount =
                 widget.visuals.where((v) => v.isOverlay).length;
@@ -1489,13 +1515,18 @@ class _StudioViewState extends State<StudioView> {
                 widget.visuals.where((v) => v.isBackground).length;
 
             return DraggableScrollableSheet(
-              initialChildSize: 0.7,
+              initialChildSize: search ? 0.92 : 0.7,
               minChildSize: 0.4,
               maxChildSize: 0.92,
               expand: false,
               builder: (context, scrollController) {
                 return Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    16,
+                    20,
+                    20 + MediaQuery.viewInsetsOf(context).bottom,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -1545,6 +1576,55 @@ class _StudioViewState extends State<StudioView> {
                             onPressed: () => Navigator.of(context).pop(),
                           ),
                         ],
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      TextField(
+                        key: const ValueKey('visual-search-field'),
+                        controller: _visualSearch,
+                        autofocus: search,
+                        textInputAction: TextInputAction.search,
+                        onChanged: (_) => setSheetState(() {}),
+                        // Enter opens the first match.
+                        onSubmitted: (_) {
+                          if (displayedVisuals.isEmpty) return;
+                          Navigator.of(context).pop();
+                          _selectVisualManual(displayedVisuals.first.id);
+                        },
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                        ),
+                        cursorColor: const Color(0xFF73F572),
+                        decoration: InputDecoration(
+                          hintText: 'Buscar por nombre',
+                          hintStyle: const TextStyle(color: Colors.white38),
+                          prefixIcon: const Icon(
+                            Icons.search_rounded,
+                            color: Colors.white54,
+                          ),
+                          suffixIcon: query.isEmpty
+                              ? null
+                              : IconButton(
+                                  tooltip: 'Borrar búsqueda',
+                                  icon: const Icon(
+                                    Icons.close_rounded,
+                                    color: Colors.white54,
+                                  ),
+                                  onPressed: () {
+                                    _visualSearch.clear();
+                                    setSheetState(() {});
+                                  },
+                                ),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.08),
+                          isDense: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
                       ),
 
                       const SizedBox(height: 12),
@@ -1662,12 +1742,48 @@ class _StudioViewState extends State<StudioView> {
                       Expanded(
                         child: displayedVisuals.isEmpty
                             ? Center(
-                                child: Text(
-                                  'No hay visuales en esta sección.',
-                                  style: const TextStyle(
-                                    color: Colors.white54,
-                                    fontSize: 14,
-                                  ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      query.trim().isEmpty
+                                          ? 'No hay visuales en esta sección.'
+                                          : 'Ningún visual coincide con '
+                                              '«${query.trim()}».',
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        color: Colors.white54,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    // A filter may be hiding it.
+                                    if (query.trim().isNotEmpty &&
+                                        _anyFilterActive)
+                                      TextButton(
+                                        key: const ValueKey(
+                                          'visual-search-all',
+                                        ),
+                                        onPressed: () {
+                                          _setRoleFilter(StudioRoleFilter.all);
+                                          if (widget.voteFilters.isNotEmpty) {
+                                            widget.onVoteFilterChanged?.call(
+                                              widget.voteFilters.first.id,
+                                            );
+                                          }
+                                          // The studio rebuilds with every
+                                          // visual first, then the list.
+                                          WidgetsBinding.instance
+                                              .addPostFrameCallback((_) {
+                                            if (context.mounted) {
+                                              setSheetState(() {});
+                                            }
+                                          });
+                                        },
+                                        child: const Text(
+                                          'Buscar en todos los visuales',
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               )
                             : ListView.separated(
@@ -1828,4 +1944,25 @@ class CheckerboardPainter extends CustomPainter {
       oldDelegate.squareSize != squareSize ||
       oldDelegate.lightColor != lightColor ||
       oldDelegate.darkColor != darkColor;
+}
+
+/// Lowercase without accents, so "igneo" finds "Ígneo".
+String _plainText(String text) {
+  const accented = 'áàäâãéèëêíìïîóòöôõúùüûñç';
+  const plain = 'aaaaaeeeeiiiiooooouuuunc';
+  final buffer = StringBuffer();
+  for (final char in text.toLowerCase().split('')) {
+    final index = accented.indexOf(char);
+    buffer.write(index < 0 ? char : plain[index]);
+  }
+  return buffer.toString();
+}
+
+/// Every word of [query] appears in [name], in any order.
+bool _matchesSearch(String name, String query) {
+  final plainName = _plainText(name);
+  return _plainText(query)
+      .split(RegExp(r'\s+'))
+      .where((word) => word.isNotEmpty)
+      .every(plainName.contains);
 }

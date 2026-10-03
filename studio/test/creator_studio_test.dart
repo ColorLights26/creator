@@ -502,6 +502,61 @@ void main() {
     },
   );
 
+  testWidgets('the list searches by name, ignoring accents and case', (
+    tester,
+  ) async {
+    final controller = _Controller();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CreatorStudio(
+          catalogBuilder: () => [_aurora, _plasma, _quiet],
+          controllerFactory: () => controller,
+          recordingsLoader: () async => [],
+          thumbnailBuilder: (_, _) => const SizedBox(),
+        ),
+      ),
+    );
+    await _flush(tester);
+    expect(controller.visuals.last, 'aurora');
+
+    await tester.tap(find.byKey(const ValueKey('visual-search-button')));
+    await _flush(tester);
+    final list = find.byType(ListView);
+    Finder listed(String name) =>
+        find.descendant(of: list, matching: find.text(name));
+    expect(listed('Plasma'), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('visual-search-field')),
+      'MUSICA',
+    );
+    await tester.pump();
+    expect(listed('Sin música'), findsOneWidget);
+    expect(listed('Plasma'), findsNothing);
+    expect(listed('Aurora'), findsNothing);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('visual-search-field')),
+      'zzz',
+    );
+    await tester.pump();
+    expect(find.text('Ningún visual coincide con «zzz».'), findsOneWidget);
+
+    // Enter opens the first match.
+    await tester.enterText(
+      find.byKey(const ValueKey('visual-search-field')),
+      'plas',
+    );
+    await tester.pump();
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await _flush(tester);
+    expect(controller.visuals.last, 'plasma');
+    expect(find.byKey(const ValueKey('visual-search-field')), findsNothing);
+
+    await tester.pumpWidget(const SizedBox());
+    await _flush(tester);
+  });
+
   testWidgets(
     'the alpha grid is the default background and cycles to light and dark',
     (tester) async {

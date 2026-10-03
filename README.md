@@ -241,6 +241,8 @@ Te la da el responsable.
 6. El botón de barras verdes abre el **ranking del equipo**: la tabla con todos los
    visuales, la nota de cada persona, el promedio y el estado. Toca una fila para
    abrir ese visual.
+7. Para ir a un visual por su nombre, toca la **lupa** de arriba y escribe parte
+   del nombre (sin importar tildes ni mayúsculas). Enter abre el primero.
 
 El estado sale solo del promedio:
 
