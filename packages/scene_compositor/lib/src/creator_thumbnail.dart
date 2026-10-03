@@ -22,12 +22,17 @@ class CreatorThumbnail extends StatefulWidget {
     required this.visualIndex,
     required this.assets,
     this.timeSeconds,
+    this.size = 256,
   });
 
   final CreatorVisualDefinition visual;
   final int visualIndex;
   final CreatorCatalogAssets assets;
   final double? timeSeconds;
+
+  /// Square raster side in pixels. 256 suits lists; a full-screen still
+  /// (for example a backdrop) needs a larger frame.
+  final int size;
 
   @override
   State<CreatorThumbnail> createState() => _CreatorThumbnailState();
@@ -57,6 +62,7 @@ class _CreatorThumbnailState extends State<CreatorThumbnail> {
       widget.visualIndex,
       widget.visual.toManifest(),
       time,
+      widget.size,
     ]);
     if (key == _key) return;
     _key = key;
@@ -66,6 +72,7 @@ class _CreatorThumbnailState extends State<CreatorThumbnail> {
       index: widget.visualIndex,
       shaderAsset: widget.assets.shaderAsset,
       time: time,
+      size: widget.size,
     );
   }
 
@@ -97,6 +104,9 @@ class _CreatorThumbnailState extends State<CreatorThumbnail> {
 
 class _FrozenPosters {
   static final _cache = LinkedHashMap<String, Future<Uint8List>>();
+  // Large stills weigh megabytes each: keep only the last few.
+  static final _large = LinkedHashMap<String, Future<Uint8List>>();
+  static const _maxLarge = 6;
   static Future<void> _pending = Future.value();
   static final _demo = createSyntheticSceneSignalRecording();
 
@@ -106,20 +116,24 @@ class _FrozenPosters {
     required int index,
     required String shaderAsset,
     required double time,
+    int size = 256,
   }) {
-    final cached = _cache.remove(key);
+    if (size < 16 || size > 2048) throw ArgumentError('Invalid thumbnail size.');
+    final cache = size > 256 ? _large : _cache;
+    final limit = size > 256 ? _maxLarge : 256;
+    final cached = cache.remove(key);
     if (cached != null) {
-      _cache[key] = cached;
+      cache[key] = cached;
       return cached;
     }
-    // Only one 256px raster/readback at a time; at most 256 compressed posters.
+    // Only one raster/readback at a time; bounded compressed posters.
     final next = _pending.then(
-      (_) => _render(visual, index, shaderAsset, time),
+      (_) => _render(visual, index, shaderAsset, time, size),
     );
     _pending = next.then<void>(
       (_) {},
       onError: (Object error, StackTrace stack) {
-        _cache.remove(key);
+        cache.remove(key);
         developer.log(
           'Frozen visual thumbnail failed',
           name: 'scene_compositor',
@@ -128,9 +142,9 @@ class _FrozenPosters {
         );
       },
     );
-    _cache[key] = next;
-    while (_cache.length > 256) {
-      _cache.remove(_cache.keys.first);
+    cache[key] = next;
+    while (cache.length > limit) {
+      cache.remove(cache.keys.first);
     }
     return next;
   }
@@ -140,11 +154,12 @@ class _FrozenPosters {
     int index,
     String asset,
     double time,
+    int size,
   ) async {
     if (!time.isFinite || time < 0 || time > 3600) {
       throw ArgumentError('Invalid thumbnail time.');
     }
-    if (visual.isNative) return _renderNative(visual, time);
+    if (visual.isNative) return _renderNative(visual, time, size);
     final program = await loadCreatorShaderProgram(asset);
     final shader = program.fragmentShader();
     ui.Picture? picture;
@@ -162,9 +177,10 @@ class _FrozenPosters {
         orElse: () => _demo.samples.first,
       );
       state.consume(sample.frame);
+      final side = size.toDouble();
       final uniforms = state.uniforms(
-        width: 256,
-        height: 256,
+        width: side,
+        height: side,
         hostTime: 0,
         reducedMotion: false,
       );
@@ -174,11 +190,11 @@ class _FrozenPosters {
       }
       final recorder = ui.PictureRecorder();
       ui.Canvas(recorder).drawRect(
-        const Rect.fromLTWH(0, 0, 256, 256),
+        Rect.fromLTWH(0, 0, side, side),
         ui.Paint()..shader = shader,
       );
       picture = recorder.endRecording();
-      image = await picture.toImage(256, 256);
+      image = await picture.toImage(size, size);
       final data = await image.toByteData(format: ui.ImageByteFormat.png);
       if (data == null) throw StateError('Unable to encode visual thumbnail.');
       return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
@@ -188,10 +204,10 @@ class _FrozenPosters {
       shader.dispose();
     }
   }
-  static Future<Uint8List> _renderNative(CreatorVisualDefinition visual, double time) async {
+  static Future<Uint8List> _renderNative(CreatorVisualDefinition visual, double time, int size) async {
     // FFI state is created and destroyed inside the worker. Only value commands
     // cross isolates; the live scene and its native pointers are never touched.
-    final commands = await Isolate.run(() => _replayNative(visual, time));
+    final commands = await Isolate.run(() => _replayNative(visual, time, size));
     final resources = await CreatorCommandCanvas.prepare(visual);
     ui.Picture? picture;
     ui.Image? image;
@@ -202,7 +218,7 @@ class _FrozenPosters {
       if (visual.role == CreatorRole.background) canvas.drawColor(Color(visual.colors.first).withAlpha(255), BlendMode.src);
       shaders = resources.paint(canvas, commands);
       picture = recorder.endRecording();
-      image = await picture.toImage(256, 256);
+      image = await picture.toImage(size, size);
       final data = await image.toByteData(format: ui.ImageByteFormat.png);
       if (data == null) throw StateError('Unable to encode native thumbnail.');
       return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
@@ -213,7 +229,7 @@ class _FrozenPosters {
     }
   }
 
-  static Float32List _replayNative(CreatorVisualDefinition visual, double time) {
+  static Float32List _replayNative(CreatorVisualDefinition visual, double time, int size) {
     final program = CreatorNativeProgram(visual);
     final replay = SceneSignalReplay(createSyntheticSceneSignalRecording());
     try {
@@ -224,7 +240,7 @@ class _FrozenPosters {
         final batch = replay.advance(Duration(microseconds: (position * 1000000).round()));
         if (batch.resetRequired) program.reset();
         for (final sample in batch.samples) program.consume(sample.frame);
-        program.update(width: 256, height: 256, hostTime: position, reducedMotion: false);
+        program.update(width: size.toDouble(), height: size.toDouble(), hostTime: position, reducedMotion: false);
       }
       return Float32List.fromList(program.draw());
     } finally { program.dispose(); }

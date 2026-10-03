@@ -118,6 +118,10 @@ Después elige el tipo. La plantilla ya viene como fondo:
 pide a la IA «un efecto sobre fondo transparente». Así la descripción del
 paso 3 y el tipo que elijas aquí se refieren a lo mismo.
 
+Para ver cómo queda un efecto transparente sobre distintas escenas, toca el
+botón de fondo de arriba: cuadrícula alpha, colores, degradados o una imagen
+fija de cada fondo del catálogo. Cada toque se aplica al instante.
+
 Elige cómo usa la música:
 
 | Lo que quieres | Línea de la metadata |

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audiovisual_creator/studio/creator_studio.dart';
+import 'package:audiovisual_creator/studio/studio_backdrop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scene_compositor/scene_compositor.dart';
@@ -558,50 +559,87 @@ void main() {
   });
 
   testWidgets(
-    'the alpha grid is the default background and cycles to light and dark',
+    'the alpha grid is the default backdrop; the picker offers many more',
     (tester) async {
+      tester.view.physicalSize = const Size(1200, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
       final controller = _Controller();
       await tester.pumpWidget(
         MaterialApp(
           home: CreatorStudio(
-            catalogBuilder: () => [_aurora],
+            catalogBuilder: () => [_aurora, _plasma],
             controllerFactory: () => controller,
             recordingsLoader: () async => [],
             thumbnailBuilder: (_, _) => const SizedBox(),
+            backdropBuilder:
+                (visual, _) =>
+                    SizedBox.expand(key: ValueKey('still-${visual.id}')),
           ),
         ),
       );
       await _flush(tester);
       final checkerboard = find.byWidgetPredicate(
-        (w) => w is CustomPaint && w.painter is CheckerboardPainter,
+        (w) =>
+            w is CustomPaint &&
+            w.painter is CheckerboardPainter &&
+            (w.painter! as CheckerboardPainter).squareSize == 20,
       );
+      Color surfaceColor() =>
+          tester
+              .widget<ColoredBox>(find.byKey(const ValueKey('visual-surface')))
+              .color;
+      Future<void> pick(String id) async {
+        final swatch = find.byKey(ValueKey('backdrop-$id'));
+        await tester.ensureVisible(swatch);
+        await tester.pump();
+        await tester.tap(swatch);
+        await tester.pump();
+      }
 
       // Initially the alpha grid.
       expect(checkerboard, findsOneWidget);
 
-      final toggleButton = find.byKey(
-        const ValueKey('toggle-background-mode-button'),
+      await tester.tap(
+        find.byKey(const ValueKey('toggle-background-mode-button')),
       );
-      expect(toggleButton, findsOneWidget);
-
-      // Tap to switch to light mode.
-      await tester.tap(toggleButton);
+      // Let the sheet finish sliding in before picking.
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.text('Fondo detrás del visual'), findsOneWidget);
+
+      await pick('claro');
       expect(checkerboard, findsNothing);
-      final surface = tester.widget<ColoredBox>(
-        find.byKey(const ValueKey('visual-surface')),
+      expect(surfaceColor(), const Color(0xFFF2F2F7));
+
+      await pick('rojo');
+      expect(
+        find.descendant(
+          of: find.byType(StudioBackdropFill),
+          matching: find.byWidgetPredicate(
+            (w) => w is ColoredBox && w.color == const Color(0xFFC62828),
+          ),
+        ),
+        findsWidgets,
       );
-      expect(surface.color, const Color(0xFFF2F2F7));
 
-      // Tap to switch to dark mode.
-      await tester.tap(toggleButton);
-      await tester.pump();
-      expect(checkerboard, findsNothing);
+      await pick('atardecer');
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is DecoratedBox &&
+              (w.decoration as BoxDecoration?)?.gradient is LinearGradient,
+        ),
+        findsWidgets,
+      );
 
-      // Tap to return to the alpha grid.
-      await tester.tap(toggleButton);
-      await tester.pump();
+      // Catalog backgrounds appear frozen behind the overlay.
+      await pick('visual:plasma');
+      expect(find.byKey(const ValueKey('still-plasma')), findsOneWidget);
+
+      await pick('alpha');
       expect(checkerboard, findsOneWidget);
+      expect(find.byKey(const ValueKey('still-plasma')), findsNothing);
 
       await tester.pumpWidget(const SizedBox());
       await _flush(tester);

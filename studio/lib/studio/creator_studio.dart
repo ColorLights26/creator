@@ -40,11 +40,21 @@ Widget _defaultThumbnail(CreatorVisualDefinition visual, int index) =>
       assets: creatorCatalogAssets,
     );
 
+// Large enough to fill a phone screen behind an overlay without blur.
+Widget _defaultBackdrop(CreatorVisualDefinition visual, int index) =>
+    CreatorThumbnail(
+      visual: visual,
+      visualIndex: index,
+      assets: creatorCatalogAssets,
+      size: 1024,
+    );
+
 class CreatorStudio extends StatefulWidget {
   const CreatorStudio({
     this.catalogBuilder = _defaultCatalog,
     this.controllerFactory = _defaultController,
     this.thumbnailBuilder = _defaultThumbnail,
+    this.backdropBuilder = _defaultBackdrop,
     this.recordingsLoader = loadStudioRecordings,
     this.teamReview,
     super.key,
@@ -56,6 +66,10 @@ class CreatorStudio extends StatefulWidget {
   final SceneCompositorController Function() controllerFactory;
   final Widget Function(CreatorVisualDefinition visual, int index)
   thumbnailBuilder;
+
+  /// Full-screen still of a catalog background used as an overlay backdrop.
+  final Widget Function(CreatorVisualDefinition visual, int index)
+  backdropBuilder;
   final Future<List<StudioRecording>> Function() recordingsLoader;
 
   @override
@@ -679,6 +693,19 @@ class _CreatorStudioState extends State<CreatorStudio>
       pictureInPictureActive: _controller.pictureInPictureActive,
       ratingPanel: _ratingPanel(),
       performanceOverlay: VisualPerformanceOverlay(sample: _performance.sample),
+      backdropVisuals: [
+        for (var index = 0; index < _catalog.length; index++)
+          if (_catalog[index].role == CreatorRole.background)
+            (
+              id: _catalog[index].id,
+              name: _catalog[index].name,
+              thumbnail: widget.thumbnailBuilder(_catalog[index], index),
+            ),
+      ],
+      backdropBuilder: (id) {
+        final index = _catalog.indexWhere((visual) => visual.id == id);
+        return index < 0 ? null : widget.backdropBuilder(_catalog[index], index);
+      },
       signalListenable: _latestSignal,
       onPictureInPicture:
           defaultTargetPlatform == TargetPlatform.iOS

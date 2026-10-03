@@ -1,14 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:scene_compositor/scene_compositor.dart';
 
 import 'audio_signal_chart.dart';
+import 'studio_backdrop.dart';
 
-enum StudioBackgroundMode {
-  dark,
-  checkerboard,
-  light,
-}
+export 'studio_backdrop.dart'
+    show
+        CheckerboardPainter,
+        StudioBackdrop,
+        StudioBackdropVisual,
+        StudioBackgroundMode;
 
 enum StudioRoleFilter {
   all,
@@ -93,6 +97,8 @@ class StudioView extends StatefulWidget {
     this.onToggleMuted,
     this.ratingPanel,
     this.performanceOverlay,
+    this.backdropVisuals = const [],
+    this.backdropBuilder,
     this.voteFilters = const [],
     this.selectedVoteFilter,
     this.onVoteFilterChanged,
@@ -128,6 +134,12 @@ class StudioView extends StatefulWidget {
   /// Live CPU/FPS of the visual, shown under the app bar with the controls.
   final Widget? performanceOverlay;
 
+  /// Catalog backgrounds that can sit, frozen, behind an overlay.
+  final List<StudioBackdropVisual> backdropVisuals;
+
+  /// Full-screen still of a catalog background chosen as backdrop.
+  final Widget? Function(String visualId)? backdropBuilder;
+
   /// Vote filters shown under the type filter; the first one means "all".
   /// [visuals] already arrive filtered by the selected one.
   final List<StudioFilterOption> voteFilters;
@@ -144,7 +156,9 @@ class _StudioViewState extends State<StudioView> {
   bool _showControls = true;
   bool _audioDetail = false;
   // Alpha grid first: it shows at a glance what an overlay leaves transparent.
-  StudioBackgroundMode _bgMode = StudioBackgroundMode.checkerboard;
+  StudioBackdrop _backdrop = StudioBackdrop.alpha;
+
+  StudioBackgroundMode get _bgMode => _backdrop.base;
   StudioRoleFilter _roleFilter = StudioRoleFilter.all;
 
   @override
@@ -153,28 +167,27 @@ class _StudioViewState extends State<StudioView> {
     super.dispose();
   }
 
-  void _cycleBackgroundMode() {
-    setState(() {
-      _bgMode = switch (_bgMode) {
-        StudioBackgroundMode.dark => StudioBackgroundMode.checkerboard,
-        StudioBackgroundMode.checkerboard => StudioBackgroundMode.light,
-        StudioBackgroundMode.light => StudioBackgroundMode.dark,
-      };
-    });
-  }
+  void _pickBackdrop() => unawaited(
+    showStudioBackdropPicker(
+      context: context,
+      current: _backdrop,
+      visuals: widget.backdropVisuals,
+      onSelected: (backdrop) => setState(() => _backdrop = backdrop),
+    ),
+  );
 
-  IconData get _bgModeIcon => switch (_bgMode) {
-    StudioBackgroundMode.dark => Icons.grid_4x4_rounded,
-    StudioBackgroundMode.checkerboard => Icons.texture_rounded,
-    StudioBackgroundMode.light => Icons.light_mode_rounded,
-  };
+  IconData get _bgModeIcon =>
+      _backdrop.visualId != null
+          ? Icons.image_rounded
+          : _backdrop.colors.isNotEmpty
+          ? Icons.palette_rounded
+          : switch (_bgMode) {
+            StudioBackgroundMode.dark => Icons.grid_4x4_rounded,
+            StudioBackgroundMode.checkerboard => Icons.texture_rounded,
+            StudioBackgroundMode.light => Icons.light_mode_rounded,
+          };
 
-  String get _bgModeTooltip => switch (_bgMode) {
-    StudioBackgroundMode.dark => 'Fondo: Oscuro (toca para cuadrícula alpha)',
-    StudioBackgroundMode.checkerboard =>
-        'Fondo: Cuadrícula alpha (toca para fondo claro)',
-    StudioBackgroundMode.light => 'Fondo: Claro (toca para fondo oscuro)',
-  };
+  String get _bgModeTooltip => 'Fondo: ${_backdrop.label} (toca para elegir)';
 
   /// The selected vote filter, unless it is the first ("all") one.
   StudioFilterOption? get _activeVoteFilter {
@@ -529,10 +542,10 @@ class _StudioViewState extends State<StudioView> {
           IconButton(
             key: const ValueKey('toggle-background-mode-button'),
             tooltip: _bgModeTooltip,
-            onPressed: _cycleBackgroundMode,
+            onPressed: _pickBackdrop,
             icon: Icon(
               _bgModeIcon,
-              color: _bgMode == StudioBackgroundMode.dark
+              color: _backdrop == StudioBackdrop.dark
                   ? Colors.white70
                   : const Color(0xFF73F572),
               size: 20,
@@ -1423,6 +1436,12 @@ class _StudioViewState extends State<StudioView> {
                     painter: CheckerboardPainter(),
                   ),
                 ),
+              Positioned.fill(
+                child: StudioBackdropFill(
+                  backdrop: _backdrop,
+                  visualBuilder: widget.backdropBuilder,
+                ),
+              ),
               if (widget.preview case final Widget surface)
                 surface
               else if (nativeTextureId != null)
@@ -1901,49 +1920,6 @@ class _StudioViewState extends State<StudioView> {
     );
   }
 
-}
-
-class CheckerboardPainter extends CustomPainter {
-  const CheckerboardPainter({
-    this.squareSize = 20.0,
-    this.lightColor = const Color(0xFF383842),
-    this.darkColor = const Color(0xFF1C1C22),
-  });
-
-  final double squareSize;
-  final Color lightColor;
-  final Color darkColor;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final darkPaint = Paint()..color = darkColor;
-    final lightPaint = Paint()..color = lightColor;
-    canvas.drawRect(Offset.zero & size, darkPaint);
-
-    final xCount = (size.width / squareSize).ceil();
-    final yCount = (size.height / squareSize).ceil();
-
-    for (var y = 0; y < yCount; y++) {
-      final isEvenRow = y % 2 == 0;
-      for (var x = isEvenRow ? 0 : 1; x < xCount; x += 2) {
-        canvas.drawRect(
-          Rect.fromLTWH(
-            x * squareSize,
-            y * squareSize,
-            squareSize,
-            squareSize,
-          ),
-          lightPaint,
-        );
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CheckerboardPainter oldDelegate) =>
-      oldDelegate.squareSize != squareSize ||
-      oldDelegate.lightColor != lightColor ||
-      oldDelegate.darkColor != darkColor;
 }
 
 /// Lowercase without accents, so "igneo" finds "Ígneo".
