@@ -342,6 +342,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "cimatica",
+      "name": "Cimática",
+      "description": "El sonido hecho visible: arena luminosa que vibra sobre una placa y forma figuras geométricas que cambian con la música.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "relax"
+      ],
+      "moods": [
+        "hypnotic",
+        "epic",
+        "scientific"
+      ],
+      "concepts": [
+        "cymatics",
+        "chladni",
+        "sand",
+        "particles"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "constelacion_viva",
       "name": "Constelación Táctil",
       "description": "Constelación 3D de estrellas luminosas unidas por líneas de luz con pulsos de energía; estalla y se expande con cada golpe.",
@@ -541,6 +573,38 @@
         "electricity",
         "tesla",
         "lightning"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "esfera_sonica",
+      "name": "Esfera Sónica",
+      "description": "Esfera 3D de miles de puntos de luz verde que se deforma con el espectro y explota en una nube en el drop antes de volver a formarse.",
+      "purposes": [
+        "party",
+        "visualizer",
+        "club"
+      ],
+      "moods": [
+        "epic",
+        "futuristic",
+        "energetic"
+      ],
+      "concepts": [
+        "particles",
+        "sphere",
+        "3d",
+        "spectrum"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -936,6 +1000,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "llama_fractal",
+      "name": "Llama Fractal",
+      "description": "Llamas fractales de seda luminosa en azul eléctrico y violeta que se pliegan en remolinos y mutan de forma con cada golpe.",
+      "purposes": [
+        "party",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "hypnotic",
+        "epic",
+        "dreamy"
+      ],
+      "concepts": [
+        "fractal flame",
+        "silk",
+        "swirl",
+        "generative"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "llamarada",
       "name": "Llamarada",
       "description": "Fuego vivo que ruge con los graves, lanza llamaradas y lluvias de chispas con cada golpe y multiplica las brasas con los agudos.",
@@ -1268,6 +1364,38 @@
         "city",
         "rain",
         "neon"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "pantalla_led",
+      "name": "Pantalla LED",
+      "description": "Pared de LEDs de concierto en rojo y blanco: anillos, barridos, barras del espectro y estrobos que cambian con cada compás.",
+      "purposes": [
+        "party",
+        "visualizer",
+        "club"
+      ],
+      "moods": [
+        "energetic",
+        "epic",
+        "stage"
+      ],
+      "concepts": [
+        "led wall",
+        "stage",
+        "pixels",
+        "strobe"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -2684,6 +2812,38 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "vitral_estalla",
+      "name": "Vitral que Estalla",
+      "description": "Vitral de rubí, esmeralda y zafiro iluminado desde atrás que late con la música y en el drop estalla en fragmentos antes de recomponerse.",
+      "purposes": [
+        "party",
+        "visualizer",
+        "epic"
+      ],
+      "moods": [
+        "epic",
+        "dramatic",
+        "vivid"
+      ],
+      "concepts": [
+        "stained glass",
+        "shatter",
+        "mosaic",
+        "light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
