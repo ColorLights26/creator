@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:audiovisual_creator/studio/creator_studio.dart';
 import 'package:audiovisual_creator/team_review/team_ranking.dart';
 import 'package:audiovisual_creator/team_review/team_ranking_screen.dart';
+import 'package:audiovisual_creator/team_review/team_rating_panel.dart';
 import 'package:audiovisual_creator/team_review/team_review_client.dart';
 import 'package:audiovisual_creator/team_review/team_review_controller.dart';
 import 'package:audiovisual_creator/team_review/visual_revision.dart';
@@ -417,12 +418,10 @@ void main() {
       change: false,
     ));
     expect(find.textContaining('Equipo 8'), findsOneWidget);
-    // Confirmed: a plain tap on another number does nothing.
+    // Confirmed: nothing on screen says how to change it, and a plain tap
+    // on another number does nothing.
     expect(find.text('TU VOTO'), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey('team-rating-change-hint')),
-      findsOneWidget,
-    );
+    expect(find.textContaining('presionado'), findsNothing);
     await tester.ensureVisible(
       find.byKey(const ValueKey('team-rating-score-3')),
     );
@@ -434,9 +433,22 @@ void main() {
     expect(client.rateCalls, hasLength(1));
     expect(find.byKey(const ValueKey('team-rating-confirm')), findsNothing);
 
-    // A long press on the vote deselects it; cancelling keeps the 8.
+    // A normal long press does nothing either: the change is hidden.
     await tester.longPress(find.byKey(const ValueKey('team-rating-score-8')));
     await tester.pump();
+    expect(find.text('TU VOTO'), findsOneWidget);
+
+    Future<void> holdVote() async {
+      final hold = await tester.startGesture(
+        tester.getCenter(find.byKey(const ValueKey('team-rating-score-8'))),
+      );
+      await tester.pump(hiddenVoteChangeHold);
+      await hold.up();
+      await tester.pump();
+    }
+
+    // Holding the vote for the hidden time deselects it; ✕ keeps the 8.
+    await holdVote();
     expect(find.text('CAMBIANDO TU VOTO'), findsOneWidget);
     expect(find.text('Elige tu nueva nota.'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('team-rating-cancel-change')));
@@ -444,9 +456,8 @@ void main() {
     expect(find.text('TU VOTO'), findsOneWidget);
     expect(client.rateCalls, hasLength(1));
 
-    // Long press again, pick 3 and confirm: the 3 replaces the 8.
-    await tester.longPress(find.byKey(const ValueKey('team-rating-score-8')));
-    await tester.pump();
+    // Hold again, pick 3 and confirm: the 3 replaces the 8.
+    await holdVote();
     await tester.tap(find.byKey(const ValueKey('team-rating-score-3')));
     await tester.pump();
     expect(find.text('Reemplaza tu 8.'), findsOneWidget);

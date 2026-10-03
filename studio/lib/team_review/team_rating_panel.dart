@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -10,6 +11,10 @@ const _accent = Color(0xFF73F572);
 const _warning = Color(0xFFFFB74D);
 const _danger = Color(0xFFFF8B80);
 
+/// How long a confirmed vote must be held to change it. Deliberately hidden:
+/// nothing on screen announces it, and a normal long press does nothing.
+const hiddenVoteChangeHold = Duration(seconds: 3);
+
 /// A visual the reviewer is expected to vote on, in catalog order.
 typedef TeamRatingCandidate = ({String id, String revision});
 
@@ -17,8 +22,9 @@ typedef TeamRatingCandidate = ({String id, String revision});
 /// voted, and a shortcut to the next visual still waiting for your vote.
 ///
 /// Picking a number is only a choice until "Confirmar", which reveals the
-/// team's scores. A confirmed vote changes only on purpose: a long press on
-/// it deselects it, and the new number replaces it once confirmed.
+/// team's scores. A confirmed vote changes only through a hidden gesture:
+/// holding it for [hiddenVoteChangeHold] deselects it, and the new number
+/// replaces it once confirmed.
 class TeamRatingPanel extends StatefulWidget {
   const TeamRatingPanel({
     required this.controller,
@@ -225,8 +231,11 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
             ],
           ],
         ),
-        const SizedBox(height: 8),
-        _buildAction(mine, changing: changing),
+        if (_buildAction(mine, changing: changing)
+            case final Widget action) ...[
+          const SizedBox(height: 8),
+          action,
+        ],
         const SizedBox(height: 8),
         Row(
           children: [
@@ -268,20 +277,14 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
     );
   }
 
-  /// What to do next under the numbers: test before voting, confirm the
-  /// pick, or how to change a confirmed vote.
-  Widget _buildAction(TeamRating? mine, {required bool changing}) {
+  /// What to do next under the numbers: test before voting or confirm the
+  /// pick. A confirmed vote shows nothing: changing it stays hidden.
+  Widget? _buildAction(TeamRating? mine, {required bool changing}) {
     final hint = TextStyle(
       fontSize: 11,
       color: Colors.white.withValues(alpha: 0.6),
     );
-    if (mine != null && !changing) {
-      return Text(
-        'Mantén presionado tu voto para cambiarlo.',
-        key: const ValueKey('team-rating-change-hint'),
-        style: hint,
-      );
-    }
+    if (mine != null && !changing) return null;
     if (mine == null && _pending == null) {
       return Text(
         'Antes de votar, pruébalo con varias pistas y en silencio.',
@@ -346,11 +349,10 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
     required bool locked,
     VoidCallback? onLongPress,
   }) {
-    return Semantics(
-      button: !locked || onLongPress != null,
+    final button = Semantics(
+      button: !locked,
       selected: selected,
       label: 'Nota $score',
-      onLongPressHint: onLongPress == null ? null : 'cambiar tu voto',
       child: Material(
         color:
             selected
@@ -360,8 +362,7 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
         child: InkWell(
           key: ValueKey('team-rating-score-$score'),
           borderRadius: BorderRadius.circular(10),
-          // A confirmed vote doesn't react to taps; only a long press on it
-          // starts a change.
+          // A confirmed vote doesn't react to taps or to a normal long press.
           onTap:
               locked
                   ? null
@@ -369,7 +370,6 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
                     unawaited(HapticFeedback.selectionClick());
                     setState(() => _pending = score);
                   },
-          onLongPress: onLongPress,
           child: SizedBox(
             height: 36,
             child: Center(
@@ -391,6 +391,17 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
           ),
         ),
       ),
+    );
+    if (onLongPress == null) return button;
+    return RawGestureDetector(
+      gestures: {
+        LongPressGestureRecognizer:
+            GestureRecognizerFactoryWithHandlers<LongPressGestureRecognizer>(
+              () => LongPressGestureRecognizer(duration: hiddenVoteChangeHold),
+              (recognizer) => recognizer.onLongPress = onLongPress,
+            ),
+      },
+      child: button,
     );
   }
 

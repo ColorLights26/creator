@@ -152,12 +152,15 @@ ranking y la exportación a CSV. Revocar una clave conserva sus votos.
   los materiales, las imágenes y los parámetros de render. El nombre y la
   descripción no cuentan.
 - Las notas del equipo de una versión se ocultan hasta que la persona vota.
-- El voto se elige y luego se **confirma**. Un toque no cambia un voto
-  confirmado: mantenerlo presionado lo deselecciona y la nota nueva lo reemplaza
-  al confirmarla (`POST /ratings` con `change: true`; sin esa marca el servidor
+- El voto se elige y luego se **confirma**. Cambiarlo es una **función oculta**
+  a propósito: hay que mantener el voto presionado 3 segundos
+  (`hiddenVoteChangeHold` en `team_rating_panel.dart`). Ningún texto lo anuncia,
+  la guía de colaboradores no lo menciona y un toque o una pulsación larga normal
+  no hacen nada. El gesto deselecciona el voto y la nota nueva lo reemplaza al
+  confirmarla (`POST /ratings` con `change: true`; sin esa marca el servidor
   responde `vote-final`). El voto anterior vale hasta esa confirmación y el
   comentario se conserva. Quien cambia ya vio las notas del equipo: es una
-  corrección, no un voto a ciegas. El responsable aún puede borrar un voto en
+  corrección, no un voto a ciegas. El responsable también puede borrar un voto en
   Chic Team → Evaluación → ↺ («Reiniciar voto»).
 - La barra **Pruébalo con** (encima del voto) cambia de pista o pasa a silencio
   con un toque; reemplaza al selector escondido de «Señal de audio».
