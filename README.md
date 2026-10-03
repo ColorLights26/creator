@@ -232,8 +232,10 @@ Te la da el responsable.
    dispositivo.
 2. Antes de votar, pruébalo con varias pistas y en silencio: la barra
    **Pruébalo con** está justo encima de tu nota (un toque por pista).
-3. Elige un número del 1 al 10 y toca **Confirmar**. El voto queda definitivo;
-   solo se vota de nuevo si el visual cambia o si el responsable lo reinicia.
+3. Elige un número del 1 al 10 y toca **Confirmar**. Para cambiarlo después,
+   **mantén presionado tu voto**: se deselecciona, eliges otro número y vuelves a
+   confirmar. Hasta que confirmas, sigue valiendo el voto anterior (la ✕ lo deja
+   como estaba). Un toque normal nunca cambia un voto confirmado.
 4. Las notas de los demás aparecen cuando votas tú, para que nadie influya en
    nadie. Con el globo de diálogo puedes dejar un comentario.
 5. **Faltan N** te lleva al siguiente visual que todavía no votaste. Se salta

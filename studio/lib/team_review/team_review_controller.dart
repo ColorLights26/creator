@@ -197,13 +197,15 @@ class TeamReviewController extends ChangeNotifier {
   }
 
   /// Saves the vote immediately; the team's scores for this revision become
-  /// visible once the server has it. Returns an error message or null.
+  /// visible once the server has it. [change] replaces a confirmed vote.
+  /// Returns an error message or null.
   Future<String?> rate({
     required String visualId,
     required String visualName,
     required String revision,
     required int score,
     String? comment,
+    bool change = false,
   }) async {
     final key = _key;
     final reviewer = _reviewer;
@@ -236,6 +238,7 @@ class TeamReviewController extends ChangeNotifier {
         revision: revision,
         score: score,
         comment: comment,
+        change: change,
       );
       _saving.remove(slot);
       _error = null;

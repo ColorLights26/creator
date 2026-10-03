@@ -152,9 +152,13 @@ ranking y la exportación a CSV. Revocar una clave conserva sus votos.
   los materiales, las imágenes y los parámetros de render. El nombre y la
   descripción no cuentan.
 - Las notas del equipo de una versión se ocultan hasta que la persona vota.
-- El voto se elige y luego se **confirma**; confirmado es definitivo (el
-  servidor rechaza cambiarlo con `vote-final`). Solo cambia el comentario. Para
-  corregir un error: Chic Team → Evaluación → ↺ junto al voto («Reiniciar voto»).
+- El voto se elige y luego se **confirma**. Un toque no cambia un voto
+  confirmado: mantenerlo presionado lo deselecciona y la nota nueva lo reemplaza
+  al confirmarla (`POST /ratings` con `change: true`; sin esa marca el servidor
+  responde `vote-final`). El voto anterior vale hasta esa confirmación y el
+  comentario se conserva. Quien cambia ya vio las notas del equipo: es una
+  corrección, no un voto a ciegas. El responsable aún puede borrar un voto en
+  Chic Team → Evaluación → ↺ («Reiniciar voto»).
 - La barra **Pruébalo con** (encima del voto) cambia de pista o pasa a silencio
   con un toque; reemplaza al selector escondido de «Señal de audio».
 - El estado sale **solo del promedio** y con **al menos 2 votos**

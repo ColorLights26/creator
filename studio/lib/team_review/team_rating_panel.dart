@@ -16,8 +16,9 @@ typedef TeamRatingCandidate = ({String id, String revision});
 /// "Tu nota" 1-10 for the selected visual, the team's scores once you have
 /// voted, and a shortcut to the next visual still waiting for your vote.
 ///
-/// Picking a number is only a choice until "Confirmar": the confirmed vote is
-/// final, because confirming reveals the team's scores.
+/// Picking a number is only a choice until "Confirmar", which reveals the
+/// team's scores. A confirmed vote changes only on purpose: a long press on
+/// it deselects it, and the new number replaces it once confirmed.
 class TeamRatingPanel extends StatefulWidget {
   const TeamRatingPanel({
     required this.controller,
@@ -49,6 +50,9 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
   int? _pending;
   bool _confirming = false;
 
+  /// The confirmed vote was long-pressed: the next confirmation replaces it.
+  bool _changing = false;
+
   TeamReviewController get controller => widget.controller;
   String get visualId => widget.visualId;
   String get visualName => widget.visualName;
@@ -62,10 +66,11 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.visualId != visualId || oldWidget.revision != revision) {
       _pending = null;
+      _changing = false;
     }
   }
 
-  Future<void> _confirm() async {
+  Future<void> _confirm({required bool change}) async {
     final score = _pending;
     if (score == null || _confirming) return;
     setState(() => _confirming = true);
@@ -74,13 +79,30 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
       visualName: visualName,
       revision: revision,
       score: score,
+      change: change,
     );
     if (!mounted) return;
     setState(() {
       _confirming = false;
-      if (error == null) _pending = null;
+      if (error == null) {
+        _pending = null;
+        _changing = false;
+      }
     });
   }
+
+  void _startChange() {
+    unawaited(HapticFeedback.mediumImpact());
+    setState(() {
+      _changing = true;
+      _pending = null;
+    });
+  }
+
+  void _cancelChange() => setState(() {
+    _changing = false;
+    _pending = null;
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -139,6 +161,9 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
 
   Widget _buildVoting(BuildContext context) {
     final mine = controller.myRating(visualId, revision);
+    // If the owner reset the vote meanwhile, this is a first vote again.
+    final changing = _changing && mine != null;
+    final locked = mine != null && !changing;
     final saving = controller.isSaving(visualId, revision);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -151,7 +176,11 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
                 children: [
                   Flexible(
                     child: Text(
-                      mine == null ? 'TU NOTA' : 'TU VOTO · DEFINITIVO',
+                      changing
+                          ? 'CAMBIANDO TU VOTO'
+                          : mine == null
+                          ? 'TU NOTA'
+                          : 'TU VOTO',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -187,56 +216,17 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
               Expanded(
                 child: _scoreButton(
                   score,
-                  selected:
-                      mine?.score == score ||
-                      (mine == null && _pending == score),
-                  locked: mine != null,
+                  selected: locked ? mine.score == score : _pending == score,
+                  locked: locked,
+                  onLongPress:
+                      locked && mine.score == score ? _startChange : null,
                 ),
               ),
             ],
           ],
         ),
-        if (mine == null) ...[
-          const SizedBox(height: 8),
-          if (_pending == null)
-            Text(
-              'Antes de votar, pruébalo con varias pistas y en silencio.',
-              style: TextStyle(
-                fontSize: 11.5,
-                color: _warning.withValues(alpha: 0.9),
-                fontWeight: FontWeight.w600,
-              ),
-            )
-          else
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Al confirmar ya no se puede cambiar y verás las notas '
-                    'del equipo.',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.white.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  key: const ValueKey('team-rating-confirm'),
-                  onPressed: _confirming ? null : () => unawaited(_confirm()),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: _accent,
-                    foregroundColor: Colors.black,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  child: Text(
-                    _confirming ? 'Guardando…' : 'Confirmar $_pending',
-                    style: const TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                ),
-              ],
-            ),
-        ],
+        const SizedBox(height: 8),
+        _buildAction(mine, changing: changing),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -278,15 +268,89 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
     );
   }
 
+  /// What to do next under the numbers: test before voting, confirm the
+  /// pick, or how to change a confirmed vote.
+  Widget _buildAction(TeamRating? mine, {required bool changing}) {
+    final hint = TextStyle(
+      fontSize: 11,
+      color: Colors.white.withValues(alpha: 0.6),
+    );
+    if (mine != null && !changing) {
+      return Text(
+        'Mantén presionado tu voto para cambiarlo.',
+        key: const ValueKey('team-rating-change-hint'),
+        style: hint,
+      );
+    }
+    if (mine == null && _pending == null) {
+      return Text(
+        'Antes de votar, pruébalo con varias pistas y en silencio.',
+        style: TextStyle(
+          fontSize: 11.5,
+          color: _warning.withValues(alpha: 0.9),
+          fontWeight: FontWeight.w600,
+        ),
+      );
+    }
+    final pending = _pending;
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            mine == null
+                ? 'Al confirmar verás las notas del equipo.'
+                : pending == null
+                ? 'Elige tu nueva nota.'
+                : 'Reemplaza tu ${mine.score}.',
+            style: hint,
+          ),
+        ),
+        if (mine != null && changing)
+          IconButton(
+            key: const ValueKey('team-rating-cancel-change'),
+            tooltip: 'Cancelar: queda tu ${mine.score}',
+            onPressed: _confirming ? null : _cancelChange,
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(
+              Icons.close_rounded,
+              size: 20,
+              color: Colors.white70,
+            ),
+          ),
+        if (pending != null) ...[
+          const SizedBox(width: 8),
+          FilledButton(
+            key: const ValueKey('team-rating-confirm'),
+            onPressed:
+                _confirming
+                    ? null
+                    : () => unawaited(_confirm(change: changing)),
+            style: FilledButton.styleFrom(
+              backgroundColor: _accent,
+              foregroundColor: Colors.black,
+              visualDensity: VisualDensity.compact,
+            ),
+            child: Text(
+              _confirming ? 'Guardando…' : 'Confirmar $pending',
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _scoreButton(
     int score, {
     required bool selected,
     required bool locked,
+    VoidCallback? onLongPress,
   }) {
     return Semantics(
-      button: !locked,
+      button: !locked || onLongPress != null,
       selected: selected,
       label: 'Nota $score',
+      onLongPressHint: onLongPress == null ? null : 'cambiar tu voto',
       child: Material(
         color:
             selected
@@ -296,7 +360,8 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
         child: InkWell(
           key: ValueKey('team-rating-score-$score'),
           borderRadius: BorderRadius.circular(10),
-          // A confirmed vote is final: the numbers no longer react.
+          // A confirmed vote doesn't react to taps; only a long press on it
+          // starts a change.
           onTap:
               locked
                   ? null
@@ -304,6 +369,7 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
                     unawaited(HapticFeedback.selectionClick());
                     setState(() => _pending = score);
                   },
+          onLongPress: onLongPress,
           child: SizedBox(
             height: 36,
             child: Center(

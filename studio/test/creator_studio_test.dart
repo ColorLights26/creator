@@ -503,7 +503,7 @@ void main() {
   );
 
   testWidgets(
-    'cycling background mode switches between dark, checkerboard and light',
+    'the alpha grid is the default background and cycles to light and dark',
     (tester) async {
       final controller = _Controller();
       await tester.pumpWidget(
@@ -517,54 +517,36 @@ void main() {
         ),
       );
       await _flush(tester);
-
-      // Initially dark mode: no checkerboard custom paint
-      expect(
-        find.byWidgetPredicate(
-          (w) => w is CustomPaint && w.painter is CheckerboardPainter,
-        ),
-        findsNothing,
+      final checkerboard = find.byWidgetPredicate(
+        (w) => w is CustomPaint && w.painter is CheckerboardPainter,
       );
 
-      // Tap to switch to checkerboard mode
+      // Initially the alpha grid.
+      expect(checkerboard, findsOneWidget);
+
       final toggleButton = find.byKey(
         const ValueKey('toggle-background-mode-button'),
       );
       expect(toggleButton, findsOneWidget);
+
+      // Tap to switch to light mode.
       await tester.tap(toggleButton);
       await tester.pump();
-
-      expect(
-        find.byWidgetPredicate(
-          (w) => w is CustomPaint && w.painter is CheckerboardPainter,
-        ),
-        findsOneWidget,
-      );
-
-      // Tap to switch to light mode
-      await tester.tap(toggleButton);
-      await tester.pump();
-
-      expect(
-        find.byWidgetPredicate(
-          (w) => w is CustomPaint && w.painter is CheckerboardPainter,
-        ),
-        findsNothing,
-      );
+      expect(checkerboard, findsNothing);
       final surface = tester.widget<ColoredBox>(
         find.byKey(const ValueKey('visual-surface')),
       );
       expect(surface.color, const Color(0xFFF2F2F7));
 
-      // Tap to return to dark mode
+      // Tap to switch to dark mode.
       await tester.tap(toggleButton);
       await tester.pump();
-      expect(
-        find.byWidgetPredicate(
-          (w) => w is CustomPaint && w.painter is CheckerboardPainter,
-        ),
-        findsNothing,
-      );
+      expect(checkerboard, findsNothing);
+
+      // Tap to return to the alpha grid.
+      await tester.tap(toggleButton);
+      await tester.pump();
+      expect(checkerboard, findsOneWidget);
 
       await tester.pumpWidget(const SizedBox());
       await _flush(tester);

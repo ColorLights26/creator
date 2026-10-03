@@ -45,7 +45,8 @@ class _FakeClient implements TeamReviewClient {
     'clr_katy': const TeamReviewer(id: 'k', name: 'Katy'),
   };
   final stored = <TeamRating>[];
-  final rateCalls = <({String visualId, String revision, int score})>[];
+  final rateCalls =
+      <({String visualId, String revision, int score, bool change})>[];
 
   TeamReviewer _auth(String key) =>
       reviewers[key] ??
@@ -106,6 +107,7 @@ class _FakeClient implements TeamReviewClient {
     required String revision,
     required int score,
     String? comment,
+    bool change = false,
   }) async {
     final reviewer = _auth(key);
     final existing = stored.where(
@@ -114,10 +116,16 @@ class _FakeClient implements TeamReviewClient {
           rating.visualId == visualId &&
           rating.revision == revision,
     );
-    if (existing.isNotEmpty && existing.first.score != score) {
-      throw const TeamReviewException('Tu voto ya es definitivo.');
+    if (existing.isNotEmpty && existing.first.score != score && !change) {
+      throw const TeamReviewException('Tu voto ya está confirmado.');
     }
-    rateCalls.add((visualId: visualId, revision: revision, score: score));
+    final previousComment = existing.isEmpty ? '' : existing.first.comment;
+    rateCalls.add((
+      visualId: visualId,
+      revision: revision,
+      score: score,
+      change: change,
+    ));
     version++;
     stored.removeWhere(
       (rating) =>
@@ -131,7 +139,7 @@ class _FakeClient implements TeamReviewClient {
       reviewerId: reviewer.id,
       reviewerName: reviewer.name,
       score: score,
-      comment: comment ?? '',
+      comment: comment ?? previousComment,
     );
     stored.add(rating);
     return rating;
@@ -406,10 +414,15 @@ void main() {
       visualId: 'aurora',
       revision: visualRevision(_aurora),
       score: 8,
+      change: false,
     ));
     expect(find.textContaining('Equipo 8'), findsOneWidget);
-    // Confirmed: final. Other numbers no longer react.
-    expect(find.text('TU VOTO · DEFINITIVO'), findsOneWidget);
+    // Confirmed: a plain tap on another number does nothing.
+    expect(find.text('TU VOTO'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('team-rating-change-hint')),
+      findsOneWidget,
+    );
     await tester.ensureVisible(
       find.byKey(const ValueKey('team-rating-score-3')),
     );
@@ -420,6 +433,43 @@ void main() {
     await tester.pump();
     expect(client.rateCalls, hasLength(1));
     expect(find.byKey(const ValueKey('team-rating-confirm')), findsNothing);
+
+    // A long press on the vote deselects it; cancelling keeps the 8.
+    await tester.longPress(find.byKey(const ValueKey('team-rating-score-8')));
+    await tester.pump();
+    expect(find.text('CAMBIANDO TU VOTO'), findsOneWidget);
+    expect(find.text('Elige tu nueva nota.'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('team-rating-cancel-change')));
+    await tester.pump();
+    expect(find.text('TU VOTO'), findsOneWidget);
+    expect(client.rateCalls, hasLength(1));
+
+    // Long press again, pick 3 and confirm: the 3 replaces the 8.
+    await tester.longPress(find.byKey(const ValueKey('team-rating-score-8')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('team-rating-score-3')));
+    await tester.pump();
+    expect(find.text('Reemplaza tu 8.'), findsOneWidget);
+    expect(
+      client.rateCalls,
+      hasLength(1),
+      reason: 'nothing sent before confirming',
+    );
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('team-rating-confirm')),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('team-rating-confirm')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 20));
+    expect(client.rateCalls.last, (
+      visualId: 'aurora',
+      revision: visualRevision(_aurora),
+      score: 3,
+      change: true,
+    ));
+    expect(find.text('TU VOTO'), findsOneWidget);
+    expect(find.textContaining('Equipo 3'), findsOneWidget);
 
     // The team discarded Plasma, so the queue skips it.
     await tester.ensureVisible(find.byKey(const ValueKey('team-rating-next')));

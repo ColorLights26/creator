@@ -141,7 +141,8 @@ class StudioView extends StatefulWidget {
 class _StudioViewState extends State<StudioView> {
   bool _showControls = true;
   bool _audioDetail = false;
-  StudioBackgroundMode _bgMode = StudioBackgroundMode.dark;
+  // Alpha grid first: it shows at a glance what an overlay leaves transparent.
+  StudioBackgroundMode _bgMode = StudioBackgroundMode.checkerboard;
   StudioRoleFilter _roleFilter = StudioRoleFilter.all;
 
   void _cycleBackgroundMode() {

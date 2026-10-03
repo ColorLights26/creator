@@ -85,6 +85,8 @@ abstract interface class TeamReviewClient {
 
   /// Null when nothing changed since [since] (a previous snapshot version).
   Future<TeamRatingsSnapshot?> ratings(String key, {String? since});
+
+  /// A confirmed vote is replaced only with [change] (the long press).
   Future<TeamRating> rate(
     String key, {
     required String visualId,
@@ -92,6 +94,7 @@ abstract interface class TeamReviewClient {
     required String revision,
     required int score,
     String? comment,
+    bool change = false,
   });
 }
 
@@ -154,6 +157,7 @@ class HttpTeamReviewClient implements TeamReviewClient {
     required String revision,
     required int score,
     String? comment,
+    bool change = false,
   }) async {
     final json = await _send(
       'POST',
@@ -165,6 +169,7 @@ class HttpTeamReviewClient implements TeamReviewClient {
         'revision': revision,
         'score': score,
         if (comment != null) 'comment': comment,
+        if (change) 'change': true,
       },
     );
     final rating = json['rating'];
