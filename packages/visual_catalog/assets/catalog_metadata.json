@@ -34,6 +34,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "aura_2",
+      "name": "Aura 2",
+      "description": "Manchas de rojo encendido, naranja y azul eléctrico que giran, se funden y estallan en brillo con cada golpe.",
+      "purposes": [
+        "relax",
+        "focus",
+        "visualizer"
+      ],
+      "moods": [
+        "calm",
+        "dreamy",
+        "elegant"
+      ],
+      "concepts": [
+        "gradient",
+        "aura",
+        "blur",
+        "color"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "aurora_ribbons",
       "name": "Aurora · cintas de luz",
       "description": "Cintas de aurora suaves que se expanden con la música.",
@@ -95,9 +127,73 @@
       "reactivity": "optional"
     },
     {
+      "id": "bokeh_luces_2",
+      "name": "Bokeh 2",
+      "description": "Luces desenfocadas rojas, naranjas y amarillas intensas que laten con los graves y saltan hacia la cámara con cada golpe.",
+      "purposes": [
+        "relax",
+        "visualizer",
+        "focus"
+      ],
+      "moods": [
+        "dreamy",
+        "elegant",
+        "calm"
+      ],
+      "concepts": [
+        "bokeh",
+        "lights",
+        "depth of field",
+        "glow"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "bola_discoteca",
       "name": "Bola de Discoteca",
       "description": "Bola de espejos que gira y lanza cientos de puntos de luz dorada, rosa y plateada que barren la sala al ritmo de la música.",
+      "purposes": [
+        "party",
+        "club",
+        "visualizer"
+      ],
+      "moods": [
+        "festive",
+        "glamorous",
+        "energetic"
+      ],
+      "concepts": [
+        "disco ball",
+        "mirror",
+        "reflections",
+        "party"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "bola_discoteca_2",
+      "name": "Bola de Discoteca 2",
+      "description": "Bola de espejos en rojo intenso que gira y llena la sala de reflejos y haces rojos que estallan con cada golpe.",
       "purposes": [
         "party",
         "club",
@@ -811,6 +907,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "esfera_sonica_transparente",
+      "name": "Esfera Sónica Transparente",
+      "description": "Esfera 3D de miles de puntos de luz verde que se deforma con el espectro y explota en una nube en el drop antes de volver a formarse sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "visualizer",
+        "club"
+      ],
+      "moods": [
+        "epic",
+        "futuristic",
+        "energetic"
+      ],
+      "concepts": [
+        "particles",
+        "sphere",
+        "3d",
+        "spectrum"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "ferrofluido",
       "name": "Ferrofluido",
       "description": "Charco de líquido magnético negro cuyas púas se levantan con los graves y el espectro bajo luz de estudio.",
@@ -971,6 +1099,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "fuegos_artificiales_transparente",
+      "name": "Fuegos Artificiales Transparente",
+      "description": "Espectáculo de fuegos artificiales sincronizado con la música: peonías, sauces dorados, anillos y chispas que estallan con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "celebration",
+        "visualizer"
+      ],
+      "moods": [
+        "festive",
+        "epic",
+        "joyful"
+      ],
+      "concepts": [
+        "fireworks",
+        "sparks",
+        "celebration",
+        "show"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -1479,6 +1639,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "luz_bordes_2",
+      "name": "Luz de Bordes 2",
+      "description": "Llamaradas de luz que nacen en los bordes y se extienden hacia el centro con la música; cada golpe lanza una onda que cruza la pantalla.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "ambient"
+      ],
+      "moods": [
+        "modern",
+        "vivid",
+        "minimal"
+      ],
+      "concepts": [
+        "edge lighting",
+        "glow",
+        "spectrum",
+        "border"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "magnetosfera",
       "name": "Magnetosfera",
       "description": "Núcleos de energía naranja y azul rodeados de miles de partículas en órbita que estallan como supernovas con cada golpe.",
@@ -1761,6 +1953,70 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "muro_cinetico_2",
+      "name": "Muro Cinético 2",
+      "description": "Pared de miles de plaquitas doradas y anaranjadas que se mecen como con viento; olas de luz la recorren y cada golpe es una ráfaga que la hace destellar.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "shimmering",
+        "elegant",
+        "hypnotic"
+      ],
+      "concepts": [
+        "kinetic facade",
+        "wind",
+        "metal",
+        "reflections"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "muro_cinetico_2_transparente",
+      "name": "Muro Cinético 2 Transparente",
+      "description": "Pared de miles de plaquitas doradas y anaranjadas que se mecen como con viento; olas de luz la recorren y cada golpe es una ráfaga que la hace destellar sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "shimmering",
+        "elegant",
+        "hypnotic"
+      ],
+      "concepts": [
+        "kinetic facade",
+        "wind",
+        "metal",
+        "reflections"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
