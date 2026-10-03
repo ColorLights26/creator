@@ -92,6 +92,7 @@ class StudioView extends StatefulWidget {
     this.muted = false,
     this.onToggleMuted,
     this.ratingPanel,
+    this.performanceOverlay,
     this.voteFilters = const [],
     this.selectedVoteFilter,
     this.onVoteFilterChanged,
@@ -123,6 +124,9 @@ class StudioView extends StatefulWidget {
 
   /// Team 1-10 voting for the selected visual, when the studio has it.
   final Widget? ratingPanel;
+
+  /// Live CPU/FPS of the visual, shown under the app bar with the controls.
+  final Widget? performanceOverlay;
 
   /// Vote filters shown under the type filter; the first one means "all".
   /// [visuals] already arrive filtered by the selected one.
@@ -660,6 +664,21 @@ class _StudioViewState extends State<StudioView> {
                     ),
                   ),
                 ),
+
+                // 3. Live cost of the visual, under the app bar.
+                if (widget.performanceOverlay case final Widget overlay)
+                  Positioned(
+                    top: MediaQuery.paddingOf(context).top + kToolbarHeight,
+                    left: 12,
+                    child: AnimatedOpacity(
+                      opacity: _showControls ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 250),
+                      child: IgnorePointer(
+                        ignoring: !_showControls,
+                        child: overlay,
+                      ),
+                    ),
+                  ),
               ],
             )),
     );

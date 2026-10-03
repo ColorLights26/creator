@@ -6,11 +6,39 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:visual_contract/visual_contract.dart';
 
+import 'cpu_clock.dart';
 import 'creator_shader_frame.dart';
 import 'creator_native_program.dart';
 import 'creator_command_canvas.dart';
 import 'creator_visual_definition.dart';
 import 'creator_shader_program.dart';
+
+/// Cumulative cost of the frames an [AndroidCreatorSession] presented while
+/// [AndroidCreatorSession.measureCost] was on, for diagnostics overlays.
+/// Readers take deltas between two snapshots of the same [sessionId]; a new
+/// session starts again from zero.
+@immutable
+class AndroidCreatorRenderStats {
+  const AndroidCreatorRenderStats({
+    required this.sessionId,
+    required this.frames,
+    required this.cpuMicros,
+    required this.simulationMicros,
+  });
+
+  final int sessionId;
+
+  /// Frames actually presented (discarded ones are not counted).
+  final int frames;
+
+  /// CPU time of the Dart thread recording those frames: native simulation
+  /// and draw commands or shader uniforms, plus Canvas recording. Raster and
+  /// GPU work happen elsewhere. Null when the CPU clock is unavailable.
+  final int? cpuMicros;
+
+  /// Wall time of the native simulation step (`cp_update`) alone.
+  final double simulationMicros;
+}
 
 /// The Android Flutter shader backend is reusable by the production Flutter
 /// compositor. It never opens audio and never accesses application services.
@@ -105,8 +133,24 @@ class AndroidCreatorSession extends ChangeNotifier {
   int _renderedGeneration = -1;
   bool _closed = false;
   bool _failed = false;
+  static int _nextSessionId = 0;
+  final int _sessionId = _nextSessionId++;
+  int _statFrames = 0;
+  int _statCpuMicros = 0;
+  double _statSimulationMicros = 0;
+
+  /// Accumulates [stats] for every presented frame. Off by default: apps that
+  /// embed the renderer pay nothing; a diagnostics overlay turns it on.
+  bool measureCost = false;
 
   ui.Image? get image => _image;
+
+  AndroidCreatorRenderStats get stats => AndroidCreatorRenderStats(
+    sessionId: _sessionId,
+    frames: _statFrames,
+    cpuMicros: CpuClock.instance == null ? null : _statCpuMicros,
+    simulationMicros: _statSimulationMicros,
+  );
   bool get playing => !_closed && !_failed && _state.playing;
   bool get closed => _closed;
 
@@ -221,6 +265,10 @@ class AndroidCreatorSession extends ChangeNotifier {
   Future<void> _render(int generation, bool reducedMotion) async {
     ui.Picture? picture;
     var materialShaders = <ui.Shader>[];
+    final measure = measureCost;
+    final clock = measure ? CpuClock.instance : null;
+    final cpuStart = clock?.threadMicros;
+    var simulationMicros = 0.0;
     try {
       final size = rasterSize(_size, _pixelRatio);
       final recorder = ui.PictureRecorder();
@@ -243,6 +291,7 @@ class AndroidCreatorSession extends ChangeNotifier {
           hostTime: _hostTime,
           reducedMotion: reducedMotion,
         );
+        if (measure) simulationMicros = native.updateMicros;
         canvas.scale(size.width / _size.width, size.height / _size.height);
         materialShaders = _canvas!.paint(canvas, native.draw());
       } else {
@@ -257,6 +306,7 @@ class AndroidCreatorSession extends ChangeNotifier {
         canvas.drawRect(Offset.zero & size, ui.Paint()..shader = _shader);
       }
       picture = recorder.endRecording();
+      final cpuEnd = clock?.threadMicros;
       // One pending image plus the displayed image bounds the owned targets.
       // With a GPU context the image remains GPU-resident; no toByteData/readback.
       final next = await picture.toImage(
@@ -266,6 +316,13 @@ class AndroidCreatorSession extends ChangeNotifier {
       if (_closed || generation != _generation) {
         next.dispose();
         return;
+      }
+      if (measure) {
+        _statFrames++;
+        _statSimulationMicros += simulationMicros;
+        if (cpuStart != null && cpuEnd != null && cpuEnd >= cpuStart) {
+          _statCpuMicros += cpuEnd - cpuStart;
+        }
       }
       final previous = _image;
       _image = next;

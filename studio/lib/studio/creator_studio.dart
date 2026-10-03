@@ -9,6 +9,8 @@ import 'package:flutter/services.dart';
 import 'package:scene_compositor/scene_compositor.dart';
 import 'package:visual_catalog/visual_catalog.dart';
 
+import '../performance/visual_performance.dart';
+import '../performance/visual_performance_overlay.dart';
 import '../team_review/team_ranking.dart';
 import '../team_review/team_ranking_screen.dart';
 import '../team_review/team_rating_panel.dart';
@@ -63,6 +65,7 @@ class CreatorStudio extends StatefulWidget {
 class _CreatorStudioState extends State<CreatorStudio>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final SceneCompositorController _controller;
+  late final VisualPerformanceMonitor _performance;
   late final Ticker _ticker;
   Duration _replayElapsed = Duration.zero;
   Duration _tickerStartElapsed = Duration.zero;
@@ -123,6 +126,14 @@ class _CreatorStudioState extends State<CreatorStudio>
       !_loading &&
       _error == null;
 
+  VisualActivity get _activity {
+    if (_shouldPlay) return VisualActivity.playing;
+    // Only a loaded visual the user paused shows the studio's own cost.
+    final paused =
+        _foreground && !_playing && _ready && !_loading && _error == null;
+    return paused ? VisualActivity.paused : VisualActivity.busy;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -130,6 +141,12 @@ class _CreatorStudioState extends State<CreatorStudio>
     final lifecycle = WidgetsBinding.instance.lifecycleState;
     _foreground = lifecycle == null || lifecycle == AppLifecycleState.resumed;
     _controller = widget.controllerFactory()..addListener(_controllerChanged);
+    _performance = VisualPerformanceMonitor(
+      source: ControllerPerformanceSource(_controller),
+      activity: () => _activity,
+      targetFramesPerSecond: () => _selected?.framesPerSecond,
+    );
+    if (_foreground) _performance.start();
     _ticker = createTicker((elapsed) {
       _replayElapsed = _tickerStartElapsed + elapsed;
       _pumpReplay();
@@ -380,6 +397,7 @@ class _CreatorStudioState extends State<CreatorStudio>
     final viewport = _viewport;
     if (_disposed || !_sourcesReady || viewport == null) return;
     _stopReplay();
+    _performance.restart();
     final revision = ++_revision;
     _ready = false;
     if (visual == null) {
@@ -442,6 +460,11 @@ class _CreatorStudioState extends State<CreatorStudio>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _foreground = state == AppLifecycleState.resumed;
     widget.teamReview?.setActive(_foreground);
+    if (_foreground) {
+      _performance.start();
+    } else {
+      _performance.stop();
+    }
     if (!_foreground) _stopReplay();
     _enqueue(() async {
       await _controller.setPlaying(_shouldPlay);
@@ -563,6 +586,7 @@ class _CreatorStudioState extends State<CreatorStudio>
     _revision++;
     WidgetsBinding.instance.removeObserver(this);
     widget.teamReview?.removeListener(_teamReviewChanged);
+    _performance.dispose();
     _controller.removeListener(_controllerChanged);
     _ticker.dispose();
     _latestSignal.dispose();
@@ -654,6 +678,7 @@ class _CreatorStudioState extends State<CreatorStudio>
       onViewportChanged: _viewportChanged,
       pictureInPictureActive: _controller.pictureInPictureActive,
       ratingPanel: _ratingPanel(),
+      performanceOverlay: VisualPerformanceOverlay(sample: _performance.sample),
       signalListenable: _latestSignal,
       onPictureInPicture:
           defaultTargetPlatform == TargetPlatform.iOS

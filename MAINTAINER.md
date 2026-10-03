@@ -107,6 +107,38 @@ sintética sólo alimenta señales mientras Flutter está activo. El audio real 
 producción conserva su autoridad existente. Una compilación o simulador no
 certifica PiP en segundo plano, consumo ni temperatura: requieren hardware.
 
+### Panel de rendimiento
+
+El panel de arriba a la izquierda (`studio/lib/performance/`) muestrea cada
+segundo. Cada número es una diferencia entre dos lecturas de la misma sesión de
+superficie: al cambiar de visual, pista o tamaño, la ventana se descarta.
+
+- **CPU app**: `clock_gettime` del proceso por FFI
+  (`scene_compositor/lib/src/cpu_clock.dart`; Darwin usa los ids 12/16 y
+  Linux/Android 2/3). Cuenta todo el proceso: UI, raster y cola nativa.
+- **Del visual**: CPU reproduciendo menos CPU en pausa. Solo cuenta como pausa la
+  del usuario con el visual ya cargado, nunca la carga. Las ventanas que cambian
+  de estado no se comparan.
+- **iOS**: una sonda nativa por segundo (`startPerformanceProbe` /
+  `stopPerformanceProbe`) da promedio, p95 y tirones (cuadros que pasan 1,1× el
+  presupuesto). Los FPS salen de `publishedFrameCount` y `sampleTimeSeconds` de
+  `activeSurfaceForScene`. El C++, el target y la temperatura salen de
+  `creatorPrograms`, que solo llenan los programas nativos. El tiempo de cuadro
+  incluye la espera de la GPU porque el render es síncrono (`waitUntilCompleted`),
+  así que no se separa CPU de GPU. Las claves `gpu*` de esa respuesta solo miden
+  la copia final de Core Image: no son la GPU del visual y el panel no las usa.
+- **Android**: CPU del hilo Dart por cuadro (simulación C++ por FFI, comandos y
+  grabación del Canvas), con `clock_gettime` del hilo. El raster y la GPU no
+  entran. La GPU no se puede medir desde la app (Impeller; `toImage` no espera a
+  la GPU); para eso están Android GPU Inspector o Perfetto.
+- La contabilidad de Android está apagada por defecto
+  (`AndroidCreatorSession.measureCost`): Color Lights usa la misma sesión sin
+  coste extra; solo el estudio la enciende con `measureRenderCost`.
+- Debug infla todo (Dart JIT, Swift sin optimizar) y el panel lo avisa. Para
+  medir: `flutter run --profile` en hardware.
+- Pendiente de decisión: separar CPU y GPU por cuadro en iOS requiere tocar el
+  runtime Swift que también usa Color Lights.
+
 ## Votación del equipo
 
 Las notas del 1 al 10 viven en Chic Team (proyecto `chic-ads`), no en el repo.

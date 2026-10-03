@@ -219,7 +219,8 @@ su aprobación. Son pruebas concretas; sigue siendo necesario mirar el resultado
 
 Si algo sale mal en un borrador, no sustituye la versión aprobada que ya tenga
 Color Lights. Comenta cualquier tirón o calentamiento que notes al probar: que
-compile correctamente no demuestra que el efecto sea ligero.
+compile correctamente no demuestra que el efecto sea ligero. El panel de
+rendimiento (sección 9) te dice cuánto consume.
 
 ## 8. Vota los visuales del equipo
 
@@ -255,5 +256,30 @@ el responsable mete en Color Lights los que quedan en Aprobado.
 
 Si cambias el dibujo de un visual, Creator lo trata como una versión nueva y
 vuelve a pedir votos. Cambiar solo el nombre o la descripción no reinicia los votos.
+
+## 9. Mira cuánto consume
+
+Arriba a la izquierda, debajo del contador, Creator muestra **CPU y FPS** del
+visual que estás viendo. Se actualiza cada segundo y se oculta con el resto de
+la interfaz. Tócalo para ver el detalle:
+
+| Dato | Qué significa |
+| --- | --- |
+| CPU app | Procesador que usa todo Creator. 100% es un núcleo completo. |
+| Del visual | Lo que suma el visual. Pausa el visual 2 segundos para que Creator mida su base y compare. |
+| FPS | Imágenes por segundo dibujadas frente a las que pide el visual, por ejemplo 28/30. Si bajan, va a tirones. |
+| Cuadro (iPhone) | Cuánto tarda cada imagen frente al tiempo que tiene. Incluye la GPU. |
+| Picos y tirones (iPhone) | Las imágenes más lentas y cuántas llegaron tarde. |
+| CPU visual (Android) | Procesador que gasta el visual en cada imagen. La GPU no se puede medir desde la app en Android. |
+| C++ | Tiempo de la simulación de los visuales programados en C++. |
+| Temperatura (iPhone) | Si el teléfono se calienta y empieza a frenar. |
+
+Verde significa que le sobra tiempo, amarillo que va justo y rojo que no le
+alcanza.
+
+**Mide en un teléfono real y con `flutter run --profile`.** Con el `flutter run`
+normal (modo debug) todo sale más alto, y el panel lo avisa con la palabra
+«debug». En el simulador los números son los de la computadora, no los del
+teléfono. Si el teléfono se calienta después de unos minutos, los números cambian.
 
 [Guía del responsable: aprobación, integración y detalles técnicos](MAINTAINER.md).

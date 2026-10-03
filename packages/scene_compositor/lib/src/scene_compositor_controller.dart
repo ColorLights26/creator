@@ -268,6 +268,7 @@ class SceneCompositorController extends ChangeNotifier {
       );
       if (_qaSeed != null) session.reset(reactive: _reactive, seed: _qaSeed);
       session.setControls(_controls ?? visual.controls);
+      session.measureCost = _measureRenderCost;
       _android = session;
       _preview = AndroidCreatorPreview(
         key: ObjectKey(session),
@@ -311,17 +312,63 @@ class SceneCompositorController extends ChangeNotifier {
     }
   }
 
-  Future<Map<Object?, Object?>?> startPerformanceProbe() =>
-      _invoke<Map<Object?, Object?>>('startPerformanceProbe', {
-        'sceneId': _visual!.programId,
-      });
+  bool get _nativeSurface =>
+      !kIsWeb &&
+      defaultTargetPlatform == TargetPlatform.iOS &&
+      _visual != null &&
+      _sessionId != null;
 
+  bool _measureRenderCost = false;
+
+  /// Turns on per-frame cost accounting of the Android renderer behind
+  /// [androidRenderStats], for this and later visuals. Off by default.
+  set measureRenderCost(bool value) {
+    _measureRenderCost = value;
+    _android?.measureCost = value;
+  }
+
+  /// Cumulative cost of the Android renderer; null on iOS or with no visual.
+  AndroidCreatorRenderStats? get androidRenderStats => _android?.stats;
+
+  /// Snapshot of the iOS native surface for the current visual: frames
+  /// published, sample time, generation and per-program metrics. Null on
+  /// Android, with no visual, or when the surface isn't attached yet.
+  Future<Map<Object?, Object?>?> readSurfaceStats() async {
+    if (!_nativeSurface) return null;
+    return _invoke<Map<Object?, Object?>>('activeSurfaceForScene', {
+      'sceneId': _visual!.programId,
+    });
+  }
+
+  /// Starts timing every frame of the iOS native surface. The returned
+  /// identity is passed to [stopPerformanceProbe] or [cancelPerformanceProbe].
+  /// Null on Android or with no visual.
+  Future<Map<Object?, Object?>?> startPerformanceProbe() async {
+    if (!_nativeSurface) return null;
+    return _invoke<Map<Object?, Object?>>('startPerformanceProbe', {
+      'sceneId': _visual!.programId,
+    });
+  }
+
+  /// Frame-time summary since the probe started. Throws `probe_invalidated`
+  /// when the surface changed meanwhile (control edit, pause, resize).
   Future<Map<Object?, Object?>?> stopPerformanceProbe(
     Map<Object?, Object?> identity,
-  ) => _invoke<Map<Object?, Object?>>(
-    'stopPerformanceProbe',
-    identity.cast<String, Object>(),
-  );
+  ) async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return null;
+    return _invoke<Map<Object?, Object?>>(
+      'stopPerformanceProbe',
+      identity.cast<String, Object>(),
+    );
+  }
+
+  Future<void> cancelPerformanceProbe(Map<Object?, Object?> identity) async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return;
+    await _invoke<Object>(
+      'cancelPerformanceProbe',
+      identity.cast<String, Object>(),
+    );
+  }
 
   Future<void> startPictureInPicture() => _queue(() async {
     if (_sessionId == null ||
