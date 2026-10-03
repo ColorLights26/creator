@@ -161,12 +161,6 @@ class _StudioViewState extends State<StudioView> {
     StudioBackgroundMode.light => Icons.light_mode_rounded,
   };
 
-  String get _bgModeLabel => switch (_bgMode) {
-    StudioBackgroundMode.dark => 'Fondo oscuro',
-    StudioBackgroundMode.checkerboard => 'Cuadrícula alpha',
-    StudioBackgroundMode.light => 'Fondo claro',
-  };
-
   String get _bgModeTooltip => switch (_bgMode) {
     StudioBackgroundMode.dark => 'Fondo: Oscuro (toca para cuadrícula alpha)',
     StudioBackgroundMode.checkerboard =>
@@ -512,6 +506,7 @@ class _StudioViewState extends State<StudioView> {
             },
           ),
           IconButton(
+            key: const ValueKey('toggle-background-mode-button'),
             tooltip: _bgModeTooltip,
             onPressed: _cycleBackgroundMode,
             icon: Icon(
@@ -1044,77 +1039,29 @@ class _StudioViewState extends State<StudioView> {
         // Spec / Tech details pill chip (e.g. C++17 · Impeller Metal/Vulkan · Reactivo al audio)
         if (selected != null && selected.details.isNotEmpty) ...[
           const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFF73F572).withValues(alpha: 0.35),
-                    width: 1.2,
-                  ),
-                  color: const Color(0xFF162521).withValues(alpha: 0.65),
-                ),
-                child: Text(
-                  selected.details,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                    color: Color(0xFF73F572),
-                  ),
-                ),
-              ),
-              InkWell(
-                key: const ValueKey('toggle-background-mode-button'),
-                onTap: _cycleBackgroundMode,
+          // The background toggle lives in the app bar only.
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: _bgMode == StudioBackgroundMode.dark
-                          ? Colors.white24
-                          : const Color(0xFF73F572).withValues(alpha: 0.6),
-                      width: 1.0,
-                    ),
-                    color: _bgMode == StudioBackgroundMode.dark
-                        ? Colors.black45
-                        : const Color(0xFF162521).withValues(alpha: 0.8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _bgModeIcon,
-                        size: 14,
-                        color: _bgMode == StudioBackgroundMode.dark
-                            ? Colors.white70
-                            : const Color(0xFF73F572),
-                      ),
-                      const SizedBox(width: 5),
-                      Text(
-                        _bgModeLabel,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: _bgMode == StudioBackgroundMode.dark
-                              ? Colors.white70
-                              : const Color(0xFF73F572),
-                        ),
-                      ),
-                    ],
-                  ),
+                border: Border.all(
+                  color: const Color(0xFF73F572).withValues(alpha: 0.35),
+                  width: 1.2,
+                ),
+                color: const Color(0xFF162521).withValues(alpha: 0.65),
+              ),
+              child: Text(
+                selected.details,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                  color: Color(0xFF73F572),
                 ),
               ),
-            ],
+            ),
           ),
         ],
 
