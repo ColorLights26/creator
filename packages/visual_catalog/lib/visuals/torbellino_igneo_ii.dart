@@ -7,7 +7,11 @@
 // vuelven blancos.
 const nativeSource = r'''
 class Visual final : public Scene {
-  struct Ember { float x, y, vx, vy, life, size; };
+  // Las chispas avanzan en pasos fijos de 1/120 s contados con el tiempo
+  // absoluto: son idénticas a 30 y a 60 FPS y se dibujan interpoladas.
+  static constexpr double kHz = 120.0;
+  static constexpr float kStep = float(1.0 / kHz);
+  struct Ember { float x, y, px, py, vx, vy, life, size; };
   std::vector<Ember> embers;
   float w = 0, h = 0;
   float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;
@@ -15,6 +19,8 @@ class Visual final : public Scene {
   std::array<float, 3> groups{};
   float t = 0, current = 0, breath = 0, breathVel = 0, ringR = 3.0f, ringAmp = 0;
   Random rng{29};
+  int64_t steps = -1;
+  float frac = 0, pendingHit = 0;
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
@@ -25,6 +31,8 @@ class Visual final : public Scene {
     float margin = s * 0.06f;
     e.x = -margin + rng.unit() * (w + 2.0f * margin);
     e.y = -margin + rng.unit() * (h + 2.0f * margin);
+    e.px = e.x;
+    e.py = e.y;
     e.vx = e.vy = 0;
     e.life = 2.0f + rng.unit() * 4.0f;
   }
@@ -46,6 +54,34 @@ class Visual final : public Scene {
     fy = bx * sw + by * cw;
   }
 
+  void step(float flow, float speed) {
+    float s = std::min(w, h);
+    float hit = pendingHit;
+    pendingHit = 0;
+    t += kStep * speed * (0.4f + 0.8f * drive);
+    const float decay = std::exp(-kStep * 2.4f);
+    float margin = s * 0.1f;
+    for (auto& e : embers) {
+      e.px = e.x;
+      e.py = e.y;
+      float dx = e.x - w * 0.5f, dy = e.y - h * 0.5f;
+      float d = std::sqrt(dx * dx + dy * dy) + 1.0f;
+      if (hit > 0) {
+        float push = s * (0.7f + 0.5f * rng.unit()) * hit;
+        e.vx += dx / d * push;
+        e.vy += dy / d * push;
+      }
+      float fx, fy;
+      field(e.x, e.y, fx, fy);
+      e.vx *= decay;
+      e.vy *= decay;
+      e.x += (fx * s * flow * e.size + e.vx) * kStep;
+      e.y += (fy * s * flow * e.size + e.vy) * kStep;
+      e.life -= kStep;
+      if (e.life <= 0 || d < s * 0.05f || e.x < -margin || e.x > w + margin || e.y < -margin || e.y > h + margin) spawn(e);
+    }
+  }
+
  public:
   void reset(uint32_t seed) override {
     rng = Random(seed);
@@ -58,6 +94,8 @@ class Visual final : public Scene {
     breath = breathVel = 0;
     ringR = 3.0f;
     ringAmp = 0;
+    steps = -1;
+    frac = pendingHit = 0;
   }
 
   void update(const Frame& f) override {
@@ -66,7 +104,7 @@ class Visual final : public Scene {
       w = f.width;
       h = f.height;
       int count = int(100.0f + 50.0f * std::clamp(f.detail, 0.25f, 2.0f));
-      embers.assign(count, Ember{0, 0, 0, 0, 0, 1});
+      embers.assign(count, Ember{0, 0, 0, 0, 0, 0, 0, 1});
       for (auto& e : embers) {
         e.size = 0.6f + rng.unit() * 0.8f;
         spawn(e);
@@ -96,6 +134,7 @@ class Visual final : public Scene {
     hit = std::min(std::max(hit, onset), 1.0f);
     bool strike = hit > kick + 0.2f;
     if (strike) {
+      pendingHit = std::max(pendingHit, hit);
       surge = std::max(surge, hit);
       breathVel += 2.4f * hit;
       ringR = 0.0f;
@@ -110,31 +149,17 @@ class Visual final : public Scene {
     breathVel += (-breath * 28.0f - breathVel * 6.0f) * dt;
     breath += breathVel * dt;
 
-    float s = std::min(w, h);
     float flow = f.speed * (0.65f + 0.7f * drive + 0.45f * bass + 0.6f * surge);
-    t += dt * f.speed * (0.4f + 0.8f * drive);
     // La corriente del fuego avanza en espiral; se envuelve en el periodo
     // radial de la textura para no perder precisión.
     current = std::fmod(current + dt * flow * 0.55f, 64.0f);
-    for (auto& e : embers) {
-      float dx = e.x - w * 0.5f, dy = e.y - h * 0.5f;
-      float d = std::sqrt(dx * dx + dy * dy) + 1.0f;
-      if (strike) {
-        float push = s * (0.7f + 0.5f * rng.unit()) * hit;
-        e.vx += dx / d * push;
-        e.vy += dy / d * push;
-      }
-      float fx, fy;
-      field(e.x, e.y, fx, fy);
-      float decay = std::exp(-dt * 2.4f);
-      e.vx *= decay;
-      e.vy *= decay;
-      e.x += (fx * s * flow * e.size + e.vx) * dt;
-      e.y += (fy * s * flow * e.size + e.vy) * dt;
-      e.life -= dt;
-      float margin = s * 0.1f;
-      if (e.life <= 0 || d < s * 0.05f || e.x < -margin || e.x > w + margin || e.y < -margin || e.y > h + margin) spawn(e);
+    int64_t target = int64_t(std::floor(f.time * kHz + 1e-6));
+    if (steps < 0 || target < steps || target - steps > 30) steps = target - 1;
+    while (steps < target) {
+      step(flow, f.speed);
+      steps++;
     }
+    frac = std::clamp(float(f.time * kHz - double(steps)), 0.0f, 1.0f);
   }
 
   void render(const Frame& f, Canvas& c) const override {
@@ -151,7 +176,7 @@ class Visual final : public Scene {
     float px = std::min(f.width, f.height) / 400.0f;
     std::vector<Vec2> pts;
     pts.reserve(embers.size());
-    for (const auto& e : embers) pts.push_back({e.x, e.y});
+    for (const auto& e : embers) pts.push_back({e.px + (e.x - e.px) * frac, e.py + (e.y - e.py) * frac});
     const Color& hot = f.colors[3];
     float gain = std::clamp((0.55f + 0.5f * groups[2] + 0.5f * kick) * amp, 0.0f, 1.0f);
     float twinkle = 0.8f + 0.2f * std::sin(t * 11.0f) * spark;

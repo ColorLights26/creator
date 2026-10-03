@@ -7,12 +7,18 @@
 const nativeSource = r'''
 class Visual final : public Scene {
   static constexpr int kTrail = 16;
-  static constexpr float kRecord = 1.0f / 32.0f;
-  struct Particle { float x, y, vx, vy, life, size; int group; };
+  // La simulación avanza en pasos fijos de 1/120 s contados con el tiempo
+  // absoluto: es idéntica a 30 y a 60 FPS y se dibuja interpolada.
+  static constexpr double kHz = 120.0;
+  static constexpr float kStep = float(1.0 / kHz);
+  static constexpr int kRecordEvery = 4;  // una muestra de estela cada 1/30 s
+  struct Particle { float x, y, px, py, vx, vy, life, size; int group; };
   std::vector<Particle> ps;
   std::vector<float> trail;  // anillo de posiciones: partícula * kTrail * 2
   int head = 0;
-  float recordAcc = 0;
+  int recordCount = 0;
+  int64_t steps = -1;
+  float frac = 0, pendingHit = 0;
   float w = 0, h = 0;
   float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;
   float kick = 0, flash = 0, drive = 0, surge = 0;
@@ -30,6 +36,8 @@ class Visual final : public Scene {
     float margin = s * 0.06f;
     p.x = -margin + rng.unit() * (w + 2.0f * margin);
     p.y = -margin + rng.unit() * (h + 2.0f * margin);
+    p.px = p.x;
+    p.py = p.y;
     p.vx = p.vy = 0;
     p.life = 2.5f + rng.unit() * 4.5f;
     for (int k = 0; k < kTrail; k++) {
@@ -55,6 +63,48 @@ class Visual final : public Scene {
     fy = bx * sw + by * cw;
   }
 
+  void step(float flow, float speed) {
+    float s = std::min(w, h);
+    float hit = pendingHit;
+    pendingHit = 0;
+    t += kStep * speed * (0.4f + 0.8f * drive);
+    const float decay = std::exp(-kStep * 2.4f);
+    float margin = s * 0.1f;
+    for (size_t i = 0; i < ps.size(); i++) {
+      Particle& p = ps[i];
+      p.px = p.x;
+      p.py = p.y;
+      float dx = p.x - w * 0.5f, dy = p.y - h * 0.5f;
+      float d = std::sqrt(dx * dx + dy * dy) + 1.0f;
+      if (hit > 0) {
+        // Onda de choque: las estelas salen disparadas hacia fuera.
+        float push = s * (0.7f + 0.5f * rng.unit()) * hit;
+        p.vx += dx / d * push;
+        p.vy += dy / d * push;
+      }
+      // Las partículas siguen el remolino sin inercia (la inercia las expulsa
+      // por fuerza centrífuga y vacía el centro); sólo el empujón del golpe
+      // tiene inercia y se amortigua.
+      float fx, fy;
+      field(p.x, p.y, fx, fy);
+      p.vx *= decay;
+      p.vy *= decay;
+      p.x += (fx * s * flow * p.size + p.vx) * kStep;
+      p.y += (fy * s * flow * p.size + p.vy) * kStep;
+      p.life -= kStep;
+      bool sunk = d < s * 0.05f;
+      if (p.life <= 0 || sunk || p.x < -margin || p.x > w + margin || p.y < -margin || p.y > h + margin) spawn(i);
+    }
+    if (++recordCount >= kRecordEvery) {
+      recordCount = 0;
+      for (size_t i = 0; i < ps.size(); i++) {
+        trail[(i * kTrail + head) * 2] = ps[i].x;
+        trail[(i * kTrail + head) * 2 + 1] = ps[i].y;
+      }
+      head = (head + 1) % kTrail;
+    }
+  }
+
  public:
   void reset(uint32_t seed) override {
     rng = Random(seed);
@@ -62,7 +112,9 @@ class Visual final : public Scene {
     trail.clear();
     w = h = 0;
     head = 0;
-    recordAcc = 0;
+    recordCount = 0;
+    steps = -1;
+    frac = pendingHit = 0;
     bass = body = spark = energy = slowBass = kick = flash = drive = surge = 0;
     groups.fill(0);
     t = rng.unit() * 20.0f;
@@ -77,7 +129,7 @@ class Visual final : public Scene {
       w = f.width;
       h = f.height;
       int count = int(300.0f + 120.0f * std::clamp(f.detail, 0.25f, 2.0f));
-      ps.assign(count, Particle{0, 0, 0, 0, 0, 1, 0});
+      ps.assign(count, Particle{0, 0, 0, 0, 0, 0, 0, 1, 0});
       trail.assign(size_t(count) * kTrail * 2, 0.0f);
       for (int i = 0; i < count; i++) {
         ps[i].group = i % 3;
@@ -109,6 +161,7 @@ class Visual final : public Scene {
     hit = std::min(std::max(hit, onset), 1.0f);
     bool strike = hit > kick + 0.2f;
     if (strike) {
+      pendingHit = std::max(pendingHit, hit);
       surge = std::max(surge, hit);
       ringR = 0.0f;
       ringAmp = hit;
@@ -119,48 +172,15 @@ class Visual final : public Scene {
     ringR += dt * (0.9f + 0.5f * drive);
     ringAmp *= std::exp(-dt * 2.4f);
 
-    float s = std::min(w, h);
     float flow = f.speed * (0.65f + 0.7f * drive + 0.45f * bass + 0.6f * surge);
-    t += dt * f.speed * (0.4f + 0.8f * drive);
     spin += dt * flow * 0.8f;
-    for (size_t i = 0; i < ps.size(); i++) {
-      Particle& p = ps[i];
-      float dx = p.x - w * 0.5f, dy = p.y - h * 0.5f;
-      float d = std::sqrt(dx * dx + dy * dy) + 1.0f;
-      if (strike) {
-        // Onda de choque: las estelas salen disparadas hacia fuera.
-        float push = s * (0.7f + 0.5f * rng.unit()) * hit;
-        p.vx += dx / d * push;
-        p.vy += dy / d * push;
-      }
-      // Las partículas siguen el remolino sin inercia (la inercia las expulsa
-      // por fuerza centrífuga y vacía el centro); sólo el empujón del golpe
-      // tiene inercia y se amortigua.
-      float fx, fy;
-      field(p.x, p.y, fx, fy);
-      float decay = std::exp(-dt * 2.4f);
-      p.vx *= decay;
-      p.vy *= decay;
-      p.x += (fx * s * flow * p.size + p.vx) * dt;
-      p.y += (fy * s * flow * p.size + p.vy) * dt;
-      p.life -= dt;
-      float margin = s * 0.1f;
-      bool sunk = d < s * 0.05f;
-      if (p.life <= 0 || sunk || p.x < -margin || p.x > w + margin || p.y < -margin || p.y > h + margin) spawn(i);
+    int64_t target = int64_t(std::floor(f.time * kHz + 1e-6));
+    if (steps < 0 || target < steps || target - steps > 30) steps = target - 1;
+    while (steps < target) {
+      step(flow, f.speed);
+      steps++;
     }
-    // Las estelas se registran a intervalos fijos: mismo aspecto a 30 y 60 FPS.
-    recordAcc += dt;
-    int guard = 0;
-    while (recordAcc >= kRecord && guard < 4) {
-      recordAcc -= kRecord;
-      for (size_t i = 0; i < ps.size(); i++) {
-        trail[(i * kTrail + head) * 2] = ps[i].x;
-        trail[(i * kTrail + head) * 2 + 1] = ps[i].y;
-      }
-      head = (head + 1) % kTrail;
-      guard++;
-    }
-    if (guard == 4) recordAcc = 0;
+    frac = std::clamp(float(f.time * kHz - double(steps)), 0.0f, 1.0f);
   }
 
   void render(const Frame& f, Canvas& c) const override {
@@ -186,15 +206,16 @@ class Visual final : public Scene {
       for (size_t i = 0; i < ps.size(); i++) {
         const Particle& p = ps[i];
         if (p.group != g) continue;
-        tail.moveTo(p.x, p.y);
-        tip.moveTo(p.x, p.y);
+        float x = p.px + (p.x - p.px) * frac, y = p.py + (p.y - p.py) * frac;
+        tail.moveTo(x, y);
+        tip.moveTo(x, y);
         for (int k = 1; k <= kTrail; k++) {
           int slot = (head - k + kTrail) % kTrail;
           float tx = trail[(i * kTrail + slot) * 2], ty = trail[(i * kTrail + slot) * 2 + 1];
           tail.lineTo(tx, ty);
           if (k <= 3) tip.lineTo(tx, ty);
         }
-        heads.push_back({p.x, p.y});
+        heads.push_back({x, y});
       }
       Paint glow;
       glow.blend = Blend::plus;
