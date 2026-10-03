@@ -41,6 +41,12 @@ Future<Uint8List> _renderPixels(
   }
 }
 
+/// The first reactive generated-shader visual. Catalog order changes as
+/// visuals are added, and native C++ ones need the device library.
+int get _shaderIndex => creatorVisuals.indexWhere(
+  (visual) => !visual.isNative && visual.reactivity != CreatorReactivity.none,
+);
+
 int _differentChannels(Uint8List first, Uint8List second) {
   expect(first.length, second.length);
   var count = 0;
@@ -64,7 +70,7 @@ void main() {
         await tester.runAsync(() async {
           await controller.setPlaying(false);
           await controller.setVisual(
-            creatorVisuals.first,
+            creatorVisuals[_shaderIndex],
             size: _size,
             pixelRatio: 1,
           );
@@ -115,8 +121,8 @@ void main() {
       final errors = <Object>[];
       final session = await tester.runAsync(
         () => AndroidCreatorSession.create(
-          visual: creatorVisuals.first,
-          visualIndex: 0,
+          visual: creatorVisuals[_shaderIndex],
+          visualIndex: _shaderIndex,
           shaderAsset: creatorCatalogAssets.shaderAsset,
           size: _size,
           pixelRatio: 1,
