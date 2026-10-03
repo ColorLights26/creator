@@ -42,7 +42,9 @@ def main():
         authored = str(Path(tmp) / 'authored-test')
         run(common + ['-I' + str(Path(options.generated).resolve()), str(root / 'src/creator_registry.cpp'),
                       str(root / 'test/authored_probe.cpp'), '-o', authored])
-        run([authored], timeout=30)
+        # Recorre todo el catálogo con ASan/UBSan: el tiempo crece con cada
+        # visual. El tope sólo debe atrapar un programa colgado.
+        run([authored], timeout=120)
 
 if __name__ == '__main__':
     main()
