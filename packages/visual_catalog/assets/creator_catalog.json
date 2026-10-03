@@ -2,6 +2,119 @@
   "schemaVersion": 1,
   "visuals": [
     {
+      "id": "aura",
+      "name": "Aura",
+      "programId": "creator_aura",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 60,
+      "seed": 42,
+      "colors": [
+        4279898160,
+        4294949018,
+        4291271679,
+        4286559999
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;\n  float kick = 0, flash = 0, drive = 0;\n  // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.\n  double clock = 0, twist = 0;\n\n  static float follow(float v, float target, float up, float down, float dt) {\n    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));\n  }\n\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed);\n    bass = body = spark = energy = slowBass = kick = flash = drive = 0;\n    clock = rng.unit() * 100.0;\n    twist = rng.unit() * 6.2831853;\n  }\n\n  void update(const Frame& f) override {\n    float dt = float(f.delta);\n    const Music& m = f.music;\n    bass = follow(bass, m.bass, 12.0f, 2.5f, dt);\n    body = follow(body, m.body, 10.0f, 2.5f, dt);\n    spark = follow(spark, m.spark, 20.0f, 5.0f, dt);\n    energy = follow(energy, m.energy, 5.0f, 1.5f, dt);\n    drive = follow(drive, m.active ? std::pow(std::clamp(m.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);\n\n    float hit = 0, fl = 0;\n    for (const auto& e : m.events[0]) hit = std::max(hit, e.strength);\n    for (const auto& e : m.events[2]) hit = std::max(hit, e.strength * 0.85f);\n    for (const auto& e : m.events[3]) fl = std::max(fl, e.strength);\n    float onset = std::clamp((m.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);\n    slowBass = follow(slowBass, m.bass, 3.0f, 3.0f, dt);\n    hit = std::min(std::max(hit, onset), 1.0f);\n    kick = std::max(kick * std::exp(-dt * 3.5f), hit);\n    flash = std::max(flash * std::exp(-dt * 6.0f), std::min(fl, 1.0f));\n    clock += f.delta * f.speed * (0.25 + 0.5 * drive);\n    twist += f.delta * f.speed * (0.08 + 0.25 * energy);\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    float amp = f.intensity;\n    float aspectY = f.height / std::max(1.0f, std::min(f.width, f.height));\n    std::vector<float> u;\n    u.reserve(40);\n    u.insert(u.end(), {float(std::fmod(clock, 1000.0)), bass * amp, kick * amp, energy});\n    u.insert(u.end(), {f.glow, spark * amp, flash * amp, 0.9f * float(std::sin(twist))});\n    float bx[5], by[5], br[5];\n    for (int i = 0; i < 5; i++) {\n      double t = clock * (0.5 + 0.11 * i) + i * 2.4;\n      bx[i] = 0.42f * float(std::sin(t * 0.8 + i * 1.3));\n      by[i] = 0.42f * aspectY * float(std::cos(t * 0.6 + i * 0.7));\n      br[i] = (0.38f + 0.06f * float(i % 3)) * (1.0f + 0.22f * bass * amp + 0.08f * kick * amp);\n    }\n    u.insert(u.end(), {bx[0], by[0], bx[1], by[1]});\n    u.insert(u.end(), {bx[2], by[2], bx[3], by[3]});\n    u.insert(u.end(), {bx[4], by[4], br[4], 0.0f});\n    u.insert(u.end(), {br[0], br[1], br[2], br[3]});\n    for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});\n    c.material(\"aura_blend\", {0, 0, f.width, f.height}, u);\n  }\n};\n",
+      "shaderSources": {
+        "aura_blend": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // reloj, graves, golpe, energía\nuniform vec4 uB;   // glow, agudos, destello, remolino\nuniform vec4 uP0;  // manchas 1 y 2\nuniform vec4 uP1;  // manchas 3 y 4\nuniform vec4 uP2;  // mancha 5 y su radio\nuniform vec4 uR0;  // radios 1 a 4\nuniform vec3 uC0;\nuniform vec3 uC1;\nuniform vec3 uC2;\nuniform vec3 uC3;\nout vec4 fragColor;\n\nfloat hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\n\nvoid blob(vec2 p, vec2 b, float r, vec3 c, inout vec3 acc, inout float wsum) {\n  vec2 d = p - b;\n  float w = exp(-dot(d, d) / (r * r));\n  acc += c * w;\n  wsum += w;\n}\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  float scale = min(uSize.x, uSize.y);\n  vec2 p = (frag - 0.5 * uSize) / scale;\n  // Remolino suave: el giro es mayor cerca del centro.\n  float ang = uB.w * exp(-dot(p, p) * 1.2);\n  float ca = cos(ang);\n  float sa = sin(ang);\n  vec2 q = vec2(ca * p.x - sa * p.y, sa * p.x + ca * p.y);\n  vec3 acc = vec3(0.0);\n  float wsum = 0.0;\n  blob(q, uP0.xy, uR0.x, uC1, acc, wsum);\n  blob(q, uP0.zw, uR0.y, uC2, acc, wsum);\n  blob(q, uP1.xy, uR0.z, uC3, acc, wsum);\n  blob(q, uP1.zw, uR0.w, mix(uC1, uC2, 0.5), acc, wsum);\n  blob(q, uP2.xy, uP2.z, mix(uC2, uC3, 0.5), acc, wsum);\n  // Mezcla tipo pintura: media ponderada sobre la base oscura.\n  vec3 paint = (acc + uC0 * 0.15) / (wsum + 0.15);\n  vec3 col = mix(uC0, paint, clamp(wsum * 2.0, 0.0, 1.0));\n  // Colores más vivos y luminosos, como el fondo de Apple Music.\n  float luma = dot(col, vec3(0.299, 0.587, 0.114));\n  col = max(mix(vec3(luma), col, 1.3), 0.0);\n  col *= (0.95 + 0.25 * uA.y + 0.2 * uA.z) * mix(1.0, uB.x, 0.5);\n  col = mix(col, vec3(1.0), uB.z * 0.08);\n  col *= 1.0 - 0.25 * smoothstep(0.6, 1.5, length(p * vec2(0.9, 0.65)));\n  // Grano fino de foto.\n  col += (hash12(frag * 1.3) - 0.5) * 0.035;\n  fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "439ca10fc0ce3eddacc62fae141b78cc2f9f7ca87ec21bf15703d6a0f96950e8",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {
+          "aura_blend": {
+            "compilerHash": "e0a63371603ab0bd10685b2be8e46986eaaf43a688cac1ab3b8f67c076efce04",
+            "asset": "packages/visual_catalog/assets/native/aura_aura_blend.iplr",
+            "assetHash": "4e625e498d9e12a2a0d9305b9809941446cc8364d52f7603bc2d3dc941f88e01",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct aura_aura_blend_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct aura_aura_blend_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment aura_aura_blend_fragment_main_out aura_aura_blend_fragment_main(aura_aura_blend_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uB [[buffer(2)]], constant float4& uP0 [[buffer(3)]], constant float4& uP1 [[buffer(4)]], constant float4& uP2 [[buffer(5)]], constant float4& uR0 [[buffer(6)]], constant float3& uC0 [[buffer(7)]], constant float3& uC1 [[buffer(8)]], constant float3& uC2 [[buffer(9)]], constant float3& uC3 [[buffer(10)]])\n{\n    aura_aura_blend_fragment_main_out out = {};\n    float2 _107 = (in._fragCoord - (uSize * 0.5)) / float2(fast::min(uSize.x, uSize.y));\n    float _122 = uB.w * exp(dot(_107, _107) * (-1.2000000476837158203125));\n    float _125 = cos(_122);\n    float _128 = sin(_122);\n    float _132 = _107.x;\n    float _136 = _107.y;\n    float2 _148 = float2((_125 * _132) - (_128 * _136), (_128 * _132) + (_125 * _136));\n    float2 _355 = _148 - uP0.xy;\n    float _364 = exp((-dot(_355, _355)) / (uR0.x * uR0.x));\n    float2 _378 = _148 - uP0.zw;\n    float _387 = exp((-dot(_378, _378)) / (uR0.y * uR0.y));\n    float2 _401 = _148 - uP1.xy;\n    float _410 = exp((-dot(_401, _401)) / (uR0.z * uR0.z));\n    float2 _424 = _148 - uP1.zw;\n    float _433 = exp((-dot(_424, _424)) / (uR0.w * uR0.w));\n    float2 _447 = _148 - uP2.xy;\n    float _456 = exp((-dot(_447, _447)) / (uP2.z * uP2.z));\n    float _464 = (((_364 + _387) + _410) + _433) + _456;\n    float3 _272 = mix(uC0, ((((((uC1 * _364) + (uC2 * _387)) + (uC3 * _410)) + (mix(uC1, uC2, float3(0.5)) * _433)) + (mix(uC2, uC3, float3(0.5)) * _456)) + (uC0 * 0.1500000059604644775390625)) / float3(_464 + 0.1500000059604644775390625), float3(fast::clamp(_464 * 2.0, 0.0, 1.0)));\n    float3 _471 = fract((in._fragCoord * 1.2999999523162841796875).xyx * 0.103100001811981201171875);\n    float3 _480 = _471 + float3(dot(_471, _471.yzx + float3(33.3300018310546875)));\n    out.fragColor = float4(fast::clamp((mix(fast::max(mix(float3(dot(_272, float3(0.2989999949932098388671875, 0.58700001239776611328125, 0.114000000059604644775390625))), _272, float3(1.2999999523162841796875)), float3(0.0)) * (((0.949999988079071044921875 + (0.25 * uA.y)) + (0.20000000298023223876953125 * uA.z)) * mix(1.0, uB.x, 0.5)), float3(1.0), float3(uB.z * 0.07999999821186065673828125)) * (1.0 - (0.25 * smoothstep(0.60000002384185791015625, 1.5, length(_107 * float2(0.89999997615814208984375, 0.64999997615814208984375)))))) + float3((fract((_480.x + _480.y) * _480.z) - 0.5) * 0.0350000001490116119384765625), float3(0.0), float3(1.0)), 1.0);\n    return out;\n}\n\n",
+            "entryPoint": "aura_aura_blend_fragment_main",
+            "floatCount": 38,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uB",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uP0",
+                "offset": 10,
+                "count": 4,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uP1",
+                "offset": 14,
+                "count": 4,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uP2",
+                "offset": 18,
+                "count": 4,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uR0",
+                "offset": 22,
+                "count": 4,
+                "bufferIndex": 6
+              },
+              {
+                "name": "uC0",
+                "offset": 26,
+                "count": 3,
+                "bufferIndex": 7
+              },
+              {
+                "name": "uC1",
+                "offset": 29,
+                "count": 3,
+                "bufferIndex": 8
+              },
+              {
+                "name": "uC2",
+                "offset": 32,
+                "count": 3,
+                "bufferIndex": 9
+              },
+              {
+                "name": "uC3",
+                "offset": 35,
+                "count": 3,
+                "bufferIndex": 10
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
+    },
+    {
       "id": "aurora_ribbons",
       "name": "Aurora · cintas de luz",
       "programId": "creator_aurora_ribbons",
@@ -22,6 +135,238 @@
         "glow": 0.8
       },
       "shaderSource": "vec4 paintVisual(vec2 uv, CreatorFrame f) {\nvec2 p = uv - 0.5;\np.x *= f.size.x / max(f.size.y, 1.0);\nfloat t = f.time * f.speed * 0.32;\nfloat seed = mod(f.seedLow + f.seedHigh, 10000.0) * 0.001;\nvec3 c = f.color0.rgb * (0.7 + 0.3 * uv.y);\nfor (int i = 0; i < 4; i++) {\n  float k = float(i);\n  float center = 0.14 * sin(p.x * (2.0 + k * 0.32) + t + seed + k)\n               + 0.08 * cos(p.x * 5.0 * f.detail - t * 0.6 + k)\n               + (k - 1.5) * 0.105;\n  float d = abs(p.y - center);\n  float width = 0.014 + 0.013 * f.bass;\n  float core = exp(-d * d / (width * width));\n  float halo = exp(-d * 12.0) * 0.13 * f.glow;\n  vec3 ink = mix(f.color1.rgb, f.color2.rgb, k / 3.0);\n  ink = mix(ink, f.color3.rgb, 0.15 * (0.5 + 0.5 * sin(t + p.x * 2.0 + k)));\n  c += ink * (core * 0.30 + halo) * f.intensity * (0.75 + 0.3 * f.energy + 0.15 * f.pulse);\n}\nfloat vignette = clamp(1.0 - dot(p, p) * 0.65, 0.25, 1.0);\nreturn vec4(c * vignette, 1.0);\n}\n"
+    },
+    {
+      "id": "bokeh_luces",
+      "name": "Bokeh",
+      "programId": "creator_bokeh_luces",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 60,
+      "seed": 42,
+      "colors": [
+        4278650381,
+        4294947164,
+        4294933160,
+        4285507839
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  struct Disc { float x, y, vx, vy, size, depth, phase; int color; };\n  struct Spark { float x, y, phase; };\n  std::vector<Disc> discs;\n  std::vector<Spark> sparks;\n  float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;\n  float kick = 0, flash = 0, drive = 0;\n  // Reloj en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.\n  double clock = 0;\n\n  static float follow(float v, float target, float up, float down, float dt) {\n    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));\n  }\n\n  static float wrap(float v) { return v - std::floor(v); }\n\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed);\n    discs.clear();\n    sparks.clear();\n    for (int i = 0; i < 64; i++) {\n      Disc d;\n      d.depth = rng.unit();\n      d.size = 0.03f + 0.11f * d.depth * d.depth;\n      d.x = rng.unit();\n      d.y = rng.unit();\n      float speed = 0.3f + d.depth;\n      d.vx = (rng.unit() - 0.5f) * 0.02f * speed;\n      d.vy = -(0.004f + 0.012f * rng.unit()) * speed;\n      d.phase = rng.unit() * 6.2831853f;\n      d.color = int(rng.unit() * 3.0f) % 3;\n      discs.push_back(d);\n    }\n    // Lejos primero: los discos cercanos quedan delante.\n    std::stable_sort(discs.begin(), discs.end(), [](const Disc& a, const Disc& b) { return a.depth < b.depth; });\n    for (int i = 0; i < 50; i++) sparks.push_back({rng.unit(), rng.unit(), rng.unit() * 6.2831853f});\n    bass = body = spark = energy = slowBass = kick = flash = drive = 0;\n    clock = rng.unit() * 100.0;\n  }\n\n  void update(const Frame& f) override {\n    float dt = float(f.delta);\n    const Music& m = f.music;\n    bass = follow(bass, m.bass, 18.0f, 3.5f, dt);\n    body = follow(body, m.body, 12.0f, 3.0f, dt);\n    spark = follow(spark, m.spark, 30.0f, 7.0f, dt);\n    energy = follow(energy, m.energy, 6.0f, 1.8f, dt);\n    drive = follow(drive, m.active ? std::pow(std::clamp(m.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);\n\n    float hit = 0, fl = 0;\n    for (const auto& e : m.events[0]) hit = std::max(hit, e.strength);\n    for (const auto& e : m.events[2]) hit = std::max(hit, e.strength * 0.85f);\n    for (const auto& e : m.events[3]) fl = std::max(fl, e.strength);\n    float onset = std::clamp((m.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);\n    slowBass = follow(slowBass, m.bass, 3.0f, 3.0f, dt);\n    hit = std::min(std::max(hit, onset), 1.0f);\n    kick = std::max(kick * std::exp(-dt * 4.0f), hit);\n    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));\n    clock += f.delta * f.speed * (1.0 + 1.2 * drive);\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    float amp = f.intensity;\n    float w = f.width, h = f.height, s = std::min(w, h);\n    float t = float(std::fmod(clock, 100000.0));\n    std::vector<float> u;\n    u.reserve(20);\n    u.insert(u.end(), {t, bass * amp, kick * amp, energy});\n    u.insert(u.end(), {f.glow, spark * amp, flash * amp, 0.0f});\n    for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});\n    c.material(\"bokeh_night\", {0, 0, w, h}, u);\n\n    for (const Disc& d : discs) {\n      float x = (wrap(d.x + d.vx * t) * 1.3f - 0.15f) * w;\n      float y = (wrap(d.y + d.vy * t) * 1.3f - 0.15f) * h;\n      float near = d.depth;\n      float pulse = 1.0f + (0.28f * bass + 0.22f * kick) * near * amp;\n      float r = d.size * s * pulse;\n      float twinkle = 0.75f + 0.25f * std::sin(t * 0.8f + d.phase);\n      float a = (0.16f + 0.24f * near) * twinkle * (0.75f + 0.7f * bass + 0.9f * kick * near) * amp * f.glow;\n      a = std::clamp(a, 0.0f, 0.8f);\n      const Color& col = f.colors[1 + d.color];\n      // Disco de lente: interior parejo, borde algo más brillante y canto suave.\n      Paint disc = Paint::radial({x, y}, r,\n                                 {Color{col.r, col.g, col.b, a * 0.65f}, Color{col.r, col.g, col.b, a * 0.72f},\n                                  Color{std::min(1.0f, col.r * 1.1f + 0.08f), std::min(1.0f, col.g * 1.1f + 0.08f),\n                                        std::min(1.0f, col.b * 1.1f + 0.08f), a},\n                                  Color{col.r, col.g, col.b, 0.0f}},\n                                 {0.0f, 0.72f, 0.9f, 1.0f});\n      disc.blend = Blend::plus;\n      c.circle({x, y}, r, disc);\n    }\n\n    // Chispas diminutas que titilan con los agudos.\n    std::vector<Vec2> pts;\n    for (const Spark& sp : sparks) {\n      float tw = std::sin(t * 2.3f + sp.phase * 3.0f);\n      if (tw < 0.4f - 0.8f * spark) continue;\n      pts.push_back({wrap(sp.x + 0.004f * t) * w, wrap(sp.y - 0.006f * t) * h});\n    }\n    if (!pts.empty()) {\n      Paint p;\n      p.blend = Blend::plus;\n      p.color = {1.0f, 0.95f, 0.9f, std::clamp((0.35f + 0.6f * spark) * amp, 0.0f, 1.0f)};\n      c.points(pts, (0.9f + 0.6f * spark) * s / 400.0f, p);\n    }\n  }\n};\n",
+      "shaderSources": {
+        "bokeh_night": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // reloj, graves, golpe, energía\nuniform vec4 uB;   // glow, agudos, destello\nuniform vec3 uC0;\nuniform vec3 uC1;\nuniform vec3 uC2;\nuniform vec3 uC3;\nout vec4 fragColor;\n\nfloat hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  float scale = min(uSize.x, uSize.y);\n  vec2 p = (frag - 0.5 * uSize) / scale;\n  float t = uA.x;\n  // Noche suave con neblinas de color muy desenfocadas.\n  vec3 col = uC0;\n  vec2 a = vec2(0.35 * sin(t * 0.05), -0.4 + 0.2 * cos(t * 0.04));\n  vec2 b = vec2(-0.3 * cos(t * 0.045), 0.45 + 0.15 * sin(t * 0.035));\n  col += uC1 * exp(-dot(p - a, p - a) * 2.2) * (0.05 + 0.03 * uA.y);\n  col += uC3 * exp(-dot(p - b, p - b) * 2.0) * (0.05 + 0.03 * uA.y);\n  col += uC2 * uB.z * 0.03;\n  col *= 1.0 - 0.4 * smoothstep(0.5, 1.3, length(p * vec2(0.9, 0.65)));\n  col += (hash12(frag) - 0.5) / 255.0;\n  fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "1a3947243a3abf1da64d5c54f44c3acbe5f2b928e44c0abdc24c85e2f6eeeaae",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {
+          "bokeh_night": {
+            "compilerHash": "19a573272bbadfe03948f71f2973f0d7cf06a98b07148ebb5a8ce5a46c80240a",
+            "asset": "packages/visual_catalog/assets/native/bokeh_luces_bokeh_night.iplr",
+            "assetHash": "61035c271b74e0bfab72d88d35954b44d6318d5909de82e2d8254caea95e854c",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct bokeh_luces_bokeh_night_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct bokeh_luces_bokeh_night_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment bokeh_luces_bokeh_night_fragment_main_out bokeh_luces_bokeh_night_fragment_main(bokeh_luces_bokeh_night_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uB [[buffer(2)]], constant float3& uC0 [[buffer(3)]], constant float3& uC1 [[buffer(4)]], constant float3& uC2 [[buffer(5)]], constant float3& uC3 [[buffer(6)]])\n{\n    bokeh_luces_bokeh_night_fragment_main_out out = {};\n    float2 _76 = (in._fragCoord - (uSize * 0.5)) / float2(fast::min(uSize.x, uSize.y));\n    float2 _123 = _76 - float2(0.3499999940395355224609375 * sin(uA.x * 0.0500000007450580596923828125), (-0.4000000059604644775390625) + (0.20000000298023223876953125 * cos(uA.x * 0.039999999105930328369140625)));\n    float _137 = 0.0500000007450580596923828125 + (0.02999999932944774627685546875 * uA.y);\n    float2 _145 = _76 - float2((-0.300000011920928955078125) * cos(uA.x * 0.04500000178813934326171875), 0.449999988079071044921875 + (0.1500000059604644775390625 * sin(uA.x * 0.0350000001490116119384765625)));\n    float3 _214 = fract(in._fragCoord.xyx * 0.103100001811981201171875);\n    float3 _223 = _214 + float3(dot(_214, _214.yzx + float3(33.3300018310546875)));\n    out.fragColor = float4(fast::clamp(((((uC0 + ((uC1 * exp(dot(_123, _123) * (-2.2000000476837158203125))) * _137)) + ((uC3 * exp(dot(_145, _145) * (-2.0))) * _137)) + ((uC2 * uB.z) * 0.02999999932944774627685546875)) * (1.0 - (0.4000000059604644775390625 * smoothstep(0.5, 1.2999999523162841796875, length(_76 * float2(0.89999997615814208984375, 0.64999997615814208984375)))))) + float3((fract((_223.x + _223.y) * _223.z) - 0.5) * 0.0039215688593685626983642578125), float3(0.0), float3(1.0)), 1.0);\n    return out;\n}\n\n",
+            "entryPoint": "bokeh_luces_bokeh_night_fragment_main",
+            "floatCount": 22,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uB",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uC0",
+                "offset": 10,
+                "count": 3,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uC1",
+                "offset": 13,
+                "count": 3,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uC2",
+                "offset": 16,
+                "count": 3,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uC3",
+                "offset": 19,
+                "count": 3,
+                "bufferIndex": 6
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
+    },
+    {
+      "id": "bola_discoteca",
+      "name": "Bola de Discoteca",
+      "programId": "creator_bola_discoteca",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 60,
+      "seed": 42,
+      "colors": [
+        4278518536,
+        4294952043,
+        4294930350,
+        4293455103
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  struct Spot { float lon, lat, size, phase; int tone; };\n  std::vector<Spot> spots;\n  float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;\n  float kick = 0, flash = 0, drive = 0;\n  // Giro en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.\n  double spin = 0, clock = 0;\n\n  static float follow(float v, float target, float up, float down, float dt) {\n    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));\n  }\n\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed);\n    spots.clear();\n    for (int i = 0; i < 220; i++) {\n      Spot s;\n      s.lon = rng.unit() * 6.2831853f;\n      s.lat = (rng.unit() - 0.5f) * 1.9f;\n      s.size = 0.5f + rng.unit() * 0.9f;\n      s.phase = rng.unit() * 6.2831853f;\n      s.tone = int(rng.unit() * 3.0f) % 3;\n      spots.push_back(s);\n    }\n    bass = body = spark = energy = slowBass = kick = flash = drive = 0;\n    spin = rng.unit() * 6.2831853;\n    clock = 0;\n  }\n\n  void update(const Frame& f) override {\n    float dt = float(f.delta);\n    const Music& m = f.music;\n    bass = follow(bass, m.bass, 22.0f, 4.5f, dt);\n    body = follow(body, m.body, 12.0f, 3.0f, dt);\n    spark = follow(spark, m.spark, 30.0f, 7.0f, dt);\n    energy = follow(energy, m.energy, 6.0f, 1.8f, dt);\n    drive = follow(drive, m.active ? std::pow(std::clamp(m.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);\n\n    float hit = 0, fl = 0;\n    for (const auto& e : m.events[0]) hit = std::max(hit, e.strength);\n    for (const auto& e : m.events[2]) hit = std::max(hit, e.strength * 0.85f);\n    for (const auto& e : m.events[3]) fl = std::max(fl, e.strength);\n    float onset = std::clamp((m.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);\n    slowBass = follow(slowBass, m.bass, 3.0f, 3.0f, dt);\n    hit = std::min(std::max(hit, onset), 1.0f);\n    kick = std::max(kick * std::exp(-dt * 5.0f), hit);\n    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));\n    spin += f.delta * f.speed * (0.22 + 0.5 * drive);\n    clock += f.delta;\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    float amp = f.intensity;\n    float s = std::min(f.width, f.height);\n    float cx = f.width * 0.5f, cy = f.height * 0.38f;\n    float R = s * 0.27f;\n    std::vector<float> u;\n    u.reserve(20);\n    u.insert(u.end(), {float(std::fmod(spin, 6.2831853)), bass * amp, kick * amp, energy});\n    u.insert(u.end(), {f.glow, spark * amp, flash * amp, cy / f.height});\n    for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});\n    c.material(\"disco_room\", {0, 0, f.width, f.height}, u);\n\n    // Puntos de luz reflejados en la sala: viajan con el giro de la bola.\n    std::array<std::vector<Vec2>, 3> groups;\n    float sp = float(std::fmod(spin, 6.2831853));\n    for (const Spot& spot : spots) {\n      float a = spot.lon + sp;\n      a -= 6.2831853f * std::floor(a / 6.2831853f);\n      float x = (a / 6.2831853f) * 1.3f - 0.15f;\n      if (x < -0.05f || x > 1.05f) continue;\n      // Cada reflejo parpadea al pasar las juntas entre facetas.\n      float blink = 0.5f + 0.5f * std::sin(spot.phase + a * 23.0f);\n      if (blink < 0.25f) continue;\n      groups[spot.tone].push_back({x * f.width, f.height * 0.5f + spot.lat * f.height * 0.5f});\n    }\n    float gain = std::clamp((0.7f + 0.5f * bass + 0.7f * kick + 0.3f * flash) * amp, 0.0f, 1.6f);\n    float px = s / 400.0f;\n    for (int g = 0; g < 3; g++) {\n      if (groups[g].empty()) continue;\n      const Color& col = f.colors[1 + g];\n      Paint halo;\n      halo.blend = Blend::plus;\n      halo.color = {col.r, col.g, col.b, std::clamp(0.10f * gain * f.glow, 0.0f, 1.0f)};\n      c.points(groups[g], (11.0f + 5.0f * kick * amp) * px, halo);\n      Paint core;\n      core.blend = Blend::plus;\n      core.color = {std::min(1.0f, col.r * 0.6f + 0.4f), std::min(1.0f, col.g * 0.6f + 0.4f),\n                    std::min(1.0f, col.b * 0.6f + 0.4f), std::clamp(0.75f * gain, 0.0f, 1.0f)};\n      c.points(groups[g], (3.2f + 1.8f * kick * amp) * px, core);\n    }\n\n    // La bola, dibujada encima de los reflejos de la pared.\n    std::vector<float> b;\n    b.reserve(20);\n    b.insert(b.end(), {float(std::fmod(spin, 6.2831853)), bass * amp, kick * amp, energy});\n    b.insert(b.end(), {f.glow, spark * amp, flash * amp, float(std::fmod(clock, 1000.0))});\n    for (int i = 0; i < 4; i++) b.insert(b.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});\n    c.material(\"mirror_ball\", {cx - R * 1.6f, cy - R * 1.6f, R * 3.2f, R * 3.2f}, b);\n  }\n};\n",
+      "shaderSources": {
+        "disco_room": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // giro, graves, golpe, energía\nuniform vec4 uB;   // glow, agudos, destello, altura de la bola\nuniform vec3 uC0;\nuniform vec3 uC1;\nuniform vec3 uC2;\nuniform vec3 uC3;\nout vec4 fragColor;\n\nfloat hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  float scale = min(uSize.x, uSize.y);\n  vec2 p = (frag - vec2(0.5 * uSize.x, uB.w * uSize.y)) / scale;\n  // Sala oscura: resplandor cálido alrededor de la bola y suelo en penumbra.\n  vec3 col = uC0;\n  col += mix(uC1, uC2, 0.4) * exp(-dot(p, p) * 3.0) * (0.10 + 0.08 * uA.y + 0.15 * uA.z) * uB.x;\n  // Haces tenues que salen de la bola y giran con ella.\n  float ang = atan(p.y, p.x) + uA.x;\n  float beams = smoothstep(0.75, 1.0, sin(ang * 9.0)) * smoothstep(0.75, 1.0, sin(ang * 4.0 + 1.3));\n  col += mix(uC1, uC2, 0.5 + 0.5 * sin(ang * 3.0)) * beams * exp(-length(p) * 1.3) * smoothstep(0.25, 0.4, length(p)) *\n         (0.05 + 0.08 * uA.y + 0.12 * uA.z) * uB.x;\n  float floorY = (frag.y / uSize.y);\n  col += uC3 * smoothstep(0.7, 1.0, floorY) * 0.03;\n  col += mix(uC1, uC3, 0.5) * uB.z * 0.04;\n  col *= 1.0 - 0.45 * smoothstep(0.5, 1.4, length((frag - 0.5 * uSize) / scale * vec2(0.9, 0.65)));\n  col += (hash12(frag) - 0.5) / 255.0;\n  fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);\n}\n",
+        "mirror_ball": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // giro, graves, golpe, energía\nuniform vec4 uB;   // glow, agudos, destello, reloj\nuniform vec3 uC0;\nuniform vec3 uC1;\nuniform vec3 uC2;\nuniform vec3 uC3;\nout vec4 fragColor;\n\nconst float PI = 3.14159265;\n\nfloat hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  vec2 c = 0.5 * uSize;\n  float R = uSize.x / 3.2;\n  vec2 p = (frag - c) / R;\n  float r = length(p);\n  float kick = uA.z;\n\n  // Halo de luz alrededor de la bola.\n  vec3 haloCol = mix(uC1, uC3, 0.5) * exp(-max(r - 1.0, 0.0) * 6.0) * (0.12 + 0.3 * kick + 0.1 * uA.y) * uB.x;\n  haloCol *= smoothstep(1.6, 1.25, r);\n  vec3 ball = vec3(0.0);\n  float edge = smoothstep(1.0, 0.985, r);\n  if (r < 1.0) {\n    float z = sqrt(1.0 - r * r);\n    vec3 n = vec3(p.x, -p.y, z);\n    float cs = cos(uA.x);\n    float sn = sin(uA.x);\n    vec3 m = vec3(cs * n.x + sn * n.z, n.y, -sn * n.x + cs * n.z);\n    // Facetas: filas de latitud y columnas que se estrechan hacia los polos.\n    float lat = asin(clamp(m.y, -1.0, 1.0));\n    float lon = atan(m.z, m.x);\n    const float ROWS = 22.0;\n    float latStep = PI / ROWS;\n    float fr = (lat + 0.5 * PI) / latStep;\n    float row = floor(fr);\n    float latc = (row + 0.5) * latStep - 0.5 * PI;\n    float cols = max(6.0, floor(2.0 * ROWS * cos(latc)));\n    float lonStep = 2.0 * PI / cols;\n    float fc = (lon + PI) / lonStep;\n    float col = floor(fc);\n    float lonc = (col + 0.5) * lonStep - PI;\n    // Normal plana de la faceta, devuelta al espacio de la cámara.\n    vec3 mc = vec3(cos(latc) * cos(lonc), sin(latc), cos(latc) * sin(lonc));\n    vec3 nc = vec3(cs * mc.x - sn * mc.z, mc.y, sn * mc.x + cs * mc.z);\n    vec3 refl = reflect(vec3(0.0, 0.0, -1.0), nc);\n    float h = hash12(vec2(row, col));\n    vec3 L1 = normalize(vec3(-0.6, 0.65, 0.45));\n    vec3 L2 = normalize(vec3(0.7, 0.45, 0.55));\n    vec3 L3 = normalize(vec3(0.05, 0.95, 0.25));\n    float s1 = pow(max(dot(refl, L1), 0.0), 28.0);\n    float s2 = pow(max(dot(refl, L2), 0.0), 28.0);\n    float s3 = pow(max(dot(refl, L3), 0.0), 40.0);\n    float twinkle = 0.7 + 0.3 * sin(h * 50.0 + uB.w * (3.0 + 6.0 * h));\n    vec3 spec = (uC1 * s1 + uC2 * s2 + uC3 * s3) * (1.4 + 1.8 * kick + 0.6 * uA.y) * twinkle;\n    // Espejo oscuro que refleja la sala, más claro hacia arriba.\n    vec3 base = uC3 * (0.10 + 0.30 * h * h) * (0.45 + 0.55 * smoothstep(-0.6, 0.9, refl.y));\n    // Destellos sueltos que saltan de faceta en faceta.\n    float sparkle = step(0.93, hash12(vec2(row, col) + floor(uB.w * 6.0 + h * 3.0)));\n    base += mix(uC1, uC3, h) * sparkle * (0.5 + 0.8 * kick);\n    vec3 facet = base + spec;\n    // Chispas en las facetas con los agudos.\n    float glint = step(0.985 - 0.03 * uB.y, hash12(vec2(row, col) + floor(uB.w * 9.0)));\n    facet += vec3(1.0) * glint * uB.y * 1.2;\n    // Juntas oscuras entre facetas.\n    float gx = min(fract(fc), 1.0 - fract(fc)) * lonStep * cos(lat);\n    float gy = min(fract(fr), 1.0 - fract(fr)) * latStep;\n    float grout = smoothstep(0.0, 0.012, min(gx, gy));\n    facet *= mix(0.15, 1.0, grout);\n    // Borde de la esfera más oscuro.\n    facet *= 0.55 + 0.45 * z;\n    ball = facet;\n  }\n  vec3 outCol = mix(haloCol, ball, edge);\n  float peak = max(outCol.r, max(outCol.g, outCol.b));\n  if (peak > 0.85) {\n    float e = (peak - 0.85) / 0.15;\n    outCol *= (0.85 + 0.15 * e / (1.0 + e)) / peak;\n  }\n  float alpha = max(edge, clamp(max(haloCol.r, max(haloCol.g, haloCol.b)), 0.0, 1.0));\n  outCol = min(outCol, vec3(alpha));\n  fragColor = vec4(outCol, alpha);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "4de58d8240bcdef6aa4e1b74a6cac4cd49dce72e1fbd009746f8ba9139478778",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {
+          "disco_room": {
+            "compilerHash": "2bc8303e7aa702590e12b0a49ef147509886105c1fa7df44bf3d81895cc63f72",
+            "asset": "packages/visual_catalog/assets/native/bola_discoteca_disco_room.iplr",
+            "assetHash": "84d0cdc34dcd660b04edcba71f643e322800f4ff2f61063a62678081cf5391d2",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct bola_discoteca_disco_room_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct bola_discoteca_disco_room_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment bola_discoteca_disco_room_fragment_main_out bola_discoteca_disco_room_fragment_main(bola_discoteca_disco_room_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uB [[buffer(2)]], constant float3& uC0 [[buffer(3)]], constant float3& uC1 [[buffer(4)]], constant float3& uC2 [[buffer(5)]], constant float3& uC3 [[buffer(6)]])\n{\n    bola_discoteca_disco_room_fragment_main_out out = {};\n    float2 _86 = float2(fast::min(uSize.x, uSize.y));\n    float2 _87 = (in._fragCoord - float2(0.5 * uSize.x, uB.w * uSize.y)) / _86;\n    float _112 = 0.07999999821186065673828125 * uA.y;\n    float _133 = precise::atan2(_87.y, _87.x) + uA.x;\n    float _162 = length(_87);\n    float3 _263 = fract(in._fragCoord.xyx * 0.103100001811981201171875);\n    float3 _272 = _263 + float3(dot(_263, _263.yzx + float3(33.3300018310546875)));\n    float3 _242 = (((((uC0 + (((mix(uC1, uC2, float3(0.4000000059604644775390625)) * exp(dot(_87, _87) * (-3.0))) * ((0.100000001490116119384765625 + _112) + (0.1500000059604644775390625 * uA.z))) * uB.x)) + (((((mix(uC1, uC2, float3(0.5 + (0.5 * sin(_133 * 3.0)))) * (smoothstep(0.75, 1.0, sin(_133 * 9.0)) * smoothstep(0.75, 1.0, sin((_133 * 4.0) + 1.2999999523162841796875)))) * exp(_162 * (-1.2999999523162841796875))) * smoothstep(0.25, 0.4000000059604644775390625, _162)) * ((0.0500000007450580596923828125 + _112) + (0.119999997317790985107421875 * uA.z))) * uB.x)) + ((uC3 * smoothstep(0.699999988079071044921875, 1.0, in._fragCoord.y / uSize.y)) * 0.02999999932944774627685546875)) + ((mix(uC1, uC3, float3(0.5)) * uB.z) * 0.039999999105930328369140625)) * (1.0 - (0.449999988079071044921875 * smoothstep(0.5, 1.39999997615814208984375, length(((in._fragCoord - (uSize * 0.5)) / _86) * float2(0.89999997615814208984375, 0.64999997615814208984375)))))) + float3((fract((_272.x + _272.y) * _272.z) - 0.5) * 0.0039215688593685626983642578125);\n    out.fragColor = float4(fast::clamp(_242, float3(0.0), float3(1.0)), 1.0);\n    return out;\n}\n\n",
+            "entryPoint": "bola_discoteca_disco_room_fragment_main",
+            "floatCount": 22,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uB",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uC0",
+                "offset": 10,
+                "count": 3,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uC1",
+                "offset": 13,
+                "count": 3,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uC2",
+                "offset": 16,
+                "count": 3,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uC3",
+                "offset": 19,
+                "count": 3,
+                "bufferIndex": 6
+              }
+            ]
+          },
+          "mirror_ball": {
+            "compilerHash": "c6252dffd16a1fc6c8f7e2d8219a100b56d31466b267218c642faadea1efb1d2",
+            "asset": "packages/visual_catalog/assets/native/bola_discoteca_mirror_ball.iplr",
+            "assetHash": "1ef306291c7bb6c32754e641966935512d2a248ec96716c5722d7ffd4dd8cee8",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct bola_discoteca_mirror_ball_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct bola_discoteca_mirror_ball_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment bola_discoteca_mirror_ball_fragment_main_out bola_discoteca_mirror_ball_fragment_main(bola_discoteca_mirror_ball_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uB [[buffer(2)]], constant float3& uC1 [[buffer(4)]], constant float3& uC2 [[buffer(5)]], constant float3& uC3 [[buffer(6)]])\n{\n    bola_discoteca_mirror_ball_fragment_main_out out = {};\n    float2 _77 = (in._fragCoord - (uSize * 0.5)) / float2(uSize.x * 0.3125);\n    float _80 = length(_77);\n    float3 _125 = (((mix(uC1, uC3, float3(0.5)) * exp(fast::max(_80 - 1.0, 0.0) * (-6.0))) * ((0.119999997317790985107421875 + (0.300000011920928955078125 * uA.z)) + (0.100000001490116119384765625 * uA.y))) * uB.x) * smoothstep(1.60000002384185791015625, 1.25, _80);\n    float _131 = smoothstep(1.0, 0.98500001430511474609375, _80);\n    float3 _649;\n    if (_80 < 1.0)\n    {\n        float _142 = sqrt(1.0 - (_80 * _80));\n        float _145 = _77.x;\n        float _154 = cos(uA.x);\n        float _158 = sin(uA.x);\n        float _187 = asin(fast::clamp(-_77.y, -1.0, 1.0));\n        float _201 = (_187 + 1.57079637050628662109375) * 7.002817630767822265625;\n        float _204 = floor(_201);\n        float _210 = ((_204 + 0.5) * 0.14279966056346893310546875) - 1.57079637050628662109375;\n        float _214 = cos(_210);\n        float _221 = 6.283185482025146484375 / fast::max(6.0, floor(44.0 * _214));\n        float _227 = (precise::atan2(((-_158) * _145) + (_154 * _142), (_154 * _145) + (_158 * _142)) + 3.1415927410125732421875) / _221;\n        float _230 = floor(_227);\n        float _236 = ((_230 + 0.5) * _221) - 3.1415927410125732421875;\n        float _242 = _214 * cos(_236);\n        float _249 = _214 * sin(_236);\n        float3 _276 = reflect(float3(0.0, 0.0, -1.0), float3((_154 * _242) - (_158 * _249), sin(_210), (_158 * _242) + (_154 * _249)));\n        float2 _280 = float2(_204, _230);\n        float3 _549 = fract(_280.xyx * 0.103100001811981201171875);\n        float3 _558 = _549 + float3(dot(_549, _549.yzx + float3(33.3300018310546875)));\n        float _567 = fract((_558.x + _558.y) * _558.z);\n        float3 _574 = fract((_280 + float2(floor((uB.w * 6.0) + (_567 * 3.0)))).xyx * 0.103100001811981201171875);\n        float3 _583 = _574 + float3(dot(_574, _574.yzx + float3(33.3300018310546875)));\n        float3 _599 = fract((_280 + float2(floor(uB.w * 9.0))).xyx * 0.103100001811981201171875);\n        float3 _608 = _599 + float3(dot(_599, _599.yzx + float3(33.3300018310546875)));\n        float _445 = fract(_227);\n        float _457 = fract(_201);\n        float3 _474 = (((((uC3 * (0.100000001490116119384765625 + ((0.300000011920928955078125 * _567) * _567))) * (0.449999988079071044921875 + (0.550000011920928955078125 * smoothstep(-0.60000002384185791015625, 0.89999997615814208984375, _276.y)))) + ((mix(uC1, uC3, float3(_567)) * step(0.930000007152557373046875, fract((_583.x + _583.y) * _583.z))) * (0.5 + (0.800000011920928955078125 * uA.z)))) + (((((uC1 * powr(fast::max(dot(_276, float3(-0.604551255702972412109375, 0.654930531978607177734375, 0.4534134566783905029296875)), 0.0), 28.0)) + (uC2 * powr(fast::max(dot(_276, float3(0.70175659656524658203125, 0.4511292278766632080078125, 0.551380157470703125)), 0.0), 28.0))) + (uC3 * powr(fast::max(dot(_276, float3(0.0508328564465045928955078125, 0.965824306011199951171875, 0.254164278507232666015625)), 0.0), 40.0))) * ((1.39999997615814208984375 + (1.7999999523162841796875 * uA.z)) + (0.60000002384185791015625 * uA.y))) * (0.699999988079071044921875 + (0.300000011920928955078125 * sin((_567 * 50.0) + (uB.w * (3.0 + (6.0 * _567)))))))) + (((float3(1.0) * step(0.98500001430511474609375 - (0.02999999932944774627685546875 * uB.y), fract((_608.x + _608.y) * _608.z))) * uB.y) * 1.2000000476837158203125)) * mix(0.1500000059604644775390625, 1.0, smoothstep(0.0, 0.01200000010430812835693359375, fast::min((fast::min(_445, 1.0 - _445) * _221) * cos(_187), fast::min(_457, 1.0 - _457) * 0.14279966056346893310546875)));\n        _649 = _474 * (0.550000011920928955078125 + (0.449999988079071044921875 * _142));\n    }\n    else\n    {\n        _649 = float3(0.0);\n    }\n    float3 _486 = mix(_125, _649, float3(_131));\n    float _495 = fast::max(_486.x, fast::max(_486.y, _486.z));\n    float3 _650;\n    if (_495 > 0.85000002384185791015625)\n    {\n        float _503 = _495 - 0.85000002384185791015625;\n        _650 = _486 * ((0.85000002384185791015625 + (_503 / (1.0 + (_503 * 6.666666507720947265625)))) / _495);\n    }\n    else\n    {\n        _650 = _486;\n    }\n    float _526 = fast::max(_131, fast::clamp(fast::max(_125.x, fast::max(_125.y, _125.z)), 0.0, 1.0));\n    out.fragColor = float4(fast::min(_650, float3(_526)), _526);\n    return out;\n}\n\n",
+            "entryPoint": "bola_discoteca_mirror_ball_fragment_main",
+            "floatCount": 22,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uB",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uC0",
+                "offset": 10,
+                "count": 3,
+                "bufferIndex": 4294967295
+              },
+              {
+                "name": "uC1",
+                "offset": 13,
+                "count": 3,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uC2",
+                "offset": 16,
+                "count": 3,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uC3",
+                "offset": 19,
+                "count": 3,
+                "bufferIndex": 6
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
     },
     {
       "id": "boreal_aurora",
@@ -1167,6 +1512,95 @@
       }
     },
     {
+      "id": "cordillera_sonido",
+      "name": "Cordillera de Sonido",
+      "programId": "creator_cordillera_sonido",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 60,
+      "seed": 42,
+      "colors": [
+        4278190080,
+        4294967295,
+        4289230079,
+        4281998702
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  static constexpr int kRows = 44, kCols = 60;\n  // Filas a ritmo fijo contadas con el tiempo absoluto: idéntico a 30 y 60 FPS.\n  static constexpr double kRate = 16.0;\n  std::vector<float> grid;\n  std::vector<float> peaks;\n  int64_t pushed = -1;\n  float frac = 0;\n  std::array<float, 31> spec{};\n  float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;\n  float kick = 0, flash = 0, drive = 0;\n\n  static float follow(float v, float target, float up, float down, float dt) {\n    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));\n  }\n\n  static float hash(float n) {\n    float x = std::sin(n) * 43758.5453f;\n    return x - std::floor(x);\n  }\n\n  void push(int64_t n) {\n    int row = int(((n % kRows) + kRows) % kRows);\n    float fn = float(n % 100000);\n    float best = 0;\n    for (int c = 0; c < kCols; c++) {\n      float x = float(c) / float(kCols - 1);\n      // Graves en el centro y agudos hacia los lados, en espejo.\n      float d = std::fabs(x - 0.5f) * 2.0f;\n      float bandPos = d * 24.0f;\n      int b0 = std::min(30, int(bandPos));\n      int b1 = std::min(30, b0 + 1);\n      float sv = spec[b0] + (spec[b1] - spec[b0]) * (bandPos - float(b0));\n      float env = std::exp(-(x - 0.5f) * (x - 0.5f) / (0.23f * 0.23f));\n      float ambient = 0.10f + 0.06f * std::sin(x * 11.0f + fn * 0.23f) + 0.05f * std::sin(x * 23.0f - fn * 0.17f) +\n                      0.05f * hash(fn * 1.3f + float(c) * 7.1f);\n      float value = env * (ambient + 0.95f * sv * (0.8f + 0.7f * kick));\n      grid[size_t(row * kCols + c)] = value;\n      best = std::max(best, value);\n    }\n    peaks[size_t(row)] = best;\n  }\n\n public:\n  void reset(uint32_t seed) override {\n    grid.assign(size_t(kRows * kCols), 0.0f);\n    peaks.assign(size_t(kRows), 0.0f);\n    pushed = -1;\n    frac = 0;\n    spec.fill(0);\n    bass = body = spark = energy = slowBass = kick = flash = drive = 0;\n  }\n\n  void update(const Frame& f) override {\n    float dt = float(f.delta);\n    const Music& m = f.music;\n    bass = follow(bass, m.bass, 22.0f, 4.5f, dt);\n    body = follow(body, m.body, 12.0f, 3.0f, dt);\n    spark = follow(spark, m.spark, 30.0f, 7.0f, dt);\n    energy = follow(energy, m.energy, 6.0f, 1.8f, dt);\n    drive = follow(drive, m.active ? std::pow(std::clamp(m.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);\n    for (int i = 0; i < 31; i++) spec[i] = follow(spec[i], m.smoothSpectrum[i], 30.0f, 6.0f, dt);\n\n    float hit = 0, fl = 0;\n    for (const auto& e : m.events[0]) hit = std::max(hit, e.strength);\n    for (const auto& e : m.events[2]) hit = std::max(hit, e.strength * 0.85f);\n    for (const auto& e : m.events[3]) fl = std::max(fl, e.strength);\n    float onset = std::clamp((m.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);\n    slowBass = follow(slowBass, m.bass, 3.0f, 3.0f, dt);\n    hit = std::min(std::max(hit, onset), 1.0f);\n    kick = std::max(kick * std::exp(-dt * 5.0f), hit);\n    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));\n\n    double rate = kRate * std::clamp(double(f.speed), 0.25, 3.0);\n    int64_t target = int64_t(std::floor(f.time * rate + 1e-6));\n    if (pushed < 0 || target < pushed || target - pushed > kRows) {\n      // Primera vez o salto: se llena la cordillera con relieve ambiental.\n      int64_t start = target - kRows + 1;\n      for (int64_t n = start; n <= target; n++) push(n);\n      pushed = target;\n    }\n    while (pushed < target) push(++pushed);\n    frac = std::clamp(float(f.time * rate - double(pushed)), 0.0f, 1.0f);\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    float amp = f.intensity;\n    float w = f.width, h = f.height;\n    std::vector<float> u;\n    u.reserve(20);\n    u.insert(u.end(), {bass * amp, kick * amp, energy, f.glow});\n    u.insert(u.end(), {spark * amp, flash * amp, 0.0f, 0.0f});\n    for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});\n    c.material(\"ridge_sky\", {0, 0, w, h}, u);\n    if (pushed < 0) return;\n\n    float s = std::min(w, h);\n    float px = s / 400.0f;\n    const Color& bg = f.colors[0];\n    const Color& line = f.colors[1];\n    const Color& glow = f.colors[2];\n    // De la fila más antigua (al fondo) a la más reciente (delante).\n    for (int k = kRows - 1; k >= 0; k--) {\n      int64_t n = pushed - k;\n      int row = int(((n % kRows) + kRows) % kRows);\n      float age = float(k) + frac;\n      float z = age / float(kRows);\n      if (z >= 1.0f) continue;\n      float persp = 1.0f / (1.0f + 1.4f * z);\n      float yBase = h * 0.16f + h * 0.74f * std::pow(1.0f - z, 1.3f);\n      float hs = h * 0.24f * persp * (0.9f + 0.4f * amp);\n      float spread = w * 1.25f * persp;\n      Path crest, fill;\n      for (int col = 0; col < kCols; col++) {\n        float x = w * 0.5f + (float(col) / float(kCols - 1) - 0.5f) * spread;\n        float y = yBase - grid[size_t(row * kCols + col)] * hs;\n        if (col == 0) {\n          crest.moveTo(x, y);\n          fill.moveTo(x, y);\n        } else {\n          crest.lineTo(x, y);\n          fill.lineTo(x, y);\n        }\n      }\n      fill.lineTo(w * 0.5f + 0.5f * spread, yBase + h);\n      fill.lineTo(w * 0.5f - 0.5f * spread, yBase + h);\n      fill.close();\n      Paint cover;\n      cover.color = {bg.r, bg.g, bg.b, 1.0f};\n      c.path(fill, cover);\n      float fade = std::pow(1.0f - z, 0.8f) * std::clamp((1.0f - z) * 6.0f, 0.0f, 1.0f);\n      float peak = peaks[size_t(row)];\n      Paint aura;\n      aura.blend = Blend::plus;\n      aura.strokeWidth = 5.0f * px * persp;\n      aura.strokeJoin = 1;\n      aura.color = {glow.r, glow.g, glow.b, std::clamp((0.06f + 0.5f * peak) * fade * f.glow * (0.8f + 0.6f * kick), 0.0f, 1.0f)};\n      c.path(crest, aura);\n      Paint stroke;\n      stroke.strokeWidth = (1.1f + 0.6f * kick * amp) * px * (0.6f + 0.4f * persp);\n      stroke.strokeJoin = 1;\n      stroke.color = {line.r, line.g, line.b, std::clamp(fade * (0.75f + 0.25f * flash), 0.0f, 1.0f)};\n      c.path(crest, stroke);\n    }\n  }\n};\n",
+      "shaderSources": {
+        "ridge_sky": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // graves, golpe, energía, glow\nuniform vec4 uB;   // agudos, destello\nuniform vec3 uC0;\nuniform vec3 uC1;\nuniform vec3 uC2;\nuniform vec3 uC3;\nout vec4 fragColor;\n\nfloat hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  vec2 uv = frag / uSize;\n  // Cielo negro con un resplandor violeta en el horizonte.\n  float horizon = exp(-(uv.y - 0.16) * (uv.y - 0.16) * 60.0);\n  vec3 col = uC0 + uC3 * horizon * (0.35 + 0.3 * uA.x + 0.4 * uA.y) * uA.w;\n  col += uC2 * uB.y * 0.03;\n  col += (hash12(frag) - 0.5) / 255.0;\n  fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "7ac509af9e99182013b7aa0568dec3392ad173b232dcef3b1cd52fcb78929819",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {
+          "ridge_sky": {
+            "compilerHash": "e49ba896bb38cf1476a4f5b21880b0204fc4c95876cae0e1e5a2d0b773fada20",
+            "asset": "packages/visual_catalog/assets/native/cordillera_sonido_ridge_sky.iplr",
+            "assetHash": "9e2688343e039175c2cb72ebe1795976cc0b29c2f3133fc51b81f59e1e8a0d9e",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct cordillera_sonido_ridge_sky_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct cordillera_sonido_ridge_sky_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment cordillera_sonido_ridge_sky_fragment_main_out cordillera_sonido_ridge_sky_fragment_main(cordillera_sonido_ridge_sky_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uB [[buffer(2)]], constant float3& uC0 [[buffer(3)]], constant float3& uC2 [[buffer(5)]], constant float3& uC3 [[buffer(6)]])\n{\n    cordillera_sonido_ridge_sky_fragment_main_out out = {};\n    float2 _64 = in._fragCoord / uSize;\n    float _67 = _64.y;\n    float3 _149 = fract(in._fragCoord.xyx * 0.103100001811981201171875);\n    float3 _158 = _149 + float3(dot(_149, _149.yzx + float3(33.3300018310546875)));\n    out.fragColor = float4(fast::clamp(((uC0 + (((uC3 * exp(((0.1599999964237213134765625 - _67) * (_67 - 0.1599999964237213134765625)) * 60.0)) * ((0.3499999940395355224609375 + (0.300000011920928955078125 * uA.x)) + (0.4000000059604644775390625 * uA.y))) * uA.w)) + ((uC2 * uB.y) * 0.02999999932944774627685546875)) + float3((fract((_158.x + _158.y) * _158.z) - 0.5) * 0.0039215688593685626983642578125), float3(0.0), float3(1.0)), 1.0);\n    return out;\n}\n\n",
+            "entryPoint": "cordillera_sonido_ridge_sky_fragment_main",
+            "floatCount": 22,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uB",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uC0",
+                "offset": 10,
+                "count": 3,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uC1",
+                "offset": 13,
+                "count": 3,
+                "bufferIndex": 4294967295
+              },
+              {
+                "name": "uC2",
+                "offset": 16,
+                "count": 3,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uC3",
+                "offset": 19,
+                "count": 3,
+                "bufferIndex": 6
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
+    },
+    {
       "id": "cristal_prismatico",
       "name": "Cristal Prismático",
       "programId": "creator_cristal_prismatico",
@@ -2141,6 +2575,232 @@
         "glow": 1.2
       },
       "shaderSource": "vec2 rotate2D(vec2 p, float a) {\n  float c = cos(a);\n  float s = sin(a);\n  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);\n}\n\nfloat getAngle(vec2 p) {\n  float r = length(p);\n  if (r < 0.00001) { return 0.0; }\n  float a = asin(clamp(p.y / r, -1.0, 1.0));\n  if (p.x < 0.0) {\n    a = 3.14159265 - a;\n  }\n  if (a < 0.0) {\n    a = a + 6.2831853;\n  }\n  return a;\n}\n\nvec4 paintVisual(vec2 uv, CreatorFrame f) {\n  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);\n  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;\n\n  float r = length(p);\n  float a = getAngle(p);\n\n  float beat = clamp(f.pulse, 0.0, 1.0);\n  float bass = clamp(f.bass, 0.0, 1.0);\n  float spark = clamp(f.spark, 0.0, 1.0);\n  float flow = clamp(f.flow, 0.0, 1.0);\n  float t = f.time * 0.42 * f.speed;\n\n  vec3 col = vec3(0.0);\n\n  // Fibonacci Petal Ring 1 (Inner 5 petals)\n  float a1 = a + t * 0.6;\n  float pet1 = cos(5.0 * a1);\n  float r1 = 0.18 + 0.08 * pet1 + bass * 0.06;\n  float d1 = abs(r - r1);\n  float edge1 = 0.012 / (d1 + 0.012);\n  vec3 col1 = mix(vec3(1.0, 0.85, 0.2), vec3(1.0, 0.25, 0.6), 0.5 + 0.5 * pet1);\n  col = col + col1 * edge1 * 0.7;\n\n  // Fibonacci Petal Ring 2 (Middle 8 petals, counter-rotating)\n  float a2 = a - t * 0.4;\n  float pet2 = cos(8.0 * a2);\n  float r2 = 0.35 + 0.12 * pet2 + beat * 0.08;\n  float d2 = abs(r - r2);\n  float edge2 = 0.015 / (d2 + 0.018);\n  vec3 col2 = mix(vec3(0.2, 0.85, 1.0), vec3(0.9, 0.1, 0.7), 0.5 + 0.5 * pet2);\n  col = col + col2 * edge2 * 0.65;\n\n  // Fibonacci Petal Ring 3 (Outer 13 petals)\n  float a3 = a + t * 0.25;\n  float pet3 = cos(13.0 * a3);\n  float r3 = 0.58 + 0.15 * pet3 + bass * 0.1;\n  float d3 = abs(r - r3);\n  float edge3 = 0.018 / (d3 + 0.022);\n  vec3 col3 = mix(vec3(0.95, 0.3, 0.8), vec3(1.0, 0.7, 0.2), 0.5 + 0.5 * pet3);\n  col = col + col3 * edge3 * 0.6;\n\n  // Fibonacci Petal Ring 4 (Ethereal 21 filaments)\n  float a4 = a - t * 0.15;\n  float pet4 = cos(21.0 * a4);\n  float r4 = 0.82 + 0.14 * pet4 + beat * 0.06;\n  float d4 = abs(r - r4);\n  float edge4 = 0.012 / (d4 + 0.025);\n  vec3 col4 = mix(vec3(0.4, 0.3, 1.0), vec3(0.2, 0.95, 0.8), 0.5 + 0.5 * pet4);\n  col = col + col4 * edge4 * (0.4 + 0.3 * spark);\n\n  // Sacred golden spiral rays\n  float spiral1 = sin(log(r + 0.02) * 5.0 - a * 3.0 + t * 1.2);\n  float spiral2 = sin(log(r + 0.02) * 5.0 + a * 3.0 - t * 1.2);\n  float spiralGrid = smoothstep(0.85, 0.98, spiral1) + smoothstep(0.85, 0.98, spiral2);\n  col = col + vec3(1.0, 0.8, 0.3) * spiralGrid * 0.35 * exp(-r * 1.8);\n\n  // Radiant Golden Core / Lotus Stamen\n  float coreDist = r;\n  float coreGlow = 0.04 / (coreDist * coreDist * 6.0 + 0.04);\n  float corePulse = 1.0 + 0.4 * sin(t * 4.0) + bass * 0.8;\n  vec3 coreColor = mix(vec3(1.0, 0.95, 0.5), vec3(1.0, 0.4, 0.1), clamp(r * 5.0, 0.0, 1.0));\n  col = col + coreColor * coreGlow * corePulse * 1.2;\n\n  // Stardust / Pollen particles swirling around the flower\n  for (int i = 0; i < 6; i++) {\n    float fi = float(i);\n    float pAngle = fi * 1.047 + t * (0.8 + 0.2 * fi);\n    float pRad = 0.25 + 0.15 * sin(fi * 2.1 + t * 1.5) + bass * 0.1;\n    vec2 pPos = vec2(cos(pAngle), sin(pAngle)) * pRad;\n    float pDist = length(p - pPos);\n    float pGlow = 0.003 / (pDist * pDist * 25.0 + 0.003);\n    col = col + vec3(1.0, 0.9, 0.4) * pGlow * (0.8 + 0.8 * spark);\n  }\n\n  // Soft tone mapping and cinematic vignette\n  col = col / (col + vec3(0.85));\n  float vig = 1.0 - smoothstep(0.5, 1.5, r);\n  col = col * vig * f.intensity * f.glow;\n\n  // RGBA recto: el motor multiplica por alpha al componer.\n  float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.6, 0.0, 1.0);\n  return vec4(clamp(col, 0.0, 1.0), alpha);\n}\n"
+    },
+    {
+      "id": "fluido_colores",
+      "name": "Fluido de Colores",
+      "programId": "creator_fluido_colores",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 60,
+      "seed": 42,
+      "colors": [
+        4278321667,
+        4294916956,
+        4286336511,
+        4278248864
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  static constexpr int NX = 36, NY = 64;\n  // El fluido avanza en pasos fijos de 1/60 s contados con el tiempo absoluto:\n  // es idéntico a 30 y a 60 FPS y la tinta se dibuja interpolada.\n  static constexpr double kHz = 60.0;\n  static constexpr float kStep = float(1.0 / kHz);\n  struct Dye { float x, y, px, py; int color; };\n  struct Splat { float x, y, dx, dy, radius; int color; };\n  std::vector<float> u, v, u0, v0, pr, dv, cu;\n  std::vector<Dye> dye;\n  std::vector<Splat> pending;\n  int64_t steps = -1, stepCount = 0, nextAuto = 20;\n  float frac = 0;\n  float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;\n  float kick = 0, flash = 0, drive = 0;\n  int turn = 0;\n  double sinceDrop = 100;\n  Random rng{43};\n\n  static int I(int i, int j) { return i + (NX + 2) * j; }\n\n  static float follow(float val, float target, float up, float down, float dt) {\n    return val + (target - val) * (1.0f - std::exp(-(target > val ? up : down) * dt));\n  }\n\n  // Interpolación bilineal en coordenadas de celda (centros en 1..N).\n  float sample(const std::vector<float>& f, float x, float y) const {\n    x = std::clamp(x, 0.5f, float(NX) + 0.5f);\n    y = std::clamp(y, 0.5f, float(NY) + 0.5f);\n    int i0 = std::min(int(x), NX), j0 = std::min(int(y), NY);\n    float sx = x - float(i0), sy = y - float(j0);\n    float a = f[I(i0, j0)], b = f[I(i0 + 1, j0)], c = f[I(i0, j0 + 1)], d = f[I(i0 + 1, j0 + 1)];\n    return (a + (b - a) * sx) + ((c + (d - c) * sx) - (a + (b - a) * sx)) * sy;\n  }\n\n  // Paredes: la velocidad normal se anula reflejándola.\n  static void bound(std::vector<float>& f, int kind) {\n    for (int j = 1; j <= NY; j++) {\n      f[I(0, j)] = kind == 1 ? -f[I(1, j)] : f[I(1, j)];\n      f[I(NX + 1, j)] = kind == 1 ? -f[I(NX, j)] : f[I(NX, j)];\n    }\n    for (int i = 1; i <= NX; i++) {\n      f[I(i, 0)] = kind == 2 ? -f[I(i, 1)] : f[I(i, 1)];\n      f[I(i, NY + 1)] = kind == 2 ? -f[I(i, NY)] : f[I(i, NY)];\n    }\n    f[I(0, 0)] = 0.5f * (f[I(1, 0)] + f[I(0, 1)]);\n    f[I(NX + 1, 0)] = 0.5f * (f[I(NX, 0)] + f[I(NX + 1, 1)]);\n    f[I(0, NY + 1)] = 0.5f * (f[I(1, NY + 1)] + f[I(0, NY)]);\n    f[I(NX + 1, NY + 1)] = 0.5f * (f[I(NX, NY + 1)] + f[I(NX + 1, NY)]);\n  }\n\n  void advect(std::vector<float>& d, const std::vector<float>& d0, int kind) {\n    for (int j = 1; j <= NY; j++) {\n      for (int i = 1; i <= NX; i++) {\n        float x = float(i) - kStep * u0[I(i, j)];\n        float y = float(j) - kStep * v0[I(i, j)];\n        d[I(i, j)] = sample(d0, x, y);\n      }\n    }\n    bound(d, kind);\n  }\n\n  void project() {\n    for (int j = 1; j <= NY; j++) {\n      for (int i = 1; i <= NX; i++) {\n        dv[I(i, j)] = -0.5f * (u[I(i + 1, j)] - u[I(i - 1, j)] + v[I(i, j + 1)] - v[I(i, j - 1)]);\n        pr[I(i, j)] = 0;\n      }\n    }\n    bound(dv, 0);\n    bound(pr, 0);\n    for (int k = 0; k < 18; k++) {\n      for (int j = 1; j <= NY; j++) {\n        for (int i = 1; i <= NX; i++) {\n          pr[I(i, j)] = (dv[I(i, j)] + pr[I(i - 1, j)] + pr[I(i + 1, j)] + pr[I(i, j - 1)] + pr[I(i, j + 1)]) * 0.25f;\n        }\n      }\n      bound(pr, 0);\n    }\n    for (int j = 1; j <= NY; j++) {\n      for (int i = 1; i <= NX; i++) {\n        u[I(i, j)] -= 0.5f * (pr[I(i + 1, j)] - pr[I(i - 1, j)]);\n        v[I(i, j)] -= 0.5f * (pr[I(i, j + 1)] - pr[I(i, j - 1)]);\n      }\n    }\n    bound(u, 1);\n    bound(v, 2);\n  }\n\n  // Confinamiento de vorticidad: devuelve energía a los remolinos pequeños.\n  void vorticity(float eps) {\n    for (int j = 1; j <= NY; j++)\n      for (int i = 1; i <= NX; i++)\n        cu[I(i, j)] = 0.5f * ((v[I(i + 1, j)] - v[I(i - 1, j)]) - (u[I(i, j + 1)] - u[I(i, j - 1)]));\n    bound(cu, 0);\n    for (int j = 2; j < NY; j++) {\n      for (int i = 2; i < NX; i++) {\n        float nx = 0.5f * (std::fabs(cu[I(i + 1, j)]) - std::fabs(cu[I(i - 1, j)]));\n        float ny = 0.5f * (std::fabs(cu[I(i, j + 1)]) - std::fabs(cu[I(i, j - 1)]));\n        float len = std::sqrt(nx * nx + ny * ny) + 1e-5f;\n        nx /= len;\n        ny /= len;\n        float w = cu[I(i, j)];\n        u[I(i, j)] += kStep * eps * ny * w;\n        v[I(i, j)] -= kStep * eps * nx * w;\n      }\n    }\n  }\n\n  void queueSplat(float power, int color) {\n    Splat s;\n    s.x = 4.0f + rng.unit() * float(NX - 8);\n    s.y = 6.0f + rng.unit() * float(NY - 12);\n    float a = rng.unit() * 6.2831853f;\n    float speed = (40.0f + 40.0f * rng.unit()) * power;\n    s.dx = std::cos(a) * speed;\n    s.dy = std::sin(a) * speed;\n    s.radius = 4.0f + 3.0f * power;\n    s.color = color;\n    pending.push_back(s);\n  }\n\n  void step() {\n    for (const Splat& s : pending) {\n      int r = int(std::ceil(s.radius * 2.0f));\n      int ci = int(s.x), cj = int(s.y);\n      for (int j = std::max(1, cj - r); j <= std::min(NY, cj + r); j++) {\n        for (int i = std::max(1, ci - r); i <= std::min(NX, ci + r); i++) {\n          float dx = float(i) - s.x, dy = float(j) - s.y;\n          float g = std::exp(-(dx * dx + dy * dy) / (s.radius * s.radius));\n          u[I(i, j)] += s.dx * g;\n          v[I(i, j)] += s.dy * g;\n        }\n      }\n      // La tinta cercana toma el color del chorro.\n      float r2 = s.radius * s.radius * 2.2f;\n      for (Dye& d : dye) {\n        float dx = d.x - s.x, dy = d.y - s.y;\n        if (dx * dx + dy * dy < r2) d.color = s.color;\n      }\n    }\n    pending.clear();\n    vorticity(3.5f + 7.0f * energy);\n    u0 = u;\n    v0 = v;\n    advect(u, u0, 1);\n    advect(v, v0, 2);\n    project();\n    for (size_t k = 0; k < u.size(); k++) {\n      u[k] = std::clamp(u[k] * 0.992f, -120.0f, 120.0f);\n      v[k] = std::clamp(v[k] * 0.992f, -120.0f, 120.0f);\n    }\n    for (Dye& d : dye) {\n      d.px = d.x;\n      d.py = d.y;\n      float vx = sample(u, d.x, d.y), vy = sample(v, d.x, d.y);\n      d.x = std::clamp(d.x + vx * kStep, 0.8f, float(NX) + 0.2f);\n      d.y = std::clamp(d.y + vy * kStep, 0.8f, float(NY) + 0.2f);\n    }\n    stepCount++;\n    // Sin golpes: un chorro cada segundo y medio, en pasos fijos.\n    if (stepCount >= nextAuto) {\n      queueSplat(0.75f, turn++ % 3);\n      nextAuto = stepCount + 90;\n    }\n  }\n\n public:\n  void reset(uint32_t seed) override {\n    rng = Random(seed);\n    size_t n = size_t((NX + 2) * (NY + 2));\n    u.assign(n, 0.0f);\n    v.assign(n, 0.0f);\n    u0.assign(n, 0.0f);\n    v0.assign(n, 0.0f);\n    pr.assign(n, 0.0f);\n    dv.assign(n, 0.0f);\n    cu.assign(n, 0.0f);\n    dye.clear();\n    pending.clear();\n    steps = -1;\n    stepCount = 0;\n    nextAuto = 20;\n    frac = 0;\n    bass = body = spark = energy = slowBass = kick = flash = drive = 0;\n    turn = 0;\n    sinceDrop = 100;\n    for (int k = 0; k < 3; k++) queueSplat(0.9f, turn++ % 3);\n  }\n\n  void update(const Frame& f) override {\n    float dt = float(f.delta);\n    if (dye.empty()) {\n      int count = int(6000.0f + 3000.0f * std::clamp(f.detail, 0.25f, 2.0f));\n      dye.resize(count);\n      for (auto& d : dye) {\n        d.x = d.px = 1.0f + rng.unit() * float(NX - 1);\n        d.y = d.py = 1.0f + rng.unit() * float(NY - 1);\n        d.color = std::min(2, int(d.y / float(NY) * 3.0f));\n      }\n    }\n    const Music& m = f.music;\n    bass = follow(bass, m.bass, 22.0f, 4.5f, dt);\n    body = follow(body, m.body, 12.0f, 3.0f, dt);\n    spark = follow(spark, m.spark, 30.0f, 7.0f, dt);\n    energy = follow(energy, m.energy, 6.0f, 1.8f, dt);\n    drive = follow(drive, m.active ? std::pow(std::clamp(m.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);\n\n    float hit = 0, fl = 0;\n    for (const auto& e : m.events[0]) hit = std::max(hit, e.strength);\n    for (const auto& e : m.events[2]) hit = std::max(hit, e.strength * 0.85f);\n    for (const auto& e : m.events[3]) fl = std::max(fl, e.strength);\n    float onset = std::clamp((m.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);\n    slowBass = follow(slowBass, m.bass, 3.0f, 3.0f, dt);\n    hit = std::min(std::max(hit, onset), 1.0f);\n    sinceDrop += f.delta;\n    if (hit > kick + 0.2f) {\n      if (hit > 0.7f && drive > 0.4f && sinceDrop > 6.0) {\n        for (int k = 0; k < 3; k++) queueSplat(1.2f, turn++ % 3);\n        sinceDrop = 0;\n      } else {\n        queueSplat(0.6f + 0.6f * hit, turn++ % 3);\n      }\n      nextAuto = stepCount + 110;\n    }\n    kick = std::max(kick * std::exp(-dt * 5.0f), hit);\n    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));\n\n    int64_t target = int64_t(std::floor(f.time * kHz + 1e-6));\n    if (steps < 0 || target < steps || target - steps > 15) steps = target - 1;\n    while (steps < target) {\n      step();\n      steps++;\n    }\n    frac = std::clamp(float(f.time * kHz - double(steps)), 0.0f, 1.0f);\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    float amp = f.intensity;\n    std::vector<float> uni;\n    uni.reserve(20);\n    uni.insert(uni.end(), {bass * amp, kick * amp, energy, f.glow});\n    uni.insert(uni.end(), {spark * amp, flash * amp, 0.0f, 0.0f});\n    for (int i = 0; i < 4; i++) uni.insert(uni.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});\n    c.material(\"fluid_dark\", {0, 0, f.width, f.height}, uni);\n    if (dye.empty()) return;\n    float cellW = f.width / float(NX), cellH = f.height / float(NY);\n    std::array<std::vector<Vec2>, 3> groups;\n    for (auto& g : groups) g.reserve(dye.size() / 3 + 1);\n    for (const Dye& d : dye) {\n      float x = d.px + (d.x - d.px) * frac, y = d.py + (d.y - d.py) * frac;\n      groups[d.color].push_back({(x - 0.5f) * cellW, (y - 0.5f) * cellH});\n    }\n    float s = std::min(f.width, f.height);\n    float px = s / 400.0f;\n    float gain = std::clamp((0.85f + 0.4f * bass + 0.4f * kick) * amp, 0.0f, 1.5f);\n    for (int g = 0; g < 3; g++) {\n      const Color& col = f.colors[1 + g];\n      // Tinta: discos grandes y muy suaves que se funden entre sí; la mezcla\n      // de partículas de distintos colores se ve como tinta mezclada.\n      Paint wide;\n      wide.blend = Blend::plus;\n      wide.color = {col.r, col.g, col.b, std::clamp(0.016f * gain * f.glow, 0.0f, 1.0f)};\n      c.points(groups[g], 17.0f * px, wide);\n      Paint soft;\n      soft.blend = Blend::plus;\n      soft.color = {col.r, col.g, col.b, std::clamp(0.026f * gain, 0.0f, 1.0f)};\n      c.points(groups[g], 8.0f * px, soft);\n    }\n  }\n};\n",
+      "shaderSources": {
+        "fluid_dark": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // graves, golpe, energía, glow\nuniform vec4 uB;   // agudos, destello\nuniform vec3 uC0;\nuniform vec3 uC1;\nuniform vec3 uC2;\nuniform vec3 uC3;\nout vec4 fragColor;\n\nfloat hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  float scale = min(uSize.x, uSize.y);\n  vec2 p = (frag - 0.5 * uSize) / scale;\n  vec3 col = uC0 + mix(uC1, uC2, 0.5) * uB.y * 0.03;\n  col *= 1.0 - 0.4 * smoothstep(0.6, 1.4, length(p * vec2(0.9, 0.65)));\n  col += (hash12(frag) - 0.5) / 255.0;\n  fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "bc8fbff14c1338fd0997739962ea9c79fba11c1c0da6f69df1d506d93d544cce",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {
+          "fluid_dark": {
+            "compilerHash": "968ca70fc3f473f301a565b6212daa4d5ceb13d4ddd6ec3cb4bec2f3a4ec3f56",
+            "asset": "packages/visual_catalog/assets/native/fluido_colores_fluid_dark.iplr",
+            "assetHash": "310774280818f815ac16857587b59c40ed7d2c9958d537359712f25d9f6e6506",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct fluido_colores_fluid_dark_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct fluido_colores_fluid_dark_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment fluido_colores_fluid_dark_fragment_main_out fluido_colores_fluid_dark_fragment_main(fluido_colores_fluid_dark_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uB [[buffer(2)]], constant float3& uC0 [[buffer(3)]], constant float3& uC1 [[buffer(4)]], constant float3& uC2 [[buffer(5)]])\n{\n    fluido_colores_fluid_dark_fragment_main_out out = {};\n    float3 _142 = fract(in._fragCoord.xyx * 0.103100001811981201171875);\n    float3 _151 = _142 + float3(dot(_142, _142.yzx + float3(33.3300018310546875)));\n    out.fragColor = float4(fast::clamp(((uC0 + ((mix(uC1, uC2, float3(0.5)) * uB.y) * 0.02999999932944774627685546875)) * (1.0 - (0.4000000059604644775390625 * smoothstep(0.60000002384185791015625, 1.39999997615814208984375, length(((in._fragCoord - (uSize * 0.5)) / float2(fast::min(uSize.x, uSize.y))) * float2(0.89999997615814208984375, 0.64999997615814208984375)))))) + float3((fract((_151.x + _151.y) * _151.z) - 0.5) * 0.0039215688593685626983642578125), float3(0.0), float3(1.0)), 1.0);\n    return out;\n}\n\n",
+            "entryPoint": "fluido_colores_fluid_dark_fragment_main",
+            "floatCount": 22,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 4294967295
+              },
+              {
+                "name": "uB",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uC0",
+                "offset": 10,
+                "count": 3,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uC1",
+                "offset": 13,
+                "count": 3,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uC2",
+                "offset": 16,
+                "count": 3,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uC3",
+                "offset": 19,
+                "count": 3,
+                "bufferIndex": 4294967295
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
+    },
+    {
+      "id": "fuegos_artificiales",
+      "name": "Fuegos Artificiales",
+      "programId": "creator_fuegos_artificiales",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 60,
+      "seed": 42,
+      "colors": [
+        4278321672,
+        4294951495,
+        4294917437,
+        4283629418
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  static constexpr int kShells = 8, kStars = 130;\n  struct Shell { float x = 0, y = 0, power = 0, seed = 0; int type = 0, color = 0; double born = -100; };\n  std::array<Shell, kShells> shells{};\n  int next = 0, turn = 0;\n  float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;\n  float kick = 0, flash = 0, drive = 0;\n  // Las estrellas se describen por la edad de su carcasa: idéntico a 30 y 60 FPS.\n  double clock = 0, nextAuto = 0.25, sinceFinale = 100;\n  Random rng{47};\n\n  static float follow(float v, float target, float up, float down, float dt) {\n    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));\n  }\n\n  static float hash(float n) {\n    float x = std::sin(n) * 43758.5453f;\n    return x - std::floor(x);\n  }\n\n  static float lifeOf(int type) { return type == 2 ? 3.6f : (type == 1 ? 2.6f : 2.2f); }\n\n  void burst(double born, float power) {\n    Shell& s = shells[next];\n    next = (next + 1) % kShells;\n    s.x = 0.15f + 0.7f * rng.unit();\n    s.y = 0.14f + 0.36f * rng.unit();\n    s.power = power;\n    s.seed = rng.unit() * 90.0f;\n    float pick = rng.unit();\n    s.type = pick < 0.4f ? 0 : (pick < 0.65f ? 1 : (pick < 0.85f ? 2 : 3));\n    s.color = s.type == 2 ? 0 : (turn++ % 3);\n    s.born = born;\n  }\n\n  // Posición de una estrella con arrastre y gravedad, en píxeles.\n  void star(const Shell& sh, int i, float t, float w, float h, float s, float& x, float& y) const {\n    float a = hash(sh.seed + float(i) * 1.731f) * 6.2831853f;\n    float e = hash(sh.seed * 3.1f + float(i) * 2.377f);\n    // Peonía: proyección de una esfera; anillo: todas en el borde, inclinado.\n    float rf = sh.type == 3 ? 1.0f : std::sqrt(std::max(0.0f, 1.0f - (2.0f * e - 1.0f) * (2.0f * e - 1.0f)));\n    float speed = s * (0.62f + 0.1f * hash(sh.seed + float(i) * 5.3f)) * sh.power;\n    float k = sh.type == 2 ? 1.1f : 1.8f;\n    float g = s * (sh.type == 2 ? 0.17f : 0.11f);\n    float vx = std::cos(a) * rf * speed;\n    float vy = std::sin(a) * rf * speed * (sh.type == 3 ? 0.45f : 1.0f);\n    float ek = (1.0f - std::exp(-k * t)) / k;\n    x = sh.x * w + vx * ek;\n    y = sh.y * h + vy * ek + g / k * (t - ek);\n  }\n\n public:\n  void reset(uint32_t seed) override {\n    rng = Random(seed);\n    shells = {};\n    next = turn = 0;\n    bass = body = spark = energy = slowBass = kick = flash = drive = 0;\n    clock = 0;\n    nextAuto = 0.25;\n    sinceFinale = 100;\n  }\n\n  void update(const Frame& f) override {\n    float dt = float(f.delta);\n    const Music& m = f.music;\n    bass = follow(bass, m.bass, 22.0f, 4.5f, dt);\n    body = follow(body, m.body, 12.0f, 3.0f, dt);\n    spark = follow(spark, m.spark, 30.0f, 7.0f, dt);\n    energy = follow(energy, m.energy, 6.0f, 1.8f, dt);\n    drive = follow(drive, m.active ? std::pow(std::clamp(m.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);\n\n    float hit = 0, fl = 0;\n    for (const auto& e : m.events[0]) hit = std::max(hit, e.strength);\n    for (const auto& e : m.events[2]) hit = std::max(hit, e.strength * 0.85f);\n    for (const auto& e : m.events[3]) fl = std::max(fl, e.strength);\n    float onset = std::clamp((m.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);\n    slowBass = follow(slowBass, m.bass, 3.0f, 3.0f, dt);\n    hit = std::min(std::max(hit, onset), 1.0f);\n    clock += f.delta * f.speed;\n    sinceFinale += f.delta;\n    if (hit > kick + 0.2f) {\n      if (hit > 0.75f && drive > 0.4f && sinceFinale > 6.0) {\n        // Gran final: cuatro carcasas a la vez.\n        for (int i = 0; i < 4; i++) burst(clock, 1.1f);\n        sinceFinale = 0;\n      } else {\n        burst(clock, 0.75f + 0.4f * hit);\n      }\n      nextAuto = clock + 1.4;\n    }\n    // Sin golpes: una carcasa cada 1,6 s, en horarios fijos.\n    while (clock >= nextAuto) {\n      burst(nextAuto, 0.85f);\n      nextAuto += 1.6;\n    }\n    kick = std::max(kick * std::exp(-dt * 5.0f), hit);\n    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    float amp = f.intensity;\n    float w = f.width, h = f.height, s = std::min(w, h);\n    std::vector<float> u;\n    u.reserve(52);\n    u.insert(u.end(), {float(std::fmod(clock, 1000.0)), bass * amp, kick * amp, energy});\n    u.insert(u.end(), {f.glow, spark * amp, flash * amp, 0.0f});\n    for (int k = 0; k < kShells; k++) {\n      const Shell& sh = shells[k];\n      float age = float(clock - sh.born);\n      float glow = sh.born < -50 ? 0.0f : std::exp(-age * 2.5f) * sh.power * std::clamp(age / 0.04f, 0.0f, 1.0f);\n      u.insert(u.end(), {sh.x, sh.y, glow * amp, float(sh.color)});\n    }\n    for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});\n    c.material(\"night_sky\", {0, 0, w, h}, u);\n\n    float px = s / 400.0f;\n    for (int k = 0; k < kShells; k++) {\n      const Shell& sh = shells[k];\n      if (sh.born < -50) continue;\n      float age = float(clock - sh.born);\n      float life = lifeOf(sh.type);\n      if (age < 0 || age > life) continue;\n      float decay = sh.type == 2 ? std::exp(-age * 0.45f) : std::exp(-age * 0.85f);\n      decay *= 1.0f - std::clamp((age - life * 0.8f) / (life * 0.2f), 0.0f, 1.0f);\n      int trailN = sh.type == 2 ? 6 : 3;\n      float gap = sh.type == 2 ? 0.09f : 0.05f;\n      std::vector<Vec2> heads, trails;\n      heads.reserve(kStars);\n      trails.reserve(size_t(kStars * trailN));\n      for (int i = 0; i < kStars; i++) {\n        // Crisantemo: las estrellas crepitan, se apagan y encienden.\n        if (sh.type == 1 && age > 0.6f && hash(float(i) * 3.7f + std::floor(age * 18.0f) + sh.seed) < 0.35f) continue;\n        float x, y;\n        star(sh, i, age, w, h, s, x, y);\n        heads.push_back({x, y});\n        for (int j = 1; j <= trailN; j++) {\n          float tj = age - gap * float(j);\n          if (tj <= 0) break;\n          star(sh, i, tj, w, h, s, x, y);\n          trails.push_back({x, y});\n        }\n      }\n      const Color& base = f.colors[1 + sh.color];\n      float gain = std::clamp(decay * (0.9f + 0.4f * bass + 0.4f * kick) * amp, 0.0f, 1.5f);\n      if (!trails.empty()) {\n        Paint trail;\n        trail.blend = Blend::plus;\n        trail.color = {base.r, base.g, base.b, std::clamp(0.5f * gain, 0.0f, 1.0f)};\n        c.points(trails, (sh.type == 2 ? 1.8f : 1.5f) * px, trail);\n      }\n      if (heads.empty()) continue;\n      Paint halo;\n      halo.blend = Blend::plus;\n      halo.color = {base.r, base.g, base.b, std::clamp(0.16f * gain * f.glow, 0.0f, 1.0f)};\n      c.points(heads, 7.0f * px, halo);\n      Paint head;\n      head.blend = Blend::plus;\n      float whiten = age < 0.25f ? 0.6f : 0.25f;\n      head.color = {std::min(1.0f, base.r + (1.0f - base.r) * whiten), std::min(1.0f, base.g + (1.0f - base.g) * whiten),\n                    std::min(1.0f, base.b + (1.0f - base.b) * whiten), std::clamp(0.95f * gain, 0.0f, 1.0f)};\n      c.points(heads, (2.3f + 0.8f * spark * amp) * px, head);\n    }\n  }\n};\n",
+      "shaderSources": {
+        "night_sky": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // reloj, graves, golpe, energía\nuniform vec4 uB;   // glow, agudos, destello\nuniform vec4 uS0;  // carcasas: posición (fracción de pantalla), brillo, color\nuniform vec4 uS1;\nuniform vec4 uS2;\nuniform vec4 uS3;\nuniform vec4 uS4;\nuniform vec4 uS5;\nuniform vec4 uS6;\nuniform vec4 uS7;\nuniform vec3 uC0;\nuniform vec3 uC1;\nuniform vec3 uC2;\nuniform vec3 uC3;\nout vec4 fragColor;\n\nfloat hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\n\nfloat noise(vec2 p) {\n  vec2 i = floor(p);\n  vec2 f = fract(p);\n  vec2 u = f * f * (3.0 - 2.0 * f);\n  return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),\n             mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);\n}\n\nvec3 shellColor(float k) {\n  return k < 0.5 ? uC1 : (k < 1.5 ? uC2 : uC3);\n}\n\n// Resplandor de un estallido sobre el cielo.\nvec3 flare(vec2 frag, vec4 S, float scale) {\n  if (S.z < 0.003) return vec3(0.0);\n  vec2 d = (frag - S.xy * uSize) / scale;\n  return shellColor(S.w) * S.z * exp(-dot(d, d) * 9.0);\n}\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  float scale = min(uSize.x, uSize.y);\n  vec2 uv = frag / uSize;\n  vec3 light = vec3(0.0);\n  light += flare(frag, uS0, scale);\n  light += flare(frag, uS1, scale);\n  light += flare(frag, uS2, scale);\n  light += flare(frag, uS3, scale);\n  light += flare(frag, uS4, scale);\n  light += flare(frag, uS5, scale);\n  light += flare(frag, uS6, scale);\n  light += flare(frag, uS7, scale);\n  // Cielo nocturno con humo que los estallidos iluminan.\n  float smoke = noise(frag / scale * 3.0 + vec2(uA.x * 0.03, 0.0)) * 0.6 + noise(frag / scale * 7.0 - uA.x * 0.02) * 0.4;\n  vec3 col = mix(uC0, uC0 * 2.5 + vec3(0.01, 0.01, 0.03), smoothstep(1.0, 0.0, uv.y) * 0.5);\n  col += light * (0.18 + 0.5 * smoothstep(0.35, 0.8, smoke)) * uB.x;\n  col += vec3(1.0, 0.9, 0.8) * uB.z * 0.03;\n  col += (hash12(frag) - 0.5) / 255.0;\n  fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "0cc9846ecb749644330bf07c077956788e55113acc2f505ada73ea49625ee585",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {
+          "night_sky": {
+            "compilerHash": "d3f07963fd501b0c61851c3a5fc02b410e3eaa533f955ff08ab553309fec91c1",
+            "asset": "packages/visual_catalog/assets/native/fuegos_artificiales_night_sky.iplr",
+            "assetHash": "5d5ad806f985f35013524fe0e6e1ced25b2bc6cfe74aebb6cafe209179cf7fb6",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct fuegos_artificiales_night_sky_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct fuegos_artificiales_night_sky_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment fuegos_artificiales_night_sky_fragment_main_out fuegos_artificiales_night_sky_fragment_main(fuegos_artificiales_night_sky_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uB [[buffer(2)]], constant float4& uS0 [[buffer(3)]], constant float4& uS1 [[buffer(4)]], constant float4& uS2 [[buffer(5)]], constant float4& uS3 [[buffer(6)]], constant float4& uS4 [[buffer(7)]], constant float4& uS5 [[buffer(8)]], constant float4& uS6 [[buffer(9)]], constant float4& uS7 [[buffer(10)]], constant float3& uC0 [[buffer(11)]], constant float3& uC1 [[buffer(12)]], constant float3& uC2 [[buffer(13)]], constant float3& uC3 [[buffer(14)]])\n{\n    fuegos_artificiales_night_sky_fragment_main_out out = {};\n    float _190 = fast::min(uSize.x, uSize.y);\n    float3 _1161;\n    do\n    {\n        if (uS0.z < 0.0030000000260770320892333984375)\n        {\n            _1161 = float3(0.0);\n            break;\n        }\n        float2 _399 = (in._fragCoord - (uS0.xy * uSize)) / float2(_190);\n        float3 _1160;\n        if (uS0.w < 0.5)\n        {\n            _1160 = uC1;\n        }\n        else\n        {\n            _1160 = select(uC3, uC2, bool3(uS0.w < 1.5));\n        }\n        _1161 = (_1160 * uS0.z) * exp(dot(_399, _399) * (-9.0));\n        break;\n    } while(false);\n    float3 _1165;\n    do\n    {\n        if (uS1.z < 0.0030000000260770320892333984375)\n        {\n            _1165 = float3(0.0);\n            break;\n        }\n        float2 _451 = (in._fragCoord - (uS1.xy * uSize)) / float2(_190);\n        float3 _1164;\n        if (uS1.w < 0.5)\n        {\n            _1164 = uC1;\n        }\n        else\n        {\n            _1164 = select(uC3, uC2, bool3(uS1.w < 1.5));\n        }\n        _1165 = (_1164 * uS1.z) * exp(dot(_451, _451) * (-9.0));\n        break;\n    } while(false);\n    float3 _1169;\n    do\n    {\n        if (uS2.z < 0.0030000000260770320892333984375)\n        {\n            _1169 = float3(0.0);\n            break;\n        }\n        float2 _503 = (in._fragCoord - (uS2.xy * uSize)) / float2(_190);\n        float3 _1168;\n        if (uS2.w < 0.5)\n        {\n            _1168 = uC1;\n        }\n        else\n        {\n            _1168 = select(uC3, uC2, bool3(uS2.w < 1.5));\n        }\n        _1169 = (_1168 * uS2.z) * exp(dot(_503, _503) * (-9.0));\n        break;\n    } while(false);\n    float3 _1173;\n    do\n    {\n        if (uS3.z < 0.0030000000260770320892333984375)\n        {\n            _1173 = float3(0.0);\n            break;\n        }\n        float2 _555 = (in._fragCoord - (uS3.xy * uSize)) / float2(_190);\n        float3 _1172;\n        if (uS3.w < 0.5)\n        {\n            _1172 = uC1;\n        }\n        else\n        {\n            _1172 = select(uC3, uC2, bool3(uS3.w < 1.5));\n        }\n        _1173 = (_1172 * uS3.z) * exp(dot(_555, _555) * (-9.0));\n        break;\n    } while(false);\n    float3 _1177;\n    do\n    {\n        if (uS4.z < 0.0030000000260770320892333984375)\n        {\n            _1177 = float3(0.0);\n            break;\n        }\n        float2 _607 = (in._fragCoord - (uS4.xy * uSize)) / float2(_190);\n        float3 _1176;\n        if (uS4.w < 0.5)\n        {\n            _1176 = uC1;\n        }\n        else\n        {\n            _1176 = select(uC3, uC2, bool3(uS4.w < 1.5));\n        }\n        _1177 = (_1176 * uS4.z) * exp(dot(_607, _607) * (-9.0));\n        break;\n    } while(false);\n    float3 _1181;\n    do\n    {\n        if (uS5.z < 0.0030000000260770320892333984375)\n        {\n            _1181 = float3(0.0);\n            break;\n        }\n        float2 _659 = (in._fragCoord - (uS5.xy * uSize)) / float2(_190);\n        float3 _1180;\n        if (uS5.w < 0.5)\n        {\n            _1180 = uC1;\n        }\n        else\n        {\n            _1180 = select(uC3, uC2, bool3(uS5.w < 1.5));\n        }\n        _1181 = (_1180 * uS5.z) * exp(dot(_659, _659) * (-9.0));\n        break;\n    } while(false);\n    float3 _1185;\n    do\n    {\n        if (uS6.z < 0.0030000000260770320892333984375)\n        {\n            _1185 = float3(0.0);\n            break;\n        }\n        float2 _711 = (in._fragCoord - (uS6.xy * uSize)) / float2(_190);\n        float3 _1184;\n        if (uS6.w < 0.5)\n        {\n            _1184 = uC1;\n        }\n        else\n        {\n            _1184 = select(uC3, uC2, bool3(uS6.w < 1.5));\n        }\n        _1185 = (_1184 * uS6.z) * exp(dot(_711, _711) * (-9.0));\n        break;\n    } while(false);\n    float3 _1189;\n    do\n    {\n        if (uS7.z < 0.0030000000260770320892333984375)\n        {\n            _1189 = float3(0.0);\n            break;\n        }\n        float2 _763 = (in._fragCoord - (uS7.xy * uSize)) / float2(_190);\n        float3 _1188;\n        if (uS7.w < 0.5)\n        {\n            _1188 = uC1;\n        }\n        else\n        {\n            _1188 = select(uC3, uC2, bool3(uS7.w < 1.5));\n        }\n        _1189 = (_1188 * uS7.z) * exp(dot(_763, _763) * (-9.0));\n        break;\n    } while(false);\n    float2 _281 = in._fragCoord / float2(_190);\n    float2 _289 = (_281 * 3.0) + float2(uA.x * 0.02999999932944774627685546875, 0.0);\n    float2 _805 = floor(_289);\n    float2 _807 = fract(_289);\n    float2 _815 = (_807 * _807) * (float2(3.0) - (_807 * 2.0));\n    float3 _842 = fract(_805.xyx * 0.103100001811981201171875);\n    float3 _851 = _842 + float3(dot(_842, _842.yzx + float3(33.3300018310546875)));\n    float3 _867 = fract((_805 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n    float3 _876 = _867 + float3(dot(_867, _867.yzx + float3(33.3300018310546875)));\n    float _822 = _815.x;\n    float3 _892 = fract((_805 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n    float3 _901 = _892 + float3(dot(_892, _892.yzx + float3(33.3300018310546875)));\n    float3 _917 = fract((_805 + float2(1.0)).xyx * 0.103100001811981201171875);\n    float3 _926 = _917 + float3(dot(_917, _917.yzx + float3(33.3300018310546875)));\n    float2 _305 = (_281 * 7.0) - float2(uA.x * 0.0199999995529651641845703125);\n    float2 _946 = floor(_305);\n    float2 _948 = fract(_305);\n    float2 _956 = (_948 * _948) * (float2(3.0) - (_948 * 2.0));\n    float3 _983 = fract(_946.xyx * 0.103100001811981201171875);\n    float3 _992 = _983 + float3(dot(_983, _983.yzx + float3(33.3300018310546875)));\n    float3 _1008 = fract((_946 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n    float3 _1017 = _1008 + float3(dot(_1008, _1008.yzx + float3(33.3300018310546875)));\n    float _963 = _956.x;\n    float3 _1033 = fract((_946 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n    float3 _1042 = _1033 + float3(dot(_1033, _1033.yzx + float3(33.3300018310546875)));\n    float3 _1058 = fract((_946 + float2(1.0)).xyx * 0.103100001811981201171875);\n    float3 _1067 = _1058 + float3(dot(_1058, _1058.yzx + float3(33.3300018310546875)));\n    float _331 = smoothstep(0.3499999940395355224609375, 0.800000011920928955078125, (mix(mix(fract((_851.x + _851.y) * _851.z), fract((_876.x + _876.y) * _876.z), _822), mix(fract((_901.x + _901.y) * _901.z), fract((_926.x + _926.y) * _926.z), _822), _815.y) * 0.60000002384185791015625) + (mix(mix(fract((_992.x + _992.y) * _992.z), fract((_1017.x + _1017.y) * _1017.z), _963), mix(fract((_1042.x + _1042.y) * _1042.z), fract((_1067.x + _1067.y) * _1067.z), _963), _956.y) * 0.4000000059604644775390625));\n    float3 _1083 = fract(in._fragCoord.xyx * 0.103100001811981201171875);\n    float3 _1092 = _1083 + float3(dot(_1083, _1083.yzx + float3(33.3300018310546875)));\n    out.fragColor = float4(fast::clamp(((mix(uC0, (uC0 * 2.5) + float3(0.00999999977648258209228515625, 0.00999999977648258209228515625, 0.02999999932944774627685546875), float3(smoothstep(1.0, 0.0, (in._fragCoord / uSize).y) * 0.5)) + (((((((((_1161 + _1165) + _1169) + _1173) + _1177) + _1181) + _1185) + _1189) * (0.180000007152557373046875 + (0.5 * _331))) * uB.x)) + ((float3(1.0, 0.89999997615814208984375, 0.800000011920928955078125) * uB.z) * 0.02999999932944774627685546875)) + float3((fract((_1092.x + _1092.y) * _1092.z) - 0.5) * 0.0039215688593685626983642578125), float3(0.0), float3(1.0)), 1.0);\n    return out;\n}\n\n",
+            "entryPoint": "fuegos_artificiales_night_sky_fragment_main",
+            "floatCount": 54,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uB",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uS0",
+                "offset": 10,
+                "count": 4,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uS1",
+                "offset": 14,
+                "count": 4,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uS2",
+                "offset": 18,
+                "count": 4,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uS3",
+                "offset": 22,
+                "count": 4,
+                "bufferIndex": 6
+              },
+              {
+                "name": "uS4",
+                "offset": 26,
+                "count": 4,
+                "bufferIndex": 7
+              },
+              {
+                "name": "uS5",
+                "offset": 30,
+                "count": 4,
+                "bufferIndex": 8
+              },
+              {
+                "name": "uS6",
+                "offset": 34,
+                "count": 4,
+                "bufferIndex": 9
+              },
+              {
+                "name": "uS7",
+                "offset": 38,
+                "count": 4,
+                "bufferIndex": 10
+              },
+              {
+                "name": "uC0",
+                "offset": 42,
+                "count": 3,
+                "bufferIndex": 11
+              },
+              {
+                "name": "uC1",
+                "offset": 45,
+                "count": 3,
+                "bufferIndex": 12
+              },
+              {
+                "name": "uC2",
+                "offset": 48,
+                "count": 3,
+                "bufferIndex": 13
+              },
+              {
+                "name": "uC3",
+                "offset": 51,
+                "count": 3,
+                "bufferIndex": 14
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
     },
     {
       "id": "furia_estelar",
@@ -3386,6 +4046,226 @@
       }
     },
     {
+      "id": "luz_bordes",
+      "name": "Luz de Bordes",
+      "programId": "creator_luz_bordes",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 60,
+      "seed": 42,
+      "colors": [
+        4278190080,
+        4294925882,
+        4291906559,
+        4282239231
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;\n  float kick = 0, flash = 0, drive = 0;\n  std::array<float, 16> bands{};\n  // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.\n  double hue = 0, pulseAge = 100;\n  float pulsePower = 0, pulseStart = 0;\n  Random rng{53};\n\n  static float follow(float v, float target, float up, float down, float dt) {\n    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));\n  }\n\n public:\n  void reset(uint32_t seed) override {\n    rng = Random(seed);\n    bass = body = spark = energy = slowBass = kick = flash = drive = 0;\n    bands.fill(0);\n    hue = rng.unit();\n    pulseAge = 100;\n    pulsePower = 0;\n    pulseStart = 0;\n  }\n\n  void update(const Frame& f) override {\n    float dt = float(f.delta);\n    const Music& m = f.music;\n    bass = follow(bass, m.bass, 22.0f, 4.5f, dt);\n    body = follow(body, m.body, 12.0f, 3.0f, dt);\n    spark = follow(spark, m.spark, 30.0f, 7.0f, dt);\n    energy = follow(energy, m.energy, 6.0f, 1.8f, dt);\n    drive = follow(drive, m.active ? std::pow(std::clamp(m.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);\n    for (int i = 0; i < 16; i++) {\n      float v = std::max(m.smoothSpectrum[std::min(2 * i, 30)], m.smoothSpectrum[std::min(2 * i + 1, 30)]);\n      bands[i] = follow(bands[i], v, 28.0f, 5.0f, dt);\n    }\n\n    float hit = 0, fl = 0;\n    for (const auto& e : m.events[0]) hit = std::max(hit, e.strength);\n    for (const auto& e : m.events[2]) hit = std::max(hit, e.strength * 0.85f);\n    for (const auto& e : m.events[3]) fl = std::max(fl, e.strength);\n    float onset = std::clamp((m.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);\n    slowBass = follow(slowBass, m.bass, 3.0f, 3.0f, dt);\n    hit = std::min(std::max(hit, onset), 1.0f);\n    pulseAge += f.delta;\n    if (hit > kick + 0.2f) {\n      // Pulsos desde la parte de abajo de la pantalla.\n      pulseAge = 0;\n      pulsePower = hit;\n      pulseStart = 0.5f + (rng.unit() - 0.5f) * 0.2f;\n    }\n    kick = std::max(kick * std::exp(-dt * 5.0f), hit);\n    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));\n    hue += f.delta * f.speed * (0.04 + 0.12 * drive);\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    float amp = f.intensity;\n    float age = float(pulseAge);\n    float travel = age * 0.55f;\n    float power = age < 1.2f ? pulsePower * std::exp(-age * 1.6f) : 0.0f;\n    std::vector<float> u;\n    u.reserve(36);\n    u.insert(u.end(), {float(std::fmod(hue, 1000.0)), bass * amp, kick * amp, energy});\n    u.insert(u.end(), {f.glow, spark * amp, flash * amp, 0.0f});\n    u.insert(u.end(), {pulseStart, travel, power * amp, 0.0f});\n    for (int i = 0; i < 16; i++) u.push_back(bands[i] * amp);\n    for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});\n    c.material(\"edge_glow\", {0, 0, f.width, f.height}, u);\n  }\n};\n",
+      "shaderSources": {
+        "edge_glow": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // tono, graves, golpe, energía\nuniform vec4 uB;   // glow, agudos, destello\nuniform vec4 uP;   // inicio del pulso (0..1 del contorno), recorrido, fuerza\nuniform vec4 uS0;  // espectro en 16 bandas\nuniform vec4 uS1;\nuniform vec4 uS2;\nuniform vec4 uS3;\nuniform vec3 uC0;\nuniform vec3 uC1;\nuniform vec3 uC2;\nuniform vec3 uC3;\nout vec4 fragColor;\n\nconst float TAU = 6.2831853;\n\nfloat hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\n\nfloat band(float b) {\n  vec4 s = b < 4.0 ? uS0 : (b < 8.0 ? uS1 : (b < 12.0 ? uS2 : uS3));\n  float k = mod(b, 4.0);\n  return k < 1.0 ? s.x : (k < 2.0 ? s.y : (k < 3.0 ? s.z : s.w));\n}\n\nvec3 palette(float x) {\n  float f = fract(x) * 3.0;\n  vec3 a = f < 1.0 ? uC1 : (f < 2.0 ? uC2 : uC3);\n  vec3 b = f < 1.0 ? uC2 : (f < 2.0 ? uC3 : uC1);\n  return mix(a, b, smoothstep(0.0, 1.0, fract(f)));\n}\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  float scale = min(uSize.x, uSize.y);\n  vec2 q = frag - 0.5 * uSize;\n  // Contorno redondeado como las esquinas del teléfono.\n  float rc = scale * 0.11;\n  vec2 halfS = 0.5 * uSize - vec2(scale * 0.012);\n  vec2 dq = abs(q) - halfS + rc;\n  float sd = length(max(dq, 0.0)) + min(max(dq.x, dq.y), 0.0) - rc;\n  float dist = max(-sd, 0.0) / scale;\n  // Posición a lo largo del contorno (0 a 1) y banda en espejo: graves abajo.\n  float s = atan(q.x, q.y) / TAU + 0.5;\n  float b = clamp(abs(fract(s) - 0.5) * 2.0 * 15.0, 0.0, 15.0);\n  // Nivel suavizado entre bandas vecinas: el borde ondula sin escalones.\n  float b0 = floor(b);\n  float lvl = mix(band(b0), band(min(b0 + 1.0, 15.0)), fract(b));\n  float thick = min(0.010 + 0.035 * lvl + 0.010 * uA.y + 0.014 * uA.z, 0.05) * (0.6 + 0.4 * uB.x);\n  float g = exp(-dist / thick) + 0.3 * exp(-dist / (thick * 2.5));\n  // Pulsos que corren por el borde en ambos sentidos.\n  float d1 = abs(fract(s - uP.x - uP.y + 0.5) - 0.5);\n  float d2 = abs(fract(s - uP.x + uP.y + 0.5) - 0.5);\n  float pulse = (exp(-d1 * d1 * 600.0) + exp(-d2 * d2 * 600.0)) * uP.z;\n  vec3 hueCol = palette(s * 2.0 + uA.x);\n  vec3 col = uC0;\n  col += hueCol * g * (0.75 + 0.5 * uA.y + 0.3 * uB.z);\n  col += vec3(1.0) * pulse * exp(-dist / (thick * 1.5)) * 0.9;\n  // Reflejo tenue del brillo hacia el interior.\n  col += hueCol * exp(-dist * 9.0) * 0.04 * (1.0 + uA.z);\n  col += hueCol * uB.z * 0.06 * exp(-dist * 2.0);\n  float peak = max(col.r, max(col.g, col.b));\n  if (peak > 0.85) {\n    float e = (peak - 0.85) / 0.15;\n    col *= (0.85 + 0.15 * e / (1.0 + e)) / peak;\n  }\n  col += (hash12(frag) - 0.5) / 255.0;\n  fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "bd4582bbd488a2b150dc1aa5df870f83eef38c668a1e1c5d2311612f51430333",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {
+          "edge_glow": {
+            "compilerHash": "51efcadb71fe24a26931cae860bcf787810f9a8ebe2e9516a6cf3bdb4a7225bd",
+            "asset": "packages/visual_catalog/assets/native/luz_bordes_edge_glow.iplr",
+            "assetHash": "4bffffe207531fe36d1b9b7bb24b5a329592cbab5a06336d47c0d5d324106c52",
+            "metalSource": "#pragma clang diagnostic ignored \"-Wmissing-prototypes\"\n\n#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\n// Implementation of the GLSL mod() function, which is slightly different than Metal fmod()\ntemplate<typename Tx, typename Ty>\ninline Tx mod(Tx x, Ty y)\n{\n    return x - y * floor(x / y);\n}\n\nstruct luz_bordes_edge_glow_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct luz_bordes_edge_glow_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment luz_bordes_edge_glow_fragment_main_out luz_bordes_edge_glow_fragment_main(luz_bordes_edge_glow_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uB [[buffer(2)]], constant float4& uP [[buffer(3)]], constant float4& uS0 [[buffer(4)]], constant float4& uS1 [[buffer(5)]], constant float4& uS2 [[buffer(6)]], constant float4& uS3 [[buffer(7)]], constant float3& uC0 [[buffer(8)]], constant float3& uC1 [[buffer(9)]], constant float3& uC2 [[buffer(10)]], constant float3& uC3 [[buffer(11)]])\n{\n    luz_bordes_edge_glow_fragment_main_out out = {};\n    float _197 = fast::min(uSize.x, uSize.y);\n    float2 _202 = uSize * 0.5;\n    float2 _203 = in._fragCoord - _202;\n    float _207 = _197 * 0.10999999940395355224609375;\n    float2 _223 = (abs(_203) - (_202 - float2(_197 * 0.01200000010430812835693359375))) + float2(_207);\n    float _243 = fast::max(-((length(fast::max(_223, float2(0.0))) + fast::min(fast::max(_223.x, _223.y), 0.0)) - _207), 0.0) / _197;\n    float _252 = (precise::atan2(_203.x, _203.y) * 0.15915493667125701904296875) + 0.5;\n    float _261 = fast::clamp(abs(fract(_252) - 0.5) * 30.0, 0.0, 15.0);\n    float _264 = floor(_261);\n    float4 _683;\n    if (_264 < 4.0)\n    {\n        _683 = uS0;\n    }\n    else\n    {\n        float4 _682;\n        if (_264 < 8.0)\n        {\n            _682 = uS1;\n        }\n        else\n        {\n            _682 = select(uS3, uS2, bool4(_264 < 12.0));\n        }\n        _683 = _682;\n    }\n    float _512 = mod(_264, 4.0);\n    float _686;\n    if (_512 < 1.0)\n    {\n        _686 = _683.x;\n    }\n    else\n    {\n        float _685;\n        if (_512 < 2.0)\n        {\n            _685 = _683.y;\n        }\n        else\n        {\n            float _684;\n            if (_512 < 3.0)\n            {\n                _684 = _683.z;\n            }\n            else\n            {\n                _684 = _683.w;\n            }\n            _685 = _684;\n        }\n        _686 = _685;\n    }\n    float _271 = fast::min(_264 + 1.0, 15.0);\n    float4 _688;\n    if (_271 < 4.0)\n    {\n        _688 = uS0;\n    }\n    else\n    {\n        float4 _687;\n        if (_271 < 8.0)\n        {\n            _687 = uS1;\n        }\n        else\n        {\n            _687 = select(uS3, uS2, bool4(_271 < 12.0));\n        }\n        _688 = _687;\n    }\n    float _569 = mod(_271, 4.0);\n    float _691;\n    if (_569 < 1.0)\n    {\n        _691 = _688.x;\n    }\n    else\n    {\n        float _690;\n        if (_569 < 2.0)\n        {\n            _690 = _688.y;\n        }\n        else\n        {\n            float _689;\n            if (_569 < 3.0)\n            {\n                _689 = _688.z;\n            }\n            else\n            {\n                _689 = _688.w;\n            }\n            _690 = _689;\n        }\n        _691 = _690;\n    }\n    float _302 = fast::min(((0.00999999977648258209228515625 + (0.0350000001490116119384765625 * mix(_686, _691, fract(_261)))) + (0.00999999977648258209228515625 * uA.y)) + (0.01400000043213367462158203125 * uA.z), 0.0500000007450580596923828125) * (0.60000002384185791015625 + (0.4000000059604644775390625 * uB.x));\n    float _305 = -_243;\n    float _324 = _252 - uP.x;\n    float _331 = abs(fract((_324 - uP.y) + 0.5) - 0.5);\n    float _343 = abs(fract((_324 + uP.y) + 0.5) - 0.5);\n    float _605 = fract((_252 * 2.0) + uA.x) * 3.0;\n    bool _607 = _605 < 1.0;\n    float3 _692;\n    if (_607)\n    {\n        _692 = uC1;\n    }\n    else\n    {\n        _692 = select(uC3, uC2, bool3(_605 < 2.0));\n    }\n    float3 _693;\n    if (_607)\n    {\n        _693 = uC2;\n    }\n    else\n    {\n        _693 = select(uC1, uC3, bool3(_605 < 2.0));\n    }\n    float3 _638 = mix(_692, _693, float3(smoothstep(0.0, 1.0, fract(_605))));\n    float3 _430 = (((uC0 + ((_638 * (exp(_305 / _302) + (0.300000011920928955078125 * exp(_305 / (_302 * 2.5))))) * ((0.75 + (0.5 * uA.y)) + (0.300000011920928955078125 * uB.z)))) + (((float3(1.0) * ((exp(((-_331) * _331) * 600.0) + exp(((-_343) * _343) * 600.0)) * uP.z)) * exp(_305 / (_302 * 1.5))) * 0.89999997615814208984375)) + (((_638 * exp(_243 * (-9.0))) * 0.039999999105930328369140625) * (1.0 + uA.z))) + (((_638 * uB.z) * 0.0599999986588954925537109375) * exp(_243 * (-2.0)));\n    float _439 = fast::max(_430.x, fast::max(_430.y, _430.z));\n    float3 _694;\n    if (_439 > 0.85000002384185791015625)\n    {\n        float _447 = _439 - 0.85000002384185791015625;\n        _694 = _430 * ((0.85000002384185791015625 + (_447 / (1.0 + (_447 * 6.666666507720947265625)))) / _439);\n    }\n    else\n    {\n        _694 = _430;\n    }\n    float3 _645 = fract(in._fragCoord.xyx * 0.103100001811981201171875);\n    float3 _654 = _645 + float3(dot(_645, _645.yzx + float3(33.3300018310546875)));\n    out.fragColor = float4(fast::clamp(_694 + float3((fract((_654.x + _654.y) * _654.z) - 0.5) * 0.0039215688593685626983642578125), float3(0.0), float3(1.0)), 1.0);\n    return out;\n}\n\n",
+            "entryPoint": "luz_bordes_edge_glow_fragment_main",
+            "floatCount": 42,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uB",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uP",
+                "offset": 10,
+                "count": 4,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uS0",
+                "offset": 14,
+                "count": 4,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uS1",
+                "offset": 18,
+                "count": 4,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uS2",
+                "offset": 22,
+                "count": 4,
+                "bufferIndex": 6
+              },
+              {
+                "name": "uS3",
+                "offset": 26,
+                "count": 4,
+                "bufferIndex": 7
+              },
+              {
+                "name": "uC0",
+                "offset": 30,
+                "count": 3,
+                "bufferIndex": 8
+              },
+              {
+                "name": "uC1",
+                "offset": 33,
+                "count": 3,
+                "bufferIndex": 9
+              },
+              {
+                "name": "uC2",
+                "offset": 36,
+                "count": 3,
+                "bufferIndex": 10
+              },
+              {
+                "name": "uC3",
+                "offset": 39,
+                "count": 3,
+                "bufferIndex": 11
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
+    },
+    {
+      "id": "magnetosfera",
+      "name": "Magnetosfera",
+      "programId": "creator_magnetosfera",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 60,
+      "seed": 42,
+      "colors": [
+        4278387722,
+        4294937130,
+        4280966399,
+        4294967295
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  struct Orbit { float radius, theta0, incl, node, speed, seed; int core; };\n  std::vector<Orbit> orbits;\n  float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;\n  float kick = 0, flash = 0, drive = 0;\n  // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.\n  double orbitClock = 0, coreClock = 0;\n  float blast = 0, blastVel = 0;\n\n  static float follow(float v, float target, float up, float down, float dt) {\n    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));\n  }\n\n  // Posición del núcleo k en unidades del lado corto, centrada en la pantalla.\n  void core(int k, float aspectY, float& x, float& y) const {\n    double t = coreClock;\n    float fk = float(k);\n    x = 0.32f * float(std::sin(t * (0.21 + 0.05 * k) + fk * 2.1));\n    y = (0.28f + 0.12f * aspectY) * float(std::cos(t * (0.17 + 0.04 * k) + fk * 1.3)) + (fk - 1.0f) * 0.12f * aspectY;\n  }\n\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed);\n    orbits.clear();\n    bass = body = spark = energy = slowBass = kick = flash = drive = 0;\n    orbitClock = rng.unit() * 50.0;\n    coreClock = rng.unit() * 50.0;\n    blast = blastVel = 0;\n  }\n\n  void update(const Frame& f) override {\n    float dt = float(f.delta);\n    if (orbits.empty()) {\n      Random rng(f.seed + 7);\n      int count = int(1200.0f + 600.0f * std::clamp(f.detail, 0.25f, 2.0f));\n      for (int i = 0; i < count; i++) {\n        Orbit o;\n        o.core = i % 3;\n        float u = rng.unit();\n        o.radius = 0.04f + 0.30f * u * u;\n        o.theta0 = rng.unit() * 6.2831853f;\n        o.incl = (rng.unit() - 0.5f) * 2.6f;\n        o.node = rng.unit() * 6.2831853f;\n        // Más rápido cerca del núcleo, como en una órbita de Kepler.\n        o.speed = 0.06f / std::pow(o.radius, 1.5f) * (rng.unit() < 0.5f ? 1.0f : -1.0f) * 0.12f;\n        o.seed = rng.unit();\n        orbits.push_back(o);\n      }\n    }\n    const Music& m = f.music;\n    bass = follow(bass, m.bass, 22.0f, 4.5f, dt);\n    body = follow(body, m.body, 12.0f, 3.0f, dt);\n    spark = follow(spark, m.spark, 30.0f, 7.0f, dt);\n    energy = follow(energy, m.energy, 6.0f, 1.8f, dt);\n    drive = follow(drive, m.active ? std::pow(std::clamp(m.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);\n\n    float hit = 0, fl = 0;\n    for (const auto& e : m.events[0]) hit = std::max(hit, e.strength);\n    for (const auto& e : m.events[2]) hit = std::max(hit, e.strength * 0.85f);\n    for (const auto& e : m.events[3]) fl = std::max(fl, e.strength);\n    float onset = std::clamp((m.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);\n    slowBass = follow(slowBass, m.bass, 3.0f, 3.0f, dt);\n    hit = std::min(std::max(hit, onset), 1.0f);\n    if (hit > kick + 0.2f) blastVel += 3.2f * hit;\n    kick = std::max(kick * std::exp(-dt * 5.0f), hit);\n    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));\n    // Supernova: las órbitas se abren con el golpe y vuelven con un muelle.\n    blastVel += (-blast * 14.0f - blastVel * 4.5f) * dt;\n    blast += blastVel * dt;\n    orbitClock += f.delta * f.speed * (0.6 + 1.2 * drive + 0.6 * std::max(0.0f, blast));\n    coreClock += f.delta * f.speed * (0.5 + 0.6 * drive);\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    float amp = f.intensity;\n    float s = std::min(f.width, f.height);\n    float aspectY = f.height / s - 1.0f;\n    float cxs[3], cys[3];\n    for (int k = 0; k < 3; k++) core(k, aspectY, cxs[k], cys[k]);\n    std::vector<float> u;\n    u.reserve(28);\n    u.insert(u.end(), {float(std::fmod(coreClock, 1000.0)), bass * amp, kick * amp, energy});\n    u.insert(u.end(), {f.glow, spark * amp, flash * amp, std::max(0.0f, blast) * amp});\n    u.insert(u.end(), {cxs[0], cys[0], cxs[1], cys[1]});\n    u.insert(u.end(), {cxs[2], cys[2], 0.0f, 0.0f});\n    for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});\n    c.material(\"nebula_cores\", {0, 0, f.width, f.height}, u);\n    if (orbits.empty()) return;\n\n    float t = float(std::fmod(orbitClock, 10000.0));\n    float open = 1.0f + std::max(-0.3f, blast) * 0.9f;\n    float W = f.width * 0.5f, H = f.height * 0.5f;\n    // Tres muestras por partícula: la cabeza y dos puntos de estela detrás.\n    std::array<std::vector<Vec2>, 3> heads, tails;\n    for (const Orbit& o : orbits) {\n      float r = o.radius * open * (1.0f + 0.5f * o.seed * std::max(0.0f, blast));\n      float ci = std::cos(o.incl), si = std::sin(o.incl), cn = std::cos(o.node), sn = std::sin(o.node);\n      for (int k = 0; k < 3; k++) {\n        float th = o.theta0 + o.speed * (t - float(k) * 0.06f);\n        float ox = r * std::cos(th), oy = r * std::sin(th);\n        // Órbita inclinada: rotación por la inclinación y el nodo.\n        float y3 = oy * ci, z3 = oy * si;\n        float x = ox * cn - y3 * sn;\n        float y = ox * sn + y3 * cn;\n        float persp = 1.0f / (1.0f - z3 * 0.8f);\n        Vec2 pt{W + (cxs[o.core] + x * persp) * s, H + (cys[o.core] + y * persp) * s};\n        if (k == 0) heads[o.core].push_back(pt); else tails[o.core].push_back(pt);\n      }\n    }\n    float px = s / 400.0f;\n    float gain = std::clamp((0.8f + 0.5f * bass + 0.6f * kick) * amp, 0.0f, 1.6f);\n    float tw = 0.75f + 0.25f * spark;\n    for (int k = 0; k < 3; k++) {\n      Color col = k == 2 ? Color{0.75f * f.colors[3].r + 0.25f * f.colors[1].r, 0.75f * f.colors[3].g + 0.25f * f.colors[1].g,\n                                 0.75f * f.colors[3].b + 0.25f * f.colors[1].b, 1.0f}\n                         : f.colors[1 + k];\n      Paint tail;\n      tail.blend = Blend::plus;\n      tail.color = {col.r, col.g, col.b, std::clamp(0.28f * gain, 0.0f, 1.0f)};\n      c.points(tails[k], 1.0f * px, tail);\n      Paint halo;\n      halo.blend = Blend::plus;\n      halo.color = {col.r, col.g, col.b, std::clamp(0.07f * gain * f.glow, 0.0f, 1.0f)};\n      c.points(heads[k], 4.0f * px, halo);\n      Paint head;\n      head.blend = Blend::plus;\n      head.color = {std::min(1.0f, col.r * 0.7f + 0.3f), std::min(1.0f, col.g * 0.7f + 0.3f), std::min(1.0f, col.b * 0.7f + 0.3f),\n                    std::clamp(0.85f * gain * tw, 0.0f, 1.0f)};\n      c.points(heads[k], (1.3f + 0.5f * spark * amp) * px, head);\n    }\n  }\n};\n",
+      "shaderSources": {
+        "nebula_cores": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // reloj, graves, golpe, energía\nuniform vec4 uB;   // glow, agudos, destello, supernova\nuniform vec4 uK0;  // núcleos 1 y 2 (en unidades del lado corto, centrados)\nuniform vec4 uK1;  // núcleo 3\nuniform vec3 uC0;\nuniform vec3 uC1;\nuniform vec3 uC2;\nuniform vec3 uC3;\nout vec4 fragColor;\n\nfloat hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\n\nfloat noise(vec2 p) {\n  vec2 i = floor(p);\n  vec2 f = fract(p);\n  vec2 u = f * f * (3.0 - 2.0 * f);\n  return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),\n             mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);\n}\n\n// Núcleo: brillo central, corona y rayos que salen en todas direcciones.\nvec3 coreLight(vec2 p, vec2 c, vec3 col, float t) {\n  vec2 d = p - c;\n  float r = length(d) + 0.001;\n  float glow = (0.0015 + 0.003 * uA.y + 0.006 * uA.z) / (r * r + 0.002);\n  vec3 light = col * glow + vec3(1.0) * glow * 0.3;\n  // Los rayos sólo se calculan cerca del núcleo: lejos no se ven.\n  if (r < 0.45) {\n    vec2 dir = d / r;\n    float rays = noise(dir * 7.0 + t * 0.3);\n    float corona = exp(-r * 9.0) * (0.25 + 0.6 * rays) * (0.5 + 0.8 * uA.y + 0.6 * uB.w);\n    light += col * corona;\n  }\n  return light;\n}\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  float scale = min(uSize.x, uSize.y);\n  vec2 p = (frag - 0.5 * uSize) / scale;\n  float t = uA.x;\n  // Nebulosa tenue teñida por los núcleos.\n  float n = noise(p * 2.5 + vec2(t * 0.03, -t * 0.02));\n  vec3 neb = mix(uC2, uC1, smoothstep(0.3, 0.75, noise(p * 1.3 + 4.0 + t * 0.01)));\n  vec3 col = uC0 + neb * smoothstep(0.3, 1.0, n) * (0.05 + 0.04 * uA.w + 0.08 * uA.z) * uB.x;\n  col += coreLight(p, uK0.xy, uC1, t) * uB.x;\n  col += coreLight(p, uK0.zw, uC2, t + 3.0) * uB.x;\n  col += coreLight(p, uK1.xy, mix(uC3, uC1, 0.3), t + 6.0) * uB.x;\n  col += mix(uC1, uC2, 0.5) * uB.z * 0.04;\n  col *= 1.0 - 0.4 * smoothstep(0.5, 1.3, length(p * vec2(0.9, 0.65)));\n  float peak = max(col.r, max(col.g, col.b));\n  if (peak > 0.85) {\n    float e = (peak - 0.85) / 0.15;\n    col *= (0.85 + 0.15 * e / (1.0 + e)) / peak;\n  }\n  col += (hash12(frag) - 0.5) / 255.0;\n  fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "7a195e8cc4226709b4c01aac45c0a20c494ed79f2ea1a8c2cd468462cf67e220",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {
+          "nebula_cores": {
+            "compilerHash": "0da518febb12962b0cf9188617ed57b53a07f5b64fd1fe482688c39c61be4896",
+            "asset": "packages/visual_catalog/assets/native/magnetosfera_nebula_cores.iplr",
+            "assetHash": "8722b066426f04d0c35621cab0c101ce3c60755a74610ce378899abd66e3e11d",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct magnetosfera_nebula_cores_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct magnetosfera_nebula_cores_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment magnetosfera_nebula_cores_fragment_main_out magnetosfera_nebula_cores_fragment_main(magnetosfera_nebula_cores_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uB [[buffer(2)]], constant float4& uK0 [[buffer(3)]], constant float4& uK1 [[buffer(4)]], constant float3& uC0 [[buffer(5)]], constant float3& uC1 [[buffer(6)]], constant float3& uC2 [[buffer(7)]], constant float3& uC3 [[buffer(8)]])\n{\n    magnetosfera_nebula_cores_fragment_main_out out = {};\n    float2 _227 = (in._fragCoord - (uSize * 0.5)) / float2(fast::min(uSize.x, uSize.y));\n    float2 _243 = (_227 * 2.5) + float2(uA.x * 0.02999999932944774627685546875, uA.x * (-0.0199999995529651641845703125));\n    float2 _429 = floor(_243);\n    float2 _431 = fract(_243);\n    float2 _439 = (_431 * _431) * (float2(3.0) - (_431 * 2.0));\n    float3 _466 = fract(_429.xyx * 0.103100001811981201171875);\n    float3 _475 = _466 + float3(dot(_466, _466.yzx + float3(33.3300018310546875)));\n    float3 _491 = fract((_429 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n    float3 _500 = _491 + float3(dot(_491, _491.yzx + float3(33.3300018310546875)));\n    float _446 = _439.x;\n    float3 _516 = fract((_429 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n    float3 _525 = _516 + float3(dot(_516, _516.yzx + float3(33.3300018310546875)));\n    float3 _541 = fract((_429 + float2(1.0)).xyx * 0.103100001811981201171875);\n    float3 _550 = _541 + float3(dot(_541, _541.yzx + float3(33.3300018310546875)));\n    float2 _263 = ((_227 * 1.2999999523162841796875) + float2(4.0)) + float2(uA.x * 0.00999999977648258209228515625);\n    float2 _570 = floor(_263);\n    float2 _572 = fract(_263);\n    float2 _580 = (_572 * _572) * (float2(3.0) - (_572 * 2.0));\n    float3 _607 = fract(_570.xyx * 0.103100001811981201171875);\n    float3 _616 = _607 + float3(dot(_607, _607.yzx + float3(33.3300018310546875)));\n    float3 _632 = fract((_570 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n    float3 _641 = _632 + float3(dot(_632, _632.yzx + float3(33.3300018310546875)));\n    float _587 = _580.x;\n    float3 _657 = fract((_570 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n    float3 _666 = _657 + float3(dot(_657, _657.yzx + float3(33.3300018310546875)));\n    float3 _682 = fract((_570 + float2(1.0)).xyx * 0.103100001811981201171875);\n    float3 _691 = _682 + float3(dot(_682, _682.yzx + float3(33.3300018310546875)));\n    float3 _287 = (mix(uC2, uC1, float3(smoothstep(0.300000011920928955078125, 0.75, mix(mix(fract((_616.x + _616.y) * _616.z), fract((_641.x + _641.y) * _641.z), _587), mix(fract((_666.x + _666.y) * _666.z), fract((_691.x + _691.y) * _691.z), _587), _580.y)))) * smoothstep(0.300000011920928955078125, 1.0, mix(mix(fract((_475.x + _475.y) * _475.z), fract((_500.x + _500.y) * _500.z), _446), mix(fract((_525.x + _525.y) * _525.z), fract((_550.x + _550.y) * _550.z), _446), _439.y))) * ((0.0500000007450580596923828125 + (0.039999999105930328369140625 * uA.w)) + (0.07999999821186065673828125 * uA.z));\n    float2 _713 = _227 - uK0.xy;\n    float _715 = length(_713);\n    float _716 = _715 + 0.001000000047497451305389404296875;\n    float _724 = (0.00150000001303851604461669921875 + (0.0030000000260770320892333984375 * uA.y)) + (0.006000000052154064178466796875 * uA.z);\n    float _729 = _724 / ((_716 * _716) + 0.00200000009499490261077880859375);\n    float3 _736 = (uC1 * _729) + ((float3(1.0) * _729) * 0.300000011920928955078125);\n    float3 _1452;\n    if (_716 < 0.449999988079071044921875)\n    {\n        float2 _749 = ((_713 / float2(_716)) * 7.0) + float2(uA.x * 0.300000011920928955078125);\n        float2 _785 = floor(_749);\n        float2 _787 = fract(_749);\n        float2 _795 = (_787 * _787) * (float2(3.0) - (_787 * 2.0));\n        float3 _822 = fract(_785.xyx * 0.103100001811981201171875);\n        float3 _831 = _822 + float3(dot(_822, _822.yzx + float3(33.3300018310546875)));\n        float3 _847 = fract((_785 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n        float3 _856 = _847 + float3(dot(_847, _847.yzx + float3(33.3300018310546875)));\n        float _802 = _795.x;\n        float3 _872 = fract((_785 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n        float3 _881 = _872 + float3(dot(_872, _872.yzx + float3(33.3300018310546875)));\n        float3 _897 = fract((_785 + float2(1.0)).xyx * 0.103100001811981201171875);\n        float3 _906 = _897 + float3(dot(_897, _897.yzx + float3(33.3300018310546875)));\n        _1452 = _736 + (uC1 * ((exp(((-0.001000000047497451305389404296875) - _715) * 9.0) * (0.25 + (0.60000002384185791015625 * mix(mix(fract((_831.x + _831.y) * _831.z), fract((_856.x + _856.y) * _856.z), _802), mix(fract((_881.x + _881.y) * _881.z), fract((_906.x + _906.y) * _906.z), _802), _795.y)))) * ((0.5 + (0.800000011920928955078125 * uA.y)) + (0.60000002384185791015625 * uB.w))));\n    }\n    else\n    {\n        _1452 = _736;\n    }\n    float2 _928 = _227 - uK0.zw;\n    float _930 = length(_928);\n    float _931 = _930 + 0.001000000047497451305389404296875;\n    float _944 = _724 / ((_931 * _931) + 0.00200000009499490261077880859375);\n    float3 _951 = (uC2 * _944) + ((float3(1.0) * _944) * 0.300000011920928955078125);\n    float3 _1454;\n    if (_931 < 0.449999988079071044921875)\n    {\n        float2 _964 = ((_928 / float2(_931)) * 7.0) + float2((uA.x + 3.0) * 0.300000011920928955078125);\n        float2 _1000 = floor(_964);\n        float2 _1002 = fract(_964);\n        float2 _1010 = (_1002 * _1002) * (float2(3.0) - (_1002 * 2.0));\n        float3 _1037 = fract(_1000.xyx * 0.103100001811981201171875);\n        float3 _1046 = _1037 + float3(dot(_1037, _1037.yzx + float3(33.3300018310546875)));\n        float3 _1062 = fract((_1000 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n        float3 _1071 = _1062 + float3(dot(_1062, _1062.yzx + float3(33.3300018310546875)));\n        float _1017 = _1010.x;\n        float3 _1087 = fract((_1000 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n        float3 _1096 = _1087 + float3(dot(_1087, _1087.yzx + float3(33.3300018310546875)));\n        float3 _1112 = fract((_1000 + float2(1.0)).xyx * 0.103100001811981201171875);\n        float3 _1121 = _1112 + float3(dot(_1112, _1112.yzx + float3(33.3300018310546875)));\n        _1454 = _951 + (uC2 * ((exp(((-0.001000000047497451305389404296875) - _930) * 9.0) * (0.25 + (0.60000002384185791015625 * mix(mix(fract((_1046.x + _1046.y) * _1046.z), fract((_1071.x + _1071.y) * _1071.z), _1017), mix(fract((_1096.x + _1096.y) * _1096.z), fract((_1121.x + _1121.y) * _1121.z), _1017), _1010.y)))) * ((0.5 + (0.800000011920928955078125 * uA.y)) + (0.60000002384185791015625 * uB.w))));\n    }\n    else\n    {\n        _1454 = _951;\n    }\n    float3 _329 = mix(uC3, uC1, float3(0.300000011920928955078125));\n    float2 _1143 = _227 - uK1.xy;\n    float _1145 = length(_1143);\n    float _1146 = _1145 + 0.001000000047497451305389404296875;\n    float _1159 = _724 / ((_1146 * _1146) + 0.00200000009499490261077880859375);\n    float3 _1166 = (_329 * _1159) + ((float3(1.0) * _1159) * 0.300000011920928955078125);\n    float3 _1456;\n    if (_1146 < 0.449999988079071044921875)\n    {\n        float2 _1179 = ((_1143 / float2(_1146)) * 7.0) + float2((uA.x + 6.0) * 0.300000011920928955078125);\n        float2 _1215 = floor(_1179);\n        float2 _1217 = fract(_1179);\n        float2 _1225 = (_1217 * _1217) * (float2(3.0) - (_1217 * 2.0));\n        float3 _1252 = fract(_1215.xyx * 0.103100001811981201171875);\n        float3 _1261 = _1252 + float3(dot(_1252, _1252.yzx + float3(33.3300018310546875)));\n        float3 _1277 = fract((_1215 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n        float3 _1286 = _1277 + float3(dot(_1277, _1277.yzx + float3(33.3300018310546875)));\n        float _1232 = _1225.x;\n        float3 _1302 = fract((_1215 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n        float3 _1311 = _1302 + float3(dot(_1302, _1302.yzx + float3(33.3300018310546875)));\n        float3 _1327 = fract((_1215 + float2(1.0)).xyx * 0.103100001811981201171875);\n        float3 _1336 = _1327 + float3(dot(_1327, _1327.yzx + float3(33.3300018310546875)));\n        _1456 = _1166 + (_329 * ((exp(((-0.001000000047497451305389404296875) - _1145) * 9.0) * (0.25 + (0.60000002384185791015625 * mix(mix(fract((_1261.x + _1261.y) * _1261.z), fract((_1286.x + _1286.y) * _1286.z), _1232), mix(fract((_1311.x + _1311.y) * _1311.z), fract((_1336.x + _1336.y) * _1336.z), _1232), _1225.y)))) * ((0.5 + (0.800000011920928955078125 * uA.y)) + (0.60000002384185791015625 * uB.w))));\n    }\n    else\n    {\n        _1456 = _1166;\n    }\n    float3 _367 = (((((uC0 + (_287 * uB.x)) + (_1452 * uB.x)) + (_1454 * uB.x)) + (_1456 * uB.x)) + ((mix(uC1, uC2, float3(0.5)) * uB.z) * 0.039999999105930328369140625)) * (1.0 - (0.4000000059604644775390625 * smoothstep(0.5, 1.2999999523162841796875, length(_227 * float2(0.89999997615814208984375, 0.64999997615814208984375)))));\n    float _376 = fast::max(_367.x, fast::max(_367.y, _367.z));\n    float3 _1458;\n    if (_376 > 0.85000002384185791015625)\n    {\n        float _384 = _376 - 0.85000002384185791015625;\n        _1458 = _367 * ((0.85000002384185791015625 + (_384 / (1.0 + (_384 * 6.666666507720947265625)))) / _376);\n    }\n    else\n    {\n        _1458 = _367;\n    }\n    float3 _1352 = fract(in._fragCoord.xyx * 0.103100001811981201171875);\n    float3 _1361 = _1352 + float3(dot(_1352, _1352.yzx + float3(33.3300018310546875)));\n    out.fragColor = float4(fast::clamp(_1458 + float3((fract((_1361.x + _1361.y) * _1361.z) - 0.5) * 0.0039215688593685626983642578125), float3(0.0), float3(1.0)), 1.0);\n    return out;\n}\n\n",
+            "entryPoint": "magnetosfera_nebula_cores_fragment_main",
+            "floatCount": 30,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uB",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uK0",
+                "offset": 10,
+                "count": 4,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uK1",
+                "offset": 14,
+                "count": 4,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uC0",
+                "offset": 18,
+                "count": 3,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uC1",
+                "offset": 21,
+                "count": 3,
+                "bufferIndex": 6
+              },
+              {
+                "name": "uC2",
+                "offset": 24,
+                "count": 3,
+                "bufferIndex": 7
+              },
+              {
+                "name": "uC3",
+                "offset": 27,
+                "count": 3,
+                "bufferIndex": 8
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
+    },
+    {
       "id": "malla_ondas",
       "name": "Malla de Ondas",
       "programId": "creator_malla_ondas",
@@ -4344,6 +5224,101 @@
                 "offset": 19,
                 "count": 3,
                 "bufferIndex": 6
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
+    },
+    {
+      "id": "ondas_voz",
+      "name": "Ondas de Voz",
+      "programId": "creator_ondas_voz",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 60,
+      "seed": 42,
+      "colors": [
+        4278387722,
+        4294922138,
+        4282223615,
+        4282253222
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;\n  float kick = 0, flash = 0, drive = 0, mids = 0, highs = 0;\n  // Fase en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.\n  double phase = 0;\n\n  static float follow(float v, float target, float up, float down, float dt) {\n    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));\n  }\n\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed);\n    bass = body = spark = energy = slowBass = kick = flash = drive = mids = highs = 0;\n    phase = rng.unit() * 10.0;\n  }\n\n  void update(const Frame& f) override {\n    float dt = float(f.delta);\n    const Music& m = f.music;\n    bass = follow(bass, m.bass, 20.0f, 4.0f, dt);\n    body = follow(body, m.body, 12.0f, 3.0f, dt);\n    spark = follow(spark, m.spark, 30.0f, 7.0f, dt);\n    energy = follow(energy, m.energy, 6.0f, 1.8f, dt);\n    drive = follow(drive, m.active ? std::pow(std::clamp(m.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);\n    float mi = 0, hi = 0;\n    for (int i = 9; i < 21; i++) mi = std::max(mi, m.smoothSpectrum[i]);\n    for (int i = 21; i < 31; i++) hi = std::max(hi, m.smoothSpectrum[i]);\n    mids = follow(mids, mi, 16.0f, 4.0f, dt);\n    highs = follow(highs, hi, 20.0f, 5.0f, dt);\n\n    float hit = 0, fl = 0;\n    for (const auto& e : m.events[0]) hit = std::max(hit, e.strength);\n    for (const auto& e : m.events[2]) hit = std::max(hit, e.strength * 0.85f);\n    for (const auto& e : m.events[3]) fl = std::max(fl, e.strength);\n    float onset = std::clamp((m.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);\n    slowBass = follow(slowBass, m.bass, 3.0f, 3.0f, dt);\n    hit = std::min(std::max(hit, onset), 1.0f);\n    kick = std::max(kick * std::exp(-dt * 5.0f), hit);\n    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));\n    phase += f.delta * f.speed * (1.6 + 3.0 * drive + 1.5 * kick);\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    float amp = f.intensity;\n    float idle = 0.06f;\n    float aLow = idle + (0.45f * bass + 0.18f * kick) * amp;\n    float aMid = idle * 0.8f + (0.38f * mids + 0.15f * kick) * amp;\n    float aHigh = idle * 0.6f + (0.32f * highs + 0.12f * kick) * amp;\n    std::vector<float> u;\n    u.reserve(24);\n    u.insert(u.end(), {float(std::fmod(phase, 1000.0)), bass * amp, kick * amp, energy});\n    u.insert(u.end(), {aLow, aMid, aHigh, 0.0f});\n    u.insert(u.end(), {f.glow, spark * amp, flash * amp, 0.0f});\n    for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});\n    c.material(\"voice_waves\", {0, 0, f.width, f.height}, u);\n  }\n};\n",
+      "shaderSources": {
+        "voice_waves": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // fase, graves, golpe, energía\nuniform vec4 uW;   // amplitudes de graves, medios y agudos\nuniform vec4 uB;   // glow, agudos, destello\nuniform vec3 uC0;\nuniform vec3 uC1;\nuniform vec3 uC2;\nuniform vec3 uC3;\nout vec4 fragColor;\n\nfloat hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\n\n// Una onda rellena en espejo: interior translúcido y borde luminoso.\nvec3 wave(float X, float Y, float att, float a, float freq, float ph, vec3 c) {\n  float yc = abs(a * att * sin(freq * X - ph));\n  float ay = abs(Y);\n  float fill = smoothstep(yc + 0.004, yc - 0.004, ay);\n  float edge = exp(-abs(ay - yc) * 55.0) * smoothstep(0.0, 0.01, yc);\n  return c * (fill * 0.32 + edge * 0.55);\n}\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  float scale = min(uSize.x, uSize.y);\n  float X = frag.x / uSize.x * 3.2 - 1.6;\n  float Y = (frag.y - 0.5 * uSize.y) / scale;\n  float X2 = X * X;\n  float att = pow(4.0 / (4.0 + X2 * X2), 4.0);\n  float ph = uA.x;\n  vec3 col = uC0;\n  // Resplandor detrás de las ondas.\n  col += mix(uC1, uC2, 0.5) * exp(-Y * Y * 9.0) * att * (0.05 + 0.10 * uA.y + 0.12 * uA.z) * uB.x;\n  col += wave(X, Y, att, uW.x, 2.2, ph * 1.0, uC1);\n  col += wave(X, Y, att, uW.x * 0.75, 3.1, ph * 1.3 + 2.1, uC1);\n  col += wave(X, Y, att, uW.y, 2.8, ph * 1.15 + 1.2, uC2);\n  col += wave(X, Y, att, uW.y * 0.75, 3.9, ph * 1.45 + 3.4, uC2);\n  col += wave(X, Y, att, uW.z, 3.4, ph * 1.3 + 0.6, uC3);\n  col += wave(X, Y, att, uW.z * 0.75, 4.6, ph * 1.7 + 4.2, uC3);\n  // Onda blanca de apoyo.\n  float y0 = 0.018 * att * sin(X * 4.0 - ph * 1.2);\n  col += vec3(1.0) * exp(-abs(Y - y0) * 350.0) * (0.35 + 0.4 * uA.z) * att;\n  col += mix(uC2, uC3, 0.5) * uB.z * 0.03;\n  float peak = max(col.r, max(col.g, col.b));\n  if (peak > 0.85) {\n    float e = (peak - 0.85) / 0.15;\n    col *= (0.85 + 0.15 * e / (1.0 + e)) / peak;\n  }\n  col += (hash12(frag) - 0.5) / 255.0;\n  fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "b162740191766c2b8a5864aafc54e623ea423aee32fa0442ca51501409810622",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {
+          "voice_waves": {
+            "compilerHash": "9220c54c2c603a716317776395c338c1581c0a6f3700157fad5c1074c88c0eee",
+            "asset": "packages/visual_catalog/assets/native/ondas_voz_voice_waves.iplr",
+            "assetHash": "e1f697f1e47af48d3deb1a1d8a13e50f5af3c6a4b68ab008c937aac195ed99bb",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct ondas_voz_voice_waves_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct ondas_voz_voice_waves_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment ondas_voz_voice_waves_fragment_main_out ondas_voz_voice_waves_fragment_main(ondas_voz_voice_waves_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uW [[buffer(2)]], constant float4& uB [[buffer(3)]], constant float3& uC0 [[buffer(4)]], constant float3& uC1 [[buffer(5)]], constant float3& uC2 [[buffer(6)]], constant float3& uC3 [[buffer(7)]])\n{\n    ondas_voz_voice_waves_fragment_main_out out = {};\n    float _135 = ((in._fragCoord.x / uSize.x) * 3.2000000476837158203125) - 1.60000002384185791015625;\n    float _145 = (in._fragCoord.y - (0.5 * uSize.y)) / fast::min(uSize.x, uSize.y);\n    float _149 = _135 * _135;\n    float _157 = powr(4.0 / (4.0 + (_149 * _149)), 4.0);\n    float _447 = abs((uW.x * _157) * sin((2.2000000476837158203125 * _135) - uA.x));\n    float _449 = abs(_145);\n    float _230 = uA.x * 1.2999999523162841796875;\n    float _489 = abs(((uW.x * 0.75) * _157) * sin((3.099999904632568359375 * _135) - (_230 + 2.099999904632568359375)));\n    float _531 = abs((uW.y * _157) * sin((2.7999999523162841796875 * _135) - ((uA.x * 1.14999997615814208984375) + 1.2000000476837158203125)));\n    float _573 = abs(((uW.y * 0.75) * _157) * sin((3.900000095367431640625 * _135) - ((uA.x * 1.4500000476837158203125) + 3.400000095367431640625)));\n    float3 _291 = ((((uC0 + ((((mix(uC1, uC2, float3(0.5)) * exp(((-_145) * _145) * 9.0)) * _157) * ((0.0500000007450580596923828125 + (0.100000001490116119384765625 * uA.y)) + (0.119999997317790985107421875 * uA.z))) * uB.x)) + (uC1 * ((smoothstep(_447 + 0.0040000001899898052215576171875, _447 - 0.0040000001899898052215576171875, _449) * 0.319999992847442626953125) + ((exp(abs(_449 - _447) * (-55.0)) * smoothstep(0.0, 0.00999999977648258209228515625, _447)) * 0.550000011920928955078125)))) + (uC1 * ((smoothstep(_489 + 0.0040000001899898052215576171875, _489 - 0.0040000001899898052215576171875, _449) * 0.319999992847442626953125) + ((exp(abs(_449 - _489) * (-55.0)) * smoothstep(0.0, 0.00999999977648258209228515625, _489)) * 0.550000011920928955078125)))) + (uC2 * ((smoothstep(_531 + 0.0040000001899898052215576171875, _531 - 0.0040000001899898052215576171875, _449) * 0.319999992847442626953125) + ((exp(abs(_449 - _531) * (-55.0)) * smoothstep(0.0, 0.00999999977648258209228515625, _531)) * 0.550000011920928955078125)))) + (uC2 * ((smoothstep(_573 + 0.0040000001899898052215576171875, _573 - 0.0040000001899898052215576171875, _449) * 0.319999992847442626953125) + ((exp(abs(_449 - _573) * (-55.0)) * smoothstep(0.0, 0.00999999977648258209228515625, _573)) * 0.550000011920928955078125)));\n    float _615 = abs((uW.z * _157) * sin((3.400000095367431640625 * _135) - (_230 + 0.60000002384185791015625)));\n    float _657 = abs(((uW.z * 0.75) * _157) * sin((4.599999904632568359375 * _135) - ((uA.x * 1.7000000476837158203125) + 4.19999980926513671875)));\n    float3 _378 = (((_291 + (uC3 * ((smoothstep(_615 + 0.0040000001899898052215576171875, _615 - 0.0040000001899898052215576171875, _449) * 0.319999992847442626953125) + ((exp(abs(_449 - _615) * (-55.0)) * smoothstep(0.0, 0.00999999977648258209228515625, _615)) * 0.550000011920928955078125)))) + (uC3 * ((smoothstep(_657 + 0.0040000001899898052215576171875, _657 - 0.0040000001899898052215576171875, _449) * 0.319999992847442626953125) + ((exp(abs(_449 - _657) * (-55.0)) * smoothstep(0.0, 0.00999999977648258209228515625, _657)) * 0.550000011920928955078125)))) + (((float3(1.0) * exp(abs(_145 - ((0.017999999225139617919921875 * _157) * sin((_135 * 4.0) - (uA.x * 1.2000000476837158203125)))) * (-350.0))) * (0.3499999940395355224609375 + (0.4000000059604644775390625 * uA.z))) * _157)) + ((mix(uC2, uC3, float3(0.5)) * uB.z) * 0.02999999932944774627685546875);\n    float _387 = fast::max(_378.x, fast::max(_378.y, _378.z));\n    float3 _716;\n    if (_387 > 0.85000002384185791015625)\n    {\n        float _396 = _387 - 0.85000002384185791015625;\n        _716 = _378 * ((0.85000002384185791015625 + (_396 / (1.0 + (_396 * 6.666666507720947265625)))) / _387);\n    }\n    else\n    {\n        _716 = _378;\n    }\n    float3 _689 = fract(in._fragCoord.xyx * 0.103100001811981201171875);\n    float3 _698 = _689 + float3(dot(_689, _689.yzx + float3(33.3300018310546875)));\n    out.fragColor = float4(fast::clamp(_716 + float3((fract((_698.x + _698.y) * _698.z) - 0.5) * 0.0039215688593685626983642578125), float3(0.0), float3(1.0)), 1.0);\n    return out;\n}\n\n",
+            "entryPoint": "ondas_voz_voice_waves_fragment_main",
+            "floatCount": 26,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uW",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uB",
+                "offset": 10,
+                "count": 4,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uC0",
+                "offset": 14,
+                "count": 3,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uC1",
+                "offset": 17,
+                "count": 3,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uC2",
+                "offset": 20,
+                "count": 3,
+                "bufferIndex": 6
+              },
+              {
+                "name": "uC3",
+                "offset": 23,
+                "count": 3,
+                "bufferIndex": 7
               }
             ]
           }
@@ -7032,6 +8007,125 @@
         "hash": "b70b6476d43a822bfd26120a6b8987ba49ef35886ff6fad911d902c67f11dd41",
         "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
         "materials": {},
+        "imageHashes": {}
+      }
+    },
+    {
+      "id": "vidrio_liquido",
+      "name": "Vidrio Líquido",
+      "programId": "creator_vidrio_liquido",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 60,
+      "seed": 42,
+      "colors": [
+        4278848020,
+        4294933018,
+        4281166847,
+        4294967295
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;\n  float kick = 0, flash = 0, drive = 0;\n  // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.\n  double clock = 0, flow = 0;\n  float spread = 0, spreadVel = 0;\n\n  static float follow(float v, float target, float up, float down, float dt) {\n    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));\n  }\n\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed);\n    bass = body = spark = energy = slowBass = kick = flash = drive = 0;\n    clock = rng.unit() * 100.0;\n    flow = rng.unit() * 100.0;\n    spread = spreadVel = 0;\n  }\n\n  void update(const Frame& f) override {\n    float dt = float(f.delta);\n    const Music& m = f.music;\n    bass = follow(bass, m.bass, 20.0f, 4.0f, dt);\n    body = follow(body, m.body, 12.0f, 3.0f, dt);\n    spark = follow(spark, m.spark, 30.0f, 7.0f, dt);\n    energy = follow(energy, m.energy, 6.0f, 1.8f, dt);\n    drive = follow(drive, m.active ? std::pow(std::clamp(m.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);\n\n    float hit = 0, fl = 0;\n    for (const auto& e : m.events[0]) hit = std::max(hit, e.strength);\n    for (const auto& e : m.events[2]) hit = std::max(hit, e.strength * 0.85f);\n    for (const auto& e : m.events[3]) fl = std::max(fl, e.strength);\n    float onset = std::clamp((m.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);\n    slowBass = follow(slowBass, m.bass, 3.0f, 3.0f, dt);\n    hit = std::min(std::max(hit, onset), 1.0f);\n    if (hit > kick + 0.2f) spreadVel += 1.8f * hit;\n    kick = std::max(kick * std::exp(-dt * 5.0f), hit);\n    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));\n    // Las gotas se separan con el golpe y vuelven a juntarse con un muelle.\n    spreadVel += (-spread * 16.0f - spreadVel * 4.0f) * dt;\n    spread += spreadVel * dt;\n    clock += f.delta * f.speed * (0.35 + 0.6 * drive);\n    flow += f.delta * f.speed * (0.2 + 0.5 * energy);\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    float amp = f.intensity;\n    float aspectY = f.height / std::max(1.0f, std::min(f.width, f.height));\n    float k = 1.0f + std::max(-0.3f, spread) * 0.9f;\n    std::vector<float> u;\n    u.reserve(40);\n    u.insert(u.end(), {float(std::fmod(flow, 1000.0)), bass * amp, kick * amp, energy});\n    u.insert(u.end(), {f.glow, spark * amp, flash * amp, 0.0f});\n    float px[6], py[6], pr[6];\n    for (int i = 0; i < 6; i++) {\n      double t = clock * (0.6 + 0.13 * i) + i * 1.7;\n      px[i] = 0.30f * float(std::sin(t * 0.9 + i)) * k;\n      py[i] = (0.30f + 0.18f * (aspectY - 1.0f)) * float(std::cos(t * 0.7 + i * 2.3)) * k;\n      pr[i] = (0.09f + 0.035f * float((i * 7) % 4)) * (1.0f + 0.25f * bass * amp + 0.1f * kick * amp);\n    }\n    u.insert(u.end(), {px[0], py[0], px[1], py[1]});\n    u.insert(u.end(), {px[2], py[2], px[3], py[3]});\n    u.insert(u.end(), {px[4], py[4], px[5], py[5]});\n    u.insert(u.end(), {pr[0], pr[1], pr[2], pr[3]});\n    u.insert(u.end(), {pr[4], pr[5], 0.0f, 0.0f});\n    for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});\n    c.material(\"liquid_glass\", {0, 0, f.width, f.height}, u);\n  }\n};\n",
+      "shaderSources": {
+        "liquid_glass": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // flujo del fondo, graves, golpe, energía\nuniform vec4 uB;   // glow, agudos, destello\nuniform vec4 uP0;  // gotas 1 y 2 (lado corto, centradas)\nuniform vec4 uP1;  // gotas 3 y 4\nuniform vec4 uP2;  // gotas 5 y 6\nuniform vec4 uR0;  // radios 1 a 4\nuniform vec4 uR1;  // radios 5 y 6\nuniform vec3 uC0;\nuniform vec3 uC1;\nuniform vec3 uC2;\nuniform vec3 uC3;\nout vec4 fragColor;\n\nfloat hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\n\n// Fondo vivo con franjas y anillos suaves para que la refracción se note.\nvec3 backdrop(vec2 q) {\n  float t = uA.x;\n  float g = smoothstep(-0.9, 0.9, q.y + 0.3 * sin(q.x * 1.7 + t * 0.4));\n  vec3 col = mix(uC1, uC2, g);\n  float stripes = smoothstep(0.55, 1.0, sin((q.x - q.y) * 7.0 + t * 0.6));\n  col = mix(col, mix(col, uC3, 0.6), stripes * 0.35);\n  vec2 rc = q - vec2(0.25 * sin(t * 0.13), 0.3 * cos(t * 0.11));\n  float rings = smoothstep(0.08, 0.0, abs(fract(length(rc) * 3.5 - t * 0.15) - 0.5) - 0.38);\n  col += uC3 * rings * 0.12;\n  return col * (0.82 + 0.15 * uA.w);\n}\n\nvoid addBlob(vec2 p, vec2 b, float r, inout float field, inout vec2 grad) {\n  vec2 d = p - b;\n  float d2 = dot(d, d) + 1e-4;\n  float k = r * r / d2;\n  field += k;\n  grad += -2.0 * k / d2 * d;\n}\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  float scale = min(uSize.x, uSize.y);\n  vec2 p = (frag - 0.5 * uSize) / scale;\n  float field = 0.0;\n  vec2 grad = vec2(0.0);\n  addBlob(p, uP0.xy, uR0.x, field, grad);\n  addBlob(p, uP0.zw, uR0.y, field, grad);\n  addBlob(p, uP1.xy, uR0.z, field, grad);\n  addBlob(p, uP1.zw, uR0.w, field, grad);\n  addBlob(p, uP2.xy, uR1.x, field, grad);\n  addBlob(p, uP2.zw, uR1.y, field, grad);\n\n  // Sombra suave de las gotas sobre el fondo.\n  vec3 outside = backdrop(p) * (1.0 - 0.18 * smoothstep(0.45, 1.0, field));\n  float inside = smoothstep(0.96, 1.04, field);\n  vec3 col = outside;\n  if (field > 0.9) {\n    // Pendiente de la gota: grande en el borde y nula en el centro, así la\n    // lente es plana en el medio y curva hacia los bordes (sin remolinos).\n    vec2 slope = -grad * 0.02;\n    float sl = length(slope);\n    if (sl > 0.12) slope *= 0.12 / sl;\n    // Lente: el fondo se curva hacia el centro y los colores se separan un poco.\n    vec2 off = slope;\n    vec3 glass = vec3(backdrop(p + off * 1.1).r, backdrop(p + off).g, backdrop(p + off * 0.9).b);\n    glass *= 1.08;\n    vec3 n3 = normalize(vec3(slope * 6.0, 1.0));\n    vec3 L = normalize(vec3(-0.45, 0.6, 0.65));\n    float spec = pow(max(dot(n3, L), 0.0), 48.0);\n    float rim = 1.0 - smoothstep(1.0, 1.35, field);\n    glass += uC3 * spec * (0.55 + 0.6 * uB.y + 0.4 * uA.z);\n    glass += uC3 * rim * 0.22;\n    col = mix(outside, glass, inside);\n  }\n  col += uC3 * uB.z * 0.03;\n  col *= 1.0 - 0.3 * smoothstep(0.6, 1.4, length(p * vec2(0.9, 0.65)));\n  col += (hash12(frag) - 0.5) / 255.0;\n  fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "bfdd22ef1cf5371b7326d83571bf3ca185f888a71361a3dc878c9953235e672b",
+        "sdkHash": "840e6853f1b44a169edd40ab1c2f14aacdf391076378762a02f5922a2a4cdeb0",
+        "materials": {
+          "liquid_glass": {
+            "compilerHash": "78f2f36983f099b9944f82450505859a6a6823ca583afda80ede9c406378975b",
+            "asset": "packages/visual_catalog/assets/native/vidrio_liquido_liquid_glass.iplr",
+            "assetHash": "6286ed101b380667162ab5212bd65bda2a519388af5848f1069b8e447c0c9d83",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct vidrio_liquido_liquid_glass_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct vidrio_liquido_liquid_glass_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment vidrio_liquido_liquid_glass_fragment_main_out vidrio_liquido_liquid_glass_fragment_main(vidrio_liquido_liquid_glass_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uB [[buffer(2)]], constant float4& uP0 [[buffer(3)]], constant float4& uP1 [[buffer(4)]], constant float4& uP2 [[buffer(5)]], constant float4& uR0 [[buffer(6)]], constant float4& uR1 [[buffer(7)]], constant float3& uC1 [[buffer(9)]], constant float3& uC2 [[buffer(10)]], constant float3& uC3 [[buffer(11)]])\n{\n    vidrio_liquido_liquid_glass_fragment_main_out out = {};\n    float2 _225 = (in._fragCoord - (uSize * 0.5)) / float2(fast::min(uSize.x, uSize.y));\n    float2 _491 = _225 - uP0.xy;\n    float _495 = dot(_491, _491) + 9.9999997473787516355514526367188e-05;\n    float _500 = (uR0.x * uR0.x) / _495;\n    float2 _518 = _225 - uP0.zw;\n    float _522 = dot(_518, _518) + 9.9999997473787516355514526367188e-05;\n    float _527 = (uR0.y * uR0.y) / _522;\n    float2 _545 = _225 - uP1.xy;\n    float _549 = dot(_545, _545) + 9.9999997473787516355514526367188e-05;\n    float _554 = (uR0.z * uR0.z) / _549;\n    float2 _572 = _225 - uP1.zw;\n    float _576 = dot(_572, _572) + 9.9999997473787516355514526367188e-05;\n    float _581 = (uR0.w * uR0.w) / _576;\n    float2 _599 = _225 - uP2.xy;\n    float _603 = dot(_599, _599) + 9.9999997473787516355514526367188e-05;\n    float _608 = (uR1.x * uR1.x) / _603;\n    float2 _626 = _225 - uP2.zw;\n    float _630 = dot(_626, _626) + 9.9999997473787516355514526367188e-05;\n    float _635 = (uR1.y * uR1.y) / _630;\n    float _638 = ((((_500 + _527) + _554) + _581) + _608) + _635;\n    float _658 = _225.y;\n    float _660 = _225.x;\n    float _663 = uA.x * 0.4000000059604644775390625;\n    float3 _673 = mix(uC1, uC2, float3(smoothstep(-0.89999997615814208984375, 0.89999997615814208984375, _658 + (0.300000011920928955078125 * sin((_660 * 1.7000000476837158203125) + _663)))));\n    float _681 = uA.x * 0.60000002384185791015625;\n    float2 _703 = float2(0.25 * sin(uA.x * 0.12999999523162841796875), 0.300000011920928955078125 * cos(uA.x * 0.10999999940395355224609375));\n    float _709 = uA.x * 0.1500000059604644775390625;\n    float _726 = 0.819999992847442626953125 + (0.1500000059604644775390625 * uA.w);\n    float3 _334 = ((mix(_673, mix(_673, uC3, float3(0.60000002384185791015625)), float3(smoothstep(0.550000011920928955078125, 1.0, sin(((_660 - _658) * 7.0) + _681)) * 0.3499999940395355224609375)) + ((uC3 * smoothstep(0.07999999821186065673828125, 0.0, abs(fract((length(_225 - _703) * 3.5) - _709) - 0.5) - 0.37999999523162841796875)) * 0.119999997317790985107421875)) * _726) * (1.0 - (0.180000007152557373046875 * smoothstep(0.449999988079071044921875, 1.0, _638)));\n    float3 _1016;\n    if (_638 > 0.89999997615814208984375)\n    {\n        float2 _351 = (-((((((_491 * (((-2.0) * _500) / _495)) + (_518 * (((-2.0) * _527) / _522))) + (_545 * (((-2.0) * _554) / _549))) + (_572 * (((-2.0) * _581) / _576))) + (_599 * (((-2.0) * _608) / _603))) + (_626 * (((-2.0) * _635) / _630)))) * 0.0199999995529651641845703125;\n        float _354 = length(_351);\n        float2 _1015;\n        if (_354 > 0.119999997317790985107421875)\n        {\n            _1015 = _351 * (0.119999997317790985107421875 / _354);\n        }\n        else\n        {\n            _1015 = _351;\n        }\n        float2 _370 = _225 + (_1015 * 1.10000002384185791015625);\n        float _739 = _370.y;\n        float _741 = _370.x;\n        float3 _754 = mix(uC1, uC2, float3(smoothstep(-0.89999997615814208984375, 0.89999997615814208984375, _739 + (0.300000011920928955078125 * sin((_741 * 1.7000000476837158203125) + _663)))));\n        float2 _376 = _225 + _1015;\n        float _820 = _376.y;\n        float _822 = _376.x;\n        float3 _835 = mix(uC1, uC2, float3(smoothstep(-0.89999997615814208984375, 0.89999997615814208984375, _820 + (0.300000011920928955078125 * sin((_822 * 1.7000000476837158203125) + _663)))));\n        float2 _383 = _225 + (_1015 * 0.89999997615814208984375);\n        float _901 = _383.y;\n        float _903 = _383.x;\n        float3 _916 = mix(uC1, uC2, float3(smoothstep(-0.89999997615814208984375, 0.89999997615814208984375, _901 + (0.300000011920928955078125 * sin((_903 * 1.7000000476837158203125) + _663)))));\n        float3 _390 = float3(((mix(_754, mix(_754, uC3, float3(0.60000002384185791015625)), float3(smoothstep(0.550000011920928955078125, 1.0, sin(((_741 - _739) * 7.0) + _681)) * 0.3499999940395355224609375)) + ((uC3 * smoothstep(0.07999999821186065673828125, 0.0, abs(fract((length(_370 - _703) * 3.5) - _709) - 0.5) - 0.37999999523162841796875)) * 0.119999997317790985107421875)) * _726).x, ((mix(_835, mix(_835, uC3, float3(0.60000002384185791015625)), float3(smoothstep(0.550000011920928955078125, 1.0, sin(((_822 - _820) * 7.0) + _681)) * 0.3499999940395355224609375)) + ((uC3 * smoothstep(0.07999999821186065673828125, 0.0, abs(fract((length(_376 - _703) * 3.5) - _709) - 0.5) - 0.37999999523162841796875)) * 0.119999997317790985107421875)) * _726).y, ((mix(_916, mix(_916, uC3, float3(0.60000002384185791015625)), float3(smoothstep(0.550000011920928955078125, 1.0, sin(((_903 - _901) * 7.0) + _681)) * 0.3499999940395355224609375)) + ((uC3 * smoothstep(0.07999999821186065673828125, 0.0, abs(fract((length(_383 - _703) * 3.5) - _709) - 0.5) - 0.37999999523162841796875)) * 0.119999997317790985107421875)) * _726).z) * 1.08000004291534423828125;\n        _1016 = mix(_334, (_390 + ((uC3 * powr(fast::max(dot(fast::normalize(float3(_1015 * 6.0, 1.0)), float3(-0.4534134566783905029296875, 0.604551255702972412109375, 0.654930531978607177734375)), 0.0), 48.0)) * ((0.550000011920928955078125 + (0.60000002384185791015625 * uB.y)) + (0.4000000059604644775390625 * uA.z)))) + ((uC3 * (1.0 - smoothstep(1.0, 1.35000002384185791015625, _638))) * 0.2199999988079071044921875), float3(smoothstep(0.959999978542327880859375, 1.03999996185302734375, _638)));\n    }\n    else\n    {\n        _1016 = _334;\n    }\n    float3 _977 = fract(in._fragCoord.xyx * 0.103100001811981201171875);\n    float3 _986 = _977 + float3(dot(_977, _977.yzx + float3(33.3300018310546875)));\n    out.fragColor = float4(fast::clamp(((_1016 + ((uC3 * uB.z) * 0.02999999932944774627685546875)) * (1.0 - (0.300000011920928955078125 * smoothstep(0.60000002384185791015625, 1.39999997615814208984375, length(_225 * float2(0.89999997615814208984375, 0.64999997615814208984375)))))) + float3((fract((_986.x + _986.y) * _986.z) - 0.5) * 0.0039215688593685626983642578125), float3(0.0), float3(1.0)), 1.0);\n    return out;\n}\n\n",
+            "entryPoint": "vidrio_liquido_liquid_glass_fragment_main",
+            "floatCount": 42,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uB",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uP0",
+                "offset": 10,
+                "count": 4,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uP1",
+                "offset": 14,
+                "count": 4,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uP2",
+                "offset": 18,
+                "count": 4,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uR0",
+                "offset": 22,
+                "count": 4,
+                "bufferIndex": 6
+              },
+              {
+                "name": "uR1",
+                "offset": 26,
+                "count": 4,
+                "bufferIndex": 7
+              },
+              {
+                "name": "uC0",
+                "offset": 30,
+                "count": 3,
+                "bufferIndex": 4294967295
+              },
+              {
+                "name": "uC1",
+                "offset": 33,
+                "count": 3,
+                "bufferIndex": 9
+              },
+              {
+                "name": "uC2",
+                "offset": 36,
+                "count": 3,
+                "bufferIndex": 10
+              },
+              {
+                "name": "uC3",
+                "offset": 39,
+                "count": 3,
+                "bufferIndex": 11
+              }
+            ]
+          }
+        },
         "imageHashes": {}
       }
     },

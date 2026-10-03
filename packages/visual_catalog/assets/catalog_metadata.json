@@ -2,6 +2,38 @@
   "schemaVersion": 1,
   "visuals": [
     {
+      "id": "aura",
+      "name": "Aura",
+      "description": "Manchas de color melocotón, lila y azul que giran y se funden despacio con grano fino, respirando con la música.",
+      "purposes": [
+        "relax",
+        "focus",
+        "visualizer"
+      ],
+      "moods": [
+        "calm",
+        "dreamy",
+        "elegant"
+      ],
+      "concepts": [
+        "gradient",
+        "aura",
+        "blur",
+        "color"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "aurora_ribbons",
       "name": "Aurora · cintas de luz",
       "description": "Cintas de aurora suaves que se expanden con la música.",
@@ -22,6 +54,70 @@
         "author": "Chic Apps",
         "license": "Proprietary",
         "source": "Visual Studio examples"
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "bokeh_luces",
+      "name": "Bokeh",
+      "description": "Luces desenfocadas ámbar, rosa y azul que flotan a distintas profundidades y laten suavemente con la música.",
+      "purposes": [
+        "relax",
+        "visualizer",
+        "focus"
+      ],
+      "moods": [
+        "dreamy",
+        "elegant",
+        "calm"
+      ],
+      "concepts": [
+        "bokeh",
+        "lights",
+        "depth of field",
+        "glow"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "bola_discoteca",
+      "name": "Bola de Discoteca",
+      "description": "Bola de espejos que gira y lanza cientos de puntos de luz dorada, rosa y plateada que barren la sala al ritmo de la música.",
+      "purposes": [
+        "party",
+        "club",
+        "visualizer"
+      ],
+      "moods": [
+        "festive",
+        "glamorous",
+        "energetic"
+      ],
+      "concepts": [
+        "disco ball",
+        "mirror",
+        "reflections",
+        "party"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
       },
       "thumbnail": {
         "timeSeconds": 2.5
@@ -438,6 +534,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "cordillera_sonido",
+      "name": "Cordillera de Sonido",
+      "description": "La música dibuja una cordillera en 3D: cada fila es un instante de la canción y las cumbres avanzan hacia ti, al estilo Unknown Pleasures.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "iconic",
+        "minimal",
+        "epic"
+      ],
+      "concepts": [
+        "spectrum",
+        "terrain",
+        "waveform",
+        "joy division"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "cristal_prismatico",
       "name": "Cristal Prismático",
       "description": "Gema cuántica hiperfacetada con dispersión óptica arcoíris, refracción interna y caústicas que estallan al ritmo de la música.",
@@ -779,6 +907,70 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "fluido_colores",
+      "name": "Fluido de Colores",
+      "description": "Simulación de fluido real: chorros de tinta roja, violeta y menta que se arremolinan y mezclan; cada golpe lanza un chorro nuevo.",
+      "purposes": [
+        "party",
+        "visualizer",
+        "relax"
+      ],
+      "moods": [
+        "fluid",
+        "vivid",
+        "hypnotic"
+      ],
+      "concepts": [
+        "fluid simulation",
+        "ink",
+        "swirl",
+        "vorticity"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "fuegos_artificiales",
+      "name": "Fuegos Artificiales",
+      "description": "Espectáculo de fuegos artificiales sincronizado con la música: peonías, sauces dorados, anillos y chispas que estallan con cada golpe.",
+      "purposes": [
+        "party",
+        "celebration",
+        "visualizer"
+      ],
+      "moods": [
+        "festive",
+        "epic",
+        "joyful"
+      ],
+      "concepts": [
+        "fireworks",
+        "sparks",
+        "celebration",
+        "show"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -1255,6 +1447,70 @@
       "reactivity": "optional"
     },
     {
+      "id": "luz_bordes",
+      "name": "Luz de Bordes",
+      "description": "Resplandor de colores que recorre los bordes de la pantalla y se engrosa con cada banda de la música, con pulsos que corren con el ritmo.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "ambient"
+      ],
+      "moods": [
+        "modern",
+        "vivid",
+        "minimal"
+      ],
+      "concepts": [
+        "edge lighting",
+        "glow",
+        "spectrum",
+        "border"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "magnetosfera",
+      "name": "Magnetosfera",
+      "description": "Núcleos de energía naranja y azul rodeados de miles de partículas en órbita que estallan como supernovas con cada golpe.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "relax"
+      ],
+      "moods": [
+        "cosmic",
+        "hypnotic",
+        "epic"
+      ],
+      "concepts": [
+        "particles",
+        "orbits",
+        "magnetism",
+        "nebula"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "malla_ondas",
       "name": "Malla de Ondas",
       "description": "Miles de puntos azules ondulando como agua vista desde arriba.",
@@ -1619,6 +1875,38 @@
         "cubes",
         "waves",
         "geometry"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "ondas_voz",
+      "name": "Ondas de Voz",
+      "description": "Ondas luminosas rosa, azul y verde que se cruzan y bailan como las de un asistente de voz; cada banda de la música mueve su onda.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "modern",
+        "clean",
+        "vivid"
+      ],
+      "concepts": [
+        "waveform",
+        "voice",
+        "waves",
+        "glow"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -3131,6 +3419,38 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "vidrio_liquido",
+      "name": "Vidrio Líquido",
+      "description": "Gotas de vidrio líquido que se funden y se separan refractando un degradado naranja y azul, con brillos que siguen la música.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "modern",
+        "elegant",
+        "fluid"
+      ],
+      "concepts": [
+        "liquid glass",
+        "refraction",
+        "metaballs",
+        "gradient"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
