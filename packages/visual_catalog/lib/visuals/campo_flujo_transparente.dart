@@ -281,7 +281,11 @@ void main() {
   // Fondo transparente: el color va premultiplicado y la opacidad sale del
   // brillo, así la luz se compone sobre lo que haya debajo.
   col = clamp(col, 0.0, 1.0);
-  float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.25, 0.0, 1.0);
+  // La luz muy tenue se vuelve transparente del todo: sin velo sobre la app.
+  float veilPeak = max(col.r, max(col.g, col.b));
+  float clearCut = smoothstep(0.04, 0.12, veilPeak);
+  col *= clearCut;
+  float alpha = clamp(veilPeak * 1.25, 0.0, 1.0) * clearCut;
   fragColor = vec4(col, alpha);
 }
 """,

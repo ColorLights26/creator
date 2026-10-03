@@ -214,7 +214,7 @@ void main() {
   float glint = smoothstep(0.08, 0.0, length(fract(g) - 0.5)) * step(0.985 - 0.02 * uM.x, hash12(floor(g)));
   col += glint * clamp(dot(light, vec3(0.333)), 0.0, 1.0) * (0.6 + 2.0 * uM.x);
   // Estrobo del golpe y del flash.
-  col += vec3(1.0) * (uM.y * 0.12 + kick * 0.03);
+  col += vec3(1.0) * (uM.y * 0.12 + kick * 0.03) * clamp(dot(light, vec3(0.333)), 0.0, 1.0);
 
   col *= 1.0 - 0.3 * smoothstep(0.6, 1.4, length(p * vec2(0.9, 0.6)));
   col = clamp((col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14), 0.0, 1.0);
@@ -222,7 +222,11 @@ void main() {
   // Fondo transparente: el color va premultiplicado y la opacidad sale del
   // brillo, así la luz se compone sobre lo que haya debajo.
   col = clamp(col, 0.0, 1.0);
-  float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.25, 0.0, 1.0);
+  // La luz muy tenue se vuelve transparente del todo: sin velo sobre la app.
+  float veilPeak = max(col.r, max(col.g, col.b));
+  float clearCut = smoothstep(0.08, 0.2, veilPeak);
+  col *= clearCut;
+  float alpha = clamp(veilPeak * 1.25, 0.0, 1.0) * clearCut;
   fragColor = vec4(col, alpha);
 }
 """,

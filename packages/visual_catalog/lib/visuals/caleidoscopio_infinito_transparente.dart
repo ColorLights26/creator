@@ -212,13 +212,12 @@ void main() {
   // Profundidad: el centro está lejos y oscuro; lo cercano brilla más.
   col *= smoothstep(0.015, 0.35, r) * 0.85 + 0.15;
   // Núcleo de luz en el centro y anillo del golpe.
-  col += mix(tint, vec3(1.0), 0.5) * (0.0025 + 0.004 * uA.y + 0.012 * kick) / (r * r + 0.003);
+  col += mix(tint, vec3(1.0), 0.5) * (0.0025 + 0.004 * uA.y + 0.012 * kick) / (r * r + 0.003) * exp(-r * r * 6.0);
   float ring = uR.y * exp(-(r - uR.x) * (r - uR.x) * 8000.0);
   col += mix(tint2, vec3(1.0), 0.15) * ring * 1.6;
   // Centelleo de los bordes con los agudos.
   float tw = step(0.992 - 0.01 * uB.z, hash12(floor(frag * 0.5) + floor(uA.x * 6.0)));
   col += vec3(1.0) * tw * smoothstep(0.4, 0.9, lrG) * uB.z;
-  col += mix(tint, vec3(1.0), 0.6) * uS.w * 0.12;
 
   col *= 1.0 - 0.3 * smoothstep(0.6, 1.4, length(p * vec2(0.9, 0.65)));
   // Realce de croma: colores vivos aunque haya mucha luz.
@@ -229,7 +228,11 @@ void main() {
   // Fondo transparente: el color va premultiplicado y la opacidad sale del
   // brillo, así la luz se compone sobre lo que haya debajo.
   col = clamp(col, 0.0, 1.0);
-  float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.25, 0.0, 1.0);
+  // La luz muy tenue se vuelve transparente del todo: sin velo sobre la app.
+  float veilPeak = max(col.r, max(col.g, col.b));
+  float clearCut = smoothstep(0.08, 0.2, veilPeak);
+  col *= clearCut;
+  float alpha = clamp(veilPeak * 1.25, 0.0, 1.0) * clearCut;
   fragColor = vec4(col, alpha);
 }
 """,

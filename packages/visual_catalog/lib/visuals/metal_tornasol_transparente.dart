@@ -204,7 +204,7 @@ void main() {
   float s1 = pow(max(dot(n, normalize(l1 + v)), 0.0), 140.0);
   col += vec3(1.0) * s1 * (0.8 + 2.5 * uB.y);
   // Destello del golpe y del flash.
-  col += iri * kick * 0.12 + vec3(1.0) * uB.z * 0.10;
+  col += (iri * kick * 0.12 + vec3(1.0) * uB.z * 0.10) * lift;
 
   col *= 1.0 - 0.35 * smoothstep(0.5, 1.3, length(p * vec2(0.9, 0.65)));
   col = clamp((col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14), 0.0, 1.0);
@@ -212,9 +212,15 @@ void main() {
   // Fondo transparente: el color va premultiplicado y la opacidad sale del
   // brillo, así la luz se compone sobre lo que haya debajo.
   col = clamp(col, 0.0, 1.0);
-  float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.25, 0.0, 1.0);
+  // La luz muy tenue se vuelve transparente del todo: sin velo sobre la app.
+  float veilPeak = max(col.r, max(col.g, col.b));
+  float clearCut = smoothstep(0.08, 0.2, veilPeak);
+  col *= clearCut;
+  float alpha = clamp(veilPeak * 1.25, 0.0, 1.0) * clearCut;
   // Las cúpulas de metal son sólidas; sólo el fondo plano es transparente.
-  alpha = max(alpha, smoothstep(0.06, 0.14, h0));
+  float metalMask = smoothstep(0.08, 0.18, h0);
+  col *= metalMask;
+  alpha = max(alpha * metalMask, smoothstep(0.12, 0.24, h0));
   fragColor = vec4(col, alpha);
 }
 """,

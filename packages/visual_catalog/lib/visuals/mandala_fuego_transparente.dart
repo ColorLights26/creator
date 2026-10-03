@@ -213,8 +213,7 @@ void main() {
   }
 
   // Núcleo incandescente y destello del flash.
-  col += uC2 * (0.0005 + 0.003 * kick + 0.001 * bass) / (r * r + 0.0012);
-  col += uC1 * uV.w * 0.06;
+  col += uC2 * (0.0005 + 0.003 * kick + 0.001 * bass) / (r * r + 0.0012) * exp(-r * r * 10.0);
 
   col *= 1.0 - 0.35 * smoothstep(0.6, 1.4, length(p * vec2(0.9, 0.65)));
   // Mapeo de tonos que conserva el tono: comprime el brillo sin desplazar el
@@ -226,7 +225,11 @@ void main() {
   // Fondo transparente: el color va premultiplicado y la opacidad sale del
   // brillo, así la luz se compone sobre lo que haya debajo.
   col = clamp(col, 0.0, 1.0);
-  float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.25, 0.0, 1.0);
+  // La luz muy tenue se vuelve transparente del todo: sin velo sobre la app.
+  float veilPeak = max(col.r, max(col.g, col.b));
+  float clearCut = smoothstep(0.04, 0.12, veilPeak);
+  col *= clearCut;
+  float alpha = clamp(veilPeak * 1.25, 0.0, 1.0) * clearCut;
   fragColor = vec4(col, alpha);
 }
 """,

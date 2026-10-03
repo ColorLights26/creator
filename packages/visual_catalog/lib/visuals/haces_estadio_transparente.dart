@@ -191,7 +191,8 @@ vec3 beam(vec2 p, vec2 o, vec4 B, vec3 col, float haze) {
   float r = length(v);
   float a = atan(v.x, v.y) - B.x;
   a -= 6.2831853 * floor((a + 3.14159265) / 6.2831853);
-  float u = a / B.y;
+  // Haces más estrechos que en el fondo: dejan huecos transparentes entre ellos.
+  float u = a / (B.y * 0.6);
   float falloff = exp(-r * 0.55);
   float lens = 0.0007 / (r * r + 0.0007);
   vec3 lensCol = mix(col, vec3(1.0), 0.4) * lens * B.z;
@@ -202,8 +203,7 @@ vec3 beam(vec2 p, vec2 o, vec4 B, vec3 col, float haze) {
   float gobo = 0.5 + 0.5 * smoothstep(-0.3, 0.7, sin(u * 7.0 + B.w));
   float core = exp(-u * u * 2.5);
   float body = edge * (0.35 + 0.65 * core) * mix(0.3, 1.0, gobo) * haze;
-  float glow = exp(-max(au - 1.0, 0.0) * 3.0) * 0.06;
-  return col * (body * 0.5 + glow) * falloff * B.z + lensCol;
+  return col * body * 0.5 * falloff * B.z + lensCol;
 }
 
 void main() {
@@ -240,8 +240,7 @@ void main() {
   col += light * 0.03 * smoke;
   // Cegadores: filas de luz blanca arriba y abajo que estallan con el golpe.
   float edgeDist = min(abs(p.y - yt), abs(p.y - yb));
-  col += vec3(1.0, 0.96, 0.9) * uM.x * (0.6 * exp(-edgeDist * 10.0) + 0.05);
-  col += vec3(1.0) * uM.y * 0.04;
+  col += vec3(1.0, 0.96, 0.9) * uM.x * 0.6 * exp(-edgeDist * 10.0);
 
   col *= 1.0 - 0.25 * smoothstep(0.7, 1.5, length(p * vec2(0.9, 0.6)));
   col = clamp((col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14), 0.0, 1.0);
@@ -249,7 +248,11 @@ void main() {
   // Fondo transparente: el color va premultiplicado y la opacidad sale del
   // brillo, así la luz se compone sobre lo que haya debajo.
   col = clamp(col, 0.0, 1.0);
-  float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.25, 0.0, 1.0);
+  // La luz muy tenue se vuelve transparente del todo: sin velo sobre la app.
+  float veilPeak = max(col.r, max(col.g, col.b));
+  float clearCut = smoothstep(0.08, 0.2, veilPeak);
+  col *= clearCut;
+  float alpha = clamp(veilPeak * 1.25, 0.0, 1.0) * clearCut;
   fragColor = vec4(col, alpha);
 }
 """,

@@ -229,12 +229,13 @@ void main() {
   float streak = 0.55 + 0.9 * noise(vec2(atan(rel.x, -rel.y) * 30.0, t * 0.15));
   // Los haces nacen del borde del rosetón: la vidriera se ve nítida.
   rays *= streak * smoothstep(0.85, 1.15, r0);
-  float exposure = (1.1 + 1.0 * uA.z + 2.4 * kick + 2.4 * uM.y + 0.4 * uM.z) * uM.w;
+  // Rayos más suaves que en el fondo: como capa dejan ver lo que hay debajo.
+  float exposure = (1.1 + 1.0 * uA.z + 2.4 * kick + 2.4 * uM.y + 0.4 * uM.z) * uM.w * 0.5;
   col += rays * exposure;
 
   // Niebla ambiental teñida por el rosetón y polvo dentro de los haces.
-  float haze = exp(-length(rel) * 2.2);
-  col += mix(uC2, uC3, 0.5) * haze * (0.04 + 0.12 * kick);
+  float haze = exp(-length(rel) * 5.0);
+  col += mix(uC2, uC3, 0.5) * haze * (0.03 + 0.06 * kick);
   float beam = dot(rays, vec3(0.333)) * exposure;
   vec2 g = (uv + vec2(t * 0.01, t * 0.02)) * 55.0;
   vec2 id = floor(g);
@@ -250,7 +251,11 @@ void main() {
   // Fondo transparente: el color va premultiplicado y la opacidad sale del
   // brillo, así la luz se compone sobre lo que haya debajo.
   col = clamp(col, 0.0, 1.0);
-  float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.25, 0.0, 1.0);
+  // La luz muy tenue se vuelve transparente del todo: sin velo sobre la app.
+  float veilPeak = max(col.r, max(col.g, col.b));
+  float clearCut = smoothstep(0.08, 0.2, veilPeak);
+  col *= clearCut;
+  float alpha = clamp(veilPeak * 1.25, 0.0, 1.0) * clearCut;
   fragColor = vec4(col, alpha);
 }
 """,

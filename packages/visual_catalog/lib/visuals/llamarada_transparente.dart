@@ -201,7 +201,6 @@ void main() {
     col += mix(uC2, uC3, 0.7) * spray * cloud * uB.x * exp(-age * 1.6) * 3.0;
   }
 
-  col += uC3 * uX.y * 0.15;
   col *= uX.z;
   col *= 1.0 - 0.35 * smoothstep(0.5, 1.3, length(uv * vec2(0.9, 0.65)));
   col = clamp((col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14), 0.0, 1.0);
@@ -209,7 +208,11 @@ void main() {
   // Fondo transparente: el color va premultiplicado y la opacidad sale del
   // brillo, así la luz se compone sobre lo que haya debajo.
   col = clamp(col, 0.0, 1.0);
-  float alpha = clamp(max(col.r, max(col.g, col.b)) * 1.25, 0.0, 1.0);
+  // La luz muy tenue se vuelve transparente del todo: sin velo sobre la app.
+  float veilPeak = max(col.r, max(col.g, col.b));
+  float clearCut = smoothstep(0.08, 0.2, veilPeak);
+  col *= clearCut;
+  float alpha = clamp(veilPeak * 1.25, 0.0, 1.0) * clearCut;
   fragColor = vec4(col, alpha);
 }
 """,
