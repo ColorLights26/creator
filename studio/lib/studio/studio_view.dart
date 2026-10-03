@@ -132,6 +132,7 @@ class StudioView extends StatefulWidget {
 
 class _StudioViewState extends State<StudioView> {
   bool _showControls = true;
+  bool _audioDetail = false;
   StudioBackgroundMode _bgMode = StudioBackgroundMode.dark;
   StudioRoleFilter _roleFilter = StudioRoleFilter.all;
 
@@ -1209,11 +1210,6 @@ class _StudioViewState extends State<StudioView> {
             ),
           ],
         ),
-
-        const SizedBox(height: 16),
-
-        // Technical Audio / Signal Settings Section (scrollable below navigation)
-        _buildTechnicalPanel(context),
       ],
     );
   }
@@ -1326,62 +1322,48 @@ class _StudioViewState extends State<StudioView> {
               ),
           ],
         ),
-      ],
-    );
-  }
-
-  Widget _buildTechnicalPanel(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Material(
-      color: const Color(0xFF162521).withValues(alpha: 0.75),
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: const BorderSide(color: Color(0xFF28544B)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'SEÑAL DE AUDIO',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: const Color(0xFF73F572),
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            AudioSignalChart(
-              signalListenable: widget.signalListenable,
-              reactive: widget.reactive,
-              playing: widget.playing,
-              muted: widget.muted,
-            ),
-            const SizedBox(height: 4),
-            SwitchListTile.adaptive(
-              key: const ValueKey('reaction-switch'),
-              contentPadding: EdgeInsets.zero,
-              title: const Text(
-                'Reaccionar a la señal musical',
-                style: TextStyle(color: Colors.white, fontSize: 14),
-              ),
-              value: widget.reactive,
-              onChanged: widget.loading || !widget.reactionEnabled
-                  ? null
-                  : widget.onReactiveChanged,
-            ),
-          ],
+        const SizedBox(height: 8),
+        // The signal lives with the track picker: tap for the detail.
+        GestureDetector(
+          key: const ValueKey('audio-strip'),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => setState(() => _audioDetail = !_audioDetail),
+          child: AudioSignalChart(
+            compact: true,
+            expanded: _audioDetail,
+            label: widget.sources
+                .where((source) => source.id == widget.selectedSourceId)
+                .firstOrNull
+                ?.label,
+            signalListenable: widget.signalListenable,
+            reactive: widget.reactive,
+            playing: widget.playing,
+            muted: widget.muted,
+          ),
         ),
-      ),
+        if (_audioDetail) ...[
+          const SizedBox(height: 8),
+          AudioSignalChart(
+            signalListenable: widget.signalListenable,
+            reactive: widget.reactive,
+            playing: widget.playing,
+            muted: widget.muted,
+          ),
+          SwitchListTile.adaptive(
+            key: const ValueKey('reaction-switch'),
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            title: const Text(
+              'Reaccionar a la señal musical',
+              style: TextStyle(color: Colors.white, fontSize: 14),
+            ),
+            value: widget.reactive,
+            onChanged: widget.loading || !widget.reactionEnabled
+                ? null
+                : widget.onReactiveChanged,
+          ),
+        ],
+      ],
     );
   }
 

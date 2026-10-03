@@ -134,6 +134,13 @@ void main() {
       );
       expect(surface.contains(controls.topLeft), isTrue);
       expect(controls.bottom, lessThanOrEqualTo(size.height - 34));
+      // The detailed signal (and its switch) opens from the strip; the view
+      // keeps it open across the sizes of this loop.
+      if (find.byKey(const ValueKey('reaction-switch')).evaluate().isEmpty) {
+        await tester.ensureVisible(find.byKey(const ValueKey('audio-strip')));
+        await tester.tap(find.byKey(const ValueKey('audio-strip')));
+        await tester.pump();
+      }
       await tester.ensureVisible(find.byKey(const ValueKey('reaction-switch')));
       await tester.pump();
       expect(tester.takeException(), isNull);
@@ -417,6 +424,9 @@ void main() {
       await _flush(tester);
       expect(controller.resets, hasLength(1));
       expect(controller.signals.any((s) => s.sessionId > 1), isTrue);
+      await tester.ensureVisible(find.byKey(const ValueKey('audio-strip')));
+      await tester.tap(find.byKey(const ValueKey('audio-strip')));
+      await tester.pump();
       await tester.ensureVisible(find.byKey(const ValueKey('reaction-switch')));
       await tester.tap(find.byKey(const ValueKey('reaction-switch')));
       await _flush(tester);

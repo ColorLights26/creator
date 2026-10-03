@@ -58,6 +58,16 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('audio-chip-silence')));
     expect(mutedToggles, 1);
 
+    // The live strip sits right under the tracks; tap opens the detail.
+    expect(find.byKey(const ValueKey('audio-strip')), findsOneWidget);
+    expect(find.byKey(const ValueKey('reaction-switch')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('audio-strip')));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('reaction-switch')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('audio-strip')));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('reaction-switch')), findsNothing);
+
     // While in silence, picking a track brings the music back.
     await tester.pumpWidget(studio(muted: true));
     await tester.tap(find.byKey(const ValueKey('audio-chip-0')));

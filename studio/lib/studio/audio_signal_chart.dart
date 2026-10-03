@@ -22,6 +22,9 @@ class AudioSignalChart extends StatefulWidget {
     this.playing = true,
     this.muted = false,
     this.initialMode = AudioChartMode.waveform,
+    this.compact = false,
+    this.label,
+    this.expanded = false,
     super.key,
   });
 
@@ -30,6 +33,15 @@ class AudioSignalChart extends StatefulWidget {
   final bool playing;
   final bool muted;
   final AudioChartMode initialMode;
+
+  /// A slim live strip of bars (for the track picker) instead of the chart.
+  final bool compact;
+
+  /// Name of the track playing, shown on the strip.
+  final String? label;
+
+  /// Whether the detailed chart is open below the strip (chevron direction).
+  final bool expanded;
 
   @override
   State<AudioSignalChart> createState() => _AudioSignalChartState();
@@ -42,6 +54,13 @@ class _AudioSignalChartState extends State<AudioSignalChart>
   final List<double> _waveformHistory = List<double>.filled(64, 0.0, growable: true);
   double _energy = 0.0;
   bool _isBeat = false;
+  // Level over time for the compact strip: one sample every 100 ms, about
+  // five seconds visible, so build-ups, drops and silences read at a glance.
+  static const _historyStep = Duration(milliseconds: 100);
+  final List<double> _levelHistory = List<double>.filled(48, 0.0, growable: true);
+  final List<bool> _beatHistory = List<bool>.filled(48, false, growable: true);
+  DateTime _lastSample = DateTime.fromMillisecondsSinceEpoch(0);
+  bool _beatSinceSample = false;
   double _wavePhase = 0.0;
   // Sólo corre mientras las barras se desvanecen; con señal activa cada
   // fotograma recibido redibuja, y en reposo no se piden fotogramas.
@@ -96,6 +115,18 @@ class _AudioSignalChartState extends State<AudioSignalChart>
 
     _energy = frame.dynamics.isNotEmpty ? frame.dynamics[0].clamp(0.0, 1.0) : 0.0;
     _isBeat = frame.beat.active || frame.impact.active;
+    _beatSinceSample = _beatSinceSample || _isBeat;
+    final now = DateTime.now();
+    if (now.difference(_lastSample) >= _historyStep) {
+      _lastSample = now;
+      _levelHistory
+        ..removeAt(0)
+        ..add(_energy);
+      _beatHistory
+        ..removeAt(0)
+        ..add(_beatSinceSample);
+      _beatSinceSample = false;
+    }
 
     // Advance synthetic waveform point based on real signal dynamics & frequency
     final bass = frame.channels.isNotEmpty ? frame.channels[0] : _energy;
@@ -139,6 +170,15 @@ class _AudioSignalChartState extends State<AudioSignalChart>
     } else {
       _energy = 0.0;
     }
+    for (var i = 0; i < _levelHistory.length; i++) {
+      if (_levelHistory[i] > 0.005) {
+        _levelHistory[i] *= 0.90;
+        changed = true;
+      } else {
+        _levelHistory[i] = 0.0;
+        _beatHistory[i] = false;
+      }
+    }
     if (!changed) {
       _ticker.stop();
     } else if (mounted) {
@@ -180,6 +220,7 @@ class _AudioSignalChartState extends State<AudioSignalChart>
   Widget build(BuildContext context) {
     final frame = widget.signalListenable?.value;
     final active = widget.playing && widget.reactive && !widget.muted && frame != null && frame.musicActive;
+    if (widget.compact) return _buildStrip(active);
 
     return Container(
       height: 104,
@@ -387,6 +428,152 @@ class _AudioSignalChartState extends State<AudioSignalChart>
       ),
     );
   }
+}
+
+extension on _AudioSignalChartState {
+  Widget _buildStrip(bool active) {
+    final (status, statusColor) = widget.muted
+        ? ('Silencio', const Color(0xFFFF9F0A))
+        : !widget.reactive
+        ? ('No reacciona', Colors.white38)
+        : !widget.playing
+        ? ('Pausa', Colors.white38)
+        : active
+        ? (
+          '${widget.label ?? 'Música'} · ${(_energy * 100).round()}%',
+          Colors.white,
+        )
+        : (widget.label ?? 'Música', Colors.white60);
+    return Container(
+      key: const ValueKey('audio-strip-body'),
+      height: 46,
+      decoration: BoxDecoration(
+        color: const Color(0xFF0D1714).withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: active
+              ? const Color(0xFF73F572).withValues(alpha: _isBeat ? 0.9 : 0.4)
+              : Colors.white12,
+        ),
+        boxShadow: [
+          if (active && _isBeat)
+            BoxShadow(
+              color: const Color(0xFFF33D98).withValues(alpha: 0.25),
+              blurRadius: 14,
+            ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(10, 7, 10, 7),
+              child: CustomPaint(
+                painter: _AudioHistoryPainter(
+                  levels: _levelHistory,
+                  beats: _beatHistory,
+                  active: active,
+                  muted: widget.muted,
+                ),
+              ),
+            ),
+          ),
+          // Over the oldest samples: the newest (right) stay visible.
+          Positioned(
+            left: 6,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(8, 3, 4, 3),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.65),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      status,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: statusColor,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                    Icon(
+                      widget.expanded
+                          ? Icons.expand_less_rounded
+                          : Icons.expand_more_rounded,
+                      size: 16,
+                      color: Colors.white54,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The compact strip: the music level over the last seconds, newest on the
+/// right, beats lit in pink. Shows change over time, not the instant.
+class _AudioHistoryPainter extends CustomPainter {
+  _AudioHistoryPainter({
+    required this.levels,
+    required this.beats,
+    required this.active,
+    required this.muted,
+  });
+
+  final List<double> levels;
+  final List<bool> beats;
+  final bool active;
+  final bool muted;
+
+  static const _beatColor = Color(0xFFF33D98);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty || levels.isEmpty) return;
+    const gap = 2.0;
+    final count = levels.length;
+    final barWidth = math.max(1.5, (size.width - gap * (count - 1)) / count);
+    // Older samples fade to the left, so the eye reads time flowing.
+    final shader = const LinearGradient(
+      colors: [Color(0x5573F572), Color(0xFF73F572), Color(0xFF38E1FF)],
+      stops: [0.0, 0.55, 1.0],
+    ).createShader(Offset.zero & size);
+    final levelPaint = Paint()
+      ..shader = active ? shader : null
+      ..color = active
+          ? Colors.white
+          : muted
+          ? const Color(0xFFFF9F0A).withValues(alpha: 0.55)
+          : Colors.white.withValues(alpha: 0.18);
+    final beatPaint = Paint()..color = _beatColor;
+    for (var i = 0; i < count; i++) {
+      final raw = levels[i].clamp(0.0, 1.0);
+      final level = math.min(1.0, math.pow(raw, 0.6) * 1.1);
+      final height = math.max(3.0, level * size.height);
+      final x = i * (barWidth + gap);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(x, size.height - height, barWidth, height),
+          Radius.circular(barWidth / 2),
+        ),
+        active && beats[i] ? beatPaint : levelPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _AudioHistoryPainter oldDelegate) => true;
 }
 
 class _AudioLinePainter extends CustomPainter {
