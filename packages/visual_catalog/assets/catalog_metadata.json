@@ -374,6 +374,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "cimatica_transparente",
+      "name": "Cimática Transparente",
+      "description": "El sonido hecho visible: arena luminosa que vibra sobre una placa y forma figuras geométricas que cambian con la música sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "relax"
+      ],
+      "moods": [
+        "hypnotic",
+        "epic",
+        "scientific"
+      ],
+      "concepts": [
+        "cymatics",
+        "chladni",
+        "sand",
+        "particles"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "constelacion_viva",
       "name": "Constelación Táctil",
       "description": "Constelación 3D de estrellas luminosas unidas por líneas de luz con pulsos de energía; estalla y se expande con cada golpe.",
@@ -835,6 +867,37 @@
       "reactivity": "optional"
     },
     {
+      "id": "globo_tesla_transparente",
+      "name": "Globo Tesla Transparente",
+      "description": "Lámpara de plasma cuyos filamentos siguen el espectro y saltan a nuevas posiciones con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "electric",
+        "energetic",
+        "mysterious"
+      ],
+      "concepts": [
+        "plasma globe",
+        "electricity",
+        "tesla",
+        "lightning"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "golden_particles_scene",
       "name": "Golden Drift",
       "description": "Escena programable de ejemplo; pendiente de revisión para producción.",
@@ -1160,6 +1223,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "lluvia_cinetica_transparente",
+      "name": "Lluvia Cinética Transparente",
+      "description": "Cientos de gotas de cobre suspendidas en 3D que suben y bajan juntas formando olas, espirales y cúpulas al ritmo de la música sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "hypnotic",
+        "elegant",
+        "epic"
+      ],
+      "concepts": [
+        "kinetic sculpture",
+        "droplets",
+        "3d",
+        "waves"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "malla_ondas",
       "name": "Malla de Ondas",
       "description": "Miles de puntos azules ondulando como agua vista desde arriba.",
@@ -1413,6 +1508,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "muro_cinetico_transparente",
+      "name": "Muro Cinético Transparente",
+      "description": "Pared de miles de plaquitas de plata que se mecen como con viento; olas de luz verde menta la recorren y cada golpe es una ráfaga que la hace destellar sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "shimmering",
+        "elegant",
+        "hypnotic"
+      ],
+      "concepts": [
+        "kinetic facade",
+        "wind",
+        "metal",
+        "reflections"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "nebulosa_viva",
       "name": "Nebulosa Viva",
       "description": "Nebulosa volumétrica iluminada desde dentro: cada golpe enciende su estrella y lanza una onda de choque a través del gas.",
@@ -1535,6 +1662,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "pantalla_led_transparente",
+      "name": "Pantalla LED Transparente",
+      "description": "Pared de LEDs de concierto en rojo y blanco: anillos, barridos, barras del espectro y estrobos que cambian con cada compás sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "visualizer",
+        "club"
+      ],
+      "moods": [
+        "energetic",
+        "epic",
+        "stage"
+      ],
+      "concepts": [
+        "led wall",
+        "stage",
+        "pixels",
+        "strobe"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
