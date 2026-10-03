@@ -102,6 +102,7 @@ class StudioView extends StatefulWidget {
     this.voteFilters = const [],
     this.selectedVoteFilter,
     this.onVoteFilterChanged,
+    this.onListEnd,
     super.key,
   });
 
@@ -145,6 +146,10 @@ class StudioView extends StatefulWidget {
   final List<StudioFilterOption> voteFilters;
   final String? selectedVoteFilter;
   final ValueChanged<String>? onVoteFilterChanged;
+
+  /// "Siguiente" with nothing else in the filter (for example, everything
+  /// was voted). Null keeps it on the visual on screen.
+  final VoidCallback? onListEnd;
 
   @override
   State<StudioView> createState() => _StudioViewState();
@@ -260,6 +265,10 @@ class _StudioViewState extends State<StudioView> {
     final currentId = widget.selectedVisualId;
     final viewIndex = view.indexWhere((v) => v.id == currentId);
     if (viewIndex >= 0) {
+      if (view.length == 1 && widget.onListEnd != null) {
+        widget.onListEnd!();
+        return;
+      }
       final nextIndex = (viewIndex + 1) % view.length;
       widget.onSelectVisual(view[nextIndex].id);
     } else {

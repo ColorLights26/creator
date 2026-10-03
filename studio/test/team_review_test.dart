@@ -701,6 +701,105 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('finishing the votes ends in a summary, not a dead end', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final client = _FakeClient();
+    TeamRating vote(CreatorVisualDefinition visual, String who, int score) =>
+        TeamRating(
+          visualId: visual.id,
+          revision: visualRevision(visual),
+          reviewerId: who,
+          reviewerName: who == 'f' ? 'Franco' : 'Katy',
+          score: score,
+        );
+    client.stored.addAll([
+      vote(_aurora, 'k', 9),
+      vote(_plasma, 'k', 6),
+      vote(_tides, 'k', 2),
+    ]);
+    final review = TeamReviewController(
+      client: client,
+      store: _MemoryStore('clr_franco'),
+    );
+    final compositor = _Controller();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CreatorStudio(
+          catalogBuilder: () => [_aurora, _plasma, _tides],
+          controllerFactory: () => compositor,
+          recordingsLoader: () async => [],
+          thumbnailBuilder: (_, _) => const SizedBox(),
+          teamReview: review,
+        ),
+      ),
+    );
+    Future<void> settle() async {
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+    }
+
+    await settle();
+    // Franco votes two of three, then filters what is left to vote.
+    for (final (visual, score) in [(_aurora, 8), (_plasma, 5)]) {
+      await review.rate(
+        visualId: visual.id,
+        visualName: visual.name,
+        revision: visualRevision(visual),
+        score: score,
+      );
+    }
+    await tester.tap(find.byKey(const ValueKey('role-filter-button')));
+    await settle();
+    await tester.tap(find.byKey(const ValueKey('vote-filter-toVote')));
+    await settle();
+    expect(compositor.visuals.last, 'mareas_test');
+
+    // Votes the last one; "Siguiente" has nowhere left to go.
+    await review.rate(
+      visualId: _tides.id,
+      visualName: _tides.name,
+      revision: visualRevision(_tides),
+      score: 4,
+    );
+    await settle();
+    final next = find.text('SIGUIENTE VISUAL');
+    await tester.ensureVisible(next);
+    await tester.pump();
+    await tester.tap(next);
+    await settle();
+    expect(find.byKey(const ValueKey('team-voting-summary')), findsOneWidget);
+    expect(find.text('¡Votaste todo!'), findsOneWidget);
+    expect(find.text('Ir al siguiente por votar'), findsNothing);
+    // Aurora 8.5 approved, Plasma 5.5 with potential, Mareas 3 discarded.
+    expect(find.byKey(const ValueKey('team-summary-best-aurora')), findsOne);
+
+    final all = find.byKey(const ValueKey('team-summary-all'));
+    await tester.ensureVisible(all);
+    await tester.pump();
+    await tester.tap(all);
+    await settle();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byKey(const ValueKey('team-voting-summary')), findsNothing);
+    expect(find.text('01 / 03'), findsNothing);
+    expect(find.text('03 / 03'), findsOneWidget);
+
+    // From the panel, "Todo votado" opens the same summary.
+    final finished = find.byKey(const ValueKey('team-rating-finished'));
+    await tester.ensureVisible(finished);
+    await tester.pump();
+    await tester.tap(finished);
+    await settle();
+    expect(find.text('¡Votaste todo!'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 50));
+  });
+
   testWidgets('the top filter shows visuals by how the vote is going', (
     tester,
   ) async {

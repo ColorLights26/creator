@@ -15,6 +15,7 @@ import '../team_review/team_ranking.dart';
 import '../team_review/team_ranking_screen.dart';
 import '../team_review/team_rating_panel.dart';
 import '../team_review/team_review_controller.dart';
+import '../team_review/team_voting_summary.dart';
 import '../team_review/team_vote_filter.dart';
 import '../team_review/visual_revision.dart';
 import 'studio_view.dart';
@@ -312,28 +313,54 @@ class _CreatorStudioState extends State<CreatorStudio>
       ],
       onSelectVisual: _selectVisual,
       onOpenRanking: () => unawaited(_openRanking(review)),
+      onFinished: () => unawaited(_openSummary(review)),
     );
   }
 
+  List<TeamRankingEntry> get _rankingEntries => [
+    for (final visual in _catalog)
+      TeamRankingEntry(
+        id: visual.id,
+        name: visual.name,
+        revision: _revisions[visual.id]!,
+      ),
+  ];
+
   Future<void> _openRanking(TeamReviewController review) async {
-    final entries = [
-      for (final visual in _catalog)
-        TeamRankingEntry(
-          id: visual.id,
-          name: visual.name,
-          revision: _revisions[visual.id]!,
-        ),
-    ];
     final chosen = await Navigator.of(context).push<String>(
       MaterialPageRoute(
         builder: (context) => TeamRankingScreen(
           controller: review,
-          entries: entries,
+          entries: _rankingEntries,
           onOpenVisual: (id) => Navigator.of(context).pop(id),
         ),
       ),
     );
     if (chosen != null && !_disposed) _selectVisual(chosen);
+  }
+
+  /// The end of a round: nothing left in the filter, or everything voted.
+  Future<void> _openSummary(TeamReviewController review) async {
+    final choice = await Navigator.of(context).push<TeamSummaryChoice>(
+      MaterialPageRoute(
+        builder: (context) => TeamVotingSummaryScreen(
+          controller: review,
+          entries: _rankingEntries,
+        ),
+      ),
+    );
+    if (choice == null || _disposed) return;
+    switch (choice.action) {
+      case TeamSummaryAction.ranking:
+        await _openRanking(review);
+      case TeamSummaryAction.allVisuals:
+        _setVoteFilter(TeamVoteFilter.all.name);
+      case TeamSummaryAction.nextToVote:
+        // Switching to "Por votar" lands on the first visual left to vote.
+        _setVoteFilter(TeamVoteFilter.toVote.name);
+      case TeamSummaryAction.openVisual:
+        _selectVisual(choice.visualId);
+    }
   }
 
   @override
@@ -644,6 +671,11 @@ class _CreatorStudioState extends State<CreatorStudio>
             ],
       selectedVoteFilter: _voteFilter.name,
       onVoteFilterChanged: _setVoteFilter,
+      onListEnd: switch (widget.teamReview) {
+        final TeamReviewController review => () =>
+            unawaited(_openSummary(review)),
+        null => null,
+      },
       visuals: [
         for (final index in shown)
           StudioVisualItem(

@@ -241,7 +241,9 @@ Te la da el responsable.
 4. Las notas de los demás aparecen cuando votas tú, para que nadie influya en
    nadie. Con el globo de diálogo puedes dejar un comentario.
 5. **Faltan N** te lleva al siguiente visual que todavía no votaste. Se salta
-   los que el equipo ya dejó en Descarte total.
+   los que el equipo ya dejó en Descarte total. Cuando ya no queda nada,
+   **Siguiente visual** (o **Todo votado**) abre el **resumen final**: tus
+   votos, tu promedio y cómo quedó el equipo.
 6. El botón de barras verdes abre el **ranking del equipo**: la tabla con todos los
    visuales, la nota de cada persona, el promedio y el estado. Toca una fila para
    abrir ese visual.

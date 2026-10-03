@@ -34,6 +34,7 @@ class TeamRatingPanel extends StatefulWidget {
     required this.queue,
     required this.onSelectVisual,
     this.onOpenRanking,
+    this.onFinished,
     super.key,
   });
 
@@ -46,6 +47,9 @@ class TeamRatingPanel extends StatefulWidget {
 
   /// Opens the whole team table (every visual, every voter).
   final VoidCallback? onOpenRanking;
+
+  /// Opens the closing summary once nothing is left to vote.
+  final VoidCallback? onFinished;
 
   @override
   State<TeamRatingPanel> createState() => _TeamRatingPanelState();
@@ -456,13 +460,27 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
     ];
     final others = unrated.where((candidate) => candidate.id != visualId);
     if (others.isEmpty) {
-      return Text(
-        unrated.isEmpty ? '✓ Todo votado' : 'Último por votar',
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          color: _accent,
+      const style = TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w800,
+        color: _accent,
+      );
+      if (unrated.isNotEmpty || widget.onFinished == null) {
+        return Text(
+          unrated.isEmpty ? '✓ Todo votado' : 'Último por votar',
+          style: style,
+        );
+      }
+      return TextButton.icon(
+        key: const ValueKey('team-rating-finished'),
+        onPressed: widget.onFinished,
+        style: TextButton.styleFrom(
+          foregroundColor: _accent,
+          visualDensity: VisualDensity.compact,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
         ),
+        icon: const Icon(Icons.verified_rounded, size: 16),
+        label: const Text('Todo votado', style: style),
       );
     }
     final current = queue.indexWhere((candidate) => candidate.id == visualId);
