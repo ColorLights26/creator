@@ -440,6 +440,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "cristales_polarizados",
+      "name": "Cristales Polarizados",
+      "description": "Cristales que crecen como flores bajo luz polarizada, con colores de interferencia intensos y cruces oscuras que giran con la música.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "hypnotic",
+        "vivid",
+        "scientific"
+      ],
+      "concepts": [
+        "crystals",
+        "polarized light",
+        "microscope",
+        "growth"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 4.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "cromo_liquido",
       "name": "Cromo Líquido",
       "description": "Gotas de metal fundido en violeta y rosa flotando sobre fondo oscuro.",
@@ -1096,6 +1128,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "lluvia_cinetica",
+      "name": "Lluvia Cinética",
+      "description": "Cientos de gotas de cobre suspendidas en 3D que suben y bajan juntas formando olas, espirales y cúpulas al ritmo de la música.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "hypnotic",
+        "elegant",
+        "epic"
+      ],
+      "concepts": [
+        "kinetic sculpture",
+        "droplets",
+        "3d",
+        "waves"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "malla_ondas",
       "name": "Malla de Ondas",
       "description": "Miles de puntos azules ondulando como agua vista desde arriba.",
@@ -1317,6 +1381,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "muro_cinetico",
+      "name": "Muro Cinético",
+      "description": "Pared de miles de plaquitas de plata que se mecen como con viento; olas de luz verde menta la recorren y cada golpe es una ráfaga que la hace destellar.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "shimmering",
+        "elegant",
+        "hypnotic"
+      ],
+      "concepts": [
+        "kinetic facade",
+        "wind",
+        "metal",
+        "reflections"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "nebulosa_viva",
       "name": "Nebulosa Viva",
       "description": "Nebulosa volumétrica iluminada desde dentro: cada golpe enciende su estrella y lanza una onda de choque a través del gas.",
@@ -1364,6 +1460,38 @@
         "city",
         "rain",
         "neon"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "olas_cubos",
+      "name": "Olas de Cubos",
+      "description": "Tablero isométrico de cubos de marfil y coral que suben y bajan en ondas hipnóticas; cada golpe lanza una ola desde el centro.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "hypnotic",
+        "clean",
+        "modern"
+      ],
+      "concepts": [
+        "isometric",
+        "cubes",
+        "waves",
+        "geometry"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -1533,6 +1661,38 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "polvo_colores",
+      "name": "Polvo de Colores",
+      "description": "Explosiones de polvo de colores en cámara súper lenta: cada golpe lanza una nube fucsia, mandarina o lima que se expande y se mezcla sobre negro.",
+      "purposes": [
+        "party",
+        "visualizer",
+        "festival"
+      ],
+      "moods": [
+        "explosive",
+        "vivid",
+        "epic"
+      ],
+      "concepts": [
+        "powder",
+        "holi",
+        "explosion",
+        "clouds"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
