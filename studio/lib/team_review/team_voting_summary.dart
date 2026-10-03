@@ -102,17 +102,21 @@ class TeamVotingSummaryScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              Row(
-                children: [
-                  _stat('Tus votos', '${mine.length}'),
-                  const SizedBox(width: 10),
-                  _stat('Tu promedio', _average(mine)),
-                  const SizedBox(width: 10),
-                  _stat(
-                    'Promedio del equipo',
-                    ranking.overallAverage?.toStringAsFixed(1) ?? '—',
-                  ),
-                ],
+              // Equal boxes even when a label takes two lines.
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _stat('Tus votos', '${mine.length}'),
+                    const SizedBox(width: 10),
+                    _stat('Tu promedio', _average(mine)),
+                    const SizedBox(width: 10),
+                    _stat(
+                      'Promedio del equipo',
+                      ranking.overallAverage?.toStringAsFixed(1) ?? '—',
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
               _heading('CÓMO VA EL EQUIPO'),
@@ -217,6 +221,7 @@ class TeamVotingSummaryScreen extends StatelessWidget {
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             value,
