@@ -129,6 +129,7 @@ class _CreatorStudioState extends State<CreatorStudio>
   /// What the compositor shows for the selected visual, and its seed (null
   /// for the recording's).
   AdjustmentValues? _sent;
+  List<int>? _sentPalette;
   int? _appliedSeed;
   bool _adjusting = false;
   bool _adjustmentsDirty = false;
@@ -516,6 +517,7 @@ class _CreatorStudioState extends State<CreatorStudio>
     _loading = true;
     _error = null;
     _sent = null;
+    _sentPalette = null;
     _stopBasicsTween();
     final session = _sessionFor(visual);
     _appliedSeed = session.seed;
@@ -538,8 +540,12 @@ class _CreatorStudioState extends State<CreatorStudio>
       if (!mapEquals(shown.modifiers, session.original.modifiers)) {
         await _controller.setModifiers(shown.modifiers);
       }
+      if (session.shownPalette case final List<int> palette) {
+        await _controller.setPalette(palette);
+      }
       if (!_isCurrent(revision)) return;
       _sent = shown;
+      _sentPalette = session.shownPalette;
       await _controller.setReactive(_effectiveReaction);
       _replayElapsed = Duration.zero;
       _tickerStartElapsed = Duration.zero;
@@ -661,7 +667,14 @@ class _CreatorStudioState extends State<CreatorStudio>
           if (!mapEquals(next.modifiers, sent.modifiers)) {
             await _controller.setModifiers(next.modifiers);
           }
-          if (_isCurrent(revision) && _selectedId == visualId) _sent = next;
+          final palette = session.shownPalette;
+          if (!listEquals(palette, _sentPalette)) {
+            await _controller.setPalette(palette);
+          }
+          if (_isCurrent(revision) && _selectedId == visualId) {
+            _sent = next;
+            _sentPalette = palette;
+          }
         }
       } finally {
         _adjusting = false;

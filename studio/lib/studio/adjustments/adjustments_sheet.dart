@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'adjustment_session.dart';
 import 'modifier_row.dart';
+import 'palette_row.dart';
 import 'personal_variations.dart';
 import 'variation_chips.dart';
 
@@ -72,14 +73,23 @@ class _AdjustmentsSheetState extends State<_AdjustmentsSheet> {
     final name = PersonalVariations.nextName(_personal);
     HapticFeedback.selectionClick();
     unawaited(
-      _savePersonal([..._personal, (name: name, values: _session.current)]),
+      _savePersonal([
+        ..._personal,
+        (name: name, values: _session.current, palette: _session.palette),
+      ]),
     );
-    _session.apply(name, _session.current);
+    _session.apply(name, _session.current, palette: _session.palette);
   }
 
-  Future<void> _copyForAi(String name, AdjustmentValues values) async {
+  Future<void> _copyForAi(
+    String name,
+    AdjustmentValues values,
+    List<int>? palette,
+  ) async {
     await Clipboard.setData(
-      ClipboardData(text: variationForAi(_session.visual, name, values)),
+      ClipboardData(
+        text: variationForAi(_session.visual, name, values, palette: palette),
+      ),
     );
     if (!mounted) return;
     ScaffoldMessenger.maybeOf(context)?.showSnackBar(
@@ -119,7 +129,7 @@ class _AdjustmentsSheetState extends State<_AdjustmentsSheet> {
     if (!mounted || action == null) return;
     switch (action) {
       case 'copy':
-        await _copyForAi(variation.name, variation.values);
+        await _copyForAi(variation.name, variation.values, variation.palette);
       case 'delete':
         await _savePersonal([
           for (final item in _personal)
@@ -132,7 +142,7 @@ class _AdjustmentsSheetState extends State<_AdjustmentsSheet> {
         await _savePersonal([
           for (final item in _personal)
             item.name == variation.name
-                ? (name: name, values: item.values)
+                ? (name: name, values: item.values, palette: item.palette)
                 : item,
         ]);
     }
@@ -238,6 +248,7 @@ class _AdjustmentsSheetState extends State<_AdjustmentsSheet> {
                                       ? PersonalVariations.nextName(_personal)
                                       : _session.chip!,
                                   _session.current,
+                                  _session.palette,
                                 ),
                               );
                           }
@@ -271,15 +282,20 @@ class _AdjustmentsSheetState extends State<_AdjustmentsSheet> {
                     personal: _personal,
                     onSave:
                         _personal.length < personalVariationLimit &&
-                                !sameAdjustmentValues(
-                                  _session.current,
-                                  _session.original,
-                                )
+                                (_session.palette != null ||
+                                    !sameAdjustmentValues(
+                                      _session.current,
+                                      _session.original,
+                                    ))
                             ? _saveCurrent
                             : null,
                     onPersonalMenu:
                         (variation) => unawaited(_personalMenu(variation)),
                   ),
+                  if (_session.recolorable) ...[
+                    const SizedBox(height: 8),
+                    PaletteRow(session: _session),
+                  ],
                   const SizedBox(height: 8),
                   Row(
                     children: [

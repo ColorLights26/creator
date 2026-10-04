@@ -191,6 +191,10 @@ const creatorReservedModifierIds = {
   'seed',
   'modifiers',
   'glide',
+  'color0',
+  'color1',
+  'color2',
+  'color3',
   'alignas',
   'alignof',
   'and',
@@ -290,6 +294,16 @@ const creatorReservedModifierIds = {
   'stdout',
   'stderr',
 };
+
+/// A palette that may replace [visual]'s four colors live (Studio's palette
+/// row): four ARGB colors, only for native visuals.
+void validateCreatorPalette(CreatorVisualDefinition visual, List<int> palette) {
+  if (!visual.isNative ||
+      palette.length != 4 ||
+      !palette.every((color) => color >= 0 && color <= 0xffffffff)) {
+    throw ArgumentError('A live palette is four ARGB colors of a native visual.');
+  }
+}
 
 /// At most this many modifiers per visual; the engine reserves the slots.
 const creatorMaximumModifiers = 8;
@@ -410,10 +424,12 @@ class CreatorVisualDefinition {
     int? qaSessionSeed,
     CreatorControls? liveControls,
     Map<String, double>? liveModifiers,
+    List<int>? livePalette,
   }) {
     final effectiveControls = liveControls ?? controls;
     effectiveControls.validate();
     final effectiveModifiers = resolveModifiers(liveModifiers);
+    if (livePalette != null) validateCreatorPalette(this, livePalette);
     if (!width.isFinite ||
         !height.isFinite ||
         width <= 0 ||
@@ -469,6 +485,9 @@ class CreatorVisualDefinition {
               'options': {
                 ...effectiveControls.toMap(),
                 ...effectiveModifiers,
+                // Only while a live palette replaces the catalog colors.
+                if (livePalette != null)
+                  for (var i = 0; i < 4; i++) 'color$i': livePalette[i],
                 'Music Reactive': reactive,
               },
             },

@@ -25,16 +25,27 @@ final class SceneCreatorNativeScene {
     "instance": String(describing: instance), "updates": updates,
     "simulationAverageMicros": updateTotal / Double(max(1, updates)), "simulationMaximumMicros": updateMaximum] }
 
+  /// Optional live palette (Studio): four ARGB colors in place of the
+  /// catalog's. Documents without them produce exactly the catalog colors.
+  static let paletteKeys = ["color0", "color1", "color2", "color3"]
+
   static func controls(program: SceneCreatorCatalog.Program, options: [String: Any], mode: String?, reactive: Bool) -> [Float]? {
     let declared = Set(program.modifiers.map(\.id))
     guard program.isNative, program.allows(reactive: reactive), mode == nil || mode == "default",
-      Set(options.keys).isSubset(of: Set(SceneCreatorCatalog.controlRanges.keys).union(declared).union(["Music Reactive"])) else { return nil }
+      Set(options.keys).isSubset(of: Set(SceneCreatorCatalog.controlRanges.keys).union(declared)
+        .union(paletteKeys).union(["Music Reactive"])) else { return nil }
     var values = program.controls
+    var colors = program.colors
     var modifiers = [String: Float]()
     for modifier in program.modifiers { modifiers[modifier.id] = modifier.value }
     for (key, raw) in options {
       if key == "Music Reactive" {
         guard let number = raw as? NSNumber, CFGetTypeID(number) == CFBooleanGetTypeID(), number.boolValue == reactive else { return nil }
+      } else if let slot = paletteKeys.firstIndex(of: key) {
+        guard let number = raw as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(),
+          let argb = UInt32(exactly: number.doubleValue) else { return nil }
+        colors.replaceSubrange(slot * 4..<slot * 4 + 4, with: [Float((argb >> 16) & 255), Float((argb >> 8) & 255),
+          Float(argb & 255), Float(argb >> 24)].map { $0 / 255 })
       } else if let modifier = program.modifiers.first(where: { $0.id == key }) {
         let candidate: Float
         if let flag = raw as? NSNumber, CFGetTypeID(flag) == CFBooleanGetTypeID() {
@@ -51,7 +62,7 @@ final class SceneCreatorNativeScene {
         values[key] = Float(value)
       }
     }
-    return ["intensity", "speed", "detail", "glow"].map { values[$0]! } + program.colors +
+    return ["intensity", "speed", "detail", "glow"].map { values[$0]! } + colors +
       program.modifiers.map { modifiers[$0.id]! }
   }
 
@@ -101,7 +112,9 @@ final class SceneCreatorNativeScene {
     let count = Int(cp_command_length(instance))
     guard count <= 262144 else { throw SceneCreatorFailure("Native command budget exceeded") }
     let commands = UnsafeBufferPointer(start: cp_commands(instance), count: count)
-    return try renderer.render(commands: commands, size: size, width: width, height: height, outputAllocator: outputAllocator)
+    // The background fill follows a live palette (the first color, options 4...6).
+    return try renderer.render(commands: commands, size: size, width: width, height: height,
+      background: Array(options[4..<7]), outputAllocator: outputAllocator)
   }
 
   private static func encode(_ f: SceneRenderSignalFrameV2) -> [UInt8] {
@@ -193,13 +206,14 @@ final class SceneCreatorCommandRenderer {
   }
 
   func render(commands: UnsafeBufferPointer<Float>, size: CGSize, width: Int, height: Int,
-              outputAllocator: SceneSurfaceNativeOutputAllocator) throws -> MTLTexture {
+              background: [Float]? = nil, outputAllocator: SceneSurfaceNativeOutputAllocator) throws -> MTLTexture {
     let bounds = CGRect(x: 0, y: 0, width: width, height: height)
     let scale = CGAffineTransform(scaleX: CGFloat(width) / size.width, y: CGFloat(height) / size.height)
     let transparent = CIImage(color: CIColor.clear).cropped(to: bounds)
     var output = transparent
     if program.role == "background" {
-      output = CIImage(color: CIColor(red: CGFloat(program.colors[0]), green: CGFloat(program.colors[1]), blue: CGFloat(program.colors[2]))).cropped(to: bounds)
+      let fill = background ?? Array(program.colors[0..<3])
+      output = CIImage(color: CIColor(red: CGFloat(fill[0]), green: CGFloat(fill[1]), blue: CGFloat(fill[2]))).cropped(to: bounds)
     }
     var state = State(); var stack = [Saved]()
     var canvas = SceneCatalogVectorCanvas(); var batchBlend = 0

@@ -160,7 +160,10 @@ void main() {
         final visual = creatorVisuals.singleWhere(
           (v) => v.id == 'modifier_probe',
         );
-        Future<List<int>> render(Map<String, double>? modifiers) async {
+        Future<List<int>> render(
+          Map<String, double>? modifiers, {
+          List<int>? palette,
+        }) async {
           final scene = CreatorNativeProgram(visual, libraryPath: library);
           final renderer = await CreatorCommandCanvas.prepare(visual);
           final shaders = <ui.Shader>[];
@@ -168,6 +171,7 @@ void main() {
           ui.Image? image;
           try {
             if (modifiers != null) scene.setModifiers(modifiers);
+            if (palette != null) scene.setColors(palette);
             scene.configure(reactive: false, playing: true, hostTime: 0);
             scene.update(
               width: 320,
@@ -218,6 +222,13 @@ void main() {
         expectColor(changed, 300, 220, red);
         expectColor(changed, 160, 320, [0, 255, 0, 255]);
         expectColor(changed, 160, 420, [255, 255, 0, 255]);
+        // A live palette reaches the program without editing the visual.
+        final recolored = await render(
+          null,
+          palette: const [0xff102030, 0xff00ffff, 0xffff0000, 0xff00ff00],
+        );
+        expectColor(recolored, 5, 5, [16, 32, 48, 255]);
+        expectColor(recolored, 133, 115, [0, 255, 255, 255]);
         stdout.writeln('PASS modifiers: steps, slider, toggle and choice');
       });
     },

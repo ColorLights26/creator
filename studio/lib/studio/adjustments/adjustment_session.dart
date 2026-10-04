@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:scene_compositor/scene_compositor.dart';
 
+import 'palettes.dart';
+
 /// The settings of one visual: its four basics and its modifiers by id.
 typedef AdjustmentValues =
     ({CreatorControls controls, Map<String, double> modifiers});
@@ -28,7 +30,8 @@ class AdjustmentSession extends ChangeNotifier {
         controls: visual.controls,
         modifiers: Map.unmodifiable(visual.modifierDefaults),
       ),
-      usedBasics = _usedBasics(visual) {
+      usedBasics = _usedBasics(visual),
+      recolorable = usesPalette(visual) {
     _current = original;
   }
 
@@ -37,10 +40,15 @@ class AdjustmentSession extends ChangeNotifier {
 
   /// Basics the visual's code reads; the others are hidden in Ajustes.
   final Set<String> usedBasics;
+
+  /// The visual reads its colors, so a live palette can recolor it.
+  final bool recolorable;
   final math.Random _random;
   late AdjustmentValues _current;
-  final List<({AdjustmentValues values, String? chip})> _history = [];
+  final List<({AdjustmentValues values, String? chip, List<int>? palette})>
+  _history = [];
   String? _chip = originalChipName;
+  List<int>? _palette;
   int? _seed;
   bool _comparing = false;
   bool _jumped = false;
@@ -52,6 +60,10 @@ class AdjustmentSession extends ChangeNotifier {
 
   /// What the compositor should show right now.
   AdjustmentValues get shown => _comparing ? original : _current;
+
+  /// Colors in place of the visual's own, or null for its own.
+  List<int>? get palette => _palette;
+  List<int>? get shownPalette => _comparing ? null : _palette;
 
   /// The chip whose values are on screen, or null after a manual change.
   String? get chip => _chip;
@@ -66,7 +78,9 @@ class AdjustmentSession extends ChangeNotifier {
   bool get jumped => _jumped;
 
   bool get differsFromOriginal =>
-      _seed != null || !sameAdjustmentValues(_current, original);
+      _seed != null ||
+      _palette != null ||
+      !sameAdjustmentValues(_current, original);
 
   /// A finger moved a control: no history entry per frame ([beginEdit] adds
   /// one when the gesture starts).
@@ -82,19 +96,30 @@ class AdjustmentSession extends ChangeNotifier {
   void beginEdit() => _remember();
 
   /// Shows a chip's values (Original, an author or a personal variation).
-  void apply(String name, AdjustmentValues values) {
+  /// A saved look brings its [palette]; an author's keeps the current one.
+  void apply(String name, AdjustmentValues values, {List<int>? palette}) {
     _remember();
     _current = values;
     _chip = name;
+    if (palette != null) _palette = palette;
     _changed(jumped: true);
   }
 
-  /// Back to the initial values and the recording's seed.
+  /// Recolors the visual (null: its own colors).
+  void setPalette(List<int>? colors) {
+    if (listEquals(colors, _palette)) return;
+    _remember();
+    _palette = colors == null ? null : List.unmodifiable(colors);
+    _changed(jumped: true);
+  }
+
+  /// Back to the initial values, colors and the recording's seed.
   void resetToOriginal() {
     _remember();
     _current = original;
     _chip = originalChipName;
     _seed = null;
+    _palette = null;
     _changed(jumped: true);
   }
 
@@ -142,9 +167,18 @@ class AdjustmentSession extends ChangeNotifier {
     _changed(jumped: true);
   }
 
-  /// Anywhere in the declared ranges.
+  /// Anywhere in the declared ranges, sometimes in other colors.
   void surprise() {
     _remember();
+    if (recolorable) {
+      final pick = _random.nextInt(studioPalettes.length + 2);
+      _palette =
+          pick < studioPalettes.length
+              ? paletteFor(visual, studioPalettes[pick].colors)
+              : pick == studioPalettes.length
+              ? harmonicPalette(visual, _random)
+              : null;
+    }
     final basics = _current.controls.toMap();
     for (final id in usedBasics) {
       basics[id] = .6 + _random.nextDouble() * .8;
@@ -174,6 +208,7 @@ class AdjustmentSession extends ChangeNotifier {
     final previous = _history.removeLast();
     _current = previous.values;
     _chip = previous.chip;
+    _palette = previous.palette;
     _changed(jumped: true);
   }
 
@@ -192,7 +227,7 @@ class AdjustmentSession extends ChangeNotifier {
   }
 
   void _remember() {
-    _history.add((values: _current, chip: _chip));
+    _history.add((values: _current, chip: _chip, palette: _palette));
     if (_history.length > historyLimit) _history.removeAt(0);
   }
 
@@ -246,12 +281,14 @@ bool sameAdjustmentValues(AdjustmentValues a, AdjustmentValues b) =>
     mapEquals(a.modifiers, b.modifiers);
 
 /// [values] as an author variation the team can hand back to the AI: only
-/// what differs from [visual]'s initial values, choices by their text.
+/// what differs from [visual]'s initial values, choices by their text. A
+/// [palette] goes to the metadata, where the visual's colors live.
 String variationForAi(
   CreatorVisualDefinition visual,
   String name,
-  AdjustmentValues values,
-) {
+  AdjustmentValues values, {
+  List<int>? palette,
+}) {
   final entries = <String>[];
   for (final modifier in visual.modifiers) {
     final value = values.modifiers[modifier.id]!;
@@ -272,10 +309,20 @@ String variationForAi(
     }
   }
   final safeName = name.replaceAll(RegExp(r"[\\'$]"), '');
+  final colors =
+      palette == null
+          ? ''
+          : '\nY en el archivo _metadata, para que esta paleta sea la original, '
+              'usa colors: [${palette.map((c) => '0x${c.toRadixString(16).padLeft(8, '0')}').join(', ')}],';
+  if (entries.isEmpty) {
+    return colors.isEmpty
+        ? 'Este visual se ve como el original: no hay nada que copiar.'
+        : colors.trim();
+  }
   return 'En este visual agrega esta variación dentro de const variations '
       '(créala justo después de const modifiers si no existe). '
       'No cambies nada más:\n'
-      "CreatorVariation('$safeName', {${entries.join(', ')}}),";
+      "CreatorVariation('$safeName', {${entries.join(', ')}}),$colors";
 }
 
 /// A value with enough decimals for its range (a thousandth of it), never

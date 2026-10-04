@@ -29,7 +29,7 @@ const _galaxy = CreatorVisualDefinition(
   id: 'galaxia',
   name: 'Galaxia',
   nativeSource:
-      'class Visual final : public Scene { float turn = f.delta * f.speed; };',
+      'class Visual final : public Scene { float turn = f.delta * f.speed; Color c = f.colors[1]; };',
   modifiers: [
     CreatorModifier.steps('brazos', 'Brazos', min: 2, max: 6, value: 4),
     CreatorModifier.slider(
@@ -65,6 +65,7 @@ class _Controller extends SceneCompositorController {
   final actions = <String>[];
   final sentControls = <CreatorControls>[];
   final sentModifiers = <Map<String, double>>[];
+  final sentPalettes = <List<int>?>[];
   bool _closed = false;
   Completer<void>? attachGate;
   Object? attachError;
@@ -108,6 +109,11 @@ class _Controller extends SceneCompositorController {
   @override
   Future<void> setModifiers(Map<String, double> values) async {
     sentModifiers.add(values);
+  }
+
+  @override
+  Future<void> setPalette(List<int>? colors) async {
+    sentPalettes.add(colors);
   }
 
   @override
@@ -858,6 +864,15 @@ void main() {
           isTrue,
         );
       }
+
+      // A palette recolors the visual live; the visual's own colors return it.
+      await tapKey(tester, 'adjustments-palette-Lava');
+      expect(controller.sentPalettes.last, [
+        0xff140301,
+        0xffff3d00,
+        0xffffa000,
+        0xffffe082,
+      ]);
 
       // Guardar keeps the look as a chip.
       await tapKey(tester, 'adjustments-save');

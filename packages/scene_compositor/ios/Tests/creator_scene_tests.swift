@@ -77,7 +77,21 @@ struct CreatorSceneTests {
       guard SceneCreatorNativeScene.controls(program: program, options: bad, mode: nil, reactive: false) == nil
       else { throw SceneCreatorFailure("Invalid modifier value accepted: \(bad)") }
     }
-    print("PASS modifiers creator_\(program.id): steps, slider, toggle and choice on Metal; invalid values refused")
+    // Live palette: without color keys the catalog colors are untouched; with
+    // them the program and the background fill change; bad values are refused.
+    guard let plain = SceneCreatorNativeScene.controls(program: program, options: [:], mode: nil, reactive: false),
+      Array(plain[4..<20]) == program.colors,
+      let painted = SceneCreatorNativeScene.controls(program: program, options: ["color1": 0xFF00FFFF], mode: nil, reactive: false),
+      Array(painted[8..<12]) == [0, 1, 1, 1], Array(painted[4..<8]) == Array(program.colors[0..<4])
+    else { throw SceneCreatorFailure("Palette controls are not exact") }
+    for bad: [String: Any] in [["color1": true], ["color1": -1], ["color1": 1.5], ["color1": 0x1_0000_0000], ["color4": 0]] {
+      guard SceneCreatorNativeScene.controls(program: program, options: bad, mode: nil, reactive: false) == nil
+      else { throw SceneCreatorFailure("Invalid palette accepted: \(bad)") }
+    }
+    let recolored = try frame(["color0": 0xFF102030, "color1": 0xFF00FFFF])
+    guard near(recolored, 5, 5, [16, 32, 48, 255]), near(recolored, 133, 115, [0, 255, 255, 255])
+    else { throw SceneCreatorFailure("Live palette did not reach the program or the background") }
+    print("PASS modifiers creator_\(program.id): steps, slider, toggle and choice on Metal; invalid values refused; live palette")
   }
   static func signal(_ sequence: Int, music: Bool) -> SceneRenderSignalFrameV2 {
     let event = SceneRenderSignalEventV2(serial: Int64(sequence / 12 + 1), active: music && sequence % 12 == 0,

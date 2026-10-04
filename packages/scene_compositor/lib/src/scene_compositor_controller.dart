@@ -32,6 +32,9 @@ class SceneCompositorController extends ChangeNotifier {
   CreatorControls? _controls;
   Map<String, double> _modifiers = const {};
 
+  /// Colors in place of the catalog ones, or null for the catalog's.
+  List<int>? _palette;
+
   /// Current modifier values of the installed visual, by id.
   Map<String, double> get modifiers => Map.unmodifiable(_modifiers);
   Size _size = Size.zero;
@@ -132,6 +135,7 @@ class SceneCompositorController extends ChangeNotifier {
     _visual = visual;
     _controls = visual.controls;
     _modifiers = visual.modifierDefaults;
+    _palette = null;
     _visualIndex = installedVisuals.indexWhere(
       (entry) => entry['id'] == visual.id,
     );
@@ -185,6 +189,7 @@ class SceneCompositorController extends ChangeNotifier {
           qaSessionSeed: _qaSeed,
           liveControls: _controls,
           liveModifiers: _modifiers,
+          livePalette: _palette,
         ),
       });
     }
@@ -206,6 +211,7 @@ class SceneCompositorController extends ChangeNotifier {
           qaSessionSeed: _qaSeed,
           liveControls: controls,
           liveModifiers: _modifiers,
+          livePalette: _palette,
         ),
       });
     }
@@ -230,10 +236,36 @@ class SceneCompositorController extends ChangeNotifier {
           qaSessionSeed: _qaSeed,
           liveControls: _controls,
           liveModifiers: resolved,
+          livePalette: _palette,
         ),
       });
     }
     _modifiers = resolved;
+  }, clearsError: false);
+
+  /// Replaces the visual's four colors live (null: the catalog's), without
+  /// restarting it. Native visuals only.
+  Future<void> setPalette(List<int>? colors) => _queue(() async {
+    final visual = _visual;
+    if (visual == null) throw StateError('No visual is installed.');
+    if (colors != null) validateCreatorPalette(visual, colors);
+    final palette = colors == null ? null : List<int>.unmodifiable(colors);
+    if (_android != null) _android!.setColors(palette ?? visual.colors);
+    if (_sessionId != null) {
+      await _invoke<Object>('updateDocument', {
+        'sessionId': _sessionId!,
+        'sceneDocument': visual.sceneDocument(
+          width: _size.width,
+          height: _size.height,
+          reactive: _reactive,
+          qaSessionSeed: _qaSeed,
+          liveControls: _controls,
+          liveModifiers: _modifiers,
+          livePalette: palette,
+        ),
+      });
+    }
+    _palette = palette;
   }, clearsError: false);
 
   Future<void> sendSignal(SceneRenderSignalFrameV2 frame) => _queue(() async {
@@ -300,6 +332,7 @@ class SceneCompositorController extends ChangeNotifier {
       if (_qaSeed != null) session.reset(reactive: _reactive, seed: _qaSeed);
       session.setControls(_controls ?? visual.controls);
       if (_modifiers.isNotEmpty) session.setModifiers(_modifiers);
+      if (_palette case final List<int> palette) session.setColors(palette);
       session.measureCost = _measureRenderCost;
       _android = session;
       _preview = AndroidCreatorPreview(
@@ -324,6 +357,7 @@ class SceneCompositorController extends ChangeNotifier {
           qaSessionSeed: _qaSeed,
           liveControls: _controls,
           liveModifiers: _modifiers,
+          livePalette: _palette,
         ),
       });
       final texture = receipt?['textureId'];

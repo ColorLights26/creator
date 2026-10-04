@@ -127,6 +127,9 @@ class AndroidCreatorSession extends ChangeNotifier {
   Size _size;
   double _pixelRatio;
   double _hostTime = 0;
+
+  /// The background fill follows a live palette.
+  late int _background = visual.colors.first;
   ui.Image? _image;
   Future<void>? _inFlight;
   int _generation = 0;
@@ -232,6 +235,21 @@ class AndroidCreatorSession extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Live palette: the program and the background fill take [colors] (four
+  /// ARGB) without restarting; a paused surface redraws once.
+  void setColors(List<int> colors) {
+    if (_closed || _native == null) return;
+    _native.setColors(colors);
+    _native.configure(
+      reactive: _reactive,
+      playing: _state.playing,
+      hostTime: _hostTime,
+    );
+    _background = colors.first;
+    if (!_state.playing) _generation++;
+    notifyListeners();
+  }
+
   void reset({required bool reactive, int? seed}) {
     if (_closed) return;
     final wasPlaying = _state.playing;
@@ -289,7 +307,7 @@ class AndroidCreatorSession extends ChangeNotifier {
       final canvas = ui.Canvas(recorder);
       if (visual.role == CreatorRole.background) {
         canvas.drawColor(
-          Color(visual.colors.first).withAlpha(255),
+          Color(_background).withAlpha(255),
           BlendMode.src,
         );
       }

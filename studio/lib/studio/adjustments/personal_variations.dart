@@ -4,9 +4,12 @@ import 'package:scene_compositor/scene_compositor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'adjustment_session.dart';
+import 'palettes.dart';
 
-/// A look someone saved from Ajustes ("Mía 1"), kept on this device.
-typedef PersonalVariation = ({String name, AdjustmentValues values});
+/// A look someone saved from Ajustes ("Mía 1"), kept on this device, with
+/// its palette when it recolored the visual.
+typedef PersonalVariation =
+    ({String name, AdjustmentValues values, List<int>? palette});
 
 /// At most this many saved looks per visual.
 const personalVariationLimit = 4;
@@ -56,6 +59,8 @@ class PersonalVariations {
               ...variation.values.controls.toMap(),
               ...variation.values.modifiers,
             },
+            if (variation.palette case final List<int> palette)
+              'palette': palette,
           },
       ]),
     );
@@ -105,12 +110,21 @@ class PersonalVariations {
       controls: visual.controls,
       modifiers: visual.modifierDefaults,
     );
+    final raw = item['palette'];
+    final palette =
+        raw is List &&
+                raw.length == 4 &&
+                raw.every((c) => c is int && c >= 0 && c <= 0xffffffff) &&
+                usesPalette(visual)
+            ? paletteFor(visual, raw.cast<int>())
+            : null;
     // A look that no longer changes anything is gone.
-    if (sameAdjustmentValues(result, original)) return null;
+    if (sameAdjustmentValues(result, original) && palette == null) return null;
     final name = (item['name'] as String).trim();
     return (
       name: name.isEmpty || name.length > 20 ? 'Mía' : name,
       values: result,
+      palette: palette,
     );
   }
 }

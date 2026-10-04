@@ -15,6 +15,7 @@ void main() {
   _frozenContract();
   _variationsContract();
   _lintContract();
+  _paletteContract();
   stdout.writeln('scene_compositor: authoring contract checks passed.');
 }
 
@@ -766,6 +767,60 @@ void _variationsContract() {
       'variation rejected: $reason',
     );
   }
+}
+
+void _paletteContract() {
+  final visual = validateCreatorCatalog([_native()]).single;
+  Map<String, dynamic> options(Map<String, Object> document) =>
+      (((((document['layers'] as List).single as Map)['proceduralParameters']
+                      as Map)['document']
+                  as Map)['layers']
+              as List)
+          .single['node']['parameters']['options'];
+  final plain = options(
+    visual.sceneDocument(width: 1, height: 1, reactive: true),
+  );
+  _expect(
+    !plain.keys.any((k) => k.startsWith('color')),
+    'documents without a live palette carry no color keys',
+  );
+  final painted = options(
+    visual.sceneDocument(
+      width: 1,
+      height: 1,
+      reactive: true,
+      livePalette: const [0xff000000, 0xff00ffff, 0xffff00ff, 0x00000000],
+    ),
+  );
+  _expect(
+    painted['color1'] == 0xff00ffff && painted['color3'] == 0,
+    'a live palette travels as four ARGB options',
+  );
+  for (final bad in [
+    const [1, 2, 3],
+    const [0, 0, 0, 0x100000000],
+    const [0, 0, 0, -1],
+  ]) {
+    _throws<ArgumentError>(
+      () => visual.sceneDocument(
+        width: 1,
+        height: 1,
+        reactive: true,
+        livePalette: bad,
+      ),
+      'invalid palette $bad',
+    );
+  }
+  _throws<ArgumentError>(
+    () => validateCreatorPalette(_visual(), const [0, 0, 0, 0]),
+    'shader visuals have no live palette',
+  );
+  _throws<FormatException>(
+    () => validateCreatorCatalog([
+      _native(modifiers: const [CreatorModifier.toggle('color1', 'Color')]),
+    ]),
+    'palette keys are reserved',
+  );
 }
 
 void _lintContract() {

@@ -56,7 +56,7 @@ enum SceneCreatorCatalog {
       let keys: Set<String> = ["id", "label", "kind", "min", "max", "value"]
       guard Set(value.keys) == (kind == "choice" ? keys.union(["options"]) : keys),
         let id = value["id"] as? String, id.range(of: "^[a-z][a-z0-9_]{0,23}$", options: .regularExpression) != nil,
-        controlRanges[id] == nil, ids.insert(id).inserted,
+        controlRanges[id] == nil, !["color0", "color1", "color2", "color3"].contains(id), ids.insert(id).inserted,
         let label = value["label"] as? String, !label.isEmpty, label.count <= 24,
         let kind, ["slider", "steps", "toggle", "choice"].contains(kind),
         let lower = number(value["min"]), let upper = number(value["max"]), let initial = number(value["value"]),

@@ -60,7 +60,17 @@ class VariationChips extends StatelessWidget {
               label: variation.name,
               icon: Icons.bookmark_rounded,
               selected: session.chip == variation.name,
-              onTap: () => show(variation.name, variation.values),
+              onTap: () {
+                if (session.chip == variation.name && !session.comparing) {
+                  return;
+                }
+                HapticFeedback.selectionClick();
+                session.apply(
+                  variation.name,
+                  variation.values,
+                  palette: variation.palette,
+                );
+              },
               onLongPress: () => onPersonalMenu(variation),
             ),
           if (onSave case final VoidCallback save)

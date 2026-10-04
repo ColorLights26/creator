@@ -38,8 +38,12 @@ class CreatorNativeProgram {
     final values = _options.asTypedList(_count);
     values.setAll(0, visual.controls.toMap().values);
     values.setAll(20, visual.modifierDefaults.values);
+    _writeColors(values, visual.colors);
+  }
+
+  static void _writeColors(Float32List values, List<int> colors) {
     for (var i = 0; i < 4; i++) {
-      final c = visual.colors[i];
+      final c = colors[i];
       values.setAll(4 + i * 4, [
         ((c >> 16) & 255) / 255,
         ((c >> 8) & 255) / 255,
@@ -98,6 +102,14 @@ class CreatorNativeProgram {
     _open();
     controls.validate();
     _options.asTypedList(_count).setAll(0, controls.toMap().values);
+  }
+
+  /// Four ARGB colors in place of the catalog ones; applied, like
+  /// [setControls], on the next [configure].
+  void setColors(List<int> colors) {
+    _open();
+    validateCreatorPalette(visual, colors);
+    _writeColors(_options.asTypedList(_count), colors);
   }
 
   /// [values] by modifier id; missing ones go back to their initial value.

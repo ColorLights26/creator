@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:audiovisual_creator/studio/adjustments/adjustment_session.dart';
+import 'package:audiovisual_creator/studio/adjustments/palettes.dart';
 import 'package:audiovisual_creator/studio/adjustments/personal_variations.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scene_compositor/scene_compositor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -124,9 +126,10 @@ void main() {
   });
 
   test('the original is exact values and the recording seed', () {
-    final session = AdjustmentSession(_visual)
-      ..set('brazos', 6)
-      ..seed = 99;
+    final session =
+        AdjustmentSession(_visual)
+          ..set('brazos', 6)
+          ..seed = 99;
     expect(session.differsFromOriginal, isTrue);
     session.resetToOriginal();
     expect(session.seed, isNull);
@@ -171,6 +174,106 @@ void main() {
     expect(sliderText(0, 2, 1.4), '1.4');
   });
 
+  group('palette', () {
+    const colorful = CreatorVisualDefinition(
+      id: 'color',
+      name: 'Color',
+      nativeSource: 'Color c = f.colors[1];',
+      colors: [0xff101010, 0xffff0000, 0xff00ff00, 0xff0000ff],
+    );
+    const overlay = CreatorVisualDefinition(
+      id: 'overlay',
+      name: 'Overlay',
+      role: CreatorRole.overlay,
+      nativeSource: 'Color c = f.colors[1];',
+      colors: [0x00000000, 0xffff0000, 0xff00ff00, 0xff0000ff],
+    );
+
+    test('only visuals that read their colors can be recolored', () {
+      expect(usesPalette(colorful), isTrue);
+      expect(usesPalette(_visual), isFalse);
+      expect(AdjustmentSession(_visual).recolorable, isFalse);
+    });
+
+    test('an overlay keeps its transparent first color', () {
+      expect(paletteFor(overlay, studioPalettes.first.colors).first, 0);
+      expect(harmonicPalette(overlay, math.Random(1)).first, 0);
+    });
+
+    test('Armónica turns the hue and keeps light and saturation', () {
+      final turned = harmonicPalette(colorful, math.Random(3));
+      for (var i = 0; i < 4; i++) {
+        final a = HSLColor.fromColor(Color(colorful.colors[i]));
+        final b = HSLColor.fromColor(Color(turned[i]));
+        expect(b.lightness, closeTo(a.lightness, .01));
+        expect(b.saturation, closeTo(a.saturation, .01));
+      }
+      expect(turned, isNot(colorful.colors));
+    });
+
+    test('palette is part of undo, Original and the AI copy', () {
+      final session = AdjustmentSession(colorful)
+        ..setPalette(studioPalettes.first.colors);
+      expect(session.differsFromOriginal, isTrue);
+      session.undo();
+      expect(session.palette, isNull);
+      session.setPalette(studioPalettes[1].colors);
+      session.resetToOriginal();
+      expect(session.palette, isNull);
+      final copy = variationForAi(
+        colorful,
+        'Mía 1',
+        session.original,
+        palette: const [0xff000000, 0xffffffff, 0xff00ff00, 0xffff00ff],
+      );
+      expect(
+        copy,
+        'Y en el archivo _metadata, para que esta paleta sea la original, '
+        'usa colors: [0xff000000, 0xffffffff, 0xff00ff00, 0xffff00ff],',
+      );
+      expect(
+        variationForAi(colorful, 'Mía 1', session.original),
+        contains('no hay nada que copiar'),
+      );
+    });
+
+    test('Sorprender sometimes recolors, always validly', () {
+      final palettes = <List<int>?>{};
+      for (var seed = 0; seed < 60; seed++) {
+        final session = AdjustmentSession(colorful, random: math.Random(seed))
+          ..surprise();
+        final palette = session.palette;
+        palettes.add(palette);
+        if (palette != null) {
+          expect(
+            () => validateCreatorPalette(colorful, palette),
+            returnsNormally,
+          );
+        }
+      }
+      expect(palettes.length, greaterThan(3));
+      expect(palettes, contains(null));
+    });
+
+    test('saved looks keep their palette', () async {
+      SharedPreferences.setMockInitialValues({});
+      final store = PersonalVariations();
+      const palette = [0xff000000, 0xffffffff, 0xff00ff00, 0xffff00ff];
+      await store.save(colorful, [
+        (
+          name: 'Mía 1',
+          values: (
+            controls: colorful.controls,
+            modifiers: colorful.modifierDefaults,
+          ),
+          palette: palette,
+        ),
+      ]);
+      final loaded = await store.load(colorful);
+      expect(loaded.single.palette, palette);
+    });
+  });
+
   group('saved looks', () {
     setUp(() => SharedPreferences.setMockInitialValues({}));
 
@@ -180,7 +283,7 @@ void main() {
         controls: const CreatorControls(speed: 1.2),
         modifiers: {..._visual.modifierDefaults, 'brazos': 7.0},
       );
-      await store.save(_visual, [(name: 'Mía 1', values: look)]);
+      await store.save(_visual, [(name: 'Mía 1', values: look, palette: null)]);
       final loaded = await store.load(_visual);
       expect(loaded.single.name, 'Mía 1');
       expect(sameAdjustmentValues(loaded.single.values, look), isTrue);
@@ -215,8 +318,8 @@ void main() {
       expect(PersonalVariations.nextName(const []), 'Mía 1');
       expect(
         PersonalVariations.nextName([
-          (name: 'Mía 1', values: look),
-          (name: 'Mía 3', values: look),
+          (name: 'Mía 1', values: look, palette: null),
+          (name: 'Mía 3', values: look, palette: null),
         ]),
         'Mía 2',
       );
