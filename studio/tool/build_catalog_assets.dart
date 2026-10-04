@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:scene_compositor/authoring.dart';
+import 'package:scene_compositor/creator_lint.dart';
 import 'package:scene_compositor/native_compiler.dart';
 import 'package:visual_contract/visual_contract.dart';
 
@@ -18,6 +19,16 @@ void main() {
       '${root.parent.path}/packages/visual_catalog',
     );
     final visuals = validateCreatorCatalog(creatorSourceVisuals);
+    final problems = [
+      for (final visual in visuals) ...lintCreatorVisual(visual),
+    ];
+    if (problems.isNotEmpty) {
+      throw FormatException(
+        '${problems.join('\n')}\n'
+        'El visual no se ha aceptado. Vuelve a enviar la plantilla y este '
+        'error a la IA.',
+      );
+    }
     for (final visual in visuals) {
       final thumbnail = visual.thumbnail;
       final path = thumbnail.assetPath;

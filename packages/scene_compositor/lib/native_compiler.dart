@@ -73,6 +73,7 @@ Map<String, Object> prepareCreatorNative({
     '// Generated. All programs compiled into this host.\n',
   );
   final entries = <String>[];
+  final probeCases = <String>[];
   for (final visual in visuals) {
     final manifest = visual.toManifest();
     if (!visual.isNative) {
@@ -150,6 +151,7 @@ Map<String, Object> prepareCreatorNative({
         'std::unique_ptr<creator::Scene> make() { return std::make_unique<CreatorGlideScene_>(); }\n}',
       );
     }
+    if (visual.modifiers.isNotEmpty) probeCases.add(_probeCase(visual));
     entries.add(
       '{${jsonEncode(visual.programId)}, ${jsonEncode(hash)}, &authored_${visual.id}::make, {${materials.map(jsonEncode).join(',')}}, {${images.map(jsonEncode).join(',')}}, {${visual.modifiers.map((m) => _floatLiteral(m.value.toDouble())).join(',')}}}',
     );
@@ -161,6 +163,19 @@ Map<String, Object> prepareCreatorNative({
   writeCreatorFile(
     File('${output.path}/creator_programs.inc'),
     utf8.encode(declarations.toString()),
+  );
+  writeCreatorFile(
+    File('${output.path}/creator_probe_cases.inc'),
+    utf8.encode(
+      '// Generated for the native checks only; never compiled into an app.\n'
+      '#include <array>\n#include <vector>\n'
+      'struct CreatorProbeModifier { const char* id; int kind; float lower, upper, value; };\n'
+      'struct CreatorProbeVariation { const char* name; std::array<float, 4> controls; std::vector<float> modifiers; };\n'
+      'struct CreatorProbeCase { const char* program; std::vector<CreatorProbeModifier> modifiers; std::vector<CreatorProbeVariation> variations; };\n'
+      'inline const std::vector<CreatorProbeCase>& creatorProbeCases() {\n'
+      '  static const std::vector<CreatorProbeCase> cases = {${probeCases.join(',\n')}};\n'
+      '  return cases;\n}\n',
+    ),
   );
   return {'schemaVersion': 1, 'visuals': manifests};
 }
@@ -192,6 +207,26 @@ String creatorModifierReader(CreatorVisualDefinition visual) {
   return '// Modificadores declarados en ${visual.sourceFile}: modifiers(f).<id>.\n'
       'struct Modifiers {$fields };\n'
       'inline Modifiers modifiers(const Frame& f) { (void)f; return {${values.join(', ')}}; }';
+}
+
+/// One program's modifiers (kind index as in [CreatorModifierKind]) and
+/// resolved variations, for the native sweep in CI and the app approval.
+String _probeCase(CreatorVisualDefinition visual) {
+  final modifiers = [
+    for (final modifier in visual.modifiers)
+      '{${jsonEncode(modifier.id)}, ${modifier.kind.index}, '
+          '${_floatLiteral(modifier.lower)}, ${_floatLiteral(modifier.upper)}, '
+          '${_floatLiteral(modifier.value.toDouble())}}',
+  ];
+  final variations = [
+    for (final variation in visual.variations)
+      if (variation.resolve(visual) case final resolved)
+        '{${jsonEncode(variation.name)}, '
+            '{${resolved.controls.toMap().values.map(_floatLiteral).join(', ')}}, '
+            '{${resolved.modifiers.values.map(_floatLiteral).join(', ')}}}',
+  ];
+  return '{${jsonEncode(visual.programId)}, {${modifiers.join(', ')}}, '
+      '{${variations.join(', ')}}}';
 }
 
 /// Bump when the generated reader or transition code changes behavior, so a

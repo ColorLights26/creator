@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:scene_compositor/authoring.dart';
+import 'package:scene_compositor/creator_lint.dart';
 import 'package:scene_compositor/native_compiler.dart';
 
 // Pure Dart executable: `dart run test/creator_visual_definition_test.dart`.
@@ -13,6 +14,7 @@ void main() {
   _modifiersContract();
   _frozenContract();
   _variationsContract();
+  _lintContract();
   stdout.writeln('scene_compositor: authoring contract checks passed.');
 }
 
@@ -764,6 +766,55 @@ void _variationsContract() {
       'variation rejected: $reason',
     );
   }
+}
+
+void _lintContract() {
+  List<String> lint(String source, {String label = 'Brazos'}) =>
+      lintCreatorVisual(
+        CreatorVisualDefinition(
+          id: 'galaxia',
+          name: 'Galaxia',
+          nativeSource: source,
+          sourceFile: 'galaxia.dart',
+          modifiers: [
+            CreatorModifier.steps('brazos', label, min: 2, max: 6, value: 4),
+          ],
+        ),
+      );
+  _expect(lint('auto m = modifiers(f); draw(m.brazos);').isEmpty, 'used id');
+  _expect(lint('auto g = glide(f); arms(g.brazos);').isEmpty, 'glide counts');
+  final unused = lint('class Visual final : public Scene {};');
+  _expect(
+    unused.single.contains('galaxia.dart') &&
+        unused.single.contains('(brazos) no se usa'),
+    'an unused modifier names the file and the id',
+  );
+  _expect(
+    lint(
+      '// m.brazos\nauto s = "m.brazos"; /* .brazos */ char c = \'.\';',
+    ).single.contains('no se usa'),
+    'a name only in comments or strings does not count',
+  );
+  _expect(
+    lint(
+      'float a = f.modifiers[0] + m.brazos;',
+    ).single.contains('f.modifiers[…]'),
+    'raw access is refused',
+  );
+  _expect(
+    lint('m.brazos', label: 'Velocidad').single.contains('ajuste básico'),
+    'a label that renames a basic is refused',
+  );
+  _expect(
+    lint('m.brazos', label: 'Brillo del núcleo').isEmpty,
+    'a label that only mentions a basic is fine',
+  );
+  _expect(
+    lintCreatorVisual(
+      const CreatorVisualDefinition(id: 'a', name: 'A', nativeSource: 'x'),
+    ).isEmpty,
+    'visuals without modifiers have nothing to check',
+  );
 }
 
 /// Digest of the C++ generated for [_native] per [creatorGlideRuntime]. A

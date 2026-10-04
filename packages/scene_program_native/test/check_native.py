@@ -25,8 +25,12 @@ def run(args, timeout=90):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--generated', required=True)
-    options = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
+    parser.add_argument('--signals', default=str(root.parent / 'visual_contract/test/fixtures/synthetic/signals.bin'),
+                        help='Synthetic music for the modifier sweep (520-byte frames).')
+    parser.add_argument('--strict-modifiers', action='store_true',
+                        help='A modifier that never changes the drawing fails instead of warning.')
+    options = parser.parse_args()
     with tempfile.TemporaryDirectory(prefix='creator-sanitizers-') as tmp:
         template = (root.parent.parent/'templates/visual_template.dart').read_text()
         match = re.search(r'const nativeSource = r(?:\x27{3}|\x22{3})([\s\S]*?)(?:\x27{3}|\x22{3});', template)
@@ -38,6 +42,12 @@ def main():
                          re.findall(r"CreatorModifier\.(slider|steps|toggle|choice)\(\s*'([a-z][a-z0-9_]*)'",
                                     declared[1] if declared else ''))
         reader = 'struct Modifiers {%s };\ninline Modifiers modifiers(const Frame& f) { (void)f; return {}; }\n' % fields
+        # And the transitions reader: decimals, a 0..1 fade or choice weights.
+        glides = ''.join(' %s %s;' % ('CreatorChoiceGlide' if kind == 'choice' else 'float', name) for kind, name in
+                         re.findall(r"CreatorModifier\.(slider|steps|toggle|choice)\(\s*'([a-z][a-z0-9_]*)'",
+                                    declared[1] if declared else ''))
+        reader += ('struct CreatorChoiceGlide { int from = 0, to = 0; float t = 1; float weight(int) const { return 0; } };\n'
+                   'struct CreatorGlide {%s };\ninline CreatorGlide glide(const Frame& f) { (void)f; return {}; }\n' % glides)
         template_check = Path(tmp)/'template.cpp'
         template_check.write_text('#include "creator_scene.hpp"\nusing namespace creator;\n'+reader+match[1]+ '\nstatic_assert(std::is_base_of<Scene,Visual>::value);\n')
         run(['clang++','-std=c++17','-fsyntax-only','-I'+str(root/'src'),str(template_check)])
@@ -51,7 +61,8 @@ def main():
                       str(root / 'test/authored_probe.cpp'), '-o', authored])
         # Recorre todo el catálogo con ASan/UBSan: el tiempo crece con cada
         # visual. El tope sólo debe atrapar un programa colgado.
-        run([authored], timeout=120)
+        sweep = [options.signals] + (['--strict-modifiers'] if options.strict_modifiers else [])
+        run([authored, *sweep], timeout=120)
 
 if __name__ == '__main__':
     main()

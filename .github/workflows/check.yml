@@ -98,6 +98,7 @@ jobs:
         run: |
           dart run test/creator_visual_definition_test.dart
           dart run test/creator_glide_native_test.dart
+          dart run test/creator_sweep_native_test.dart
       - name: Compositor state and controller tests
         working-directory: packages/scene_compositor
         run: flutter test --no-pub test/creator_shader_frame_test.dart test/scene_compositor_controller_test.dart test/creator_catalog_metadata_test.dart
