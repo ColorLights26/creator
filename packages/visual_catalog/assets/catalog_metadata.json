@@ -98,6 +98,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "atractor_lorenz_transparente",
+      "name": "Atractor de Lorenz Transparente",
+      "description": "Miles de partículas azul eléctrico recorren en 3D la mariposa del caos; cada golpe las dispersa y vuelven a caer sobre la forma sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "hypnotic",
+        "scientific",
+        "epic"
+      ],
+      "concepts": [
+        "lorenz attractor",
+        "chaos",
+        "particles",
+        "3d"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "aura",
       "name": "Aura",
       "description": "Manchas de color melocotón, lila y azul que giran y se funden despacio con grano fino, respirando con la música.",
@@ -159,6 +191,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "aura_2_transparente",
+      "name": "Aura 2 Transparente",
+      "description": "Manchas de rojo encendido, naranja y azul eléctrico que giran, se funden y estallan en brillo con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "relax",
+        "focus",
+        "visualizer"
+      ],
+      "moods": [
+        "calm",
+        "dreamy",
+        "elegant"
+      ],
+      "concepts": [
+        "gradient",
+        "aura",
+        "blur",
+        "color"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -255,6 +319,70 @@
       "reactivity": "optional"
     },
     {
+      "id": "bokeh_luces_2_transparente",
+      "name": "Bokeh 2 Transparente",
+      "description": "Luces desenfocadas rojas, naranjas y amarillas intensas que laten con los graves y saltan hacia la cámara con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "relax",
+        "visualizer",
+        "focus"
+      ],
+      "moods": [
+        "dreamy",
+        "elegant",
+        "calm"
+      ],
+      "concepts": [
+        "bokeh",
+        "lights",
+        "depth of field",
+        "glow"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "bokeh_luces_transparente",
+      "name": "Bokeh Transparente",
+      "description": "Luces desenfocadas ámbar, rosa y azul que flotan a distintas profundidades y laten suavemente con la música sobre fondo transparente.",
+      "purposes": [
+        "relax",
+        "visualizer",
+        "focus"
+      ],
+      "moods": [
+        "dreamy",
+        "elegant",
+        "calm"
+      ],
+      "concepts": [
+        "bokeh",
+        "lights",
+        "depth of field",
+        "glow"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "bola_discoteca",
       "name": "Bola de Discoteca",
       "description": "Bola de espejos que gira y lanza cientos de puntos de luz dorada, rosa y plateada que barren la sala al ritmo de la música.",
@@ -316,6 +444,70 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "bola_discoteca_2_transparente",
+      "name": "Bola de Discoteca 2 Transparente",
+      "description": "Bola de espejos en rojo intenso que gira y llena la sala de reflejos y haces rojos que estallan con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "club",
+        "visualizer"
+      ],
+      "moods": [
+        "festive",
+        "glamorous",
+        "energetic"
+      ],
+      "concepts": [
+        "disco ball",
+        "mirror",
+        "reflections",
+        "party"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "bola_discoteca_transparente",
+      "name": "Bola de Discoteca Transparente",
+      "description": "Bola de espejos que gira y lanza cientos de puntos de luz dorada, rosa y plateada que barren la sala al ritmo de la música sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "club",
+        "visualizer"
+      ],
+      "moods": [
+        "festive",
+        "glamorous",
+        "energetic"
+      ],
+      "concepts": [
+        "disco ball",
+        "mirror",
+        "reflections",
+        "party"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -598,6 +790,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "cascada_codigo_transparente",
+      "name": "Cascada de Código Transparente",
+      "description": "Columnas de símbolos rojos con cabezas doradas que caen como el código de Matrix; aceleran con la energía y cada golpe enciende una onda sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "gaming"
+      ],
+      "moods": [
+        "cyberpunk",
+        "intense",
+        "iconic"
+      ],
+      "concepts": [
+        "digital rain",
+        "matrix",
+        "code",
+        "glyphs"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "catedral_luz",
       "name": "Catedral de Luz",
       "description": "Haces volumétricos a través de un rosetón de vidrieras que se encienden con el espectro y estallan en cada golpe.",
@@ -822,6 +1046,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "constelacion_viva_transparente",
+      "name": "Constelación Táctil Transparente",
+      "description": "Constelación 3D de estrellas luminosas unidas por líneas de luz con pulsos de energía; estalla y se expande con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "relax",
+        "visualizer"
+      ],
+      "moods": [
+        "cosmic",
+        "epic",
+        "dreamy"
+      ],
+      "concepts": [
+        "constellation",
+        "stars",
+        "network",
+        "energy"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "corazon_matematico",
       "name": "Corazón Matemático",
       "description": "Cientos de líneas de neón rojo, magenta y violeta unen los puntos de un círculo según las tablas de multiplicar y forman corazones, flores y estrellas.",
@@ -851,6 +1107,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "corazon_matematico_transparente",
+      "name": "Corazón Matemático Transparente",
+      "description": "Cientos de líneas de neón rojo, magenta y violeta unen los puntos de un círculo según las tablas de multiplicar y forman corazones, flores y estrellas sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "hypnotic",
+        "elegant",
+        "vivid"
+      ],
+      "concepts": [
+        "times tables",
+        "cardioid",
+        "string art",
+        "mathematics"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -1163,6 +1451,37 @@
       "reactivity": "optional"
     },
     {
+      "id": "descarga_tesla_transparente",
+      "name": "Descarga Tesla Transparente",
+      "description": "Plasma eléctrico a pantalla completa: rayos ramificados desde un núcleo de energía que siguen el espectro y estallan con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "electric",
+        "energetic",
+        "mysterious"
+      ],
+      "concepts": [
+        "plasma",
+        "electricity",
+        "tesla",
+        "lightning"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "escalera_imposible",
       "name": "Escalera Imposible",
       "description": "La escalera infinita de Escher y Penrose en isométrico: siempre sube y nunca termina, con pulsos de luz que trepan al ritmo de la música.",
@@ -1288,6 +1607,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "estrella_neon_transparente",
+      "name": "Estrella de Neón Transparente",
+      "description": "Caleidoscopio de seis puntas: estrellas de neón dorado salen del centro, láseres azules cruzan la pantalla y mármol rojo y naranja estalla con la música sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "club",
+        "visualizer"
+      ],
+      "moods": [
+        "epic",
+        "psychedelic",
+        "intense"
+      ],
+      "concepts": [
+        "hexagram",
+        "kaleidoscope",
+        "lasers",
+        "marble"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -1863,6 +2214,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "ilusion_optica_transparente",
+      "name": "Ilusión Óptica Transparente",
+      "description": "Patrones op art en rojo, negro y blanco que parecen moverse, respirar y hundirse aunque son planos; laten y se deforman con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "hypnotic",
+        "bold",
+        "trippy"
+      ],
+      "concepts": [
+        "op art",
+        "optical illusion",
+        "moire",
+        "bridget riley"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "jardin_alucinante",
       "name": "Jardín Alucinante",
       "description": "Flores psicodélicas de póster setentero en magenta, naranja, amarillo y turquesa que giran y florecen con cada golpe sobre un sol de rayos.",
@@ -1892,6 +2275,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "jardin_alucinante_transparente",
+      "name": "Jardín Alucinante Transparente",
+      "description": "Flores psicodélicas de póster setentero en magenta, naranja, amarillo y turquesa que giran y florecen con cada golpe sobre un sol de rayos sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "psychedelic"
+      ],
+      "moods": [
+        "psychedelic",
+        "joyful",
+        "retro"
+      ],
+      "concepts": [
+        "flower power",
+        "psychedelic",
+        "bloom",
+        "poster art"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -2119,6 +2534,70 @@
       "reactivity": "optional"
     },
     {
+      "id": "luz_bordes_2_transparente",
+      "name": "Luz de Bordes 2 Transparente",
+      "description": "Llamaradas de luz que nacen en los bordes y se extienden hacia el centro con la música; cada golpe lanza una onda que cruza la pantalla sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "ambient"
+      ],
+      "moods": [
+        "modern",
+        "vivid",
+        "minimal"
+      ],
+      "concepts": [
+        "edge lighting",
+        "glow",
+        "spectrum",
+        "border"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "luz_bordes_transparente",
+      "name": "Luz de Bordes Transparente",
+      "description": "Resplandor de colores que recorre los bordes de la pantalla y se engrosa con cada banda de la música, con pulsos que corren con el ritmo sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "ambient"
+      ],
+      "moods": [
+        "modern",
+        "vivid",
+        "minimal"
+      ],
+      "concepts": [
+        "edge lighting",
+        "glow",
+        "spectrum",
+        "border"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "magma",
       "name": "Magma",
       "description": "Corteza volcánica negra con grietas de lava naranja que se abren con los graves, roca fundida que fluye debajo y brasas que saltan con cada golpe.",
@@ -2241,6 +2720,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "mandala_alucinante_transparente",
+      "name": "Mandala Alucinante Transparente",
+      "description": "Mandala fractal ornamentado que se transforma sin parar con colores psicodélicos que circulan; respira con los graves y cambia de simetría con los golpes sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "psychedelic"
+      ],
+      "moods": [
+        "psychedelic",
+        "hypnotic",
+        "mystic"
+      ],
+      "concepts": [
+        "fractal",
+        "mandala",
+        "kaleidoscope",
+        "psychedelic art"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -2468,6 +2979,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "moho_luminoso_transparente",
+      "name": "Moho Luminoso Transparente",
+      "description": "Red viva de venas de luz roja y amarilla que crece, se ramifica y se reorganiza sola; cada golpe suelta una explosión de filamentos sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "relax"
+      ],
+      "moods": [
+        "organic",
+        "hypnotic",
+        "epic"
+      ],
+      "concepts": [
+        "physarum",
+        "slime mold",
+        "generative",
+        "network"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "monolitos_cromados",
       "name": "Monolitos Cromados",
       "description": "Bloques gigantes de cromo flotan en el vacío y reflejan luces de neón rojo y blanco; se separan con cada golpe y sus bordes arden con los graves.",
@@ -2529,6 +3072,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "murmuracion_transparente",
+      "name": "Murmuración Transparente",
+      "description": "Miles de chispas doradas vuelan juntas como una bandada de estorninos: se estiran, giran y se pliegan, y estallan con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "hypnotic",
+        "organic",
+        "epic"
+      ],
+      "concepts": [
+        "murmuration",
+        "flock",
+        "particles",
+        "emergence"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -2753,6 +3328,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "nucleo_cristal_transparente",
+      "name": "Núcleo de Cristal Transparente",
+      "description": "Un cristal de luz en espejo late en el centro y lanza hacia fuera contornos de neón azul, naranja, rojo y blanco que cambian de forma con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "club",
+        "visualizer"
+      ],
+      "moods": [
+        "epic",
+        "energetic",
+        "futuristic"
+      ],
+      "concepts": [
+        "crystal",
+        "kaleidoscope",
+        "neon outlines",
+        "vj loop"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "ojo_psicodelico",
       "name": "Ojo Psicodélico",
       "description": "Un ojo gigante de iris turquesa y dorado mira a su alrededor rodeado de ondas rojas y naranjas que se derriten; la pupila late con los graves.",
@@ -2782,6 +3389,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "ojo_psicodelico_transparente",
+      "name": "Ojo Psicodélico Transparente",
+      "description": "Un ojo gigante de iris turquesa y dorado mira a su alrededor rodeado de ondas rojas y naranjas que se derriten; la pupila late con los graves sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "psychedelic"
+      ],
+      "moods": [
+        "surreal",
+        "psychedelic",
+        "hypnotic"
+      ],
+      "concepts": [
+        "eye",
+        "surrealism",
+        "melting",
+        "psychedelic art"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -2881,6 +3520,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "osciloscopio_transparente",
+      "name": "Osciloscopio Transparente",
+      "description": "Un haz de luz verde eléctrico dibuja figuras que se transforman — espirales, flores y nudos en 3D — y que la música deforma y hace saltar sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "retro",
+        "technical",
+        "hypnotic"
+      ],
+      "concepts": [
+        "oscilloscope",
+        "lissajous",
+        "vector",
+        "phosphor"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "pantalla_led",
       "name": "Pantalla LED",
       "description": "Pared de LEDs de concierto en rojo y blanco: anillos, barridos, barras del espectro y estrobos que cambian con cada compás.",
@@ -2974,6 +3645,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "pasillo_geometrico_transparente",
+      "name": "Pasillo Geométrico Transparente",
+      "description": "Triángulos, rombos, cruces y estrellas de neón rojo y blanco que nacen en el centro y crecen hacia ti con cada golpe, con ráfagas de picos sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "club",
+        "visualizer"
+      ],
+      "moods": [
+        "intense",
+        "bold",
+        "futuristic"
+      ],
+      "concepts": [
+        "geometric",
+        "neon shapes",
+        "zoom",
+        "vj loop"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -3753,6 +4456,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "tunel_laser_transparente",
+      "name": "Túnel Láser Arcoíris Transparente",
+      "description": "Túnel de paneles dorados encendidos con marcos de neón arcoíris girados y láseres amarillos, magenta, cian y verdes que barren la pantalla sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "club",
+        "visualizer"
+      ],
+      "moods": [
+        "festive",
+        "energetic",
+        "colorful"
+      ],
+      "concepts": [
+        "tunnel",
+        "lasers",
+        "rainbow",
+        "led panels"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "v01_agujero_negro",
       "name": "Agujero Negro & Acreción",
       "description": "Horizonte de sucesos relativista, disco de acreción con corrimiento Doppler, chorros polares y lente gravitacional de Einstein.",
@@ -4189,6 +4924,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "v09_espiral_aurea_transparente",
+      "name": "Espiral Áurea Sagrada Transparente",
+      "description": "Espiral de Fibonacci y filotaxis sagrada de 750 nodos con gradiente espectral continuo y singularidad central sobre fondo transparente.",
+      "purposes": [
+        "geometry",
+        "visualizer",
+        "meditation"
+      ],
+      "moods": [
+        "sacred",
+        "calm",
+        "hypnotic"
+      ],
+      "concepts": [
+        "fibonacci",
+        "golden spiral",
+        "phyllotaxis",
+        "sacred geometry"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -4855,6 +5622,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "zoom_infinito_transparente",
+      "name": "Zoom Infinito Transparente",
+      "description": "Viaje sin fin hacia dentro del fractal de Mandelbrot con colores de fuego: espirales que aparecen sin parar y laten con la música sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "hypnotic",
+        "epic",
+        "psychedelic"
+      ],
+      "concepts": [
+        "mandelbrot",
+        "fractal",
+        "zoom",
+        "infinity"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     }
   ]
