@@ -3,11 +3,11 @@ class Visual final : public Scene {
   static constexpr int maxStars = 3000;
   struct Star { float radius, offset, lift, drift, arm; int group; };
   std::vector<Star> stars;
-  float turn = 0, breath = 0, beat = 0;
+  float clock = 0, breath = 0, beat = 0;
  public:
   void reset(uint32_t seed) override {
     Random rng(seed); stars.clear(); stars.reserve(maxStars);
-    turn = 0; breath = 0; beat = 0;
+    clock = 0; breath = 0; beat = 0;
     for (int i = 0; i < maxStars; i++) {
       float r = std::sqrt(rng.unit());
       stars.push_back({r, r * 5.8f + (rng.unit() - .5f) * (.25f + r * .8f),
@@ -16,9 +16,9 @@ class Visual final : public Scene {
     }
   }
   void update(const Frame& f) override {
-    // Motion only: phases accumulate with delta, so 30 and 60 FPS match.
+    // Motion only: an own clock follows Velocidad and matches at 30 and 60 FPS.
     const float d = float(f.delta);
-    turn += d * f.speed * .06f;
+    clock += d * f.speed;
     // Music: the bass breathes slowly; each beat is a short accent that fades.
     breath += (f.music.bass * f.intensity - breath) * (1 - std::exp(-d * 4));
     if (!f.music.events[2].empty()) beat = std::min(1.f, f.intensity);
@@ -37,7 +37,8 @@ class Visual final : public Scene {
            Paint::radial({f.width * .5f, f.height * .47f}, f.height * .75f,
                          {pal[0].opacity(1), deep}));
     c.save(); c.translate(f.width * .5f, f.height * .48f); c.rotate(-.38f);
-    const float scale = std::min(f.width * .62f, f.height * .42f) * (1 + graves * .2f);
+    // Music grows the galaxy 20% at most, even with intensity 2.
+    const float scale = std::min(f.width * .62f, f.height * .42f) * (1 + std::min(graves, 1.f) * .2f);
     // Estela: from sharp stars (0) to a soft, glowing nebula (1).
     const float haze = g.estela;
     Paint mist = Paint::radial({0, 0}, scale * (.6f + haze * .5f),
@@ -64,16 +65,16 @@ class Visual final : public Scene {
         const auto& s = stars[i];
         if (s.group != group) continue;
         const float from = armAngle(s.arm, fewer), to = armAngle(s.arm, more);
-        const float a = from + (to - from) * between + s.offset + turn * s.drift;
+        const float a = from + (to - from) * between + s.offset + clock * .06f * s.drift;
         const Vec2 point{std::cos(a) * s.radius * scale,
                          std::sin(a) * s.radius * scale * .49f + s.lift * scale};
         batch.push_back(point);
         mirror.push_back({-point.x, point.y});
       }
-      const float twinkle = .5f + .5f * std::sin(float(f.time) * 9 + group * 1.7f);
+      const float twinkle = .5f + .5f * std::sin(clock * 9 + group * 1.7f);
       Paint p; p.blend = Blend::plus;
       const float alpha = std::min(1.f, .55f + golpes * .45f + brillos * twinkle * .6f);
-      const float size = (.55f + (group / 3) * .5f) * (1 + haze * 1.6f + golpes * .8f);
+      const float size = (.55f + (group / 3) * .5f) * (1 + haze * 1.6f + golpes * .25f);
       p.color = pal[1 + group % 3].opacity(alpha);
       c.points(batch, size, p);
       // Espejo: a mirrored twin turns the spiral into a symmetric butterfly.

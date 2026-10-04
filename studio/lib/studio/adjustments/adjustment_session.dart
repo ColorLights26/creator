@@ -96,12 +96,18 @@ class AdjustmentSession extends ChangeNotifier {
   void beginEdit() => _remember();
 
   /// Shows a chip's values (Original, an author or a personal variation).
-  /// A saved look brings its [palette]; an author's keeps the current one.
-  void apply(String name, AdjustmentValues values, {List<int>? palette}) {
+  /// A saved look sets its [palette] ([setsPalette], null for the visual's
+  /// own colors); an author's variation keeps the colors on screen.
+  void apply(
+    String name,
+    AdjustmentValues values, {
+    List<int>? palette,
+    bool setsPalette = false,
+  }) {
     _remember();
     _current = values;
     _chip = name;
-    if (palette != null) _palette = palette;
+    if (setsPalette) _palette = palette;
     _changed(jumped: true);
   }
 
@@ -110,6 +116,7 @@ class AdjustmentSession extends ChangeNotifier {
     if (listEquals(colors, _palette)) return;
     _remember();
     _palette = colors == null ? null : List.unmodifiable(colors);
+    _chip = null;
     _changed(jumped: true);
   }
 
@@ -120,6 +127,7 @@ class AdjustmentSession extends ChangeNotifier {
     _chip = originalChipName;
     _seed = null;
     _palette = null;
+    _comparing = false;
     _changed(jumped: true);
   }
 
@@ -296,7 +304,7 @@ String variationForAi(
     entries.add(
       "'${modifier.id}': ${switch (modifier.kind) {
         CreatorModifierKind.toggle => value == 1 ? 'true' : 'false',
-        CreatorModifierKind.choice => "'${modifier.options[value.toInt()]}'",
+        CreatorModifierKind.choice => "'${modifier.options[value.toInt()].replaceAll(r'\', r'\\').replaceAll("'", r"\'")}'",
         CreatorModifierKind.steps => value.toInt().toString(),
         CreatorModifierKind.slider => sliderText(modifier.lower, modifier.upper, value),
       }}",

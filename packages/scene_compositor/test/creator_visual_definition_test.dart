@@ -856,6 +856,19 @@ void _lintContract() {
     ).single.contains('f.modifiers[…]'),
     'raw access is refused',
   );
+  for (final valid in [
+    "const int n = 10'000 + int(modifiers(f).brazos);",
+    'const auto [brazos] = modifiers(f);',
+    'auto s = R"(a\nb)"; int k = modifiers(f).brazos;',
+    '#define MOD(n) modifiers(f).n\nint k = MOD(brazos);',
+    "char q = 'x'; auto b = modifiers(f).brazos;",
+  ]) {
+    _expect(lint(valid).isEmpty, 'valid C++ use is accepted: $valid');
+  }
+  _expect(
+    lint('auto s = R"x(m.brazos)x";').single.contains('no se usa'),
+    'a name inside a raw string does not count',
+  );
   _expect(
     lint('m.brazos', label: 'Velocidad').single.contains('ajuste básico'),
     'a label that renames a basic is refused',
@@ -876,6 +889,7 @@ void _lintContract() {
 /// generator change must bump the runtime, so old binaries never match.
 const _glideGolden = {
   1: 'c79f8936b824beca0c9e4fe690b6631bee44116aa4186d8335c7a8bf41c55005',
+  2: 'ada8671110d0b93af1596498bb90b9c00fd0728952345abb8afbc393014340d4',
 };
 
 void _frozenContract() {

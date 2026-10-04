@@ -18,12 +18,48 @@ const std::array<float, 16> colors = {.02f,.03f,.08f,1,.2f,.6f,1,1,1,.2f,.6f,1,1
 
 struct Failure : std::runtime_error { using std::runtime_error::runtime_error; };
 
-/// Synthetic music shared with the Dart tests (signals.bin, 520-byte frames).
+/// Synthetic music shared with the Dart tests (signals.bin, 520-byte frames),
+/// made loud for the sweep: it starts where the music is active, every hit
+/// has full strength and each beat also flashes, so a modifier that only
+/// changes how hits look is exercised.
 struct Music {
   std::vector<uint8_t> bytes;
+  size_t start = 0;
   size_t frames() const { return bytes.size() / frameBytes; }
-  const uint8_t* frame(size_t i) const { return bytes.data() + (i % frames()) * frameBytes; }
+  const uint8_t* frame(size_t i) const { return bytes.data() + ((start + i) % frames()) * frameBytes; }
+
+  void makeLoud() {
+    for (size_t f = 0; f < frames(); f++) {
+      uint8_t* b = bytes.data() + f * frameBytes;
+      uint16_t flags; std::memcpy(&flags, b + 6, 2);
+      if (start == 0 && f > 0 && (flags & 5) == 5) start = f;
+      constexpr size_t events = 424, size = 24, beat = 2, flash = 3;
+      if (b[events + beat * size + 21] == 1 && b[events + flash * size + 21] == 0)
+        std::memcpy(b + events + flash * size, b + events + beat * size, size);
+      for (size_t e = 0; e < 4; e++) {
+        if (b[events + e * size + 21] != 1) continue;
+        const float strength = 1;
+        std::memcpy(b + events + e * size + 16, &strength, 4);
+      }
+    }
+  }
 };
+
+/// The drawing of every frame, so a change that only shows on a hit counts.
+struct Clip {
+  std::vector<float> last;
+  std::vector<uint64_t> frames;
+  bool operator!=(const Clip& other) const { return frames != other.frames; }
+};
+
+uint64_t digest(const std::vector<float>& commands) {
+  uint64_t hash = 1469598103934665603ull;
+  for (float value : commands) {
+    uint32_t bits; std::memcpy(&bits, &value, 4);
+    hash = (hash ^ bits) * 1099511628211ull;
+  }
+  return hash;
+}
 
 std::vector<float> options(const std::array<float, 4>& basics, const std::vector<float>& modifiers) {
   std::vector<float> result(basics.begin(), basics.end());
@@ -39,8 +75,8 @@ struct Instance {
   }
   ~Instance() { cp_destroy(handle); }
   void check(int32_t result) const { if (result != 1) throw Failure(cp_error(handle)); }
-  void configure(const std::vector<float>& values, double host) const {
-    check(cp_configure(handle, values.data(), uint32_t(values.size()), 1, 1, host));
+  void configure(const std::vector<float>& values, double host, bool reactive = true) const {
+    check(cp_configure(handle, values.data(), uint32_t(values.size()), reactive ? 1 : 0, 1, host));
   }
   std::vector<float> commands() const {
     const auto data = cp_commands(handle);
@@ -105,31 +141,36 @@ void checkProgram(const creator::Program& program) {
 }
 
 #ifdef CREATOR_PROBE_CASES
-/// Two seconds at 30 FPS with music. [switches] change the modifiers live at
-/// a frame, which exercises the engine's transitions.
-std::vector<float> play(const creator::Program& program, const std::array<float, 4>& basics,
-                        const std::vector<float>& modifiers, const Music& music, int fps = 30, int seconds = 2,
-                        const std::vector<std::pair<int, std::vector<float>>>& switches = {}) {
+/// Three seconds at 30 FPS with loud music (none when [reactive] is false,
+/// as the app plays it). [switches] change the modifiers live at a frame,
+/// which exercises the engine's transitions.
+Clip play(const creator::Program& program, bool reactive, const std::array<float, 4>& basics,
+          const std::vector<float>& modifiers, const Music& music, int fps = 30, int seconds = 3,
+          const std::vector<std::pair<int, std::vector<float>>>& switches = {}) {
   Instance p(program);
-  p.configure(options(basics, modifiers), 0);
+  p.configure(options(basics, modifiers), 0, reactive);
+  Clip clip;
   for (int i = 0; i <= fps * seconds; i++) {
     for (const auto& [frame, next] : switches)
-      if (frame == i) p.configure(options(basics, next), double(i) / fps);
+      if (frame == i) p.configure(options(basics, next), double(i) / fps, reactive);
     if (!music.bytes.empty()) p.check(cp_consume(p.handle, music.frame(i * 30 / fps), frameBytes));
     p.check(cp_update(p.handle, 320, 568, double(i) / fps, 0));
     p.check(cp_draw(p.handle));
+    clip.last = p.commands();
+    clip.frames.push_back(digest(clip.last));
   }
-  return p.commands();
+  return clip;
 }
 
 /// Every extreme, option and variation with loud music. Returns the
 /// modifiers that never change the drawing.
 std::vector<std::string> sweep(const creator::Program& program, const CreatorProbeCase& probe, const Music& music) {
   const std::array<float, 4> loud = {2, 1, 2, 2};  // intensity, speed, detail, glow
+  const bool reactive = probe.reactive;
   std::vector<float> initial;
   for (const auto& modifier : probe.modifiers) initial.push_back(modifier.value);
-  const auto base = play(program, loud, initial, music);
-  if (base != play(program, loud, initial, music)) throw Failure("con música, no repite el mismo dibujo.");
+  const auto base = play(program, reactive, loud, initial, music);
+  if (base != play(program, reactive, loud, initial, music)) throw Failure("con música, no repite el mismo dibujo.");
   std::vector<std::string> dead;
   for (size_t i = 0; i < probe.modifiers.size(); i++) {
     const auto& modifier = probe.modifiers[i];
@@ -140,7 +181,7 @@ std::vector<std::string> sweep(const creator::Program& program, const CreatorPro
     bool changes = false;
     for (float value : tries) {
       auto values = initial; values[i] = value;
-      try { changes |= play(program, loud, values, music) != base; }
+      try { changes |= play(program, reactive, loud, values, music) != base; }
       catch (const Failure& e) {
         throw Failure(std::string(modifier.id) + " = " + std::to_string(value) + ": " + e.what());
       }
@@ -153,8 +194,8 @@ std::vector<std::string> sweep(const creator::Program& program, const CreatorPro
     return values;
   };
   const auto low = all(false), high = all(true);
-  try { play(program, loud, low, music); } catch (const Failure& e) { throw Failure(std::string("todos al mínimo: ") + e.what()); }
-  try { play(program, loud, high, music); } catch (const Failure& e) { throw Failure(std::string("todos al máximo: ") + e.what()); }
+  try { play(program, reactive, loud, low, music); } catch (const Failure& e) { throw Failure(std::string("todos al mínimo: ") + e.what()); }
+  try { play(program, reactive, loud, high, music); } catch (const Failure& e) { throw Failure(std::string("todos al máximo: ") + e.what()); }
   std::mt19937 random(7);
   for (int combo = 0; combo < 8; combo++) {
     std::vector<float> values;
@@ -163,19 +204,21 @@ std::vector<std::string> sweep(const creator::Program& program, const CreatorPro
       const float value = any(random);
       values.push_back(modifier.kind == 0 ? value : std::round(value));
     }
-    try { play(program, loud, values, music); }
+    try { play(program, reactive, loud, values, music); }
     catch (const Failure& e) { throw Failure("combinación al azar " + std::to_string(combo) + ": " + e.what()); }
   }
   for (const auto& variation : probe.variations) {
-    try { play(program, variation.controls, variation.modifiers, music); }
+    try { play(program, reactive, variation.controls, variation.modifiers.empty() ? initial : variation.modifiers, music); }
     catch (const Failure& e) { throw Failure(std::string("variación ") + variation.name + ": " + e.what()); }
   }
-  try { play(program, loud, initial, music, 30, 2, {{30, high}, {45, low}}); }
-  catch (const Failure& e) { throw Failure(std::string("cambio en vivo: ") + e.what()); }
+  if (!probe.modifiers.empty()) {
+    try { play(program, reactive, loud, initial, music, 30, 3, {{30, high}, {45, low}}); }
+    catch (const Failure& e) { throw Failure(std::string("cambio en vivo: ") + e.what()); }
+  }
   // Non-initial values follow the same frame-rate rule, without music.
   const Music silence;
-  const auto at30 = play(program, {1, 1, 1, 1}, high, silence, 30, 4);
-  const auto at60 = play(program, {1, 1, 1, 1}, high, silence, 60, 4);
+  const auto at30 = play(program, reactive, {1, 1, 1, 1}, high, silence, 30, 4).last;
+  const auto at60 = play(program, reactive, {1, 1, 1, 1}, high, silence, 60, 4).last;
   bool same = at30.size() == at60.size();
   for (size_t i = 0; same && i < at30.size(); i++) same = std::abs(at30[i] - at60[i]) <= .1f;
   if (!same) throw Failure("con los modificadores al máximo, el movimiento difiere entre 30 y 60 FPS.");
@@ -197,6 +240,7 @@ int main(int argc, char** argv) {
       std::cerr << "Señales inválidas: " << arg << "\n";
       return 1;
     }
+    music.makeLoud();
   }
   int failures = 0;
   // Every visual is checked even when one fails, so one fix never hides the next.

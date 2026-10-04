@@ -66,6 +66,28 @@ class PersonalVariations {
     );
   }
 
+  /// Why [name] cannot name a saved look of [visual], or null when it can:
+  /// up to 20 characters (as variations count them), and never the name of
+  /// Original, of an author variation or of another saved look.
+  static String? nameProblem(
+    String name,
+    CreatorVisualDefinition visual,
+    List<PersonalVariation> saved, {
+    String? except,
+  }) {
+    final key = name.trim().toLowerCase();
+    if (key.isEmpty || name.trim().length > 20) {
+      return 'Usa un nombre de 1 a 20 caracteres.';
+    }
+    final taken = {
+      originalChipName.toLowerCase(),
+      for (final variation in visual.variations) variation.name.toLowerCase(),
+      for (final variation in saved)
+        if (variation.name != except) variation.name.toLowerCase(),
+    };
+    return taken.contains(key) ? 'Ese nombre ya existe; elige otro.' : null;
+  }
+
   /// Next free "Mía N" name.
   static String nextName(List<PersonalVariation> saved) {
     var index = 1;

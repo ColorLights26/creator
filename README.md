@@ -168,21 +168,31 @@ Así puedes probar sin conectar sensores.
 
 ### Prueba sus Ajustes
 
-Encima de **Pruébalo con** está el botón **Ajustes**. Ábrelo con el visual en
-pantalla: los cambios se ven al instante, sin reiniciar el dibujo.
+Encima de **Pruébalo con** está el botón **Ajustes**. Se abre a un tercio de la
+pantalla para que sigas viendo el visual; deslízalo hacia arriba para ver todo.
+Cada cambio se transforma suave, en menos de un segundo, sin reiniciar el dibujo.
 
-- **Modificadores**: los ajustes propios de ese visual, como cantidad de brazos,
-  giro, forma o estilo. **La plantilla le pide a la IA que los cree siempre**, así
-  que tus visuales nuevos los traen. El botón dice cuántos tiene.
-- **Básicos**: Intensidad, Velocidad, Detalle y Brillo, comunes a todos. Si el
-  código no usa alguno, aparece apagado con «este visual no lo usa».
-- **Aleatorio** prueba combinaciones; **Restablecer** vuelve a los iniciales.
-- **Copiar valores** copia los que elegiste. Pégaselos a la IA y pídele: «Usa estos
-  valores como iniciales». Así quedan como el aspecto de partida.
+- **Variaciones**: fichas como «Original · Tormenta · Calma». Las crea la IA
+  (la plantilla se lo pide siempre) y cada una debería parecer otro visual.
+- **Variar** hace un cambio pequeño; **Sorprender** prueba cualquier
+  combinación, a veces con otros colores; **↶** deshace.
+- **Paleta**: «Sus colores», 8 paletas y «Armónica» (sus colores en otro tono).
+  Aparece en los visuales que usan sus colores.
+- **Modificadores**: los ajustes propios del visual (forma, ritmo, atmósfera…).
+  La marca en cada barra es el valor original; el número sale al arrastrar.
+- **Básicos**: Intensidad, Velocidad, Detalle y Brillo, sólo los que el visual usa.
+- **Guardar** guarda lo que ves como «Mía 1». Mantenla presionada para
+  renombrarla, borrarla o copiarla para la IA.
+- **Mantén presionado el visual** para ver el original; al soltar vuelve.
+- En **⋯**: **Otra semilla** (otra disposición del mismo visual) y **Copiar para
+  la IA**. Pégale ese texto a la IA con la plantilla y tu archivo: lo agrega
+  como variación.
+
+Lo que muevas en Ajustes es para explorar: **el voto del equipo es siempre del
+original**. Mientras ves una variación, el voto lo avisa y ofrece «Ver original».
 
 Para pedir otros modificadores, díselo a la IA con la plantilla y tu archivo:
-«Añade un modificador para elegir la forma de las partículas». Los valores que
-muevas en Ajustes son para probar: **el voto del equipo es para los iniciales**.
+«Añade un modificador para elegir la forma de las partículas».
 
 ## 6. Para crear otro visual
 
@@ -208,7 +218,8 @@ existente; para crear Fuego, añade otra pareja. Puedes conservar los ejemplos.
 | Elegí transparente, pero sigue mostrando un fondo negro | Pide a la IA transparencia real en el código del dibujo; revisa que la metadata use `.overlay`. |
 | No reacciona a la música que pongo en mi habitación | El estudio usa señales de demostración y no escucha el micrófono. Prueba la Demo sintética y revisa la opción de reacción. |
 | Me indican que «figura como reactivo pero no cambia» | Si quieres reacción, adjunta el mensaje, la plantilla y tu código a la IA. Si el visual debe ser ambiental, elige `.none` en la metadata. |
-| Un error menciona `modifiers` | Pega el error, la plantilla y tu archivo a la IA. Suele ser un nombre repetido, un valor inicial fuera de su rango o el `import` borrado. |
+| Un error menciona `modifiers` o `variations` | Pega el error, la plantilla y tu archivo a la IA. Suele ser un nombre repetido, un valor fuera de su rango, un modificador que el código no usa o el `import` borrado. |
+| Dice «no cambia nada» o «entre 30 y 60 FPS» | Lo detecta la revisión del responsable. Pega la línea FAIL, la plantilla y tu archivo a la IA: el mensaje ya dice cómo arreglarlo. |
 | El código de la IA no compila | Copia el primer error completo, el contenido de tu visual y la plantilla a la IA. Usa el mensaje de abajo. |
 
 ```text

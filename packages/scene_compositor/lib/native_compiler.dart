@@ -151,7 +151,9 @@ Map<String, Object> prepareCreatorNative({
         'std::unique_ptr<creator::Scene> make() { return std::make_unique<CreatorGlideScene_>(); }\n}',
       );
     }
-    if (visual.modifiers.isNotEmpty) probeCases.add(_probeCase(visual));
+    if (visual.modifiers.isNotEmpty || visual.variations.isNotEmpty) {
+      probeCases.add(_probeCase(visual));
+    }
     entries.add(
       '{${jsonEncode(visual.programId)}, ${jsonEncode(hash)}, &authored_${visual.id}::make, {${materials.map(jsonEncode).join(',')}}, {${images.map(jsonEncode).join(',')}}, {${visual.modifiers.map((m) => _floatLiteral(m.value.toDouble())).join(',')}}}',
     );
@@ -171,7 +173,7 @@ Map<String, Object> prepareCreatorNative({
       '#include <array>\n#include <vector>\n'
       'struct CreatorProbeModifier { const char* id; int kind; float lower, upper, value; };\n'
       'struct CreatorProbeVariation { const char* name; std::array<float, 4> controls; std::vector<float> modifiers; };\n'
-      'struct CreatorProbeCase { const char* program; std::vector<CreatorProbeModifier> modifiers; std::vector<CreatorProbeVariation> variations; };\n'
+      'struct CreatorProbeCase { const char* program; bool reactive; std::vector<CreatorProbeModifier> modifiers; std::vector<CreatorProbeVariation> variations; };\n'
       'inline const std::vector<CreatorProbeCase>& creatorProbeCases() {\n'
       '  static const std::vector<CreatorProbeCase> cases = {${probeCases.join(',\n')}};\n'
       '  return cases;\n}\n',
@@ -225,13 +227,15 @@ String _probeCase(CreatorVisualDefinition visual) {
             '{${resolved.controls.toMap().values.map(_floatLiteral).join(', ')}}, '
             '{${resolved.modifiers.values.map(_floatLiteral).join(', ')}}}',
   ];
-  return '{${jsonEncode(visual.programId)}, {${modifiers.join(', ')}}, '
+  // A visual that never reacts is swept without music, as the app plays it.
+  final reactive = visual.reactivity != CreatorReactivity.none;
+  return '{${jsonEncode(visual.programId)}, $reactive, {${modifiers.join(', ')}}, '
       '{${variations.join(', ')}}}';
 }
 
 /// Bump when the generated reader or transition code changes behavior, so a
 /// program built with the old code never matches a newer catalog.
-const creatorGlideRuntime = 1;
+const creatorGlideRuntime = 2;
 
 /// Seconds a slider, steps or toggle takes to cover ~63% of a change, and a
 /// choice to finish its crossfade.
@@ -257,21 +261,25 @@ String creatorGlideReader(CreatorVisualDefinition visual) {
   }
   return '''// Transiciones: glide(f).<id> se desliza hacia el valor elegido.
 struct CreatorChoiceGlide {
+  // The chosen option, the one it comes from and how far the change went.
   int from = 0, to = 0; float t = 1;
-  // Weight of an option during the crossfade; the weights add up to 1.
-  float weight(int option) const {
-    const float s = t * t * (3 - 2 * t);
-    return (option == to ? s : 0.f) + (option == from ? 1 - s : 0.f);
-  }
+  // Weight of every option; they add up to 1 at every moment.
+  std::array<float, 8> weights{1};
+  float weight(int option) const { return option >= 0 && option < 8 ? weights[option] : 0.f; }
 };
+inline CreatorChoiceGlide creatorSteadyChoice_(int option) {
+  CreatorChoiceGlide c; c.from = c.to = option; c.weights = {}; c.weights[option] = 1; return c;
+}
 struct CreatorGlide {$fields };
 struct CreatorGlideState_ { const Frame* frame = nullptr; std::array<CreatorChoiceGlide, 8> choice{}; };
 thread_local CreatorGlideState_ creatorGlide_;
 inline CreatorGlide glide(const Frame& f) {
-  // Only the frame the engine passes carries transitions; a copy is steady.
-  const bool live = creatorGlide_.frame == &f;
+  // The engine's frame, or a copy of it taken during the same call, carries
+  // the transitions; any other frame reads steady values.
+  const bool live = creatorGlide_.frame &&
+      (creatorGlide_.frame == &f || creatorGlide_.frame->modifiers == f.modifiers);
   auto choice = [&](int i, int target) {
-    return live ? creatorGlide_.choice[i] : CreatorChoiceGlide{target, target, 1};
+    return live ? creatorGlide_.choice[i] : creatorSteadyChoice_(target);
   };
   (void)choice;
   return {${values.join(', ')}};
@@ -308,7 +316,7 @@ String creatorGlideWrapper(CreatorVisualDefinition visual) {
   void snap_(const Frame& f) const {
     for (int i = 0; i < count_; i++) {
       const float value = target_(f, i);
-      if (kinds_[i] == $choice) { const int option = int(std::lround(value)); choice_[i] = {option, option, 1}; }
+      if (kinds_[i] == $choice) choice_[i] = creatorSteadyChoice_(int(std::lround(value)));
       else eased_[i] = value;
     }
     ready_ = true;
@@ -319,13 +327,19 @@ String creatorGlideWrapper(CreatorVisualDefinition visual) {
     for (int i = 0; i < count_; i++) {
       const float value = target_(f, i);
       if (kinds_[i] == $choice) {
+        // Every other option fades out at the same pace and the chosen one
+        // takes what they release, so a change mid-fade never jumps.
         auto& c = choice_[i];
         const int option = int(std::lround(value));
-        if (option != c.to) {
-          if (option == c.from) { std::swap(c.from, c.to); c.t = 1 - c.t; }
-          else { c.from = c.t >= .5f ? c.to : c.from; c.to = option; c.t = 0; }
+        if (option != c.to) { c.from = c.to; c.to = option; }
+        float others = 0;
+        for (int k = 0; k < 8; k++) {
+          if (k == option) continue;
+          c.weights[k] = std::max(0.f, c.weights[k] - delta / choiceSeconds_);
+          others += c.weights[k];
         }
-        c.t = std::min(1.f, c.t + delta / choiceSeconds_);
+        c.weights[option] = 1 - others;
+        c.t = c.weights[option];
       } else {
         float& eased = eased_[i];
         eased += (value - eased) * follow;

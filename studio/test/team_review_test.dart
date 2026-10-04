@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scene_compositor/scene_compositor.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const _aurora = CreatorVisualDefinition(
   id: 'aurora',
@@ -21,6 +22,17 @@ const _plasma = CreatorVisualDefinition(
   id: 'plasma',
   name: 'Plasma',
   shaderSource: 'float4 paintVisual() { return float4(1); }',
+);
+const _galaxy = CreatorVisualDefinition(
+  id: 'galaxia',
+  name: 'Galaxia',
+  nativeSource: 'class Visual final : public Scene {}; m.brazos;',
+  modifiers: [
+    CreatorModifier.steps('brazos', 'Brazos', min: 2, max: 8, value: 4),
+  ],
+  variations: [
+    CreatorVariation('Tormenta', {'brazos': 8}),
+  ],
 );
 const _tides = CreatorVisualDefinition(
   id: 'mareas_test',
@@ -170,6 +182,12 @@ class _Controller extends SceneCompositorController {
   Future<void> resize(Size size, double pixelRatio) async {}
   @override
   Future<void> setReactive(bool reactive) async {}
+  @override
+  Future<void> setControls(CreatorControls controls) async {}
+  @override
+  Future<void> setModifiers(Map<String, double> values) async {}
+  @override
+  Future<void> setPalette(List<int>? colors) async {}
   @override
   Future<void> setPlaying(bool playing) async {}
   @override
@@ -949,5 +967,69 @@ void main() {
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(milliseconds: 50));
+  });
+
+  testWidgets('a score being chosen survives the variation notice', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({});
+    final review = TeamReviewController(
+      client: _FakeClient(),
+      store: _MemoryStore('clr_franco'),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CreatorStudio(
+          catalogBuilder: () => [_galaxy],
+          controllerFactory: _Controller.new,
+          recordingsLoader: () async => [],
+          thumbnailBuilder: (_, _) => const SizedBox(),
+          teamReview: review,
+        ),
+      ),
+    );
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('team-rating-score-7')),
+    );
+    await tester.tap(find.byKey(const ValueKey('team-rating-score-7')));
+    await tester.pump();
+    expect(find.text('Confirmar 7'), findsOneWidget);
+
+    final button = find.byKey(const ValueKey('visual-adjustments-button'));
+    await tester.ensureVisible(button);
+    await tester.tap(button);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.tap(find.byKey(const ValueKey('adjustments-chip-Tormenta')));
+    await tester.pump();
+    await tester.tap(find.byTooltip('Cerrar'));
+    await tester.pump(const Duration(milliseconds: 600));
+
+    expect(
+      find.byKey(const ValueKey('adjustments-viewing-variation')),
+      findsOneWidget,
+    );
+    expect(find.text('Confirmar 7'), findsOneWidget);
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('adjustments-view-original')),
+    );
+    await tester.tap(find.byKey(const ValueKey('adjustments-view-original')));
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey('adjustments-viewing-variation')),
+      findsNothing,
+    );
+    expect(find.text('Confirmar 7'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 20));
+    }
   });
 }

@@ -117,13 +117,15 @@ const _literalLists = {
       'true',
       'false',
     },
-    hint: 'CreatorModifier.slider/steps/toggle/choice con textos, números, '
+    hint:
+        'CreatorModifier.slider/steps/toggle/choice con textos, números, '
         'true o false',
   ),
   'variations': (
     type: 'CreatorVariation',
     words: {'const', 'CreatorVariation', 'true', 'false'},
-    hint: "CreatorVariation('Nombre', {'id': valor, ...}) con textos, "
+    hint:
+        "CreatorVariation('Nombre', {'id': valor, ...}) con textos, "
         'números, true o false',
   ),
 };
@@ -137,11 +139,16 @@ final _numbers = RegExp(
 /// when [code] does not start with a literal list.
 ({String name, String rest})? _takeLiteralList(String code) {
   final head = RegExp(
-    r'^const\s+(modifiers|variations)\s*=\s*(?:<(CreatorModifier|CreatorVariation)>)?\s*\[',
+    r'^const\s+(modifiers|variations)\s*=\s*(?:<(\w+)>)?\s*\[',
   ).firstMatch(code);
   if (head == null) return null;
   final name = head[1]!;
   final list = _literalLists[name]!;
+  if (head[2] != null && head[2] != list.type) {
+    throw FormatException(
+      '$name es una lista de ${list.type}: const $name = [ ... ];',
+    );
+  }
   var depth = 1;
   var i = head.end;
   final outside = StringBuffer();
@@ -174,6 +181,12 @@ final _numbers = RegExp(
       '$name debe ser una lista constante: const $name = [ ... ];',
     );
   }
+  if (code.substring(head.end, i - 1).trim().isEmpty) {
+    throw FormatException(
+      'const $name está vacía: bórrala o agrega al menos un elemento.',
+    );
+  }
+  if (name == 'variations') _checkVariations(code.substring(head.end - 1, i));
   final words = RegExp(
     r'[A-Za-z_][A-Za-z0-9_]*',
   ).allMatches('$outside'.replaceAll(_numbers, ' '));
@@ -188,6 +201,68 @@ final _numbers = RegExp(
   }
   return (name: name, rest: after.substring(1).trim());
 }
+
+/// Variations are maps the registry imports as Dart: anything but
+/// `CreatorVariation('Nombre', {'id': valor, ...})` with text keys, text,
+/// number or true/false values and no repeated key would break the catalog
+/// build for every visual, so the exact shape is checked here.
+void _checkVariations(String literal) {
+  final tokens = _variationToken.allMatches(literal).map((m) => m[1]!).toList();
+  var at = 0;
+  String? peek() => at < tokens.length ? tokens[at] : null;
+  String take() => at < tokens.length ? tokens[at++] : '';
+  bool isText(String? token) =>
+      token != null && (token.startsWith("'") || token.startsWith('"'));
+  Never bad(String why) =>
+      throw FormatException(
+        "variations: $why. Usa CreatorVariation('Nombre', {'id': valor, ...}).",
+      );
+  void expect(String token) {
+    if (take() != token) bad('falta «$token»');
+  }
+
+  expect('[');
+  while (peek() != ']') {
+    if (peek() == 'const') take();
+    if (take() != 'CreatorVariation') {
+      bad('cada elemento es un CreatorVariation');
+    }
+    expect('(');
+    if (!isText(take())) bad('el nombre va entre comillas');
+    expect(',');
+    if (peek() == 'const') take();
+    expect('{');
+    final keys = <String>{};
+    while (peek() != '}') {
+      final key = take();
+      if (!isText(key)) bad('las claves son ids entre comillas');
+      if (!keys.add(key.substring(1, key.length - 1))) {
+        bad('la clave $key está repetida');
+      }
+      expect(':');
+      final value = take();
+      if (!isText(value) &&
+          value != 'true' &&
+          value != 'false' &&
+          !RegExp(r'^[-+]?[0-9.]').hasMatch(value)) {
+        bad('$key necesita un número, un texto, true o false');
+      }
+      if (peek() == ',') take();
+    }
+    expect('}');
+    if (peek() == ',') take();
+    expect(')');
+    if (peek() == ',') take();
+  }
+  expect(']');
+  if (at != tokens.length) bad('sobra algo después de la lista');
+}
+
+/// One token of a variations literal: a quoted text, a number, a word or a
+/// punctuation mark.
+final _variationToken = RegExp(
+  r'''\s*('(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|[-+]?(?:0[xX][0-9a-fA-F_]+|(?:\d[\d_]*)?\.?\d[\d_]*(?:[eE][+-]?\d[\d_]*)?)|[A-Za-z_]\w*|[\[\](){}:,])''',
+);
 
 /// The Dart expression that joins a visual's code file (imported as [code])
 /// with its metadata file (imported as [metadata]). Every generator uses it,
@@ -226,8 +301,12 @@ CreatorSourceEnvelope parseCreatorVisualSource(String source) {
     list = _takeLiteralList(code);
   }
   if (imported && declared.isEmpty) {
-    throw const FormatException(
-      'El import sólo hace falta para declarar const modifiers = [...].',
+    throw FormatException(
+      RegExp(r'\bconst\s+(modifiers|variations)\b').hasMatch(code)
+          ? 'const modifiers y const variations van antes de nativeSource, '
+              'justo después del import.'
+          : 'El import sólo hace falta para declarar const modifiers = [...] '
+              'o const variations = [...].',
     );
   }
   final head = RegExp(
@@ -239,6 +318,12 @@ CreatorSourceEnvelope parseCreatorVisualSource(String source) {
     );
   }
   var tail = code.substring(head.end).trim();
+  if (RegExp(r'^const\s+(modifiers|variations)\b').firstMatch(tail)
+      case final misplaced?) {
+    throw FormatException(
+      'const ${misplaced[1]} va antes de nativeSource, justo después del import.',
+    );
+  }
   final materials = <String, String>{};
   if (tail.isNotEmpty && head[1] == 'nativeSource') {
     final map = RegExp(

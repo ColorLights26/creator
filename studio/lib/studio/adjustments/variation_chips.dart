@@ -40,7 +40,9 @@ class VariationChips extends StatelessWidget {
             label: originalChipName,
             selected: session.chip == originalChipName,
             onTap: () {
-              if (session.chip == originalChipName && session.seed == null) {
+              if (session.chip == originalChipName &&
+                  !session.differsFromOriginal &&
+                  !session.comparing) {
                 return;
               }
               HapticFeedback.selectionClick();
@@ -69,6 +71,7 @@ class VariationChips extends StatelessWidget {
                   variation.name,
                   variation.values,
                   palette: variation.palette,
+                  setsPalette: true,
                 );
               },
               onLongPress: () => onPersonalMenu(variation),

@@ -78,7 +78,12 @@ class _AdjustmentsSheetState extends State<_AdjustmentsSheet> {
         (name: name, values: _session.current, palette: _session.palette),
       ]),
     );
-    _session.apply(name, _session.current, palette: _session.palette);
+    _session.apply(
+      name,
+      _session.current,
+      palette: _session.palette,
+      setsPalette: true,
+    );
   }
 
   Future<void> _copyForAi(
@@ -137,8 +142,19 @@ class _AdjustmentsSheetState extends State<_AdjustmentsSheet> {
         ]);
       case 'rename':
         final name = await _askName(variation.name);
-        if (name == null || name == variation.name) return;
-        if (_personal.any((item) => item.name == name)) return;
+        if (name == null || name == variation.name || !mounted) return;
+        final problem = PersonalVariations.nameProblem(
+          name,
+          _session.visual,
+          _personal,
+          except: variation.name,
+        );
+        if (problem != null) {
+          ScaffoldMessenger.maybeOf(
+            context,
+          )?.showSnackBar(SnackBar(content: Text(problem)));
+          return;
+        }
         await _savePersonal([
           for (final item in _personal)
             item.name == variation.name
@@ -243,10 +259,13 @@ class _AdjustmentsSheetState extends State<_AdjustmentsSheet> {
                             case 'copy':
                               unawaited(
                                 _copyForAi(
-                                  _session.chip == null ||
-                                          _session.chip == originalChipName
-                                      ? PersonalVariations.nextName(_personal)
-                                      : _session.chip!,
+                                  // Only a saved look keeps its own name: an
+                                  // author's would come back repeated.
+                                  _personal.any(
+                                        (item) => item.name == _session.chip,
+                                      )
+                                      ? _session.chip!
+                                      : PersonalVariations.nextName(_personal),
                                   _session.current,
                                   _session.palette,
                                 ),

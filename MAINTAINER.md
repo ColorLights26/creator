@@ -56,52 +56,85 @@ una etiqueta editorial: ninguna de sus opciones concede aprobación.
 
 ## Modificadores
 
-Un visual nativo puede declarar sus propios ajustes. Van en el archivo del
-código, antes de `nativeSource`, y los escribe la IA (la plantilla se lo pide
-siempre). El colaborador pega un solo archivo:
+Un visual nativo declara sus propios ajustes y variaciones en el archivo del
+código, antes de `nativeSource`. Los escribe la IA (la plantilla lo pide
+siempre) y el colaborador pega un solo archivo:
 
 ```dart
 import 'package:scene_compositor/authoring.dart';
 
 const modifiers = [
-  CreatorModifier.steps('brazos', 'Brazos', min: 2, max: 6, value: 4),
-  CreatorModifier.slider('giro', 'Giro', min: .2, max: 2, value: 1),
-  CreatorModifier.toggle('nucleo', 'Núcleo brillante', value: true),
-  CreatorModifier.choice('estilo', 'Estilo', options: ['Auto', 'Nítido']),
+  CreatorModifier.steps('brazos', 'Brazos', min: 2, max: 8, value: 4),
+  CreatorModifier.choice('pulso', 'Pulso', options: ['Graves', 'Golpes', 'Brillos']),
+  CreatorModifier.slider('estela', 'Estela', min: 0, max: 1, value: .35),
+  CreatorModifier.toggle('espejo', 'Espejo'),
+];
+const variations = [
+  CreatorVariation('Tormenta', {'brazos': 8, 'pulso': 'Golpes', 'speed': 1.4}),
 ];
 ```
 
-En C++ se leen tipados y acotados: `auto m = modifiers(f); m.brazos`.
+En C++: `auto m = modifiers(f)` para decidir (tipado y acotado) y
+`auto g = glide(f)` para transformarse (decimales que se deslizan, toggle
+0..1, `g.pulso.weight(i)` para fundir opciones).
 
-- **Admisión** (`creator_source_admission.dart`): sólo literales. Fuera de los
-  textos admite las palabras de `CreatorModifier`, números, `true`/`false`; sin
-  `;` ni `$` en los textos. El import es obligatorio con la lista y se rechaza
-  sin ella. Nada se ejecuta al descubrir archivos.
-- **Validación** (`_validateModifiers` en `creator_visual_definition.dart`):
-  sólo `nativeSource`; máximo 8; id `^[a-z][a-z0-9_]{0,23}$`, único y fuera de
-  los reservados (básicos, `colors`, `music`, `time`… y palabras de C++);
-  nombre visible de 1 a 24 caracteres; rangos dentro de ±100000, `steps` con
-  hasta 1000 pasos; `choice` con 2 a 8 opciones únicas de hasta 20 caracteres;
-  el valor inicial debe estar en su rango.
-- **Cable**: un float por modificador, en orden de declaración (choice manda el
-  índice, toggle 0/1). `cp_configure` acepta 20 floats (usa los iniciales) o
-  20+N. La ABI sigue en 1: `native_compiler.dart` genera el lector
-  (`struct Modifiers` + `modifiers(f)`, con clamp) y su declaración entra en
-  `nativeBuild.hash`, así que cambiar un rango o un inicial recompila.
-- **Catálogo**: la clave `modifiers` sólo se escribe si hay. iOS rechaza claves
-  desconocidas, por eso los catálogos sin modificadores quedan idénticos. Swift
-  valida lo mismo (`SceneCatalogCreatorRegistry.swift`) y acepta los ids como
-  opciones del documento (`SceneCatalogCreatorScene.controls`).
-- **En vivo**: `SceneCompositorController.setModifiers`. Android escribe los
-  valores y reconfigura el programa sin reiniciarlo; iOS manda `updateDocument`.
-  Studio los muestra en **Ajustes** (`studio/lib/studio/visual_adjustments.dart`),
-  junto a los cuatro básicos; un básico que el código no lee aparece apagado.
-- **Voto**: la versión incluye los modificadores (sin el nombre visible) sólo
-  cuando existen. Los visuales sin modificadores conservan su versión y sus votos.
-- **Color Lights**: `creator_review.dart` arma el visual con la misma función
-  que Studio (`creatorVisualExpression`), así que la aprobación conserva los
-  modificadores. La app todavía no tiene controles para ellos: cada visual se ve
-  con sus valores iniciales.
+- **Admisión** (`creator_source_admission.dart`): sólo literales, en cualquier
+  orden y una vez cada bloque. Fuera de los textos admite las palabras del
+  constructor, números (también `1e-3`, `0x10`, `1_000`), `true`/`false`; sin
+  `;` ni `$` en los textos. El import es obligatorio con un bloque y se rechaza
+  sin ninguno. Nada se ejecuta al descubrir archivos.
+- **Validación** (`creator_visual_definition.dart`, `creator_variation.dart`):
+  sólo `nativeSource`; máximo 8 modificadores y 4 variaciones; id
+  `^[a-z][a-z0-9_]{0,23}$`, único y fuera de `creatorReservedModifierIds`
+  (básicos, `colors`, `music`, `glide`, `color0..3`, palabras y macros de C++);
+  rangos dentro de ±100000, `steps` con hasta 1000 pasos; `choice` con 2 a 8
+  opciones; valores iniciales y de variaciones en rango; una variación debe
+  diferir del original y se nombra el choice por el texto de su opción.
+- **Cable**: un float por modificador, en orden de declaración. `cp_configure`
+  acepta 20 floats (valores iniciales) o 20+N. ABI 1, sin tocar el SDK.
+- **Transiciones (`glide`)**: sólo para visuales con modificadores,
+  `native_compiler.dart` genera `CreatorGlideScene_`, que envuelve al `Visual`
+  del autor y suaviza los valores (constante de 0,25 s; choice con fundido de
+  0,45 s). Instantáneo al crear, al reiniciar, en pausa (render sin update) y
+  con movimiento reducido. Para los demás, `creator_programs.inc` sale byte a
+  byte igual.
+- **Contrato**: el hash nativo cuenta `creatorGlideRuntime` y sólo
+  id/tipo/rango/valor (los textos no recompilan). Una huella del C++ generado
+  (`_glideGolden` en `creator_visual_definition_test.dart`) obliga a subir
+  `creatorGlideRuntime` si cambia el generador. El manifest está congelado:
+  `modifiers` sólo si hay y con las claves exactas que acepta Swift (prueba
+  espejo); lo que es sólo de interfaz (variaciones) va en `toMetadata`.
+- **Revisión al compilar** (`creator_lint.dart`, sólo en
+  `build_catalog_assets.dart` y en la aprobación, nunca en el teléfono): cada
+  id debe aparecer en el C++ fuera de comentarios y textos (cualquier uso
+  cuenta; el barrido decide si cambia algo); nada de `f.modifiers[…]`; ningún
+  nombre visible que repita un básico. La admisión revisa la forma exacta de
+  `const variations` para que un mapa mal escrito no rompa todo el catálogo.
+- **Barrido nativo** (`authored_probe.cpp` con `creator_probe_cases.inc`,
+  generado sólo para pruebas): con la música sintética «fuerte» (empieza donde
+  hay música, golpes a fuerza 1 y un destello en cada pulso), 3 s comparando
+  todos los cuadros: mínimo, máximo, cada opción y estado, todos al
+  mínimo/máximo, 8 combinaciones, cada variación, un cambio en vivo y la regla
+  de 30/60 FPS con valores no iniciales. Un visual con `reactivity: none` se
+  barre sin música, como lo toca la app. Revienta o presupuesto: falla. «No
+  cambia nada»: falla en CI y en la aprobación (`--strict-modifiers`). Todos
+  los visuales se revisan aunque uno falle.
+- **En vivo**: `setModifiers` y `setPalette` en `SceneCompositorController`.
+  Android escribe los floats y reconfigura sin reiniciar; iOS manda
+  `updateDocument` (`controlIdentity` ignora `options`, así que no reinicia).
+- **Paleta en vivo**: `color0..color3` (ARGB) en las opciones del documento
+  reemplazan los colores y el relleno de fondo; sin esas claves, Swift y
+  Android producen exactamente los colores del catálogo. Sólo visuales nativos.
+- **Studio** (`studio/lib/studio/adjustments/`): sesión por visual durante la
+  sesión de Studio, variaciones del autor y propias (`SharedPreferences`,
+  `creator.variations.<id>`), Variar/Sorprender/Deshacer, paleta, semilla,
+  comparar con el original y «Copiar para la IA». El voto es del original.
+- **Voto**: la versión incluye los modificadores (sin textos) sólo si existen;
+  las variaciones y la paleta no cuentan.
+- **Color Lights**: `creator_review.dart` arma el visual con
+  `creatorVisualExpression` (la misma que Studio), corre la revisión y el
+  barrido estricto. La app todavía no muestra modificadores, variaciones ni
+  paleta: cada visual se ve con sus valores iniciales.
 
 ## Miniaturas
 

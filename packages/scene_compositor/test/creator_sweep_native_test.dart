@@ -75,6 +75,17 @@ void main() {
     final relaxed = run([signals.path], 1);
     expectLine(relaxed, 'PASS modifiers creator_sano');
     expectLine(relaxed, 'PASS modifiers creator_musical');
+    // Only visible on hits that fade away: still a real modifier.
+    expectLine(relaxed, 'PASS modifiers creator_golpe');
+    expectLine(relaxed, 'PASS modifiers creator_destello');
+    if (relaxed.contains('golpe: el modificador') ||
+        relaxed.contains('destello: el modificador')) {
+      stderr.writeln(relaxed);
+      throw StateError('A hit-only modifier was reported dead');
+    }
+    // A music modifier on a visual that never reacts does nothing in the app.
+    expectLine(relaxed, 'WARN sordo: el modificador pulso no cambia nada');
+    expectLine(relaxed, 'PASS modifiers creator_solo_variaciones');
     expectLine(relaxed, 'WARN muerto: el modificador nada no cambia nada');
     expectLine(relaxed, 'FAIL pesado: cantidad = ');
     expectLine(relaxed, 'Copia cada línea FAIL');
@@ -89,6 +100,93 @@ void main() {
 }
 
 const _fixtures = [
+  CreatorVisualDefinition(
+    id: 'golpe',
+    name: 'Golpe',
+    reactivity: CreatorReactivity.music,
+    nativeSource: r'''
+class Visual final : public Scene {
+  float clock = 0, hit = -10;
+ public:
+  void reset(uint32_t) override { clock = 0; hit = -10; }
+  void update(const Frame& f) override {
+    clock += float(f.delta);
+    if (!f.music.events[2].empty()) hit = clock;
+  }
+  void render(const Frame& f, Canvas& c) const override {
+    auto m = modifiers(f);
+    Paint p; p.color = f.colors[1];
+    c.rect({0, 0, 50, 50}, p);
+    const float accent = std::max(0.f, 1 - (clock - hit) / .3f);
+    if (m.anillos && accent > 0) c.circle({160, 280}, 40 + 60 * accent, p);
+  }
+};
+''',
+    modifiers: [CreatorModifier.toggle('anillos', 'Anillos')],
+  ),
+  CreatorVisualDefinition(
+    id: 'destello',
+    name: 'Destello',
+    reactivity: CreatorReactivity.music,
+    nativeSource: r'''
+class Visual final : public Scene {
+  float clock = 0, flash = -10;
+ public:
+  void reset(uint32_t) override { clock = 0; flash = -10; }
+  void update(const Frame& f) override {
+    clock += float(f.delta);
+    if (!f.music.events[3].empty()) flash = clock;
+  }
+  void render(const Frame& f, Canvas& c) const override {
+    auto m = modifiers(f);
+    Paint p; p.color = f.colors[1];
+    c.rect({0, 0, 50, 50}, p);
+    if (clock - flash < .2f)
+      for (int i = 0; i < m.chispas; i++) c.rect({10.f * i, 300, 4, 4}, p);
+  }
+};
+''',
+    modifiers: [
+      CreatorModifier.steps('chispas', 'Chispas', min: 1, max: 20, value: 5),
+    ],
+  ),
+  CreatorVisualDefinition(
+    id: 'sordo',
+    name: 'Sordo',
+    reactivity: CreatorReactivity.none,
+    nativeSource: r'''
+class Visual final : public Scene {
+ public:
+  void reset(uint32_t) override {} void update(const Frame&) override {}
+  void render(const Frame& f, Canvas& c) const override {
+    auto g = glide(f);
+    Paint p; p.color = f.colors[1];
+    c.rect({0, 0, 100 + 100 * f.music.bass * g.pulso.weight(0), 100}, p);
+  }
+};
+''',
+    modifiers: [
+      CreatorModifier.choice('pulso', 'Pulso', options: ['Graves', 'Nada']),
+    ],
+  ),
+  CreatorVisualDefinition(
+    id: 'solo_variaciones',
+    name: 'Solo variaciones',
+    reactivity: CreatorReactivity.none,
+    nativeSource: r'''
+class Visual final : public Scene {
+ public:
+  void reset(uint32_t) override {} void update(const Frame&) override {}
+  void render(const Frame& f, Canvas& c) const override {
+    Paint p; p.color = f.colors[1];
+    c.rect({0, 0, 100 * f.detail, 100 * f.intensity}, p);
+  }
+};
+''',
+    variations: [
+      CreatorVariation('Grande', {'detail': 2, 'intensity': 2}),
+    ],
+  ),
   CreatorVisualDefinition(
     id: 'sano',
     name: 'Sano',

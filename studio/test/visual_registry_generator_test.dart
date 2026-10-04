@@ -271,9 +271,9 @@ void main() {
 
     test('variations are literals too', () {
       for (final (bad, reason) in [
-        ("CreatorVariation('A', {'lados': pick()}),", 'pick'),
+        ("CreatorVariation('A', {'lados': pick()}),", 'necesita'),
         (r"CreatorVariation('A ${1}', {'lados': 3}),", r'$'),
-        ("CreatorVariation('A', <String, Object>{'lados': 3}),", 'String'),
+        ("CreatorVariation('A', <String, Object>{'lados': 3}),", 'falta'),
       ]) {
         writeNative(
           'olas',
@@ -289,6 +289,46 @@ void main() {
       expect(
         () => generateCreatorRegistry(visuals),
         failsNaming('olas.dart', 'dos veces'),
+      );
+    });
+
+    test('a variations list that would not compile is refused first', () {
+      for (final (bad, reason) in [
+        ('const variations = [];', 'vacía'),
+        (
+          'const variations = <CreatorModifier>[CreatorVariation(\'A\', {\'lados\': 4})];',
+          'CreatorVariation',
+        ),
+        ("const variations = [CreatorVariation('A', {1: 2})];", 'claves'),
+        ("const variations = [CreatorVariation('A', {'lados'})];", 'falta'),
+        (
+          "const variations = [CreatorVariation('A', {'lados': 4, 'lados': 5})];",
+          'repetida',
+        ),
+        ("const variations = [CreatorVariation({'lados': 4})];", 'nombre'),
+      ]) {
+        writeNative('olas', '$authoring\n$list\n$bad\n$native');
+        expect(
+          () => generateCreatorRegistry(visuals),
+          failsNaming('olas.dart', reason),
+          reason: bad,
+        );
+      }
+    });
+
+    test('lists after nativeSource say where they go', () {
+      writeNative('olas', '$authoring\n$native\n$list');
+      expect(
+        () => generateCreatorRegistry(visuals),
+        failsNaming('olas.dart', 'antes de nativeSource'),
+      );
+      writeNative(
+        'olas',
+        "$authoring\n$list\n$native\nconst variations = [CreatorVariation('A', {'lados': 4})];",
+      );
+      expect(
+        () => generateCreatorRegistry(visuals),
+        failsNaming('olas.dart', 'antes de nativeSource'),
       );
     });
 

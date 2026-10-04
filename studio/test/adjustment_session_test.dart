@@ -274,6 +274,121 @@ void main() {
     });
   });
 
+  group('review fixes', () {
+    const colorful = CreatorVisualDefinition(
+      id: 'color',
+      name: 'Color',
+      nativeSource: 'Color c = f.colors[1]; m.brazos;',
+      modifiers: [
+        CreatorModifier.steps('brazos', 'Brazos', min: 2, max: 8, value: 4),
+        CreatorModifier.choice('modo', 'Modo', options: ["Rock'n'roll", 'Pop']),
+      ],
+      variations: [
+        CreatorVariation('Tormenta', {'brazos': 8}),
+      ],
+    );
+
+    test('a palette change leaves the chip, so Original can come back', () {
+      final session = AdjustmentSession(colorful)
+        ..setPalette(studioPalettes.first.colors);
+      expect(session.chip, isNull);
+      session.resetToOriginal();
+      expect(session.palette, isNull);
+      expect(session.chip, originalChipName);
+    });
+
+    test('a saved look with its own colors brings them back', () {
+      final session = AdjustmentSession(colorful);
+      session.setPalette(studioPalettes.first.colors);
+      session.apply('Mía 1', session.original, setsPalette: true);
+      expect(session.palette, isNull);
+      session.setPalette(studioPalettes[1].colors);
+      session.apply('Tormenta', session.original);
+      expect(session.palette, studioPalettes[1].colors);
+    });
+
+    test('Original also releases a held compare', () {
+      final session =
+          AdjustmentSession(colorful)
+            ..set('brazos', 6)
+            ..comparing = true
+            ..resetToOriginal();
+      expect(session.comparing, isFalse);
+    });
+
+    test('saved names never collide with Original or the author', () {
+      final saved = [
+        (
+          name: 'Mía 1',
+          values: AdjustmentSession(colorful).original,
+          palette: null,
+        ),
+      ];
+      for (final taken in ['original', 'Tormenta', 'tormenta', 'Mía 1']) {
+        expect(
+          PersonalVariations.nameProblem(taken, colorful, saved),
+          isNotNull,
+          reason: taken,
+        );
+      }
+      expect(
+        PersonalVariations.nameProblem(
+          'Mía 1',
+          colorful,
+          saved,
+          except: 'Mía 1',
+        ),
+        isNull,
+      );
+      expect(
+        PersonalVariations.nameProblem('a' * 21, colorful, saved),
+        isNotNull,
+      );
+      expect(PersonalVariations.nameProblem('Fuego', colorful, saved), isNull);
+    });
+
+    test('the AI copy escapes option texts so it pastes back valid', () {
+      final session =
+          AdjustmentSession(colorful)
+            ..set('modo', 0)
+            ..set('brazos', 5);
+      final copy = variationForAi(colorful, 'Mía 1', session.current);
+      expect(copy, contains("'brazos': 5"));
+      final visual = CreatorVisualDefinition(
+        id: 'color',
+        name: 'Color',
+        nativeSource: colorful.nativeSource,
+        modifiers: colorful.modifiers,
+      );
+      // modo stays at its initial option, so only brazos is listed.
+      expect(copy, isNot(contains('modo')));
+      final withOption = variationForAi(visual, 'Mía 1', (
+        controls: visual.controls,
+        modifiers: {...visual.modifierDefaults, 'modo': 1},
+      ));
+      expect(withOption, contains("'modo': 'Pop'"));
+      final tricky = CreatorVisualDefinition(
+        id: 'tricky',
+        name: 'Tricky',
+        nativeSource: 'm.modo',
+        modifiers: const [
+          CreatorModifier.choice(
+            'modo',
+            'Modo',
+            options: ['Pop', "Rock'n'roll"],
+          ),
+        ],
+      );
+      expect(
+        variationForAi(tricky, 'Mía 1', (
+          controls: tricky.controls,
+          modifiers: {'modo': 1},
+        )),
+        contains(r"'modo': 'Rock\'n\'roll'"),
+      );
+    });
+  });
+
   group('saved looks', () {
     setUp(() => SharedPreferences.setMockInitialValues({}));
 

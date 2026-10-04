@@ -36,7 +36,11 @@ List<String> lintCreatorVisual(CreatorVisualDefinition visual, {String? file}) {
       '$file: lee los ajustes con modifiers(f) o glide(f), no con '
           'f.modifiers[…].',
     for (final modifier in visual.modifiers) ...[
-      if (!RegExp('\\.${modifier.id}\\b').hasMatch(code))
+      // Any use of the name counts (m.id, a structured binding, a macro):
+      // the native sweep is what proves the modifier changes the drawing.
+      if (!RegExp(
+        '(?<![A-Za-z0-9_])${modifier.id}(?![A-Za-z0-9_])',
+      ).hasMatch(code))
         '$file: ${modifier.label} (${modifier.id}) no se usa en el código: '
             'léelo con modifiers(f).${modifier.id} o glide(f).${modifier.id}, '
             'o quítalo.',
@@ -47,12 +51,28 @@ List<String> lintCreatorVisual(CreatorVisualDefinition visual, {String? file}) {
   ];
 }
 
-/// [source] without C++ comments, string or character literals, so a name
-/// mentioned only in a comment or a text does not count as used.
+/// [source] without C++ comments, string or character literals (raw strings
+/// included), so a name mentioned only in a comment or a text does not count
+/// as used. A digit separator (10'000) is not a character literal.
 String stripCppCommentsAndStrings(String source) {
   final out = StringBuffer();
   var i = 0;
+  bool alnum(int at) =>
+      at >= 0 &&
+      at < source.length &&
+      RegExp(r'[A-Za-z0-9_]').hasMatch(source[at]);
   while (i < source.length) {
+    final raw = RegExp(r'R"([^()\\\s]{0,16})\(').matchAsPrefix(source, i);
+    if (raw != null && !alnum(i - 1)) {
+      final close = source.indexOf(')${raw[1]}"', raw.end);
+      i = close < 0 ? source.length : close + raw[1]!.length + 2;
+      out.write(' ');
+      continue;
+    }
+    if (source[i] == "'" && _inNumber(source, i)) {
+      i++;
+      continue;
+    }
     if (source.startsWith('//', i)) {
       final end = source.indexOf('\n', i);
       i = end < 0 ? source.length : end;
@@ -78,6 +98,19 @@ String stripCppCommentsAndStrings(String source) {
     i++;
   }
   return out.toString();
+}
+
+/// Whether the apostrophe at [at] separates digits of a number (10'000,
+/// 0xFF'FF), which happens when the word before it starts with a digit.
+bool _inNumber(String source, int at) {
+  var start = at;
+  while (start > 0 && RegExp(r'[A-Za-z0-9_.]').hasMatch(source[start - 1])) {
+    start--;
+  }
+  return start < at &&
+      RegExp(r'[0-9]').hasMatch(source[start]) &&
+      at + 1 < source.length &&
+      RegExp(r'[0-9A-Fa-f]').hasMatch(source[at + 1]);
 }
 
 String _plain(String label) {

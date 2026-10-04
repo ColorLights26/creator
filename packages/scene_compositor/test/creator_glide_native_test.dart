@@ -42,7 +42,7 @@ const std::vector<Program>& installedPrograms() { static const std::vector<Progr
 }
 namespace authored_glide_probe {
 using namespace creator;
-struct Seen { float ancho, lados, marco, w0, w1, w2, copyT; int ladosInt, tonoInt; bool marcoOn; };
+struct Seen { float ancho, lados, marco, w0, w1, w2, liveT, copyT, otherT; int ladosInt, tonoInt; bool marcoOn; };
 Seen seen;
 ${creatorModifierReader(visual)}
 ${creatorGlideReader(visual)}
@@ -91,9 +91,12 @@ class Visual final : public Scene {
   static void record(const Frame& f) {
     auto m = modifiers(f);
     auto g = glide(f);
-    Frame copy = f;
+    Frame copy = f;            // a copy taken during the call
+    Frame other = f;           // a frame with other values
+    other.modifiers[0] = -1;
     seen = {g.ancho, g.lados, g.marco, g.tono.weight(0), g.tono.weight(1),
-            g.tono.weight(2), glide(copy).tono.t, m.lados, m.tono, m.marco};
+            g.tono.weight(2), g.tono.t, glide(copy).tono.t, glide(other).tono.t,
+            m.lados, m.tono, m.marco};
   }
  public:
   void reset(uint32_t) override {}
@@ -173,12 +176,20 @@ int main() {
       check(seen.w0 <= previous, "the old option fades out");
       previous = seen.w0;
     }
-    const float before = seen.w2;
+    check(seen.liveT < 1 && seen.copyT == seen.liveT,
+          "a copy taken during the call follows the same crossfade");
+    check(seen.otherT == 1, "a frame with other values reads steady");
+    const float step = 1.f / 30 / .45f + 1e-4f;
+    float w0 = seen.w0, w1 = seen.w1, w2 = seen.w2;
+    p.frame.modifiers[3] = 1; p.tick();  // a third option mid-fade
+    check(std::fabs(seen.w0 - w0) <= step && std::fabs(seen.w2 - w2) <= step &&
+          std::fabs(seen.w1 - w1) <= 2 * step, "a third option mid-fade never jumps");
+    check(near(seen.w0 + seen.w1 + seen.w2, 1, 1e-5f), "weights still add up to 1");
+    const float before = seen.w1;
     p.frame.modifiers[3] = 0; p.tick();
-    check(std::fabs(seen.w2 - before) < .2f, "turning back mid-way does not jump");
+    check(std::fabs(seen.w1 - before) <= step, "turning back mid-way does not jump");
     for (int i = 0; i < 30; i++) p.tick();
-    check(seen.w0 == 1 && seen.w2 == 0, "back on the first option");
-    check(seen.copyT == 1, "a copy of the frame reads steady values");
+    check(seen.w0 == 1 && seen.w1 == 0 && seen.w2 == 0, "back on the first option");
   }
   {  // Paused (render without update), reduced motion and reset are instant.
     Probe p; p.tick(); p.draw();

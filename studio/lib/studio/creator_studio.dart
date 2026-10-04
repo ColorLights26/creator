@@ -329,13 +329,18 @@ class _CreatorStudioState extends State<CreatorStudio>
     final visual = _selected;
     final revision = visual == null ? null : _revisions[visual.id];
     if (review == null || visual == null || revision == null) return null;
-    final panel = _teamRatingPanel(review, visual, revision);
-    if (_session?.differsFromOriginal != true) return panel;
+    // The same structure with or without the notice, so the panel keeps a
+    // score being chosen when the notice comes and goes.
+    final panel = KeyedSubtree(
+      key: const ValueKey('team-rating-slot'),
+      child: _teamRatingPanel(review, visual, revision),
+    );
     // The vote is for the original: say so while a variation is on screen.
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (_session?.differsFromOriginal == true)
         Padding(
           key: const ValueKey('adjustments-viewing-variation'),
           padding: const EdgeInsets.only(bottom: 6),
@@ -519,6 +524,10 @@ class _CreatorStudioState extends State<CreatorStudio>
     _sent = null;
     _sentPalette = null;
     _stopBasicsTween();
+    // A compare held while leaving a visual never stays stuck on it.
+    for (final entry in _sessions.values) {
+      entry.session.comparing = false;
+    }
     final session = _sessionFor(visual);
     _appliedSeed = session.seed;
     setState(() {});
@@ -540,12 +549,11 @@ class _CreatorStudioState extends State<CreatorStudio>
       if (!mapEquals(shown.modifiers, session.original.modifiers)) {
         await _controller.setModifiers(shown.modifiers);
       }
-      if (session.shownPalette case final List<int> palette) {
-        await _controller.setPalette(palette);
-      }
+      final palette = session.shownPalette;
+      if (palette != null) await _controller.setPalette(palette);
       if (!_isCurrent(revision)) return;
       _sent = shown;
-      _sentPalette = session.shownPalette;
+      _sentPalette = palette;
       await _controller.setReactive(_effectiveReaction);
       _replayElapsed = Duration.zero;
       _tickerStartElapsed = Duration.zero;
@@ -698,6 +706,17 @@ class _CreatorStudioState extends State<CreatorStudio>
 
   /// Back to exactly what the team votes: initial values, recording's seed.
   void _showOriginal() => _session?.resetToOriginal();
+
+  /// Holding the visual compares it with the original. Kept while a compare
+  /// is held, so its release always arrives.
+  ValueChanged<bool>? get _compareHandler {
+    final session = _session;
+    if (session == null ||
+        !(session.differsFromOriginal || session.comparing)) {
+      return null;
+    }
+    return (comparing) => session.comparing = comparing;
+  }
 
   String? get _look {
     final session = _session;
@@ -978,10 +997,7 @@ class _CreatorStudioState extends State<CreatorStudio>
       performanceOverlay: VisualPerformanceOverlay(sample: _performance.sample),
       adjustments: _adjustmentsButton(),
       compareLabel: _session?.comparing == true ? originalChipName : null,
-      onCompare:
-          _session?.differsFromOriginal == true
-              ? (comparing) => _session?.comparing = comparing
-              : null,
+      onCompare: _compareHandler,
       backdropVisuals: [
         for (var index = 0; index < _catalog.length; index++)
           if (_catalog[index].role == CreatorRole.background)
