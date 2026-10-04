@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'creator_variation.dart';
+
 enum CreatorReactivity { none, music, optional }
 
 enum CreatorRole { background, overlay }
@@ -188,6 +190,7 @@ const creatorReservedModifierIds = {
   'height',
   'seed',
   'modifiers',
+  'glide',
   'alignas',
   'alignof',
   'and',
@@ -318,6 +321,7 @@ class CreatorVisualDefinition {
     this.colors = const [0xff061427, 0xff00d5b1, 0xff6774ff, 0xffe9cbff],
     this.controls = const CreatorControls(),
     this.modifiers = const [],
+    this.variations = const [],
   });
 
   final String id;
@@ -347,6 +351,10 @@ class CreatorVisualDefinition {
   /// Settings the author exposes, declared next to the C++ code.
   final List<CreatorModifier> modifiers;
 
+  /// Named looks the author declares (Studio chips). Metadata only: they
+  /// never change the engine program, its hash or the team's votes.
+  final List<CreatorVariation> variations;
+
   String get programId => 'creator_$id';
 
   /// Default value of every modifier, by id, in declaration order.
@@ -366,6 +374,8 @@ class CreatorVisualDefinition {
     'publication': publication.name,
     'role': role.name,
     'reactivity': reactivity.name,
+    if (variations.isNotEmpty)
+      'variations': [for (final variation in variations) variation.toMap()],
   };
 
   Map<String, Object> toManifest() => {
@@ -610,6 +620,7 @@ List<CreatorVisualDefinition> validateCreatorCatalog(
       );
     }
     _validateModifiers(visual, require);
+    validateCreatorVariations(visual, require);
     if (visual.isNative) {
       require(
         visual.shaderSource.isEmpty,

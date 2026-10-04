@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:scene_compositor/authoring.dart';
+import 'package:scene_compositor/native_compiler.dart';
 
 // Pure Dart executable: `dart run test/creator_visual_definition_test.dart`.
 void main() {
@@ -9,6 +11,8 @@ void main() {
   _documentContract();
   _reactivityContract();
   _modifiersContract();
+  _frozenContract();
+  _variationsContract();
   stdout.writeln('scene_compositor: authoring contract checks passed.');
 }
 
@@ -479,7 +483,10 @@ void _modifiersContract() {
       ],
       'C++ keyword',
     ),
-    ([const CreatorModifier.toggle('compl', 'Completo')], 'C++ alternative token'),
+    (
+      [const CreatorModifier.toggle('compl', 'Completo')],
+      'C++ alternative token',
+    ),
     ([const CreatorModifier.toggle('errno', 'Error')], 'lowercase macro'),
     ([const CreatorModifier.toggle('tamaño', 'Tamaño')], 'ñ in id'),
     (
@@ -596,6 +603,227 @@ void _modifiersContract() {
       ),
     ]),
     'shader visuals have no modifiers',
+  );
+}
+
+void _variationsContract() {
+  CreatorVisualDefinition withVariations(List<CreatorVariation> variations) =>
+      CreatorVisualDefinition(
+        id: 'galaxia',
+        name: 'Galaxia',
+        nativeSource: 'class Visual final : public Scene {};',
+        modifiers: _galaxyModifiers,
+        variations: variations,
+      );
+  const tormenta = CreatorVariation('Tormenta', {
+    'brazos': 6,
+    'estilo': 'Nebuloso',
+    'nucleo': false,
+    'speed': 1.4,
+  });
+  final visual =
+      validateCreatorCatalog([
+        withVariations(const [tormenta]),
+      ]).single;
+  final resolved = tormenta.resolve(visual);
+  _expect(
+    resolved.modifiers.toString() ==
+            {
+              'brazos': 6.0,
+              'giro': 1.0,
+              'nucleo': 0.0,
+              'estilo': 2.0,
+            }.toString() &&
+        resolved.controls.speed == 1.4 &&
+        resolved.controls.intensity == 1,
+    'a variation resolves choices by text and keeps the rest initial',
+  );
+  _expect(
+    !visual.toManifest().containsKey('variations') &&
+        jsonEncode(visual.toManifest()) == jsonEncode(_native().toManifest()),
+    'variations never reach the engine manifest',
+  );
+  final metadata = visual.toMetadata();
+  _expect(
+    jsonEncode(metadata['variations']) ==
+        jsonEncode([
+          {
+            'name': 'Tormenta',
+            'values': {
+              'brazos': 6,
+              'estilo': 'Nebuloso',
+              'nucleo': false,
+              'speed': 1.4,
+            },
+          },
+        ]),
+    'metadata keeps what the author wrote',
+  );
+  _expect(
+    !_native().toMetadata().containsKey('variations'),
+    'metadata without variations stays byte-identical',
+  );
+  final decoded =
+      decodeCreatorCatalog(
+        runtimeJson: encodeCreatorCatalog([visual]),
+        metadataJson: jsonEncode({
+          'schemaVersion': 1,
+          'visuals': [metadata],
+        }),
+      ).single;
+  _expect(
+    jsonEncode(decoded.toMetadata()) == jsonEncode(metadata),
+    'variations round-trip through the metadata',
+  );
+
+  for (final (variations, reason) in [
+    (
+      const [
+        CreatorVariation('Rara', {'otro': 1}),
+      ],
+      'unknown key',
+    ),
+    (
+      const [
+        CreatorVariation('Rara', {'estilo': 'Brillante'}),
+      ],
+      'missing option',
+    ),
+    (
+      const [
+        CreatorVariation('Rara', {'brazos': 9}),
+      ],
+      'out of range',
+    ),
+    (
+      const [
+        CreatorVariation('Rara', {'brazos': 3.5}),
+      ],
+      'steps not whole',
+    ),
+    (
+      const [
+        CreatorVariation('Rara', {'nucleo': 1}),
+      ],
+      'toggle needs a bool',
+    ),
+    (
+      const [
+        CreatorVariation('Rara', {'speed': 3}),
+      ],
+      'basic out of range',
+    ),
+    (
+      const [
+        CreatorVariation('Rara', {'detail': .1}),
+      ],
+      'detail below .25',
+    ),
+    (const [CreatorVariation('Rara', {})], 'empty'),
+    (
+      const [
+        CreatorVariation('Rara', {'brazos': 4}),
+      ],
+      'equal to the original',
+    ),
+    (
+      const [
+        CreatorVariation('original', {'brazos': 3}),
+      ],
+      'named Original',
+    ),
+    (
+      const [
+        CreatorVariation('', {'brazos': 3}),
+      ],
+      'empty name',
+    ),
+    (
+      const [
+        CreatorVariation('Un nombre muy muy largo', {'brazos': 3}),
+      ],
+      'long name',
+    ),
+    (
+      const [
+        CreatorVariation('Calma', {'brazos': 3}),
+        CreatorVariation('calma', {'brazos': 5}),
+      ],
+      'repeated name',
+    ),
+    (
+      [
+        for (var i = 0; i < 5; i++)
+          CreatorVariation('V$i', {'brazos': 2 + i % 3}),
+      ],
+      'more than 4',
+    ),
+  ]) {
+    _throws<FormatException>(
+      () => validateCreatorCatalog([withVariations(variations)]),
+      'variation rejected: $reason',
+    );
+  }
+}
+
+/// Digest of the C++ generated for [_native] per [creatorGlideRuntime]. A
+/// generator change must bump the runtime, so old binaries never match.
+const _glideGolden = {
+  1: 'c79f8936b824beca0c9e4fe690b6631bee44116aa4186d8335c7a8bf41c55005',
+};
+
+void _frozenContract() {
+  final swift =
+      File.fromUri(
+        Platform.script.resolve(
+          '../ios/Classes/Runtime/SceneCatalogCreatorRegistry.swift',
+        ),
+      ).readAsStringSync();
+  Set<String> swiftKeys(String name) => {
+    for (final match in RegExp(r'"([^"]+)"').allMatches(
+      RegExp('let $name: Set<String> = \\[([^\\]]*)\\]').firstMatch(swift)![1]!,
+    ))
+      match[1]!,
+  };
+  final modifierKeys = swiftKeys('keys');
+  for (final modifier in _galaxyModifiers) {
+    final keys = modifier.toMap().keys.toSet();
+    final expected = {
+      ...modifierKeys,
+      if (modifier.kind == CreatorModifierKind.choice) 'options',
+    };
+    _expect(
+      keys.length == expected.length && keys.containsAll(expected),
+      'modifier ${modifier.id} keys match the iOS decoder exactly',
+    );
+  }
+  final manifest = _native().toManifest().keys.toSet()..remove('modifiers');
+  final native = {
+    ...swiftKeys('baseKeys'),
+    'kind',
+    'nativeSource',
+    'shaderSources',
+    'images',
+    'nativeBuild',
+  };
+  _expect(
+    native.containsAll(manifest) &&
+        native.difference(manifest).every((key) => key == 'nativeBuild'),
+    'native manifest keys are the ones the iOS decoder accepts '
+    '(UI-only attributes belong in toMetadata)',
+  );
+
+  final visual = validateCreatorCatalog([_native()]).single;
+  final generated = [
+    creatorModifierReader(visual),
+    creatorGlideReader(visual),
+    creatorGlideWrapper(visual),
+  ].join('\n');
+  final digest = sha256.convert(utf8.encode(generated)).toString();
+  _expect(
+    _glideGolden[creatorGlideRuntime] == digest,
+    'the generated C++ changed: bump creatorGlideRuntime and set '
+    '_glideGolden[$creatorGlideRuntime] = $digest',
   );
 }
 

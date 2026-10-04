@@ -254,6 +254,44 @@ void main() {
       }
     });
 
+    test('variations travel next to the modifiers, in either order', () {
+      const variations = '''const variations = [
+  CreatorVariation('Tormenta', {'lados': 12, 'modo': 'Rayo', 'borde': false}),
+  CreatorVariation('Calma', {'zoom': .6, 'speed': .5}),
+];''';
+      writeNative('olas', '$authoring\n$list\n$variations\n$native');
+      writeNative('lisa', '$authoring\n$variations\n$list\n$native');
+      final registry = generateCreatorRegistry(visuals);
+      expect(
+        'variations: visual_0.variations'.allMatches(registry).length +
+            'variations: visual_1.variations'.allMatches(registry).length,
+        2,
+      );
+    });
+
+    test('variations are literals too', () {
+      for (final (bad, reason) in [
+        ("CreatorVariation('A', {'lados': pick()}),", 'pick'),
+        (r"CreatorVariation('A ${1}', {'lados': 3}),", r'$'),
+        ("CreatorVariation('A', <String, Object>{'lados': 3}),", 'String'),
+      ]) {
+        writeNative(
+          'olas',
+          '$authoring\n$list\nconst variations = [\n$bad\n];\n$native',
+        );
+        expect(
+          () => generateCreatorRegistry(visuals),
+          failsNaming('olas.dart', reason),
+          reason: bad,
+        );
+      }
+      writeNative('olas', "$authoring\n$list\n$list\n$native");
+      expect(
+        () => generateCreatorRegistry(visuals),
+        failsNaming('olas.dart', 'dos veces'),
+      );
+    });
+
     test('legacy shader visuals have no modifiers', () {
       writeNative(
         'olas',

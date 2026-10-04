@@ -1,3 +1,4 @@
+import 'creator_variation.dart';
 import 'creator_visual_definition.dart';
 
 /// Author-edited metadata, independent of the file containing the shader.
@@ -45,12 +46,14 @@ class CreatorVisualMetadata {
     String nativeSource, {
     Map<String, String> shaderSources = const {},
     List<CreatorModifier> modifiers = const [],
+    List<CreatorVariation> variations = const [],
     String sourceFile = 'visual.dart',
     int sourceLine = 1,
   }) => _join(
     nativeSource: nativeSource,
     shaderSources: shaderSources,
     modifiers: modifiers,
+    variations: variations,
     sourceFile: sourceFile,
     sourceLine: sourceLine,
   );
@@ -63,6 +66,7 @@ class CreatorVisualMetadata {
     String nativeSource = '',
     Map<String, String> shaderSources = const {},
     List<CreatorModifier> modifiers = const [],
+    List<CreatorVariation> variations = const [],
     String sourceFile = 'visual.dart',
     int sourceLine = 1,
   }) => CreatorVisualDefinition(
@@ -70,6 +74,7 @@ class CreatorVisualMetadata {
     nativeSource: nativeSource,
     shaderSources: shaderSources,
     modifiers: modifiers,
+    variations: variations,
     sourceFile: sourceFile,
     sourceLine: sourceLine,
     images: images,

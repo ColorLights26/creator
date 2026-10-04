@@ -81,6 +81,7 @@ class CreatorSourceEnvelope {
     this.materials = const {},
     this.line = 1,
     this.modifiers = false,
+    this.variations = false,
   });
   final String source;
   final bool native;
@@ -89,34 +90,58 @@ class CreatorSourceEnvelope {
 
   /// The file declares `const modifiers = [...]` before nativeSource.
   final bool modifiers;
+
+  /// The file declares `const variations = [...]` before nativeSource.
+  final bool variations;
 }
 
 const _authoringImport = "import 'package:scene_compositor/authoring.dart';";
 
-/// Words a modifier list may contain outside its strings. Anything else
-/// (calls, variables, other declarations) is rejected before Dart sees it.
-const _modifierWords = {
-  'const',
-  'CreatorModifier',
-  'slider',
-  'steps',
-  'toggle',
-  'choice',
-  'min',
-  'max',
-  'value',
-  'options',
-  'true',
-  'false',
+/// The literal lists a code file may declare before nativeSource, with the
+/// only words each may contain outside its strings. Anything else (calls,
+/// variables, other declarations) is rejected before Dart sees it.
+const _literalLists = {
+  'modifiers': (
+    type: 'CreatorModifier',
+    words: {
+      'const',
+      'CreatorModifier',
+      'slider',
+      'steps',
+      'toggle',
+      'choice',
+      'min',
+      'max',
+      'value',
+      'options',
+      'true',
+      'false',
+    },
+    hint: 'CreatorModifier.slider/steps/toggle/choice con textos, números, '
+        'true o false',
+  ),
+  'variations': (
+    type: 'CreatorVariation',
+    words: {'const', 'CreatorVariation', 'true', 'false'},
+    hint: "CreatorVariation('Nombre', {'id': valor, ...}) con textos, "
+        'números, true o false',
+  ),
 };
 
-/// Splits `const modifiers = [...];` off the start of [code]. Returns null
-/// when the file has no modifier list.
-({String rest})? _takeModifiers(String code) {
+// Numbers first, so 1e-3, 0x10 or 1_000 are not read as words.
+final _numbers = RegExp(
+  r'(?<![A-Za-z0-9_])(?:0[xX][0-9a-fA-F_]+|(?:\d[\d_]*)?\.?\d[\d_]*(?:[eE][+-]?\d[\d_]*)?)',
+);
+
+/// Splits one `const <name> = [...];` off the start of [code]. Returns null
+/// when [code] does not start with a literal list.
+({String name, String rest})? _takeLiteralList(String code) {
   final head = RegExp(
-    r'^const\s+modifiers\s*=\s*(?:<CreatorModifier>)?\s*\[',
+    r'^const\s+(modifiers|variations)\s*=\s*(?:<(CreatorModifier|CreatorVariation)>)?\s*\[',
   ).firstMatch(code);
   if (head == null) return null;
+  final name = head[1]!;
+  final list = _literalLists[name]!;
   var depth = 1;
   var i = head.end;
   final outside = StringBuffer();
@@ -130,43 +155,38 @@ const _modifierWords = {
       }
       if (end >= code.length) break;
       if (code.substring(i, end).contains(r'$')) {
-        throw const FormatException(
-          r'Los textos de modifiers son literales: quita el $.',
+        throw FormatException(
+          'Los textos de $name son literales: quita el \$.',
         );
       }
       i = end + 1;
       outside.write(' ');
       continue;
     }
-    if (char == '[' || char == '(') depth++;
-    if (char == ']' || char == ')') depth--;
+    if ('[({'.contains(char)) depth++;
+    if ('])}'.contains(char)) depth--;
     if (depth > 0) outside.write(char);
     i++;
   }
   final after = code.substring(i).trimLeft();
   if (depth != 0 || !after.startsWith(';')) {
-    throw const FormatException(
-      'modifiers debe ser una lista constante: const modifiers = [ ... ];',
+    throw FormatException(
+      '$name debe ser una lista constante: const $name = [ ... ];',
     );
   }
-  // Numbers first, so 1e-3, 0x10 or 1_000 are not read as words.
-  final numbers = RegExp(
-    r'(?<![A-Za-z0-9_])(?:0[xX][0-9a-fA-F_]+|(?:\d[\d_]*)?\.?\d[\d_]*(?:[eE][+-]?\d[\d_]*)?)',
-  );
   final words = RegExp(
     r'[A-Za-z_][A-Za-z0-9_]*',
-  ).allMatches('$outside'.replaceAll(numbers, ' '));
+  ).allMatches('$outside'.replaceAll(_numbers, ' '));
   final unknown = words
       .map((m) => m[0]!)
-      .where((word) => !_modifierWords.contains(word));
+      .where((word) => !list.words.contains(word));
   if (outside.toString().contains(';') || unknown.isNotEmpty) {
     throw FormatException(
-      'modifiers sólo admite CreatorModifier.slider/steps/toggle/choice con '
-      'textos, números, true o false'
+      '$name sólo admite ${list.hint}'
       '${unknown.isEmpty ? '' : ' (sobra: ${unknown.first})'}.',
     );
   }
-  return (rest: after.substring(1).trim());
+  return (name: name, rest: after.substring(1).trim());
 }
 
 /// The Dart expression that joins a visual's code file (imported as [code])
@@ -182,6 +202,7 @@ String creatorVisualExpression(
         ? '$metadata.metadata.withNative($code.nativeSource, '
             'shaderSources: ${source.materials.isEmpty ? 'const {}' : '$code.shaderSources'}, '
             '${source.modifiers ? 'modifiers: $code.modifiers, ' : ''}'
+            '${source.variations ? 'variations: $code.variations, ' : ''}'
             "sourceFile: '$file', sourceLine: ${source.line})"
         : '$metadata.metadata.withShader($code.shaderSource)';
 
@@ -190,16 +211,21 @@ CreatorSourceEnvelope parseCreatorVisualSource(String source) {
   var code = stripComments(source);
   final imported = code.startsWith(_authoringImport);
   if (imported) code = code.substring(_authoringImport.length).trimLeft();
-  final declared = _takeModifiers(code);
-  if (declared != null) {
+  final declared = <String>{};
+  for (var list = _takeLiteralList(code); list != null;) {
+    if (!declared.add(list.name)) {
+      throw FormatException('const ${list.name} aparece dos veces.');
+    }
     if (!imported) {
-      throw const FormatException(
-        'Para declarar modifiers, empieza el archivo con '
+      throw FormatException(
+        'Para declarar ${list.name}, empieza el archivo con '
         "import 'package:scene_compositor/authoring.dart';",
       );
     }
-    code = declared.rest;
-  } else if (imported) {
+    code = list.rest;
+    list = _takeLiteralList(code);
+  }
+  if (imported && declared.isEmpty) {
     throw const FormatException(
       'El import sólo hace falta para declarar const modifiers = [...].',
     );
@@ -209,7 +235,7 @@ CreatorSourceEnvelope parseCreatorVisualSource(String source) {
   ).firstMatch(code);
   if (head == null) {
     throw const FormatException(
-      'Conserva const nativeSource = r\'\'\'...\'\'\'; (o shaderSource para visuales anteriores), sin widgets ni metadata. Sólo puede ir antes el import de authoring.dart y const modifiers = [...].',
+      'Conserva const nativeSource = r\'\'\'...\'\'\'; (o shaderSource para visuales anteriores), sin widgets ni metadata. Sólo puede ir antes el import de authoring.dart, const modifiers = [...] y const variations = [...].',
     );
   }
   var tail = code.substring(head.end).trim();
@@ -240,9 +266,9 @@ CreatorSourceEnvelope parseCreatorVisualSource(String source) {
     throw const FormatException(
       'El archivo creativo sólo contiene nativeSource y shaderSources opcional, o shaderSource anterior.',
     );
-  if (declared != null && head[1] != 'nativeSource') {
+  if (declared.isNotEmpty && head[1] != 'nativeSource') {
     throw const FormatException(
-      'Los modificadores sólo existen en visuales con nativeSource.',
+      'Los modificadores y las variaciones sólo existen en visuales con nativeSource.',
     );
   }
   final literal = source.indexOf('r${head[2]}${head[3]}');
@@ -255,7 +281,8 @@ CreatorSourceEnvelope parseCreatorVisualSource(String source) {
     native: head[1] == 'nativeSource',
     materials: materials,
     line: line,
-    modifiers: declared != null,
+    modifiers: declared.contains('modifiers'),
+    variations: declared.contains('variations'),
   );
 }
 

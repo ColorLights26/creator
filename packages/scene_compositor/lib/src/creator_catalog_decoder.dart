@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'creator_variation.dart';
 import 'creator_visual_definition.dart';
 
 /// Reads the two generated assets together. Editorial metadata never enters the
@@ -99,6 +100,12 @@ List<CreatorVisualDefinition> decodeCreatorCatalog({
             : _list(item['modifiers'], '$id.modifiers'))
           _modifier(_object(value, '$id.modifier'), id),
       ],
+      variations: [
+        for (final value in info['variations'] == null
+            ? const []
+            : _list(info['variations'], '$id.variations'))
+          _variation(_object(value, '$id.variation'), id),
+      ],
       description: _string(info['description'], '$id.description'),
       purposes: _tags(info['purposes'], '$id.purposes'),
       moods: _tags(info['moods'], '$id.moods'),
@@ -134,6 +141,17 @@ List<CreatorVisualDefinition> decodeCreatorCatalog({
     visuals.add(visual);
   }
   return validateCreatorCatalog(visuals, allowEmpty: allowEmpty);
+}
+
+CreatorVariation _variation(Map<String, dynamic> item, String visual) {
+  final name = _string(item['name'], '$visual.variation.name');
+  final values = _object(item['values'], '$visual.$name.values');
+  for (final MapEntry(:key, :value) in values.entries) {
+    if (value is! num && value is! bool && value is! String) {
+      throw FormatException('$visual.$name.$key: valor no admitido.');
+    }
+  }
+  return CreatorVariation(name, Map<String, Object>.unmodifiable(values));
 }
 
 CreatorModifier _modifier(Map<String, dynamic> item, String visual) {

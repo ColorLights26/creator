@@ -237,6 +237,27 @@ void main() {
         ),
         isNot(base),
       );
+      // Variations are looks to explore: the vote stays on the original.
+      expect(
+        visualRevision(
+          CreatorVisualDefinition(
+            id: 'a',
+            name: 'A',
+            nativeSource: 'x',
+            modifiers: const [
+              CreatorModifier.choice(
+                'modo',
+                'Modo',
+                options: ['Auto', 'Nebuloso'],
+              ),
+            ],
+            variations: const [
+              CreatorVariation('Bruma', {'modo': 'Nebuloso'}),
+            ],
+          ),
+        ),
+        base,
+      );
       // Without modifiers the version is the one votes already use.
       expect(
         visualRevision(build(const [])),

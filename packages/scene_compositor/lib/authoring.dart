@@ -5,3 +5,4 @@ export 'src/creator_visual_definition.dart';
 export 'src/creator_catalog_decoder.dart';
 export 'src/creator_visual_metadata.dart';
 export 'src/creator_source_admission.dart';
+export 'src/creator_variation.dart';
