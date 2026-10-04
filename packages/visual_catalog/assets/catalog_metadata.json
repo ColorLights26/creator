@@ -34,6 +34,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "arbol_fractal_transparente",
+      "name": "Árbol Fractal Transparente",
+      "description": "Árbol de luz que se ramifica una y otra vez del dorado al fucsia: se mece con los graves, cada golpe sube como un pulso por sus ramas y florece en las puntas sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "organic",
+        "glowing",
+        "calm"
+      ],
+      "concepts": [
+        "fractal tree",
+        "recursion",
+        "branches",
+        "bloom"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "arcos_sueno",
       "name": "Arcos del Sueño",
       "description": "Pasillo infinito de arcos rojos, naranjas y dorados que se derriten, con un río ondulado de turquesa y crema hacia una puerta de luz; respira con la música.",
@@ -2066,6 +2098,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "helice_holografica_transparente",
+      "name": "Hélice Holográfica Transparente",
+      "description": "Doble hélice de ADN proyectada como holograma: gira en azul eléctrico, sus peldaños se encienden en rojo con las bandas de la música y cada golpe la hace temblar con un fallo digital sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "futuristic",
+        "scientific",
+        "electric"
+      ],
+      "concepts": [
+        "dna",
+        "double helix",
+        "hologram",
+        "sci-fi"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "hipervelocidad",
       "name": "Hipervelocidad",
       "description": "Viaje a la velocidad de la luz entre estrellas con estelas blancas y azules.",
@@ -2627,6 +2691,102 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "magma_2",
+      "name": "Magma 2",
+      "description": "Corteza volcánica viva: las grietas de lava se retuercen y se desplazan, por ellas corren pulsos de roca fundida y cada golpe lanza una onda de calor que las abre.",
+      "purposes": [
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "intense",
+        "warm",
+        "epic"
+      ],
+      "concepts": [
+        "lava",
+        "magma",
+        "cracks",
+        "embers",
+        "shockwave"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "magma_2_transparente",
+      "name": "Magma 2 Transparente",
+      "description": "Corteza volcánica viva: las grietas de lava se retuercen y se desplazan, por ellas corren pulsos de roca fundida y cada golpe lanza una onda de calor que las abre sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "intense",
+        "warm",
+        "epic"
+      ],
+      "concepts": [
+        "lava",
+        "magma",
+        "cracks",
+        "embers",
+        "shockwave"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "magma_transparente",
+      "name": "Magma Transparente",
+      "description": "Corteza volcánica negra con grietas de lava naranja que se abren con los graves, roca fundida que fluye debajo y brasas que saltan con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "relax"
+      ],
+      "moods": [
+        "intense",
+        "warm",
+        "epic"
+      ],
+      "concepts": [
+        "lava",
+        "magma",
+        "cracks",
+        "embers"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {

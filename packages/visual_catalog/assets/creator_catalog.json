@@ -75,6 +75,79 @@
       }
     },
     {
+      "id": "arbol_fractal_transparente",
+      "name": "Árbol Fractal Transparente",
+      "programId": "creator_arbol_fractal_transparente",
+      "role": "overlay",
+      "reactivity": "optional",
+      "framesPerSecond": 60,
+      "seed": 42,
+      "colors": [
+        0,
+        4294946816,
+        4294913960,
+        4294961604
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "modifiers": [
+        {
+          "id": "ramas",
+          "label": "Generaciones",
+          "kind": "steps",
+          "min": 5.0,
+          "max": 10.0,
+          "value": 8.0
+        },
+        {
+          "id": "apertura",
+          "label": "Apertura",
+          "kind": "slider",
+          "min": 0.2,
+          "max": 1.1,
+          "value": 0.38
+        },
+        {
+          "id": "forma",
+          "label": "Forma",
+          "kind": "choice",
+          "min": 0.0,
+          "max": 3.0,
+          "value": 0.0,
+          "options": [
+            "Auto",
+            "Simétrico",
+            "Natural",
+            "Espiral"
+          ]
+        },
+        {
+          "id": "hojas",
+          "label": "Brotes en las puntas",
+          "kind": "toggle",
+          "min": 0.0,
+          "max": 1.0,
+          "value": 1.0
+        }
+      ],
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  static constexpr int kMaxNodes = 1023;\n  static constexpr int kPetals = 70;\n  float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;\n  float kick = 0, flash = 0, drive = 0;\n  // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.\n  double clock = 0, wind = 0, sincePulse = 100, sinceForm = 0;\n  float pulsePower = 0, asym = 0, curl = 0;\n  int beats = 0, autoForm = 0;\n  // Variación fija de cada rama, elegida al reiniciar.\n  std::array<float, kMaxNodes> jitterA{}, jitterL{};\n  // Pétalos que caen flotando: posición, velocidad y vaivén propios.\n  std::array<float, kPetals> petalX{}, petalSpeed{}, petalPhase{}, petalSway{};\n  // Ramas calculadas en update y dibujadas en render.\n  std::array<Vec2, kMaxNodes> start{}, end{};\n  std::array<float, kMaxNodes> angle{}, length{};\n  std::array<bool, kMaxNodes> alive{};\n  int nodes = 0, generations = 0;\n\n  static float follow(float v, float target, float up, float down, float dt) {\n    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));\n  }\n\n  static int depthOf(int i) {\n    int d = 0;\n    for (int n = i + 1; n > 1; n >>= 1) d++;\n    return d;\n  }\n\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed);\n    bass = body = spark = energy = slowBass = kick = flash = drive = 0;\n    clock = 0;\n    wind = rng.unit() * 20.0;\n    sincePulse = 100;\n    sinceForm = 0;\n    pulsePower = 0;\n    asym = curl = 0;\n    beats = 0;\n    autoForm = 0;\n    for (int i = 0; i < kMaxNodes; i++) {\n      jitterA[size_t(i)] = rng.unit() * 2.0f - 1.0f;\n      jitterL[size_t(i)] = rng.unit() * 2.0f - 1.0f;\n    }\n    for (int i = 0; i < kPetals; i++) {\n      petalX[size_t(i)] = rng.unit();\n      petalSpeed[size_t(i)] = 0.03f + 0.05f * rng.unit();\n      petalPhase[size_t(i)] = rng.unit();\n      petalSway[size_t(i)] = rng.unit() * 6.2831853f;\n    }\n    nodes = generations = 0;\n  }\n\n  void update(const Frame& f) override {\n    auto m = modifiers(f);\n    float dt = float(f.delta);\n    const Music& mu = f.music;\n    bass = follow(bass, mu.bass, 22.0f, 4.5f, dt);\n    body = follow(body, mu.body, 12.0f, 3.0f, dt);\n    spark = follow(spark, mu.spark, 30.0f, 7.0f, dt);\n    energy = follow(energy, mu.energy, 6.0f, 1.8f, dt);\n    drive = follow(drive, mu.active ? std::pow(std::clamp(mu.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);\n\n    float hit = 0, fl = 0;\n    for (const auto& e : mu.events[0]) hit = std::max(hit, e.strength);\n    for (const auto& e : mu.events[2]) hit = std::max(hit, e.strength * 0.85f);\n    for (const auto& e : mu.events[3]) fl = std::max(fl, e.strength);\n    float onset = std::clamp((mu.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);\n    slowBass = follow(slowBass, mu.bass, 3.0f, 3.0f, dt);\n    hit = std::min(std::max(hit, onset), 1.0f);\n    sincePulse += f.delta;\n    sinceForm += f.delta;\n    if (hit > kick + 0.2f) {\n      beats++;\n      sincePulse = 0;\n      pulsePower = hit;\n      if (beats % 8 == 0) {\n        autoForm = (autoForm + 1) % 3;\n        sinceForm = 0;\n      }\n    }\n    if (!mu.active && sinceForm > 11.0) {\n      autoForm = (autoForm + 1) % 3;\n      sinceForm = 0;\n    }\n    kick = std::max(kick * std::exp(-dt * 5.0f), hit);\n    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));\n    clock += f.delta;\n    wind += f.delta * f.speed * (0.7 + 1.3 * drive);\n\n    // La forma se transforma poco a poco: asimetría y rizo hacia su objetivo.\n    int form = m.forma == 0 ? autoForm : m.forma - 1;\n    float asymGoal = form == 1 ? 1.0f : (form == 2 ? 0.25f : 0.0f);\n    float curlGoal = form == 2 ? 1.0f : 0.0f;\n    float k = 1.0f - std::exp(-dt * 1.5f);\n    asym += (asymGoal - asym) * k;\n    curl += (curlGoal - curl) * k;\n\n    // Ramas: recorrido por niveles; los hijos de i son 2i+1 y 2i+2.\n    generations = std::clamp(m.ramas, 5, 10);\n    nodes = (1 << generations) - 1;\n    float growth = float(std::min(clock / 3.0, 1.0)) * float(generations);\n    float spread = m.apertura * (1.0f + 0.18f * energy + 0.12f * kick);\n    float trunk = f.height * 0.26f;\n    float ratio = 0.76f;\n    float shortSide = std::min(f.width, f.height);\n    // Con pocas generaciones el árbol es más corto: se agranda para llenar.\n    float total = 0;\n    for (int d = 0; d < generations; d++) total += std::pow(ratio, float(d));\n    trunk = std::min(trunk * 3.6f / total, shortSide * 0.45f);\n    for (int i = 0; i < nodes; i++) {\n      int d = depthOf(i);\n      float g = std::clamp(growth - float(d), 0.0f, 1.0f);\n      alive[size_t(i)] = g > 0.0f;\n      float sway = (0.05f + 0.1f * bass + 0.04f * drive) *\n                   float(std::sin(wind * 0.9 + double(d) * 0.55)) * (0.4f + 0.12f * float(d));\n      if (i == 0) {\n        start[0] = {f.width * 0.5f, f.height * 0.94f};\n        angle[0] = -1.5707963f + sway * 0.4f;\n        length[0] = trunk * g;\n      } else {\n        int parent = (i - 1) / 2;\n        float dir = (i == 2 * parent + 1) ? -1.0f : 1.0f;\n        // Las ramas altas se abren menos: la copa crece hacia arriba.\n        float spreadHere = spread * (1.0f + asym * 0.45f * jitterA[size_t(i)]) * (1.0f - 0.035f * float(d));\n        float bend = curl * spread * 0.75f;\n        angle[size_t(i)] = angle[size_t(parent)] + dir * spreadHere + bend + sway;\n        float full = length[size_t(parent)] > 0 ? 1.0f : 0.0f;\n        float base = trunk * std::pow(ratio, float(d)) * (1.0f + asym * 0.22f * jitterL[size_t(i)]);\n        length[size_t(i)] = base * g * full;\n        start[size_t(i)] = end[size_t(parent)];\n      }\n      end[size_t(i)] = {start[size_t(i)].x + std::cos(angle[size_t(i)]) * length[size_t(i)],\n                        start[size_t(i)].y + std::sin(angle[size_t(i)]) * length[size_t(i)]};\n    }\n    // Encaje: si la copa se sale (formas abiertas o en espiral), el árbol se\n    // reduce desde la raíz y se centra en horizontal.\n    float minX = f.width * 0.5f, maxX = f.width * 0.5f, minY = start[0].y;\n    for (int i = 0; i < nodes; i++) {\n      if (!alive[size_t(i)]) continue;\n      minX = std::min(minX, end[size_t(i)].x);\n      maxX = std::max(maxX, end[size_t(i)].x);\n      minY = std::min(minY, end[size_t(i)].y);\n    }\n    float rootY = start[0].y;\n    float fit = 1.0f;\n    if (maxX - minX > f.width * 0.94f) fit = std::min(fit, f.width * 0.94f / (maxX - minX));\n    if (rootY - minY > rootY - f.height * 0.04f) fit = std::min(fit, (rootY - f.height * 0.04f) / (rootY - minY));\n    float centerX = (minX + maxX) * 0.5f;\n    float shift = f.width * 0.5f - centerX;\n    if (fit < 1.0f || std::fabs(shift) > 0.5f) {\n      for (int i = 0; i < nodes; i++) {\n        start[size_t(i)] = {f.width * 0.5f + (start[size_t(i)].x - centerX) * fit, rootY + (start[size_t(i)].y - rootY) * fit};\n        end[size_t(i)] = {f.width * 0.5f + (end[size_t(i)].x - centerX) * fit, rootY + (end[size_t(i)].y - rootY) * fit};\n      }\n    }\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    auto m = modifiers(f);\n    float amp = f.intensity;\n    const Color& bg = f.colors[0];\n    const Color& gold = f.colors[1];\n    const Color& pink = f.colors[2];\n    const Color& bloom = f.colors[3];\n    // Sin fondo: sólo un resplandor pequeño en la raíz.\n    (void)bg;\n    float rootR = f.width * 0.28f;\n    Paint ground = Paint::radial({f.width * 0.5f, f.height * 0.95f}, rootR,\n                                 {gold.opacity(0.22f + 0.2f * kick * amp), gold.opacity(0.0f)});\n    c.circle({f.width * 0.5f, f.height * 0.95f}, rootR, ground);\n\n    float px = std::min(f.width, f.height) / 400.0f;\n    // Pétalos que caen desde arriba meciéndose con el viento.\n    {\n      std::array<std::vector<Vec2>, 2> petals;\n      for (auto& g : petals) g.reserve(kPetals / 2 + 1);\n      for (int i = 0; i < kPetals; i++) {\n        double fall = std::fmod(wind * 0.35 * double(petalSpeed[size_t(i)]) * 10.0 + double(petalPhase[size_t(i)]), 1.0);\n        float y = (float(fall) * 1.1f - 0.05f) * f.height;\n        float x = petalX[size_t(i)] * f.width + float(std::sin(wind * 0.8 + double(petalSway[size_t(i)]))) * 18.0f * px;\n        petals[size_t(i % 2)].push_back({x, y});\n      }\n      for (int g = 0; g < 2; g++) {\n        Paint petal;\n        petal.blend = Blend::plus;\n        const Color& pc = g == 0 ? pink : gold;\n        petal.color = pc.opacity(std::clamp((0.35f + 0.4f * kick + 0.3f * spark) * amp, 0.0f, 1.0f));\n        c.points(petals[size_t(g)], (1.6f + 0.8f * float(g) + 1.5f * kick) * px, petal);\n      }\n    }\n    float pulsePos = float(sincePulse) * 9.0f;\n    for (int d = 0; d < generations; d++) {\n      Path p;\n      int first = (1 << d) - 1;\n      int last = std::min((1 << (d + 1)) - 1, nodes);\n      bool any = false;\n      for (int i = first; i < last; i++) {\n        if (!alive[size_t(i)] || length[size_t(i)] <= 0.0f) continue;\n        p.moveTo(start[size_t(i)].x, start[size_t(i)].y);\n        p.lineTo(end[size_t(i)].x, end[size_t(i)].y);\n        any = true;\n      }\n      if (!any) continue;\n      float t = float(d) / float(std::max(generations - 1, 1));\n      float pulse = sincePulse < 2.0 ? pulsePower * std::exp(-(float(d) - pulsePos) * (float(d) - pulsePos) * 0.5f) : 0.0f;\n      float lit = (0.8f + 0.3f * body + 1.1f * pulse) * amp;\n      Color base{gold.r + (pink.r - gold.r) * t, gold.g + (pink.g - gold.g) * t, gold.b + (pink.b - gold.b) * t, 1.0f};\n      float w = std::max(1.0f * px, side(f) * 0.034f * std::pow(0.7f, float(d)));\n      Paint halo;\n      halo.blend = Blend::plus;\n      halo.strokeWidth = w * 2.6f + 4.0f * px;\n      halo.strokeCap = 1;\n      halo.color = {base.r, base.g, base.b, std::clamp(0.13f * lit * f.glow, 0.0f, 1.0f)};\n      c.path(p, halo);\n      Paint core;\n      core.strokeWidth = w;\n      core.strokeCap = 1;\n      core.strokeJoin = 1;\n      core.color = {std::min(1.0f, base.r * lit + pulse * 0.4f), std::min(1.0f, base.g * lit + pulse * 0.4f),\n                    std::min(1.0f, base.b * lit + pulse * 0.4f), 1.0f};\n      c.path(p, core);\n    }\n\n    if (m.hojas) {\n      // Brotes en las puntas: tres grupos que parpadean desfasados.\n      int first = (1 << (generations - 1)) - 1;\n      std::array<std::vector<Vec2>, 3> groups;\n      for (auto& g : groups) g.reserve(size_t(nodes - first) / 3 + 1);\n      for (int i = first; i < nodes; i++) {\n        if (!alive[size_t(i)] || length[size_t(i)] <= 0.0f) continue;\n        groups[size_t(i % 3)].push_back(end[size_t(i)]);\n      }\n      float arrive = sincePulse < 2.0 ? pulsePower * std::exp(-std::pow(float(generations) - pulsePos, 2.0f) * 0.3f) : 0.0f;\n      for (int g = 0; g < 3; g++) {\n        if (groups[size_t(g)].empty()) continue;\n        float tw = 0.5f + 0.5f * float(std::sin(clock * 2.3 + double(g) * 2.1));\n        float r = (1.6f + 1.4f * tw + 3.0f * arrive + 2.5f * spark) * px;\n        Paint halo;\n        halo.blend = Blend::plus;\n        halo.color = pink.opacity(std::clamp((0.18f + 0.3f * arrive) * f.glow * amp, 0.0f, 1.0f));\n        c.points(groups[size_t(g)], r * 3.0f, halo);\n        Paint dot;\n        dot.blend = Blend::plus;\n        dot.color = bloom.opacity(std::clamp((0.55f + 0.35f * tw + 0.5f * arrive) * amp, 0.0f, 1.0f));\n        c.points(groups[size_t(g)], r, dot);\n      }\n    }\n  }\n\n private:\n  static float side(const Frame& f) { return std::min(f.width, f.height); }\n};\n",
+      "shaderSources": {},
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "2edff433962186ee93cdfbfe696a238a7acdf054d2951fd51a752db82e0d480d",
+        "sdkHash": "f66cc55f3f2b81ab299656797cd58924570ce2da69a3e7edfbb58a6f5d0d88a2",
+        "materials": {},
+        "imageHashes": {}
+      }
+    },
+    {
       "id": "arcos_sueno",
       "name": "Arcos del Sueño",
       "programId": "creator_arcos_sueno",
@@ -6445,6 +6518,159 @@
       }
     },
     {
+      "id": "helice_holografica_transparente",
+      "name": "Hélice Holográfica Transparente",
+      "programId": "creator_helice_holografica_transparente",
+      "role": "overlay",
+      "reactivity": "optional",
+      "framesPerSecond": 60,
+      "seed": 42,
+      "colors": [
+        0,
+        4280985855,
+        4289261823,
+        4294912586
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "modifiers": [
+        {
+          "id": "vueltas",
+          "label": "Vueltas",
+          "kind": "steps",
+          "min": 2.0,
+          "max": 6.0,
+          "value": 3.0
+        },
+        {
+          "id": "giro",
+          "label": "Velocidad de giro",
+          "kind": "slider",
+          "min": 0.2,
+          "max": 2.5,
+          "value": 1.0
+        },
+        {
+          "id": "escaneo",
+          "label": "Franja de escaneo",
+          "kind": "toggle",
+          "min": 0.0,
+          "max": 1.0,
+          "value": 1.0
+        },
+        {
+          "id": "particulas",
+          "label": "Partículas",
+          "kind": "toggle",
+          "min": 0.0,
+          "max": 1.0,
+          "value": 1.0
+        }
+      ],
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  static constexpr int kParticles = 90;\n  float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;\n  float kick = 0, flash = 0, drive = 0;\n  std::array<float, 12> bands{};\n  // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.\n  double turn = 0, clock = 0, rise = 0, sinceGlitch = 100;\n  float glitchPower = 0;\n  int glitchSeed = 0;\n  std::array<float, kParticles> partX{}, partSpeed{}, partPhase{};\n\n  static float follow(float v, float target, float up, float down, float dt) {\n    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));\n  }\n\n  static float hash(int n) {\n    uint32_t x = uint32_t(n) * 747796405u + 2891336453u;\n    x = ((x >> ((x >> 28u) + 4u)) ^ x) * 277803737u;\n    return float((x >> 22u) ^ x) / 4294967296.0f;\n  }\n\n  static Color scaled(const Color& c, float g, float a) {\n    return {std::min(1.0f, c.r * g), std::min(1.0f, c.g * g), std::min(1.0f, c.b * g), std::clamp(a, 0.0f, 1.0f)};\n  }\n\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed);\n    bass = body = spark = energy = slowBass = kick = flash = drive = 0;\n    bands.fill(0);\n    turn = rng.unit() * 6.2831853;\n    clock = 0;\n    rise = 0;\n    sinceGlitch = 100;\n    glitchPower = 0;\n    glitchSeed = 0;\n    for (int i = 0; i < kParticles; i++) {\n      partX[size_t(i)] = rng.unit() * 2.0f - 1.0f;\n      partSpeed[size_t(i)] = 0.04f + 0.08f * rng.unit();\n      partPhase[size_t(i)] = rng.unit();\n    }\n  }\n\n  void update(const Frame& f) override {\n    auto m = modifiers(f);\n    float dt = float(f.delta);\n    const Music& mu = f.music;\n    bass = follow(bass, mu.bass, 22.0f, 4.5f, dt);\n    body = follow(body, mu.body, 12.0f, 3.0f, dt);\n    spark = follow(spark, mu.spark, 30.0f, 7.0f, dt);\n    energy = follow(energy, mu.energy, 6.0f, 1.8f, dt);\n    drive = follow(drive, mu.active ? std::pow(std::clamp(mu.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);\n    for (int b = 0; b < 12; b++) {\n      float v = 0;\n      int k0 = b * 31 / 12, k1 = (b + 1) * 31 / 12;\n      for (int k = k0; k < std::max(k1, k0 + 1); k++) v = std::max(v, mu.smoothSpectrum[size_t(k)]);\n      bands[size_t(b)] = follow(bands[size_t(b)], v, 20.0f, 4.0f, dt);\n    }\n\n    float hit = 0, fl = 0;\n    for (const auto& e : mu.events[0]) hit = std::max(hit, e.strength);\n    for (const auto& e : mu.events[2]) hit = std::max(hit, e.strength * 0.85f);\n    for (const auto& e : mu.events[3]) fl = std::max(fl, e.strength);\n    float onset = std::clamp((mu.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);\n    slowBass = follow(slowBass, mu.bass, 3.0f, 3.0f, dt);\n    hit = std::min(std::max(hit, onset), 1.0f);\n    sinceGlitch += f.delta;\n    if (hit > kick + 0.2f) {\n      sinceGlitch = 0;\n      glitchPower = hit;\n      glitchSeed++;\n    }\n    kick = std::max(kick * std::exp(-dt * 5.0f), hit);\n    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));\n    clock += f.delta * f.speed;\n    rise += f.delta * f.speed * (1.0 + 1.5 * drive);\n    turn += f.delta * f.speed * m.giro * (0.7 + 1.6 * drive + 1.2 * kick);\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    auto m = modifiers(f);\n    float amp = f.intensity;\n    const Color& blue = f.colors[1];\n    const Color& ice = f.colors[2];\n    const Color& red = f.colors[3];\n    std::vector<float> u;\n    u.reserve(20);\n    u.insert(u.end(), {float(std::fmod(clock, 1000.0)), bass * amp, kick * amp, energy});\n    u.insert(u.end(), {f.glow, flash * amp, 0.0f, 0.0f});\n    for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});\n    c.material(\"holo_projector\", {0, 0, f.width, f.height}, u);\n\n    float px = std::min(f.width, f.height) / 400.0f;\n    float cx = f.width * 0.5f;\n    float top = f.height * 0.1f, bottom = f.height * 0.84f;\n    float radius = std::min(f.width * 0.36f, f.height * 0.18f) * (1.0f + 0.12f * bass * amp);\n    int turns = std::clamp(m.vueltas, 2, 6);\n    const int perTurn = 40;\n    int samples = turns * perTurn;\n    float glitch = sinceGlitch < 0.45 ? glitchPower * float(1.0 - sinceGlitch / 0.45) * amp : 0.0f;\n    // Temblor del fallo digital: saltos horizontales por tramos de altura.\n    auto jitter = [&](float y) {\n      if (glitch <= 0.0f) return 0.0f;\n      int slice = int(y / (f.height * 0.06f));\n      float h = hash(slice * 31 + glitchSeed * 977);\n      return h > 0.55f ? (hash(slice + glitchSeed * 13) - 0.5f) * 60.0f * px * glitch : 0.0f;\n    };\n    // Una hebra: dos caminos, uno con la parte delantera y otro con la trasera.\n    auto strand = [&](float phase, float offset, Path& front, Path& back) {\n      bool startedF = false, startedB = false;\n      bool prevFront = false;\n      for (int s = 0; s <= samples; s++) {\n        float t = float(s) / float(samples);\n        float y = top + (bottom - top) * t;\n        float a = t * 6.2831853f * float(turns) + float(turn) + phase;\n        float x = cx + std::cos(a) * radius + jitter(y) + offset;\n        bool isFront = std::sin(a) > 0.0f;\n        if (isFront) {\n          if (!startedF || !prevFront) front.moveTo(x, y); else front.lineTo(x, y);\n          startedF = true;\n        } else {\n          if (!startedB || prevFront) back.moveTo(x, y); else back.lineTo(x, y);\n          startedB = true;\n        }\n        prevFront = isFront;\n      }\n    };\n    auto drawHelix = [&](float offset, const Color* tintOverride, float alpha) {\n      Path frontA, backA, frontB, backB;\n      strand(0.0f, offset, frontA, backA);\n      strand(3.14159265f, offset, frontB, backB);\n      // Peldaños agrupados por banda del espectro; mitad azul y mitad roja.\n      int rungs = turns * 10;\n      for (int b = 0; b < 12; b++) {\n        Path ra, rb;\n        std::vector<Vec2> nodes;\n        nodes.reserve(12);\n        bool any = false;\n        for (int r = b; r < rungs; r += 12) {\n          float t = (float(r) + 0.5f) / float(rungs);\n          float y = top + (bottom - top) * t;\n          float a = t * 6.2831853f * float(turns) + float(turn);\n          float j = jitter(y) + offset;\n          float x1 = cx + std::cos(a) * radius + j;\n          float x2 = cx - std::cos(a) * radius + j;\n          float mid = (x1 + x2) * 0.5f;\n          ra.moveTo(x1, y).lineTo(mid, y);\n          rb.moveTo(mid, y).lineTo(x2, y);\n          nodes.push_back({x1, y});\n          nodes.push_back({x2, y});\n          any = true;\n        }\n        if (!any) continue;\n        float level = bands[size_t(b)];\n        float lit = (0.75f + 1.6f * level + 0.5f * kick) * amp;\n        Paint pa, pb;\n        pa.strokeWidth = pb.strokeWidth = (2.6f + 2.5f * level) * px;\n        pa.strokeCap = pb.strokeCap = 1;\n        pa.blend = pb.blend = Blend::plus;\n        pa.color = tintOverride ? scaled(*tintOverride, 1.0f, alpha * 0.6f) : scaled(blue, lit, 0.95f);\n        pb.color = tintOverride ? scaled(*tintOverride, 1.0f, alpha * 0.6f) : scaled(red, lit, 0.95f);\n        c.path(ra, pa);\n        c.path(rb, pb);\n        if (!tintOverride) {\n          Paint node;\n          node.blend = Blend::plus;\n          node.color = scaled(ice, 0.8f + 0.6f * level, 0.85f);\n          c.points(nodes, (2.6f + 3.0f * level) * px, node);\n        }\n      }\n      Paint backPaint;\n      backPaint.strokeWidth = 1.6f * px;\n      backPaint.strokeCap = 1;\n      backPaint.strokeJoin = 1;\n      backPaint.blend = Blend::plus;\n      backPaint.color = tintOverride ? scaled(*tintOverride, 1.0f, alpha * 0.5f) : scaled(blue, 0.8f * amp, 0.45f);\n      c.path(backA, backPaint);\n      c.path(backB, backPaint);\n      if (!tintOverride) {\n        Paint halo;\n        halo.strokeWidth = 12.0f * px;\n        halo.strokeCap = 1;\n        halo.strokeJoin = 1;\n        halo.blend = Blend::plus;\n        halo.color = scaled(blue, 1.0f, (0.12f + 0.12f * bass) * f.glow * amp);\n        c.path(frontA, halo);\n        c.path(frontB, halo);\n      }\n      Paint frontPaint;\n      frontPaint.strokeWidth = (3.2f + 1.5f * bass) * px;\n      frontPaint.strokeCap = 1;\n      frontPaint.strokeJoin = 1;\n      frontPaint.blend = Blend::plus;\n      frontPaint.color = tintOverride ? scaled(*tintOverride, 1.0f, alpha) : scaled(ice, 1.0f * amp, 1.0f);\n      c.path(frontA, frontPaint);\n      c.path(frontB, frontPaint);\n    };\n    if (glitch > 0.02f) {\n      Color r{1.0f, 0.1f, 0.2f, 1.0f};\n      Color cy{0.0f, 0.9f, 1.0f, 1.0f};\n      drawHelix(-9.0f * px * glitch, &r, 0.6f * glitch);\n      drawHelix(9.0f * px * glitch, &cy, 0.6f * glitch);\n    }\n    drawHelix(0.0f, nullptr, 1.0f);\n\n    if (m.particulas) {\n      // Partículas que suben del proyector alrededor de la hélice.\n      std::vector<Vec2> pts;\n      pts.reserve(kParticles);\n      for (int i = 0; i < kParticles; i++) {\n        float life = float(std::fmod(rise * double(partSpeed[size_t(i)]) + double(partPhase[size_t(i)]), 1.0));\n        float y = bottom + (top - bottom) * life;\n        float x = cx + partX[size_t(i)] * radius * (1.4f + 0.5f * life);\n        pts.push_back({x, y});\n      }\n      Paint dot;\n      dot.blend = Blend::plus;\n      dot.color = scaled(ice, 1.0f, std::clamp((0.35f + 0.5f * spark) * amp, 0.0f, 1.0f));\n      c.points(pts, (1.2f + 1.2f * spark) * px, dot);\n    }\n\n    std::vector<float> s;\n    s.reserve(8);\n    s.insert(s.end(), {float(std::fmod(clock, 1000.0)), m.escaneo ? 1.0f : 0.0f, glitch, kick * amp});\n    s.insert(s.end(), {ice.r, ice.g, ice.b, red.r});\n    c.material(\"holo_scanlines\", {0, 0, f.width, f.height}, s);\n  }\n};\n",
+      "shaderSources": {
+        "holo_projector": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // reloj, graves, golpe, energía\nuniform vec4 uB;   // glow, destello\nuniform vec3 uC0;\nuniform vec3 uC1;\nuniform vec3 uC2;\nuniform vec3 uC3;\nout vec4 fragColor;\n\nfloat hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  vec2 uv = frag / uSize;\n  float scale = min(uSize.x, uSize.y);\n  vec2 p = (frag - 0.5 * uSize) / scale;\n  vec3 col = uC0;\n  // Cono de luz desde el proyector de abajo.\n  float baseY = 0.88;\n  float h = clamp((baseY - uv.y) / 0.8, 0.0, 1.0);\n  float halfW = 0.04 + 0.42 * h;\n  float x = abs(p.x) / max(halfW, 0.001);\n  float beam = (1.0 - smoothstep(0.6, 1.0, x)) * step(uv.y, baseY) * (1.0 - h * 0.7);\n  float flicker = 0.9 + 0.1 * sin(uA.x * 37.0) * sin(uA.x * 13.0);\n  col += uC1 * beam * (0.06 + 0.06 * uA.y + 0.08 * uA.z) * flicker * uB.x;\n  // Proyector: disco brillante con anillos.\n  vec2 q = vec2(p.x, (uv.y - baseY) * uSize.y / scale * 3.5);\n  float d = length(q);\n  col += uC2 * exp(-d * 30.0) * (0.5 + 0.5 * uA.z);\n  col += uC1 * smoothstep(0.006, 0.0, abs(d - 0.12 - 0.02 * uA.y)) * 0.6;\n  col += uC1 * smoothstep(0.004, 0.0, abs(d - 0.2)) * 0.3;\n  // Rejilla del suelo en perspectiva.\n  if (uv.y > baseY) {\n    float depth = (uv.y - baseY) * 10.0 + 0.1;\n    float gx = abs(fract(p.x / depth * 3.0) - 0.5);\n    float gy = abs(fract(1.0 / depth * 0.6 - uA.x * 0.3) - 0.5);\n    float grid = (1.0 - smoothstep(0.0, 0.05, gx)) + (1.0 - smoothstep(0.0, 0.08, gy));\n    col += uC1 * grid * 0.12 * smoothstep(0.0, 0.5, depth);\n  }\n  // Fondo transparente: color premultiplicado y opacidad según el brillo; la\n  // luz muy tenue se vuelve transparente del todo para no dejar velo.\n  col = clamp(col, 0.0, 1.0);\n  float veilPeak = max(col.r, max(col.g, col.b));\n  float clearCut = smoothstep(0.04, 0.12, veilPeak);\n  col *= clearCut;\n  float alpha = clamp(veilPeak * 1.25, 0.0, 1.0) * clearCut;\n  fragColor = vec4(col, alpha);\n}\n",
+        "holo_scanlines": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // reloj, escaneo, fallo, golpe\nuniform vec4 uB;   // color hielo, rojo\nout vec4 fragColor;\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  vec2 uv = frag / uSize;\n  // En el overlay no hay líneas de barrido oscuras: oscurecerían lo de detrás.\n  vec3 light = vec3(0.0);\n  if (uA.y > 0.5) {\n    // Franja de escaneo que recorre el holograma de abajo arriba.\n    float pos = 1.0 - fract(uA.x * 0.22);\n    float band = exp(-abs(uv.y - pos) * 60.0);\n    float trail = smoothstep(0.0, 0.12, uv.y - pos) * (1.0 - smoothstep(0.12, 0.3, uv.y - pos));\n    // Sólo dentro del haz del holograma, no de lado a lado de la pantalla.\n    float inBeam = smoothstep(0.42, 0.3, abs(uv.x - 0.5));\n    light = uB.xyz * (band * (0.22 + 0.25 * uA.w) + trail * 0.04) * inBeam;\n  }\n  float peak = max(light.r, max(light.g, light.b));\n  float alpha = clamp(peak * 1.25, 0.0, 1.0);\n  fragColor = vec4(light * smoothstep(0.02, 0.06, peak), alpha * smoothstep(0.02, 0.06, peak));\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "9e372c18c47cc5639476fc5e358132685359ab3f69df36961e4812066247fd7f",
+        "sdkHash": "f66cc55f3f2b81ab299656797cd58924570ce2da69a3e7edfbb58a6f5d0d88a2",
+        "materials": {
+          "holo_projector": {
+            "compilerHash": "a06946f8c84ae2f4db2776838d81ddccc219f7bb679bc4bb34ed17b733399f95",
+            "asset": "packages/visual_catalog/assets/native/helice_holografica_transparente_holo_projector.iplr",
+            "assetHash": "3bc55bac0981c1f0d94ee08fe1fe23db85597dd994c383ae9898212429c0345a",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct helice_holografica_transparente_holo_projector_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct helice_holografica_transparente_holo_projector_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment helice_holografica_transparente_holo_projector_fragment_main_out helice_holografica_transparente_holo_projector_fragment_main(helice_holografica_transparente_holo_projector_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uB [[buffer(2)]], constant float3& uC0 [[buffer(3)]], constant float3& uC1 [[buffer(4)]], constant float3& uC2 [[buffer(5)]])\n{\n    helice_holografica_transparente_holo_projector_fragment_main_out out = {};\n    float2 _26 = in._fragCoord / uSize;\n    float _37 = fast::min(uSize.x, uSize.y);\n    float2 _46 = (in._fragCoord - (uSize * 0.5)) / float2(_37);\n    float _58 = _26.y;\n    float _64 = fast::clamp((0.87999999523162841796875 - _58) * 1.25, 0.0, 1.0);\n    float _73 = _46.x;\n    float _143 = _58 - 0.87999999523162841796875;\n    float _154 = length(float2(_73, ((_143 * uSize.y) / _37) * 3.5));\n    float3 _197 = (((uC0 + ((((uC1 * (((1.0 - smoothstep(0.60000002384185791015625, 1.0, abs(_73) / fast::max(0.039999999105930328369140625 + (0.4199999868869781494140625 * _64), 0.001000000047497451305389404296875))) * step(_58, 0.87999999523162841796875)) * (1.0 - (_64 * 0.699999988079071044921875)))) * ((0.0599999986588954925537109375 + (0.0599999986588954925537109375 * uA.y)) + (0.07999999821186065673828125 * uA.z))) * (0.89999997615814208984375 + ((0.100000001490116119384765625 * sin(uA.x * 37.0)) * sin(uA.x * 13.0)))) * uB.x)) + ((uC2 * exp(_154 * (-30.0))) * (0.5 + (0.5 * uA.z)))) + ((uC1 * smoothstep(0.006000000052154064178466796875, 0.0, abs((_154 - 0.119999997317790985107421875) - (0.0199999995529651641845703125 * uA.y)))) * 0.60000002384185791015625)) + ((uC1 * smoothstep(0.0040000001899898052215576171875, 0.0, abs(_154 - 0.20000000298023223876953125))) * 0.300000011920928955078125);\n    float3 _301;\n    if (_58 > 0.87999999523162841796875)\n    {\n        float _212 = (_143 * 10.0) + 0.100000001490116119384765625;\n        _301 = _197 + (((uC1 * ((1.0 - smoothstep(0.0, 0.0500000007450580596923828125, abs(fract((_73 / _212) * 3.0) - 0.5))) + (1.0 - smoothstep(0.0, 0.07999999821186065673828125, abs(fract((0.60000002384185791015625 / _212) - (uA.x * 0.300000011920928955078125)) - 0.5))))) * 0.119999997317790985107421875) * smoothstep(0.0, 0.5, _212));\n    }\n    else\n    {\n        _301 = _197;\n    }\n    float3 _255 = fast::clamp(_301, float3(0.0), float3(1.0));\n    float _264 = fast::max(_255.x, fast::max(_255.y, _255.z));\n    float _267 = smoothstep(0.039999999105930328369140625, 0.119999997317790985107421875, _264);\n    out.fragColor = float4(_255 * _267, fast::clamp(_264 * 1.25, 0.0, 1.0) * _267);\n    return out;\n}\n\n",
+            "entryPoint": "helice_holografica_transparente_holo_projector_fragment_main",
+            "floatCount": 22,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uB",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uC0",
+                "offset": 10,
+                "count": 3,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uC1",
+                "offset": 13,
+                "count": 3,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uC2",
+                "offset": 16,
+                "count": 3,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uC3",
+                "offset": 19,
+                "count": 3,
+                "bufferIndex": 4294967295
+              }
+            ]
+          },
+          "holo_scanlines": {
+            "compilerHash": "f8a038fe9624f5f4979acd283c6d16672af8cadea0796fc741a433956efbfffc",
+            "asset": "packages/visual_catalog/assets/native/helice_holografica_transparente_holo_scanlines.iplr",
+            "assetHash": "facff9bfae85be9b9d4eb707c645f527a3517cd640ef1d9fc45d33256e17b5cd",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct helice_holografica_transparente_holo_scanlines_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct helice_holografica_transparente_holo_scanlines_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment helice_holografica_transparente_holo_scanlines_fragment_main_out helice_holografica_transparente_holo_scanlines_fragment_main(helice_holografica_transparente_holo_scanlines_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uB [[buffer(2)]])\n{\n    helice_holografica_transparente_holo_scanlines_fragment_main_out out = {};\n    float2 _26 = in._fragCoord / uSize;\n    float3 _146;\n    if (uA.y > 0.5)\n    {\n        float _59 = _26.y - (1.0 - fract(uA.x * 0.2199999988079071044921875));\n        _146 = (uB.xyz * ((exp(abs(_59) * (-60.0)) * (0.2199999988079071044921875 + (0.25 * uA.w))) + ((smoothstep(0.0, 0.119999997317790985107421875, _59) * (1.0 - smoothstep(0.119999997317790985107421875, 0.300000011920928955078125, _59))) * 0.039999999105930328369140625))) * smoothstep(0.4199999868869781494140625, 0.300000011920928955078125, abs(_26.x - 0.5));\n    }\n    else\n    {\n        _146 = float3(0.0);\n    }\n    float _114 = fast::max(_146.x, fast::max(_146.y, _146.z));\n    float _126 = smoothstep(0.0199999995529651641845703125, 0.0599999986588954925537109375, _114);\n    out.fragColor = float4(_146 * _126, fast::clamp(_114 * 1.25, 0.0, 1.0) * _126);\n    return out;\n}\n\n",
+            "entryPoint": "helice_holografica_transparente_holo_scanlines_fragment_main",
+            "floatCount": 10,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uB",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
+    },
+    {
       "id": "hipervelocidad",
       "name": "Hipervelocidad",
       "programId": "creator_hipervelocidad",
@@ -7967,6 +8193,449 @@
             "assetHash": "90f9113c1c325060aa43546abeedcc8b2a1d2d509bddeb3761484951b74defac",
             "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct magma_magma_crust_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct magma_magma_crust_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment magma_magma_crust_fragment_main_out magma_magma_crust_fragment_main(magma_magma_crust_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uB [[buffer(2)]], constant float4& uD [[buffer(3)]], constant float3& uC0 [[buffer(4)]], constant float3& uC1 [[buffer(5)]], constant float3& uC2 [[buffer(6)]], constant float3& uC3 [[buffer(7)]])\n{\n    magma_magma_crust_fragment_main_out out = {};\n    float2 _154 = float2(fast::min(uSize.x, uSize.y));\n    float2 _155 = in._fragCoord / _154;\n    float2 _165 = _155 * (12.0 / uB.y);\n    float2 _168 = floor(_165);\n    float2 _171 = fract(_165);\n    float _1413;\n    float _1414;\n    float2 _1415;\n    _1415 = float2(0.0);\n    _1414 = 8.0;\n    _1413 = 8.0;\n    float _1420;\n    float _1421;\n    float2 _1424;\n    for (int _1412 = -1; _1412 <= 1; _1415 = _1424, _1414 = _1420, _1413 = _1421, _1412++)\n    {\n        _1421 = _1413;\n        _1420 = _1414;\n        _1424 = _1415;\n        float _1452;\n        float2 _1455;\n        float _1431;\n        for (int _1418 = -1; _1418 <= 1; _1421 = _1431, _1420 = _1452, _1418++, _1424 = _1455)\n        {\n            float2 _204 = float2(float(_1418), float(_1412));\n            float2 _205 = _168 + _204;\n            float3 _599 = fract(_205.xyx * float3(0.103100001811981201171875, 0.10300000011920928955078125, 0.097300000488758087158203125));\n            float3 _608 = _599 + float3(dot(_599, _599.yzx + float3(33.3300018310546875)));\n            float2 _617 = fract((_608.xx + _608.yz) * _608.zy);\n            float _239 = length(_171 - ((_204 + float2(0.5)) + (sin(((float2(0.60000002384185791015625) + _617) * uD.x) + (_617 * 6.283100128173828125)) * 0.37999999523162841796875)));\n            bool _242 = _239 < _1420;\n            if (_242)\n            {\n                _1431 = _1420;\n            }\n            else\n            {\n                _1431 = (_239 < _1421) ? _239 : _1421;\n            }\n            _1452 = _242 ? _239 : _1420;\n            _1455 = select(_1424, _205, bool2(_242));\n        }\n    }\n    float _262 = _1413 - _1414;\n    float _278 = ((0.0350000001490116119384765625 + (0.0500000007450580596923828125 * uA.y)) + (0.0599999986588954925537109375 * uD.z)) * uB.x;\n    float _285 = smoothstep(_278, _278 * 0.300000011920928955078125, _262);\n    float2 _300 = (_165 * 3.0) + (_1415 * 7.0);\n    float2 _628 = floor(_300);\n    float2 _630 = fract(_300);\n    float2 _638 = (_630 * _630) * (float2(3.0) - (_630 * 2.0));\n    float3 _665 = fract(_628.xyx * 0.103100001811981201171875);\n    float3 _674 = _665 + float3(dot(_665, _665.yzx + float3(33.3300018310546875)));\n    float3 _690 = fract((_628 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n    float3 _699 = _690 + float3(dot(_690, _690.yzx + float3(33.3300018310546875)));\n    float _645 = _638.x;\n    float3 _715 = fract((_628 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n    float3 _724 = _715 + float3(dot(_715, _715.yzx + float3(33.3300018310546875)));\n    float3 _740 = fract((_628 + float2(1.0)).xyx * 0.103100001811981201171875);\n    float3 _749 = _740 + float3(dot(_740, _740.yzx + float3(33.3300018310546875)));\n    float3 _765 = fract(floor(in._fragCoord * 0.5).xyx * 0.103100001811981201171875);\n    float3 _774 = _765 + float3(dot(_765, _765.yzx + float3(33.3300018310546875)));\n    float3 _790 = fract(_1415.xyx * 0.103100001811981201171875);\n    float3 _799 = _790 + float3(dot(_790, _790.yzx + float3(33.3300018310546875)));\n    float3 _354 = ((uC0 + (float3(0.0599999986588954925537109375, 0.039999999105930328369140625, 0.0350000001490116119384765625) * ((mix(mix(fract((_674.x + _674.y) * _674.z), fract((_699.x + _699.y) * _699.z), _645), mix(fract((_724.x + _724.y) * _724.z), fract((_749.x + _749.y) * _749.z), _645), _638.y) * 0.699999988079071044921875) + (fract((_774.x + _774.y) * _774.z) * 0.300000011920928955078125)))) + (((uC1 * exp((-_262) / (_278 * 3.5))) * ((0.25 + (0.5 * uA.y)) + (0.60000002384185791015625 * uD.z))) * uB.x)) + ((uC1 * (fract((_799.x + _799.y) * _799.z) * 0.07999999821186065673828125)) * uA.w);\n    float3 _1416;\n    if (_285 > 0.00200000009499490261077880859375)\n    {\n        float2 _374 = (_155 * 3.0) + float2(uA.x * 0.4000000059604644775390625, uA.x * (-0.25));\n        float2 _383 = (_374 * 0.699999988079071044921875) + float2(uA.x * 0.100000001490116119384765625);\n        float2 _819 = floor(_383);\n        float2 _821 = fract(_383);\n        float2 _829 = (_821 * _821) * (float2(3.0) - (_821 * 2.0));\n        float3 _856 = fract(_819.xyx * 0.103100001811981201171875);\n        float3 _865 = _856 + float3(dot(_856, _856.yzx + float3(33.3300018310546875)));\n        float3 _881 = fract((_819 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n        float3 _890 = _881 + float3(dot(_881, _881.yzx + float3(33.3300018310546875)));\n        float _836 = _829.x;\n        float3 _906 = fract((_819 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n        float3 _915 = _906 + float3(dot(_906, _906.yzx + float3(33.3300018310546875)));\n        float3 _931 = fract((_819 + float2(1.0)).xyx * 0.103100001811981201171875);\n        float3 _940 = _931 + float3(dot(_931, _931.yzx + float3(33.3300018310546875)));\n        float _849 = mix(mix(fract((_865.x + _865.y) * _865.z), fract((_890.x + _890.y) * _890.z), _836), mix(fract((_915.x + _915.y) * _915.z), fract((_940.x + _940.y) * _940.z), _836), _829.y);\n        float2 _391 = _374 + float2(_849 * 2.0, 0.0);\n        float2 _960 = floor(_391);\n        float2 _962 = fract(_391);\n        float2 _970 = (_962 * _962) * (float2(3.0) - (_962 * 2.0));\n        float3 _997 = fract(_960.xyx * 0.103100001811981201171875);\n        float3 _1006 = _997 + float3(dot(_997, _997.yzx + float3(33.3300018310546875)));\n        float3 _1022 = fract((_960 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n        float3 _1031 = _1022 + float3(dot(_1022, _1022.yzx + float3(33.3300018310546875)));\n        float _977 = _970.x;\n        float3 _1047 = fract((_960 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n        float3 _1056 = _1047 + float3(dot(_1047, _1047.yzx + float3(33.3300018310546875)));\n        float3 _1072 = fract((_960 + float2(1.0)).xyx * 0.103100001811981201171875);\n        float3 _1081 = _1072 + float3(dot(_1072, _1072.yzx + float3(33.3300018310546875)));\n        float2 _400 = (_374 * 2.2999999523162841796875) - float2(_849);\n        float2 _1101 = floor(_400);\n        float2 _1103 = fract(_400);\n        float2 _1111 = (_1103 * _1103) * (float2(3.0) - (_1103 * 2.0));\n        float3 _1138 = fract(_1101.xyx * 0.103100001811981201171875);\n        float3 _1147 = _1138 + float3(dot(_1138, _1138.yzx + float3(33.3300018310546875)));\n        float3 _1163 = fract((_1101 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n        float3 _1172 = _1163 + float3(dot(_1163, _1163.yzx + float3(33.3300018310546875)));\n        float _1118 = _1111.x;\n        float3 _1188 = fract((_1101 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n        float3 _1197 = _1188 + float3(dot(_1188, _1188.yzx + float3(33.3300018310546875)));\n        float3 _1213 = fract((_1101 + float2(1.0)).xyx * 0.103100001811981201171875);\n        float3 _1222 = _1213 + float3(dot(_1213, _1213.yzx + float3(33.3300018310546875)));\n        float _404 = (mix(mix(fract((_1006.x + _1006.y) * _1006.z), fract((_1031.x + _1031.y) * _1031.z), _977), mix(fract((_1056.x + _1056.y) * _1056.z), fract((_1081.x + _1081.y) * _1081.z), _977), _970.y) * 0.60000002384185791015625) + (mix(mix(fract((_1147.x + _1147.y) * _1147.z), fract((_1172.x + _1172.y) * _1172.z), _1118), mix(fract((_1197.x + _1197.y) * _1197.z), fract((_1222.x + _1222.y) * _1222.z), _1118), _1111.y) * 0.4000000059604644775390625);\n        _1416 = mix(_354, mix(mix(uC1, uC2, float3(smoothstep(0.300000011920928955078125, 0.699999988079071044921875, _404))), uC3, float3(smoothstep(0.64999997615814208984375, 0.949999988079071044921875, _404) * (0.60000002384185791015625 + (0.60000002384185791015625 * uA.y)))) * (1.10000002384185791015625 + (0.60000002384185791015625 * uA.z)), float3(_285));\n    }\n    else\n    {\n        _1416 = _354;\n    }\n    float3 _1417;\n    if (uB.z > 0.5)\n    {\n        float2 _456 = float2(_155.x * 22.0, (_155.y * 22.0) + (uD.w * 6.0));\n        float2 _459 = floor(_456);\n        float3 _1238 = fract((_459 + float2(3.7000000476837158203125)).xyx * 0.103100001811981201171875);\n        float3 _1247 = _1238 + float3(dot(_1238, _1238.yzx + float3(33.3300018310546875)));\n        float _1256 = fract((_1247.x + _1247.y) * _1247.z);\n        float3 _1263 = fract((_459 + float2(1.10000002384185791015625)).xyx * 0.103100001811981201171875);\n        float3 _1272 = _1263 + float3(dot(_1263, _1263.yzx + float3(33.3300018310546875)));\n        float3 _1288 = fract((_459 + float2(9.3999996185302734375)).xyx * 0.103100001811981201171875);\n        float3 _1297 = _1288 + float3(dot(_1288, _1288.yzx + float3(33.3300018310546875)));\n        float2 _502 = (fract(_456) - float2(0.5)) - ((float2(fract((_1272.x + _1272.y) * _1272.z), fract((_1297.x + _1297.y) * _1297.z)) - float2(0.5)) * 0.60000002384185791015625);\n        _1417 = _1416 + (((mix(uC2, uC3, float3(_1256)) * (step((0.939999997615814208984375 - (0.0500000007450580596923828125 * uA.z)) - (0.039999999105930328369140625 * uD.z), _1256) * exp(dot(_502, _502) * (-140.0)))) * (0.60000002384185791015625 + (0.4000000059604644775390625 * sin((uD.w * 9.0) + (_1256 * 40.0))))) * (1.2000000476837158203125 + uA.z));\n    }\n    else\n    {\n        _1417 = _1416;\n    }\n    float3 _1313 = fract(in._fragCoord.xyx * 0.103100001811981201171875);\n    float3 _1322 = _1313 + float3(dot(_1313, _1313.yzx + float3(33.3300018310546875)));\n    out.fragColor = float4(fast::clamp((((_1417 + ((uC2 * uB.w) * 0.0599999986588954925537109375)) * ((uD.y * 0.4000000059604644775390625) + 0.60000002384185791015625)) * (1.0 - (0.300000011920928955078125 * smoothstep(0.699999988079071044921875, 1.5, length(((in._fragCoord - (uSize * 0.5)) / _154) * float2(0.89999997615814208984375, 0.64999997615814208984375)))))) + float3((fract((_1322.x + _1322.y) * _1322.z) - 0.5) * 0.0039215688593685626983642578125), float3(0.0), float3(1.0)), 1.0);\n    return out;\n}\n\n",
             "entryPoint": "magma_magma_crust_fragment_main",
+            "floatCount": 26,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uB",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uD",
+                "offset": 10,
+                "count": 4,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uC0",
+                "offset": 14,
+                "count": 3,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uC1",
+                "offset": 17,
+                "count": 3,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uC2",
+                "offset": 20,
+                "count": 3,
+                "bufferIndex": 6
+              },
+              {
+                "name": "uC3",
+                "offset": 23,
+                "count": 3,
+                "bufferIndex": 7
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
+    },
+    {
+      "id": "magma_2",
+      "name": "Magma 2",
+      "programId": "creator_magma_2",
+      "role": "background",
+      "reactivity": "optional",
+      "framesPerSecond": 60,
+      "seed": 42,
+      "colors": [
+        4278518016,
+        4292090368,
+        4294932992,
+        4294955594
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "modifiers": [
+        {
+          "id": "calor",
+          "label": "Calor",
+          "kind": "slider",
+          "min": 0.4,
+          "max": 2.0,
+          "value": 1.0
+        },
+        {
+          "id": "placas",
+          "label": "Tamaño de placas",
+          "kind": "steps",
+          "min": 3.0,
+          "max": 10.0,
+          "value": 5.0
+        },
+        {
+          "id": "flujo",
+          "label": "Flujo de lava",
+          "kind": "slider",
+          "min": 0.2,
+          "max": 2.5,
+          "value": 1.0
+        },
+        {
+          "id": "movimiento",
+          "label": "Movimiento de grietas",
+          "kind": "slider",
+          "min": 0.0,
+          "max": 2.0,
+          "value": 1.0
+        },
+        {
+          "id": "ondas",
+          "label": "Ondas de calor",
+          "kind": "toggle",
+          "min": 0.0,
+          "max": 1.0,
+          "value": 1.0
+        },
+        {
+          "id": "brasas",
+          "label": "Brasas",
+          "kind": "toggle",
+          "min": 0.0,
+          "max": 1.0,
+          "value": 1.0
+        }
+      ],
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;\n  float kick = 0, flash = 0, drive = 0;\n  // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.\n  double flow = 0, drift = 0, rise = 0, pulse = 0, warp = 0, waveAge = 100;\n  float heat = 0, waveX = 0.5f, waveY = 0.5f, wavePower = 0;\n  Random rng{1};\n\n  static float follow(float v, float target, float up, float down, float dt) {\n    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));\n  }\n\n public:\n  void reset(uint32_t seed) override {\n    rng = Random(seed);\n    bass = body = spark = energy = slowBass = kick = flash = drive = 0;\n    flow = rng.unit() * 50.0;\n    drift = rng.unit() * 50.0;\n    rise = 0;\n    pulse = rng.unit() * 10.0;\n    warp = rng.unit() * 20.0;\n    waveAge = 100;\n    heat = 0;\n    waveX = waveY = 0.5f;\n    wavePower = 0;\n  }\n\n  void update(const Frame& f) override {\n    auto m = modifiers(f);\n    float dt = float(f.delta);\n    const Music& mu = f.music;\n    bass = follow(bass, mu.bass, 22.0f, 4.5f, dt);\n    body = follow(body, mu.body, 12.0f, 3.0f, dt);\n    spark = follow(spark, mu.spark, 30.0f, 7.0f, dt);\n    energy = follow(energy, mu.energy, 6.0f, 1.8f, dt);\n    drive = follow(drive, mu.active ? std::pow(std::clamp(mu.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);\n\n    float hit = 0, fl = 0;\n    for (const auto& e : mu.events[0]) hit = std::max(hit, e.strength);\n    for (const auto& e : mu.events[2]) hit = std::max(hit, e.strength * 0.85f);\n    for (const auto& e : mu.events[3]) fl = std::max(fl, e.strength);\n    float onset = std::clamp((mu.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);\n    slowBass = follow(slowBass, mu.bass, 3.0f, 3.0f, dt);\n    hit = std::min(std::max(hit, onset), 1.0f);\n    waveAge += f.delta;\n    if (hit > kick + 0.2f) {\n      heat = std::max(heat, hit);\n      // Onda de calor nueva desde un punto distinto de la pantalla.\n      if (waveAge > 0.25) {\n        waveAge = 0;\n        waveX = 0.15f + 0.7f * rng.unit();\n        waveY = 0.15f + 0.7f * rng.unit();\n        wavePower = hit;\n      }\n    }\n    kick = std::max(kick * std::exp(-dt * 5.0f), hit);\n    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));\n    heat *= std::exp(-dt * 2.0f);\n    flow += f.delta * f.speed * m.flujo * (0.3 + 0.8 * drive + 0.6 * heat);\n    drift += f.delta * f.speed * m.movimiento * (0.06 + 0.12 * drive);\n    rise += f.delta * f.speed * (0.35 + 0.8 * drive + 0.9 * heat);\n    pulse += f.delta * f.speed * m.flujo * (0.6 + 1.4 * drive + 2.0 * heat);\n    warp += f.delta * f.speed * m.movimiento * (0.25 + 0.5 * drive + 0.4 * heat);\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    auto m = modifiers(f);\n    float amp = f.intensity;\n    float side = std::min(f.width, f.height);\n    float wave = m.ondas && waveAge < 1.8 ? wavePower * float(1.0 - waveAge / 1.8) * amp : 0.0f;\n    std::vector<float> u;\n    u.reserve(32);\n    u.insert(u.end(), {float(std::fmod(flow, 1000.0)), bass * amp, kick * amp, energy});\n    u.insert(u.end(), {m.calor, float(m.placas), m.brasas ? 1.0f : 0.0f, flash * amp});\n    u.insert(u.end(), {float(std::fmod(drift, 1000.0)), f.glow, heat * amp, float(std::fmod(rise, 1000.0))});\n    // Centro de la onda en las mismas unidades que el shader (píxel / lado corto).\n    u.insert(u.end(), {waveX * f.width / side, waveY * f.height / side, float(waveAge) * 1.1f, wave});\n    u.insert(u.end(), {float(std::fmod(pulse, 1000.0)), float(std::fmod(warp, 1000.0)), m.movimiento, 0.0f});\n    for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});\n    c.material(\"magma_alive\", {0, 0, f.width, f.height}, u);\n  }\n};\n",
+      "shaderSources": {
+        "magma_alive": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // flujo de lava, graves, golpe, energía\nuniform vec4 uB;   // calor, tamaño de placas, brasas, destello\nuniform vec4 uD;   // deriva de las placas, glow, fogonazo de calor, subida de brasas\nuniform vec4 uE;   // onda de calor: centro x, centro y, radio, fuerza\nuniform vec4 uF;   // pulsos por las grietas, deformación, movimiento\nuniform vec3 uC0;\nuniform vec3 uC1;\nuniform vec3 uC2;\nuniform vec3 uC3;\nout vec4 fragColor;\n\nfloat hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\n\nvec2 hash22(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.xx + p3.yz) * p3.zy);\n}\n\nfloat noise(vec2 p) {\n  vec2 i = floor(p);\n  vec2 f = fract(p);\n  vec2 u = f * f * (3.0 - 2.0 * f);\n  return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),\n             mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);\n}\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  float scale = min(uSize.x, uSize.y);\n  vec2 p = frag / scale;\n  vec2 g = p * (12.0 / uB.y);\n  // La corteza se deforma y se desplaza: las grietas se retuercen sin parar.\n  float t = uF.y;\n  float mv = uF.z;\n  g += mv * vec2(0.42 * sin(g.y * 0.7 + t * 1.3) + 0.2 * sin(g.y * 1.9 - t * 2.1),\n                 0.42 * sin(g.x * 0.8 - t * 1.1) + 0.2 * sin(g.x * 2.3 + t * 1.7));\n  g += vec2(uD.x * 0.6, -uD.x * 0.35);\n  vec2 gi = floor(g);\n  vec2 gf = fract(g);\n  float d1 = 8.0;\n  float d2 = 8.0;\n  vec2 o1 = vec2(0.0);\n  vec2 o2 = vec2(0.0);\n  vec2 c1 = vec2(0.0);\n  vec2 c2 = vec2(0.0);\n  for (int j = -1; j <= 1; j++) {\n    for (int i = -1; i <= 1; i++) {\n      vec2 cell = gi + vec2(float(i), float(j));\n      vec2 h = hash22(cell);\n      vec2 o = vec2(float(i), float(j)) + 0.5 + 0.4 * sin(uA.x * (0.5 + h) + h * 6.2831);\n      float d = length(gf - o);\n      if (d < d1) {\n        d2 = d1;\n        o2 = o1;\n        c2 = c1;\n        d1 = d;\n        o1 = o;\n        c1 = cell;\n      } else if (d < d2) {\n        d2 = d;\n        o2 = o;\n        c2 = cell;\n      }\n    }\n  }\n  float edge = d2 - d1;\n  // Dirección de la grieta, siempre orientada igual a ambos lados.\n  vec2 nrm = normalize(o2 - o1 + 1e-5);\n  vec2 tang = vec2(-nrm.y, nrm.x);\n  if (tang.x < 0.0 || (tang.x == 0.0 && tang.y < 0.0)) tang = -tang;\n  float pairId = hash12(c1 + c2 + 0.37);\n  float along = dot(gi + gf, tang);\n  // Pulsos de roca fundida que corren por cada grieta en su sentido.\n  float dir = pairId > 0.5 ? 1.0 : -1.0;\n  float run = 0.5 + 0.5 * sin(along * 3.2 - uF.x * 3.0 * dir + pairId * 40.0);\n  float pulseLava = run * run * run;\n\n  // Onda de calor del golpe.\n  float ring = 0.0;\n  if (uE.w > 0.0) {\n    float rd = length(p - uE.xy) - uE.z;\n    ring = exp(-abs(rd) * 9.0) * uE.w * smoothstep(0.0, 0.15, uE.z + 0.15);\n  }\n\n  // Grieta: más ancha y brillante con los graves, el calor, los pulsos y la onda.\n  // El resplandor usa el ancho base: los pulsos cambian de una grieta a otra\n  // y en la roca dejarían costuras.\n  float widthBase = (0.035 + 0.05 * uA.y + 0.06 * uD.z) * uB.x * (1.0 + 1.6 * ring);\n  float width = widthBase * (0.75 + 0.55 * pulseLava);\n  float crack = smoothstep(width, width * 0.3, edge);\n  float heatGlow = exp(-edge / (widthBase * 3.5));\n\n  // Roca: textura oscura; cada placa se calienta y se enfría a su ritmo.\n  float rock = noise(g * 3.0 + c1 * 7.0) * 0.7 + hash12(floor(frag * 0.5)) * 0.3;\n  vec3 crust = uC0 + vec3(0.06, 0.04, 0.035) * rock;\n  float plateId = hash12(c1);\n  float plateHeat = (0.5 + 0.5 * sin(t * 1.7 + plateId * 30.0)) * 0.1 * (0.4 + uA.w);\n  crust += uC1 * plateHeat * smoothstep(0.7, 0.1, d1);\n  crust += uC1 * heatGlow * (0.3 + 0.5 * uA.y + 0.6 * uD.z + 0.6 * ring) * uB.x;\n  crust += uC2 * ring * 0.12;\n  vec3 col = crust;\n  // Lava que fluye bajo la corteza: sólo se calcula dentro de las grietas.\n  if (crack > 0.002) {\n    vec2 lp = p * 3.0 + vec2(uA.x * 0.5, -uA.x * 0.3);\n    float w = noise(lp * 0.7 + uA.x * 0.15);\n    float lava = noise(lp + vec2(w * 2.0, 0.0)) * 0.6 + noise(lp * 2.3 - w) * 0.4;\n    lava = clamp(lava + 0.35 * pulseLava + 0.4 * ring, 0.0, 1.0);\n    vec3 lavaCol = mix(uC1, uC2, smoothstep(0.3, 0.7, lava));\n    lavaCol = mix(lavaCol, uC3, smoothstep(0.65, 0.95, lava) * (0.6 + 0.6 * uA.y));\n    col = mix(crust, lavaCol * (1.1 + 0.6 * uA.z + 0.5 * ring), crack);\n  }\n  // Burbujas de lava en los cruces de grietas.\n  float junction = smoothstep(0.12, 0.0, edge) * smoothstep(0.65, 0.35, d1);\n  col += uC3 * junction * (0.2 + 0.5 * pulseLava) * (0.5 + 0.8 * uA.y);\n\n  // Brasas que suben meciéndose con el calor.\n  if (uB.z > 0.5) {\n    vec2 eg = vec2(p.x * 24.0 + sin(p.y * 6.0 + uD.w * 1.3) * 0.6, p.y * 24.0 + uD.w * 7.0);\n    vec2 ec = floor(eg);\n    vec2 el = fract(eg) - 0.5;\n    float h = hash12(ec + 3.7);\n    vec2 off = vec2(hash12(ec + 1.1), hash12(ec + 9.4)) - 0.5;\n    float ember = step(0.92 - 0.06 * uA.z - 0.05 * uD.z - 0.03 * ring, h) * exp(-dot(el - off * 0.6, el - off * 0.6) * 140.0);\n    float flicker = 0.6 + 0.4 * sin(uD.w * 9.0 + h * 40.0);\n    col += mix(uC2, uC3, h) * ember * flicker * (1.2 + uA.z);\n  }\n  col += uC2 * uB.w * 0.06;\n  col *= (uD.y * 0.4 + 0.6) * (1.0 + 0.2 * uA.y);\n  col *= 1.0 - 0.3 * smoothstep(0.7, 1.5, length((frag - 0.5 * uSize) / scale * vec2(0.9, 0.65)));\n  float peak = max(col.r, max(col.g, col.b));\n  if (peak > 0.85) {\n    float e = (peak - 0.85) / 0.15;\n    col *= (0.85 + 0.15 * e / (1.0 + e)) / peak;\n  }\n  col += (hash12(frag) - 0.5) / 255.0;\n  fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "a011f9796ff6205a79e339c895fbc00c119eb6b35b811527e7e127312efefa20",
+        "sdkHash": "f66cc55f3f2b81ab299656797cd58924570ce2da69a3e7edfbb58a6f5d0d88a2",
+        "materials": {
+          "magma_alive": {
+            "compilerHash": "b37fa1c1897d1bc090f501b252b7f47e156ca3eee1e2e9789157f31f40b36787",
+            "asset": "packages/visual_catalog/assets/native/magma_2_magma_alive.iplr",
+            "assetHash": "7330427e2799a792f8cda255d46ba9562cfc666bca830c740a34b8cda3b6ea69",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct magma_2_magma_alive_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct magma_2_magma_alive_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment magma_2_magma_alive_fragment_main_out magma_2_magma_alive_fragment_main(magma_2_magma_alive_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uB [[buffer(2)]], constant float4& uD [[buffer(3)]], constant float4& uE [[buffer(4)]], constant float4& uF [[buffer(5)]], constant float3& uC0 [[buffer(6)]], constant float3& uC1 [[buffer(7)]], constant float3& uC2 [[buffer(8)]], constant float3& uC3 [[buffer(9)]])\n{\n    magma_2_magma_alive_fragment_main_out out = {};\n    float2 _154 = float2(fast::min(uSize.x, uSize.y));\n    float2 _155 = in._fragCoord / _154;\n    float2 _165 = _155 * (12.0 / uB.y);\n    float _176 = _165.y;\n    float _198 = _165.x;\n    float _213 = uF.y * 1.7000000476837158203125;\n    float2 _234 = (_165 + (float2((0.4199999868869781494140625 * sin((_176 * 0.699999988079071044921875) + (uF.y * 1.2999999523162841796875))) + (0.20000000298023223876953125 * sin((_176 * 1.89999997615814208984375) - (uF.y * 2.099999904632568359375))), (0.4199999868869781494140625 * sin((_198 * 0.800000011920928955078125) - (uF.y * 1.10000002384185791015625))) + (0.20000000298023223876953125 * sin((_198 * 2.2999999523162841796875) + _213))) * uF.z)) + float2(uD.x * 0.60000002384185791015625, uD.x * (-0.3499999940395355224609375));\n    float2 _237 = floor(_234);\n    float2 _240 = fract(_234);\n    float _1745;\n    float _1746;\n    float2 _1747;\n    float2 _1748;\n    float2 _1753;\n    float2 _1757;\n    _1757 = float2(0.0);\n    _1753 = float2(0.0);\n    _1748 = float2(0.0);\n    _1747 = float2(0.0);\n    _1746 = 8.0;\n    _1745 = 8.0;\n    float _1773;\n    float _1774;\n    float2 _1775;\n    float2 _1776;\n    float2 _1779;\n    float2 _1782;\n    for (int _1744 = -1; _1744 <= 1; _1757 = _1782, _1753 = _1776, _1748 = _1775, _1747 = _1779, _1746 = _1773, _1745 = _1774, _1744++)\n    {\n        _1776 = _1753;\n        _1775 = _1748;\n        _1774 = _1745;\n        _1773 = _1746;\n        _1782 = _1757;\n        _1779 = _1747;\n        float2 _1823;\n        float2 _1825;\n        float _1826;\n        float2 _1780;\n        float2 _1783;\n        float _1789;\n        for (int _1771 = -1; _1771 <= 1; _1776 = _1823, _1775 = _1825, _1774 = _1789, _1773 = _1826, _1771++, _1782 = _1783, _1779 = _1780)\n        {\n            float2 _276 = float2(float(_1771), float(_1744));\n            float2 _277 = _237 + _276;\n            float3 _890 = fract(_277.xyx * float3(0.103100001811981201171875, 0.10300000011920928955078125, 0.097300000488758087158203125));\n            float3 _899 = _890 + float3(dot(_890, _890.yzx + float3(33.3300018310546875)));\n            float2 _908 = fract((_899.xx + _899.yz) * _899.zy);\n            float2 _305 = (_276 + float2(0.5)) + (sin(((float2(0.5) + _908) * uA.x) + (_908 * 6.283100128173828125)) * 0.4000000059604644775390625);\n            float _310 = length(_240 - _305);\n            bool _313 = _310 < _1773;\n            if (_313)\n            {\n                _1789 = _1773;\n                _1783 = _1776;\n                _1780 = _1775;\n            }\n            else\n            {\n                bool _325 = _310 < _1774;\n                bool2 _1818 = bool2(_325);\n                _1789 = _325 ? _310 : _1774;\n                _1783 = select(_1782, _277, _1818);\n                _1780 = select(_1779, _305, _1818);\n            }\n            bool2 _1822 = bool2(_313);\n            _1823 = select(_1776, _277, _1822);\n            _1825 = select(_1775, _305, _1822);\n            _1826 = _313 ? _310 : _1773;\n        }\n    }\n    float _338 = _1745 - _1746;\n    float2 _346 = fast::normalize((_1747 - _1748) + float2(9.9999997473787516355514526367188e-06));\n    float _350 = -_346.y;\n    float _352 = _346.x;\n    float2 _353 = float2(_350, _352);\n    bool _356 = _350 < 0.0;\n    bool _369;\n    if (!_356)\n    {\n        bool _362 = _350 == 0.0;\n        bool _368;\n        if (_362)\n        {\n            _368 = _352 < 0.0;\n        }\n        else\n        {\n            _368 = _362;\n        }\n        _369 = _368;\n    }\n    else\n    {\n        _369 = _356;\n    }\n    float2 _1759;\n    if (_369)\n    {\n        _1759 = -_353;\n    }\n    else\n    {\n        _1759 = _353;\n    }\n    float3 _915 = fract(((_1753 + _1757) + float2(0.37000000476837158203125)).xyx * 0.103100001811981201171875);\n    float3 _924 = _915 + float3(dot(_915, _915.yzx + float3(33.3300018310546875)));\n    float _933 = fract((_924.x + _924.y) * _924.z);\n    float _410 = 0.5 + (0.5 * sin(((dot(_237 + _240, _1759) * 3.2000000476837158203125) - ((uF.x * 3.0) * ((_933 > 0.5) ? 1.0 : (-1.0)))) + (_933 * 40.0)));\n    float _416 = (_410 * _410) * _410;\n    float _1760;\n    if (uE.w > 0.0)\n    {\n        _1760 = (exp(abs(length(_155 - uE.xy) - uE.z) * (-9.0)) * uE.w) * smoothstep(0.0, 0.1500000059604644775390625, uE.z + 0.1500000059604644775390625);\n    }\n    else\n    {\n        _1760 = 0.0;\n    }\n    float _468 = (((0.0350000001490116119384765625 + (0.0500000007450580596923828125 * uA.y)) + (0.0599999986588954925537109375 * uD.z)) * uB.x) * (1.0 + (1.60000002384185791015625 * _1760));\n    float _476 = _468 * (0.75 + (0.550000011920928955078125 * _416));\n    float _483 = smoothstep(_476, _476 * 0.300000011920928955078125, _338);\n    float2 _498 = (_234 * 3.0) + (_1753 * 7.0);\n    float2 _944 = floor(_498);\n    float2 _946 = fract(_498);\n    float2 _954 = (_946 * _946) * (float2(3.0) - (_946 * 2.0));\n    float3 _981 = fract(_944.xyx * 0.103100001811981201171875);\n    float3 _990 = _981 + float3(dot(_981, _981.yzx + float3(33.3300018310546875)));\n    float3 _1006 = fract((_944 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n    float3 _1015 = _1006 + float3(dot(_1006, _1006.yzx + float3(33.3300018310546875)));\n    float _961 = _954.x;\n    float3 _1031 = fract((_944 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n    float3 _1040 = _1031 + float3(dot(_1031, _1031.yzx + float3(33.3300018310546875)));\n    float3 _1056 = fract((_944 + float2(1.0)).xyx * 0.103100001811981201171875);\n    float3 _1065 = _1056 + float3(dot(_1056, _1056.yzx + float3(33.3300018310546875)));\n    float3 _1081 = fract(floor(in._fragCoord * 0.5).xyx * 0.103100001811981201171875);\n    float3 _1090 = _1081 + float3(dot(_1081, _1081.yzx + float3(33.3300018310546875)));\n    float3 _1106 = fract(_1753.xyx * 0.103100001811981201171875);\n    float3 _1115 = _1106 + float3(dot(_1106, _1106.yzx + float3(33.3300018310546875)));\n    float3 _566 = ((uC0 + (float3(0.0599999986588954925537109375, 0.039999999105930328369140625, 0.0350000001490116119384765625) * ((mix(mix(fract((_990.x + _990.y) * _990.z), fract((_1015.x + _1015.y) * _1015.z), _961), mix(fract((_1040.x + _1040.y) * _1040.z), fract((_1065.x + _1065.y) * _1065.z), _961), _954.y) * 0.699999988079071044921875) + (fract((_1090.x + _1090.y) * _1090.z) * 0.300000011920928955078125)))) + ((uC1 * (((0.5 + (0.5 * sin(_213 + (fract((_1115.x + _1115.y) * _1115.z) * 30.0)))) * 0.100000001490116119384765625) * (0.4000000059604644775390625 + uA.w))) * smoothstep(0.699999988079071044921875, 0.100000001490116119384765625, _1746))) + (((uC1 * exp((-_338) / (_468 * 3.5))) * (((0.300000011920928955078125 + (0.5 * uA.y)) + (0.60000002384185791015625 * uD.z)) + (0.60000002384185791015625 * _1760))) * uB.x);\n    float3 _574 = _566 + ((uC2 * _1760) * 0.119999997317790985107421875);\n    float3 _1767;\n    if (_483 > 0.00200000009499490261077880859375)\n    {\n        float2 _593 = (_155 * 3.0) + float2(uA.x * 0.5, uA.x * (-0.300000011920928955078125));\n        float2 _601 = (_593 * 0.699999988079071044921875) + float2(uA.x * 0.1500000059604644775390625);\n        float2 _1135 = floor(_601);\n        float2 _1137 = fract(_601);\n        float2 _1145 = (_1137 * _1137) * (float2(3.0) - (_1137 * 2.0));\n        float3 _1172 = fract(_1135.xyx * 0.103100001811981201171875);\n        float3 _1181 = _1172 + float3(dot(_1172, _1172.yzx + float3(33.3300018310546875)));\n        float3 _1197 = fract((_1135 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n        float3 _1206 = _1197 + float3(dot(_1197, _1197.yzx + float3(33.3300018310546875)));\n        float _1152 = _1145.x;\n        float3 _1222 = fract((_1135 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n        float3 _1231 = _1222 + float3(dot(_1222, _1222.yzx + float3(33.3300018310546875)));\n        float3 _1247 = fract((_1135 + float2(1.0)).xyx * 0.103100001811981201171875);\n        float3 _1256 = _1247 + float3(dot(_1247, _1247.yzx + float3(33.3300018310546875)));\n        float _1165 = mix(mix(fract((_1181.x + _1181.y) * _1181.z), fract((_1206.x + _1206.y) * _1206.z), _1152), mix(fract((_1231.x + _1231.y) * _1231.z), fract((_1256.x + _1256.y) * _1256.z), _1152), _1145.y);\n        float2 _609 = _593 + float2(_1165 * 2.0, 0.0);\n        float2 _1276 = floor(_609);\n        float2 _1278 = fract(_609);\n        float2 _1286 = (_1278 * _1278) * (float2(3.0) - (_1278 * 2.0));\n        float3 _1313 = fract(_1276.xyx * 0.103100001811981201171875);\n        float3 _1322 = _1313 + float3(dot(_1313, _1313.yzx + float3(33.3300018310546875)));\n        float3 _1338 = fract((_1276 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n        float3 _1347 = _1338 + float3(dot(_1338, _1338.yzx + float3(33.3300018310546875)));\n        float _1293 = _1286.x;\n        float3 _1363 = fract((_1276 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n        float3 _1372 = _1363 + float3(dot(_1363, _1363.yzx + float3(33.3300018310546875)));\n        float3 _1388 = fract((_1276 + float2(1.0)).xyx * 0.103100001811981201171875);\n        float3 _1397 = _1388 + float3(dot(_1388, _1388.yzx + float3(33.3300018310546875)));\n        float2 _617 = (_593 * 2.2999999523162841796875) - float2(_1165);\n        float2 _1417 = floor(_617);\n        float2 _1419 = fract(_617);\n        float2 _1427 = (_1419 * _1419) * (float2(3.0) - (_1419 * 2.0));\n        float3 _1454 = fract(_1417.xyx * 0.103100001811981201171875);\n        float3 _1463 = _1454 + float3(dot(_1454, _1454.yzx + float3(33.3300018310546875)));\n        float3 _1479 = fract((_1417 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n        float3 _1488 = _1479 + float3(dot(_1479, _1479.yzx + float3(33.3300018310546875)));\n        float _1434 = _1427.x;\n        float3 _1504 = fract((_1417 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n        float3 _1513 = _1504 + float3(dot(_1504, _1504.yzx + float3(33.3300018310546875)));\n        float3 _1529 = fract((_1417 + float2(1.0)).xyx * 0.103100001811981201171875);\n        float3 _1538 = _1529 + float3(dot(_1529, _1529.yzx + float3(33.3300018310546875)));\n        float _625 = ((mix(mix(fract((_1322.x + _1322.y) * _1322.z), fract((_1347.x + _1347.y) * _1347.z), _1293), mix(fract((_1372.x + _1372.y) * _1372.z), fract((_1397.x + _1397.y) * _1397.z), _1293), _1286.y) * 0.60000002384185791015625) + (mix(mix(fract((_1463.x + _1463.y) * _1463.z), fract((_1488.x + _1488.y) * _1488.z), _1434), mix(fract((_1513.x + _1513.y) * _1513.z), fract((_1538.x + _1538.y) * _1538.z), _1434), _1427.y) * 0.4000000059604644775390625)) + (0.3499999940395355224609375 * _416);\n        float _629 = fast::clamp(_625 + (0.4000000059604644775390625 * _1760), 0.0, 1.0);\n        _1767 = mix(_574, mix(mix(uC1, uC2, float3(smoothstep(0.300000011920928955078125, 0.699999988079071044921875, _629))), uC3, float3(smoothstep(0.64999997615814208984375, 0.949999988079071044921875, _629) * (0.60000002384185791015625 + (0.60000002384185791015625 * uA.y)))) * ((1.10000002384185791015625 + (0.60000002384185791015625 * uA.z)) + (0.5 * _1760)), float3(_483));\n    }\n    else\n    {\n        _1767 = _574;\n    }\n    float3 _683 = _1767 + (((uC3 * (smoothstep(0.119999997317790985107421875, 0.0, _338) * smoothstep(0.64999997615814208984375, 0.3499999940395355224609375, _1746))) * (0.20000000298023223876953125 + (0.5 * _416))) * (0.5 + (0.800000011920928955078125 * uA.y)));\n    float3 _1769;\n    if (uB.z > 0.5)\n    {\n        float _695 = _155.y;\n        float2 _712 = float2((_155.x * 24.0) + (sin((_695 * 6.0) + (uD.w * 1.2999999523162841796875)) * 0.60000002384185791015625), (_695 * 24.0) + (uD.w * 7.0));\n        float2 _715 = floor(_712);\n        float3 _1554 = fract((_715 + float2(3.7000000476837158203125)).xyx * 0.103100001811981201171875);\n        float3 _1563 = _1554 + float3(dot(_1554, _1554.yzx + float3(33.3300018310546875)));\n        float _1572 = fract((_1563.x + _1563.y) * _1563.z);\n        float3 _1579 = fract((_715 + float2(1.10000002384185791015625)).xyx * 0.103100001811981201171875);\n        float3 _1588 = _1579 + float3(dot(_1579, _1579.yzx + float3(33.3300018310546875)));\n        float3 _1604 = fract((_715 + float2(9.3999996185302734375)).xyx * 0.103100001811981201171875);\n        float3 _1613 = _1604 + float3(dot(_1604, _1604.yzx + float3(33.3300018310546875)));\n        float2 _762 = (fract(_712) - float2(0.5)) - ((float2(fract((_1588.x + _1588.y) * _1588.z), fract((_1613.x + _1613.y) * _1613.z)) - float2(0.5)) * 0.60000002384185791015625);\n        _1769 = _683 + (((mix(uC2, uC3, float3(_1572)) * (step(((0.920000016689300537109375 - (0.0599999986588954925537109375 * uA.z)) - (0.0500000007450580596923828125 * uD.z)) - (0.02999999932944774627685546875 * _1760), _1572) * exp(dot(_762, _762) * (-140.0)))) * (0.60000002384185791015625 + (0.4000000059604644775390625 * sin((uD.w * 9.0) + (_1572 * 40.0))))) * (1.2000000476837158203125 + uA.z));\n    }\n    else\n    {\n        _1769 = _683;\n    }\n    float3 _833 = ((_1769 + ((uC2 * uB.w) * 0.0599999986588954925537109375)) * (((uD.y * 0.4000000059604644775390625) + 0.60000002384185791015625) * (1.0 + (0.20000000298023223876953125 * uA.y)))) * (1.0 - (0.300000011920928955078125 * smoothstep(0.699999988079071044921875, 1.5, length(((in._fragCoord - (uSize * 0.5)) / _154) * float2(0.89999997615814208984375, 0.64999997615814208984375)))));\n    float _842 = fast::max(_833.x, fast::max(_833.y, _833.z));\n    float3 _1770;\n    if (_842 > 0.85000002384185791015625)\n    {\n        float _850 = _842 - 0.85000002384185791015625;\n        _1770 = _833 * ((0.85000002384185791015625 + (_850 / (1.0 + (_850 * 6.666666507720947265625)))) / _842);\n    }\n    else\n    {\n        _1770 = _833;\n    }\n    float3 _1629 = fract(in._fragCoord.xyx * 0.103100001811981201171875);\n    float3 _1638 = _1629 + float3(dot(_1629, _1629.yzx + float3(33.3300018310546875)));\n    out.fragColor = float4(fast::clamp(_1770 + float3((fract((_1638.x + _1638.y) * _1638.z) - 0.5) * 0.0039215688593685626983642578125), float3(0.0), float3(1.0)), 1.0);\n    return out;\n}\n\n",
+            "entryPoint": "magma_2_magma_alive_fragment_main",
+            "floatCount": 34,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uB",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uD",
+                "offset": 10,
+                "count": 4,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uE",
+                "offset": 14,
+                "count": 4,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uF",
+                "offset": 18,
+                "count": 4,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uC0",
+                "offset": 22,
+                "count": 3,
+                "bufferIndex": 6
+              },
+              {
+                "name": "uC1",
+                "offset": 25,
+                "count": 3,
+                "bufferIndex": 7
+              },
+              {
+                "name": "uC2",
+                "offset": 28,
+                "count": 3,
+                "bufferIndex": 8
+              },
+              {
+                "name": "uC3",
+                "offset": 31,
+                "count": 3,
+                "bufferIndex": 9
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
+    },
+    {
+      "id": "magma_2_transparente",
+      "name": "Magma 2 Transparente",
+      "programId": "creator_magma_2_transparente",
+      "role": "overlay",
+      "reactivity": "optional",
+      "framesPerSecond": 60,
+      "seed": 42,
+      "colors": [
+        0,
+        4292090368,
+        4294932992,
+        4294955594
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "modifiers": [
+        {
+          "id": "calor",
+          "label": "Calor",
+          "kind": "slider",
+          "min": 0.4,
+          "max": 2.0,
+          "value": 1.0
+        },
+        {
+          "id": "placas",
+          "label": "Tamaño de placas",
+          "kind": "steps",
+          "min": 3.0,
+          "max": 10.0,
+          "value": 5.0
+        },
+        {
+          "id": "flujo",
+          "label": "Flujo de lava",
+          "kind": "slider",
+          "min": 0.2,
+          "max": 2.5,
+          "value": 1.0
+        },
+        {
+          "id": "movimiento",
+          "label": "Movimiento de grietas",
+          "kind": "slider",
+          "min": 0.0,
+          "max": 2.0,
+          "value": 1.0
+        },
+        {
+          "id": "ondas",
+          "label": "Ondas de calor",
+          "kind": "toggle",
+          "min": 0.0,
+          "max": 1.0,
+          "value": 1.0
+        },
+        {
+          "id": "brasas",
+          "label": "Brasas",
+          "kind": "toggle",
+          "min": 0.0,
+          "max": 1.0,
+          "value": 1.0
+        }
+      ],
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;\n  float kick = 0, flash = 0, drive = 0;\n  // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.\n  double flow = 0, drift = 0, rise = 0, pulse = 0, warp = 0, waveAge = 100;\n  float heat = 0, waveX = 0.5f, waveY = 0.5f, wavePower = 0;\n  Random rng{1};\n\n  static float follow(float v, float target, float up, float down, float dt) {\n    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));\n  }\n\n public:\n  void reset(uint32_t seed) override {\n    rng = Random(seed);\n    bass = body = spark = energy = slowBass = kick = flash = drive = 0;\n    flow = rng.unit() * 50.0;\n    drift = rng.unit() * 50.0;\n    rise = 0;\n    pulse = rng.unit() * 10.0;\n    warp = rng.unit() * 20.0;\n    waveAge = 100;\n    heat = 0;\n    waveX = waveY = 0.5f;\n    wavePower = 0;\n  }\n\n  void update(const Frame& f) override {\n    auto m = modifiers(f);\n    float dt = float(f.delta);\n    const Music& mu = f.music;\n    bass = follow(bass, mu.bass, 22.0f, 4.5f, dt);\n    body = follow(body, mu.body, 12.0f, 3.0f, dt);\n    spark = follow(spark, mu.spark, 30.0f, 7.0f, dt);\n    energy = follow(energy, mu.energy, 6.0f, 1.8f, dt);\n    drive = follow(drive, mu.active ? std::pow(std::clamp(mu.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);\n\n    float hit = 0, fl = 0;\n    for (const auto& e : mu.events[0]) hit = std::max(hit, e.strength);\n    for (const auto& e : mu.events[2]) hit = std::max(hit, e.strength * 0.85f);\n    for (const auto& e : mu.events[3]) fl = std::max(fl, e.strength);\n    float onset = std::clamp((mu.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);\n    slowBass = follow(slowBass, mu.bass, 3.0f, 3.0f, dt);\n    hit = std::min(std::max(hit, onset), 1.0f);\n    waveAge += f.delta;\n    if (hit > kick + 0.2f) {\n      heat = std::max(heat, hit);\n      // Onda de calor nueva desde un punto distinto de la pantalla.\n      if (waveAge > 0.25) {\n        waveAge = 0;\n        waveX = 0.15f + 0.7f * rng.unit();\n        waveY = 0.15f + 0.7f * rng.unit();\n        wavePower = hit;\n      }\n    }\n    kick = std::max(kick * std::exp(-dt * 5.0f), hit);\n    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));\n    heat *= std::exp(-dt * 2.0f);\n    flow += f.delta * f.speed * m.flujo * (0.3 + 0.8 * drive + 0.6 * heat);\n    drift += f.delta * f.speed * m.movimiento * (0.06 + 0.12 * drive);\n    rise += f.delta * f.speed * (0.35 + 0.8 * drive + 0.9 * heat);\n    pulse += f.delta * f.speed * m.flujo * (0.6 + 1.4 * drive + 2.0 * heat);\n    warp += f.delta * f.speed * m.movimiento * (0.25 + 0.5 * drive + 0.4 * heat);\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    auto m = modifiers(f);\n    float amp = f.intensity;\n    float side = std::min(f.width, f.height);\n    float wave = m.ondas && waveAge < 1.8 ? wavePower * float(1.0 - waveAge / 1.8) * amp : 0.0f;\n    std::vector<float> u;\n    u.reserve(32);\n    u.insert(u.end(), {float(std::fmod(flow, 1000.0)), bass * amp, kick * amp, energy});\n    u.insert(u.end(), {m.calor, float(m.placas), m.brasas ? 1.0f : 0.0f, flash * amp});\n    u.insert(u.end(), {float(std::fmod(drift, 1000.0)), f.glow, heat * amp, float(std::fmod(rise, 1000.0))});\n    // Centro de la onda en las mismas unidades que el shader (píxel / lado corto).\n    u.insert(u.end(), {waveX * f.width / side, waveY * f.height / side, float(waveAge) * 1.1f, wave});\n    u.insert(u.end(), {float(std::fmod(pulse, 1000.0)), float(std::fmod(warp, 1000.0)), m.movimiento, 0.0f});\n    for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});\n    c.material(\"magma_alive\", {0, 0, f.width, f.height}, u);\n  }\n};\n",
+      "shaderSources": {
+        "magma_alive": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // flujo de lava, graves, golpe, energía\nuniform vec4 uB;   // calor, tamaño de placas, brasas, destello\nuniform vec4 uD;   // deriva de las placas, glow, fogonazo de calor, subida de brasas\nuniform vec4 uE;   // onda de calor: centro x, centro y, radio, fuerza\nuniform vec4 uF;   // pulsos por las grietas, deformación, movimiento\nuniform vec3 uC0;\nuniform vec3 uC1;\nuniform vec3 uC2;\nuniform vec3 uC3;\nout vec4 fragColor;\n\nfloat hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\n\nvec2 hash22(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.xx + p3.yz) * p3.zy);\n}\n\nfloat noise(vec2 p) {\n  vec2 i = floor(p);\n  vec2 f = fract(p);\n  vec2 u = f * f * (3.0 - 2.0 * f);\n  return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),\n             mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);\n}\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  float scale = min(uSize.x, uSize.y);\n  vec2 p = frag / scale;\n  vec2 g = p * (12.0 / uB.y);\n  // La corteza se deforma y se desplaza: las grietas se retuercen sin parar.\n  float t = uF.y;\n  float mv = uF.z;\n  g += mv * vec2(0.42 * sin(g.y * 0.7 + t * 1.3) + 0.2 * sin(g.y * 1.9 - t * 2.1),\n                 0.42 * sin(g.x * 0.8 - t * 1.1) + 0.2 * sin(g.x * 2.3 + t * 1.7));\n  g += vec2(uD.x * 0.6, -uD.x * 0.35);\n  vec2 gi = floor(g);\n  vec2 gf = fract(g);\n  float d1 = 8.0;\n  float d2 = 8.0;\n  vec2 o1 = vec2(0.0);\n  vec2 o2 = vec2(0.0);\n  vec2 c1 = vec2(0.0);\n  vec2 c2 = vec2(0.0);\n  for (int j = -1; j <= 1; j++) {\n    for (int i = -1; i <= 1; i++) {\n      vec2 cell = gi + vec2(float(i), float(j));\n      vec2 h = hash22(cell);\n      vec2 o = vec2(float(i), float(j)) + 0.5 + 0.4 * sin(uA.x * (0.5 + h) + h * 6.2831);\n      float d = length(gf - o);\n      if (d < d1) {\n        d2 = d1;\n        o2 = o1;\n        c2 = c1;\n        d1 = d;\n        o1 = o;\n        c1 = cell;\n      } else if (d < d2) {\n        d2 = d;\n        o2 = o;\n        c2 = cell;\n      }\n    }\n  }\n  float edge = d2 - d1;\n  // Dirección de la grieta, siempre orientada igual a ambos lados.\n  vec2 nrm = normalize(o2 - o1 + 1e-5);\n  vec2 tang = vec2(-nrm.y, nrm.x);\n  if (tang.x < 0.0 || (tang.x == 0.0 && tang.y < 0.0)) tang = -tang;\n  float pairId = hash12(c1 + c2 + 0.37);\n  float along = dot(gi + gf, tang);\n  // Pulsos de roca fundida que corren por cada grieta en su sentido.\n  float dir = pairId > 0.5 ? 1.0 : -1.0;\n  float run = 0.5 + 0.5 * sin(along * 3.2 - uF.x * 3.0 * dir + pairId * 40.0);\n  float pulseLava = run * run * run;\n\n  // Onda de calor del golpe.\n  float ring = 0.0;\n  if (uE.w > 0.0) {\n    float rd = length(p - uE.xy) - uE.z;\n    ring = exp(-abs(rd) * 9.0) * uE.w * smoothstep(0.0, 0.15, uE.z + 0.15);\n  }\n\n  // Grieta: más ancha y brillante con los graves, el calor, los pulsos y la onda.\n  // El resplandor usa el ancho base: los pulsos cambian de una grieta a otra\n  // y en la roca dejarían costuras.\n  float widthBase = (0.035 + 0.05 * uA.y + 0.06 * uD.z) * uB.x * (1.0 + 1.6 * ring);\n  float width = widthBase * (0.75 + 0.55 * pulseLava);\n  float crack = smoothstep(width, width * 0.3, edge);\n  // En el overlay el calor queda pegado a las grietas: la roca es transparente.\n  float heatGlow = exp(-edge / (widthBase * 1.4));\n\n  // Roca: textura oscura, casi transparente en el overlay.\n  float rock = noise(g * 3.0 + c1 * 7.0) * 0.7 + hash12(floor(frag * 0.5)) * 0.3;\n  vec3 crust = uC0 + vec3(0.06, 0.04, 0.035) * rock;\n  crust += uC1 * heatGlow * (0.3 + 0.5 * uA.y + 0.6 * uD.z + 0.6 * ring) * uB.x;\n  crust += uC2 * ring * 0.12;\n  vec3 col = crust;\n  // Lava que fluye bajo la corteza: sólo se calcula dentro de las grietas.\n  if (crack > 0.002) {\n    vec2 lp = p * 3.0 + vec2(uA.x * 0.5, -uA.x * 0.3);\n    float w = noise(lp * 0.7 + uA.x * 0.15);\n    float lava = noise(lp + vec2(w * 2.0, 0.0)) * 0.6 + noise(lp * 2.3 - w) * 0.4;\n    lava = clamp(lava + 0.35 * pulseLava + 0.4 * ring, 0.0, 1.0);\n    vec3 lavaCol = mix(uC1, uC2, smoothstep(0.3, 0.7, lava));\n    lavaCol = mix(lavaCol, uC3, smoothstep(0.65, 0.95, lava) * (0.6 + 0.6 * uA.y));\n    col = mix(crust, lavaCol * (1.1 + 0.6 * uA.z + 0.5 * ring), crack);\n  }\n  // Burbujas de lava en los cruces de grietas.\n  float junction = smoothstep(0.12, 0.0, edge) * smoothstep(0.65, 0.35, d1);\n  col += uC3 * junction * (0.2 + 0.5 * pulseLava) * (0.5 + 0.8 * uA.y);\n\n  // Brasas que suben meciéndose con el calor.\n  if (uB.z > 0.5) {\n    vec2 eg = vec2(p.x * 24.0 + sin(p.y * 6.0 + uD.w * 1.3) * 0.6, p.y * 24.0 + uD.w * 7.0);\n    vec2 ec = floor(eg);\n    vec2 el = fract(eg) - 0.5;\n    float h = hash12(ec + 3.7);\n    vec2 off = vec2(hash12(ec + 1.1), hash12(ec + 9.4)) - 0.5;\n    float ember = step(0.92 - 0.06 * uA.z - 0.05 * uD.z - 0.03 * ring, h) * exp(-dot(el - off * 0.6, el - off * 0.6) * 140.0);\n    float flicker = 0.6 + 0.4 * sin(uD.w * 9.0 + h * 40.0);\n    col += mix(uC2, uC3, h) * ember * flicker * (1.2 + uA.z);\n  }\n  col *= (uD.y * 0.4 + 0.6) * (1.0 + 0.2 * uA.y);\n  col *= 1.0 - 0.3 * smoothstep(0.7, 1.5, length((frag - 0.5 * uSize) / scale * vec2(0.9, 0.65)));\n  float peak = max(col.r, max(col.g, col.b));\n  if (peak > 0.85) {\n    float e = (peak - 0.85) / 0.15;\n    col *= (0.85 + 0.15 * e / (1.0 + e)) / peak;\n  }\n  // Fondo transparente: color premultiplicado y opacidad según el brillo; la\n  // luz muy tenue se vuelve transparente del todo para no dejar velo.\n  col = clamp(col, 0.0, 1.0);\n  float veilPeak = max(col.r, max(col.g, col.b));\n  float clearCut = smoothstep(0.04, 0.12, veilPeak);\n  col *= clearCut;\n  float alpha = clamp(veilPeak * 1.25, 0.0, 1.0) * clearCut;\n  fragColor = vec4(col, alpha);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "6ae77c2e84eeacd6c556a958e09c52ace341c25bebe26253e32b29cb53096ef5",
+        "sdkHash": "f66cc55f3f2b81ab299656797cd58924570ce2da69a3e7edfbb58a6f5d0d88a2",
+        "materials": {
+          "magma_alive": {
+            "compilerHash": "07aad27f91cfc4c19f3b90b1353e5d7abd5ac212be399905badee767f321a523",
+            "asset": "packages/visual_catalog/assets/native/magma_2_transparente_magma_alive.iplr",
+            "assetHash": "66117230af64e1e8cc9030c4d8b63e1a54b1701b72891fabd43f2a7454f1ab6c",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct magma_2_transparente_magma_alive_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct magma_2_transparente_magma_alive_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment magma_2_transparente_magma_alive_fragment_main_out magma_2_transparente_magma_alive_fragment_main(magma_2_transparente_magma_alive_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uB [[buffer(2)]], constant float4& uD [[buffer(3)]], constant float4& uE [[buffer(4)]], constant float4& uF [[buffer(5)]], constant float3& uC0 [[buffer(6)]], constant float3& uC1 [[buffer(7)]], constant float3& uC2 [[buffer(8)]], constant float3& uC3 [[buffer(9)]])\n{\n    magma_2_transparente_magma_alive_fragment_main_out out = {};\n    float2 _154 = float2(fast::min(uSize.x, uSize.y));\n    float2 _155 = in._fragCoord / _154;\n    float2 _165 = _155 * (12.0 / uB.y);\n    float _176 = _165.y;\n    float _198 = _165.x;\n    float2 _234 = (_165 + (float2((0.4199999868869781494140625 * sin((_176 * 0.699999988079071044921875) + (uF.y * 1.2999999523162841796875))) + (0.20000000298023223876953125 * sin((_176 * 1.89999997615814208984375) - (uF.y * 2.099999904632568359375))), (0.4199999868869781494140625 * sin((_198 * 0.800000011920928955078125) - (uF.y * 1.10000002384185791015625))) + (0.20000000298023223876953125 * sin((_198 * 2.2999999523162841796875) + (uF.y * 1.7000000476837158203125)))) * uF.z)) + float2(uD.x * 0.60000002384185791015625, uD.x * (-0.3499999940395355224609375));\n    float2 _237 = floor(_234);\n    float2 _240 = fract(_234);\n    float _1672;\n    float _1673;\n    float2 _1674;\n    float2 _1675;\n    float2 _1680;\n    float2 _1684;\n    _1684 = float2(0.0);\n    _1680 = float2(0.0);\n    _1675 = float2(0.0);\n    _1674 = float2(0.0);\n    _1673 = 8.0;\n    _1672 = 8.0;\n    float _1700;\n    float _1701;\n    float2 _1702;\n    float2 _1703;\n    float2 _1706;\n    float2 _1709;\n    for (int _1671 = -1; _1671 <= 1; _1684 = _1709, _1680 = _1703, _1675 = _1702, _1674 = _1706, _1673 = _1700, _1672 = _1701, _1671++)\n    {\n        _1703 = _1680;\n        _1702 = _1675;\n        _1701 = _1672;\n        _1700 = _1673;\n        _1709 = _1684;\n        _1706 = _1674;\n        float2 _1749;\n        float2 _1751;\n        float _1752;\n        float2 _1707;\n        float2 _1710;\n        float _1716;\n        for (int _1698 = -1; _1698 <= 1; _1703 = _1749, _1702 = _1751, _1701 = _1716, _1700 = _1752, _1698++, _1709 = _1710, _1706 = _1707)\n        {\n            float2 _276 = float2(float(_1698), float(_1671));\n            float2 _277 = _237 + _276;\n            float3 _870 = fract(_277.xyx * float3(0.103100001811981201171875, 0.10300000011920928955078125, 0.097300000488758087158203125));\n            float3 _879 = _870 + float3(dot(_870, _870.yzx + float3(33.3300018310546875)));\n            float2 _888 = fract((_879.xx + _879.yz) * _879.zy);\n            float2 _305 = (_276 + float2(0.5)) + (sin(((float2(0.5) + _888) * uA.x) + (_888 * 6.283100128173828125)) * 0.4000000059604644775390625);\n            float _310 = length(_240 - _305);\n            bool _313 = _310 < _1700;\n            if (_313)\n            {\n                _1716 = _1700;\n                _1710 = _1703;\n                _1707 = _1702;\n            }\n            else\n            {\n                bool _325 = _310 < _1701;\n                bool2 _1744 = bool2(_325);\n                _1716 = _325 ? _310 : _1701;\n                _1710 = select(_1709, _277, _1744);\n                _1707 = select(_1706, _305, _1744);\n            }\n            bool2 _1748 = bool2(_313);\n            _1749 = select(_1703, _277, _1748);\n            _1751 = select(_1702, _305, _1748);\n            _1752 = _313 ? _310 : _1700;\n        }\n    }\n    float _338 = _1672 - _1673;\n    float2 _346 = fast::normalize((_1674 - _1675) + float2(9.9999997473787516355514526367188e-06));\n    float _350 = -_346.y;\n    float _352 = _346.x;\n    float2 _353 = float2(_350, _352);\n    bool _356 = _350 < 0.0;\n    bool _369;\n    if (!_356)\n    {\n        bool _362 = _350 == 0.0;\n        bool _368;\n        if (_362)\n        {\n            _368 = _352 < 0.0;\n        }\n        else\n        {\n            _368 = _362;\n        }\n        _369 = _368;\n    }\n    else\n    {\n        _369 = _356;\n    }\n    float2 _1686;\n    if (_369)\n    {\n        _1686 = -_353;\n    }\n    else\n    {\n        _1686 = _353;\n    }\n    float3 _895 = fract(((_1680 + _1684) + float2(0.37000000476837158203125)).xyx * 0.103100001811981201171875);\n    float3 _904 = _895 + float3(dot(_895, _895.yzx + float3(33.3300018310546875)));\n    float _913 = fract((_904.x + _904.y) * _904.z);\n    float _410 = 0.5 + (0.5 * sin(((dot(_237 + _240, _1686) * 3.2000000476837158203125) - ((uF.x * 3.0) * ((_913 > 0.5) ? 1.0 : (-1.0)))) + (_913 * 40.0)));\n    float _416 = (_410 * _410) * _410;\n    float _1687;\n    if (uE.w > 0.0)\n    {\n        _1687 = (exp(abs(length(_155 - uE.xy) - uE.z) * (-9.0)) * uE.w) * smoothstep(0.0, 0.1500000059604644775390625, uE.z + 0.1500000059604644775390625);\n    }\n    else\n    {\n        _1687 = 0.0;\n    }\n    float _468 = (((0.0350000001490116119384765625 + (0.0500000007450580596923828125 * uA.y)) + (0.0599999986588954925537109375 * uD.z)) * uB.x) * (1.0 + (1.60000002384185791015625 * _1687));\n    float _476 = _468 * (0.75 + (0.550000011920928955078125 * _416));\n    float _483 = smoothstep(_476, _476 * 0.300000011920928955078125, _338);\n    float2 _498 = (_234 * 3.0) + (_1680 * 7.0);\n    float2 _924 = floor(_498);\n    float2 _926 = fract(_498);\n    float2 _934 = (_926 * _926) * (float2(3.0) - (_926 * 2.0));\n    float3 _961 = fract(_924.xyx * 0.103100001811981201171875);\n    float3 _970 = _961 + float3(dot(_961, _961.yzx + float3(33.3300018310546875)));\n    float3 _986 = fract((_924 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n    float3 _995 = _986 + float3(dot(_986, _986.yzx + float3(33.3300018310546875)));\n    float _941 = _934.x;\n    float3 _1011 = fract((_924 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n    float3 _1020 = _1011 + float3(dot(_1011, _1011.yzx + float3(33.3300018310546875)));\n    float3 _1036 = fract((_924 + float2(1.0)).xyx * 0.103100001811981201171875);\n    float3 _1045 = _1036 + float3(dot(_1036, _1036.yzx + float3(33.3300018310546875)));\n    float3 _1061 = fract(floor(in._fragCoord * 0.5).xyx * 0.103100001811981201171875);\n    float3 _1070 = _1061 + float3(dot(_1061, _1061.yzx + float3(33.3300018310546875)));\n    float3 _546 = ((uC0 + (float3(0.0599999986588954925537109375, 0.039999999105930328369140625, 0.0350000001490116119384765625) * ((mix(mix(fract((_970.x + _970.y) * _970.z), fract((_995.x + _995.y) * _995.z), _941), mix(fract((_1020.x + _1020.y) * _1020.z), fract((_1045.x + _1045.y) * _1045.z), _941), _934.y) * 0.699999988079071044921875) + (fract((_1070.x + _1070.y) * _1070.z) * 0.300000011920928955078125)))) + (((uC1 * exp((-_338) / (_468 * 1.39999997615814208984375))) * (((0.300000011920928955078125 + (0.5 * uA.y)) + (0.60000002384185791015625 * uD.z)) + (0.60000002384185791015625 * _1687))) * uB.x)) + ((uC2 * _1687) * 0.119999997317790985107421875);\n    float3 _1694;\n    if (_483 > 0.00200000009499490261077880859375)\n    {\n        float2 _565 = (_155 * 3.0) + float2(uA.x * 0.5, uA.x * (-0.300000011920928955078125));\n        float2 _573 = (_565 * 0.699999988079071044921875) + float2(uA.x * 0.1500000059604644775390625);\n        float2 _1090 = floor(_573);\n        float2 _1092 = fract(_573);\n        float2 _1100 = (_1092 * _1092) * (float2(3.0) - (_1092 * 2.0));\n        float3 _1127 = fract(_1090.xyx * 0.103100001811981201171875);\n        float3 _1136 = _1127 + float3(dot(_1127, _1127.yzx + float3(33.3300018310546875)));\n        float3 _1152 = fract((_1090 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n        float3 _1161 = _1152 + float3(dot(_1152, _1152.yzx + float3(33.3300018310546875)));\n        float _1107 = _1100.x;\n        float3 _1177 = fract((_1090 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n        float3 _1186 = _1177 + float3(dot(_1177, _1177.yzx + float3(33.3300018310546875)));\n        float3 _1202 = fract((_1090 + float2(1.0)).xyx * 0.103100001811981201171875);\n        float3 _1211 = _1202 + float3(dot(_1202, _1202.yzx + float3(33.3300018310546875)));\n        float _1120 = mix(mix(fract((_1136.x + _1136.y) * _1136.z), fract((_1161.x + _1161.y) * _1161.z), _1107), mix(fract((_1186.x + _1186.y) * _1186.z), fract((_1211.x + _1211.y) * _1211.z), _1107), _1100.y);\n        float2 _581 = _565 + float2(_1120 * 2.0, 0.0);\n        float2 _1231 = floor(_581);\n        float2 _1233 = fract(_581);\n        float2 _1241 = (_1233 * _1233) * (float2(3.0) - (_1233 * 2.0));\n        float3 _1268 = fract(_1231.xyx * 0.103100001811981201171875);\n        float3 _1277 = _1268 + float3(dot(_1268, _1268.yzx + float3(33.3300018310546875)));\n        float3 _1293 = fract((_1231 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n        float3 _1302 = _1293 + float3(dot(_1293, _1293.yzx + float3(33.3300018310546875)));\n        float _1248 = _1241.x;\n        float3 _1318 = fract((_1231 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n        float3 _1327 = _1318 + float3(dot(_1318, _1318.yzx + float3(33.3300018310546875)));\n        float3 _1343 = fract((_1231 + float2(1.0)).xyx * 0.103100001811981201171875);\n        float3 _1352 = _1343 + float3(dot(_1343, _1343.yzx + float3(33.3300018310546875)));\n        float2 _589 = (_565 * 2.2999999523162841796875) - float2(_1120);\n        float2 _1372 = floor(_589);\n        float2 _1374 = fract(_589);\n        float2 _1382 = (_1374 * _1374) * (float2(3.0) - (_1374 * 2.0));\n        float3 _1409 = fract(_1372.xyx * 0.103100001811981201171875);\n        float3 _1418 = _1409 + float3(dot(_1409, _1409.yzx + float3(33.3300018310546875)));\n        float3 _1434 = fract((_1372 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n        float3 _1443 = _1434 + float3(dot(_1434, _1434.yzx + float3(33.3300018310546875)));\n        float _1389 = _1382.x;\n        float3 _1459 = fract((_1372 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n        float3 _1468 = _1459 + float3(dot(_1459, _1459.yzx + float3(33.3300018310546875)));\n        float3 _1484 = fract((_1372 + float2(1.0)).xyx * 0.103100001811981201171875);\n        float3 _1493 = _1484 + float3(dot(_1484, _1484.yzx + float3(33.3300018310546875)));\n        float _597 = ((mix(mix(fract((_1277.x + _1277.y) * _1277.z), fract((_1302.x + _1302.y) * _1302.z), _1248), mix(fract((_1327.x + _1327.y) * _1327.z), fract((_1352.x + _1352.y) * _1352.z), _1248), _1241.y) * 0.60000002384185791015625) + (mix(mix(fract((_1418.x + _1418.y) * _1418.z), fract((_1443.x + _1443.y) * _1443.z), _1389), mix(fract((_1468.x + _1468.y) * _1468.z), fract((_1493.x + _1493.y) * _1493.z), _1389), _1382.y) * 0.4000000059604644775390625)) + (0.3499999940395355224609375 * _416);\n        float _601 = fast::clamp(_597 + (0.4000000059604644775390625 * _1687), 0.0, 1.0);\n        _1694 = mix(_546, mix(mix(uC1, uC2, float3(smoothstep(0.300000011920928955078125, 0.699999988079071044921875, _601))), uC3, float3(smoothstep(0.64999997615814208984375, 0.949999988079071044921875, _601) * (0.60000002384185791015625 + (0.60000002384185791015625 * uA.y)))) * ((1.10000002384185791015625 + (0.60000002384185791015625 * uA.z)) + (0.5 * _1687)), float3(_483));\n    }\n    else\n    {\n        _1694 = _546;\n    }\n    float3 _655 = _1694 + (((uC3 * (smoothstep(0.119999997317790985107421875, 0.0, _338) * smoothstep(0.64999997615814208984375, 0.3499999940395355224609375, _1673))) * (0.20000000298023223876953125 + (0.5 * _416))) * (0.5 + (0.800000011920928955078125 * uA.y)));\n    float3 _1696;\n    if (uB.z > 0.5)\n    {\n        float _667 = _155.y;\n        float2 _684 = float2((_155.x * 24.0) + (sin((_667 * 6.0) + (uD.w * 1.2999999523162841796875)) * 0.60000002384185791015625), (_667 * 24.0) + (uD.w * 7.0));\n        float2 _687 = floor(_684);\n        float3 _1509 = fract((_687 + float2(3.7000000476837158203125)).xyx * 0.103100001811981201171875);\n        float3 _1518 = _1509 + float3(dot(_1509, _1509.yzx + float3(33.3300018310546875)));\n        float _1527 = fract((_1518.x + _1518.y) * _1518.z);\n        float3 _1534 = fract((_687 + float2(1.10000002384185791015625)).xyx * 0.103100001811981201171875);\n        float3 _1543 = _1534 + float3(dot(_1534, _1534.yzx + float3(33.3300018310546875)));\n        float3 _1559 = fract((_687 + float2(9.3999996185302734375)).xyx * 0.103100001811981201171875);\n        float3 _1568 = _1559 + float3(dot(_1559, _1559.yzx + float3(33.3300018310546875)));\n        float2 _734 = (fract(_684) - float2(0.5)) - ((float2(fract((_1543.x + _1543.y) * _1543.z), fract((_1568.x + _1568.y) * _1568.z)) - float2(0.5)) * 0.60000002384185791015625);\n        _1696 = _655 + (((mix(uC2, uC3, float3(_1527)) * (step(((0.920000016689300537109375 - (0.0599999986588954925537109375 * uA.z)) - (0.0500000007450580596923828125 * uD.z)) - (0.02999999932944774627685546875 * _1687), _1527) * exp(dot(_734, _734) * (-140.0)))) * (0.60000002384185791015625 + (0.4000000059604644775390625 * sin((uD.w * 9.0) + (_1527 * 40.0))))) * (1.2000000476837158203125 + uA.z));\n    }\n    else\n    {\n        _1696 = _655;\n    }\n    float3 _798 = (_1696 * (((uD.y * 0.4000000059604644775390625) + 0.60000002384185791015625) * (1.0 + (0.20000000298023223876953125 * uA.y)))) * (1.0 - (0.300000011920928955078125 * smoothstep(0.699999988079071044921875, 1.5, length(((in._fragCoord - (uSize * 0.5)) / _154) * float2(0.89999997615814208984375, 0.64999997615814208984375)))));\n    float _807 = fast::max(_798.x, fast::max(_798.y, _798.z));\n    float3 _1697;\n    if (_807 > 0.85000002384185791015625)\n    {\n        float _815 = _807 - 0.85000002384185791015625;\n        _1697 = _798 * ((0.85000002384185791015625 + (_815 / (1.0 + (_815 * 6.666666507720947265625)))) / _807);\n    }\n    else\n    {\n        _1697 = _798;\n    }\n    float3 _830 = fast::clamp(_1697, float3(0.0), float3(1.0));\n    float _839 = fast::max(_830.x, fast::max(_830.y, _830.z));\n    float _842 = smoothstep(0.039999999105930328369140625, 0.119999997317790985107421875, _839);\n    out.fragColor = float4(_830 * _842, fast::clamp(_839 * 1.25, 0.0, 1.0) * _842);\n    return out;\n}\n\n",
+            "entryPoint": "magma_2_transparente_magma_alive_fragment_main",
+            "floatCount": 34,
+            "samplerCount": 0,
+            "uniforms": [
+              {
+                "name": "uSize",
+                "offset": 0,
+                "count": 2,
+                "bufferIndex": 0
+              },
+              {
+                "name": "uA",
+                "offset": 2,
+                "count": 4,
+                "bufferIndex": 1
+              },
+              {
+                "name": "uB",
+                "offset": 6,
+                "count": 4,
+                "bufferIndex": 2
+              },
+              {
+                "name": "uD",
+                "offset": 10,
+                "count": 4,
+                "bufferIndex": 3
+              },
+              {
+                "name": "uE",
+                "offset": 14,
+                "count": 4,
+                "bufferIndex": 4
+              },
+              {
+                "name": "uF",
+                "offset": 18,
+                "count": 4,
+                "bufferIndex": 5
+              },
+              {
+                "name": "uC0",
+                "offset": 22,
+                "count": 3,
+                "bufferIndex": 6
+              },
+              {
+                "name": "uC1",
+                "offset": 25,
+                "count": 3,
+                "bufferIndex": 7
+              },
+              {
+                "name": "uC2",
+                "offset": 28,
+                "count": 3,
+                "bufferIndex": 8
+              },
+              {
+                "name": "uC3",
+                "offset": 31,
+                "count": 3,
+                "bufferIndex": 9
+              }
+            ]
+          }
+        },
+        "imageHashes": {}
+      }
+    },
+    {
+      "id": "magma_transparente",
+      "name": "Magma Transparente",
+      "programId": "creator_magma_transparente",
+      "role": "overlay",
+      "reactivity": "optional",
+      "framesPerSecond": 60,
+      "seed": 42,
+      "colors": [
+        0,
+        4292090368,
+        4294932992,
+        4294955594
+      ],
+      "controls": {
+        "intensity": 1.0,
+        "speed": 1.0,
+        "detail": 1.0,
+        "glow": 1.0
+      },
+      "modifiers": [
+        {
+          "id": "calor",
+          "label": "Calor",
+          "kind": "slider",
+          "min": 0.4,
+          "max": 2.0,
+          "value": 1.0
+        },
+        {
+          "id": "placas",
+          "label": "Tamaño de placas",
+          "kind": "steps",
+          "min": 3.0,
+          "max": 10.0,
+          "value": 5.0
+        },
+        {
+          "id": "flujo",
+          "label": "Flujo de lava",
+          "kind": "slider",
+          "min": 0.2,
+          "max": 2.0,
+          "value": 1.0
+        },
+        {
+          "id": "brasas",
+          "label": "Brasas",
+          "kind": "toggle",
+          "min": 0.0,
+          "max": 1.0,
+          "value": 1.0
+        }
+      ],
+      "shaderSource": "",
+      "kind": "scene",
+      "nativeSource": "class Visual final : public Scene {\n  float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;\n  float kick = 0, flash = 0, drive = 0;\n  // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.\n  double flow = 0, drift = 0, rise = 0;\n  float heat = 0;\n\n  static float follow(float v, float target, float up, float down, float dt) {\n    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));\n  }\n\n public:\n  void reset(uint32_t seed) override {\n    Random rng(seed);\n    bass = body = spark = energy = slowBass = kick = flash = drive = 0;\n    flow = rng.unit() * 50.0;\n    drift = rng.unit() * 50.0;\n    rise = 0;\n    heat = 0;\n  }\n\n  void update(const Frame& f) override {\n    auto m = modifiers(f);\n    float dt = float(f.delta);\n    const Music& mu = f.music;\n    bass = follow(bass, mu.bass, 22.0f, 4.5f, dt);\n    body = follow(body, mu.body, 12.0f, 3.0f, dt);\n    spark = follow(spark, mu.spark, 30.0f, 7.0f, dt);\n    energy = follow(energy, mu.energy, 6.0f, 1.8f, dt);\n    drive = follow(drive, mu.active ? std::pow(std::clamp(mu.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);\n\n    float hit = 0, fl = 0;\n    for (const auto& e : mu.events[0]) hit = std::max(hit, e.strength);\n    for (const auto& e : mu.events[2]) hit = std::max(hit, e.strength * 0.85f);\n    for (const auto& e : mu.events[3]) fl = std::max(fl, e.strength);\n    float onset = std::clamp((mu.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);\n    slowBass = follow(slowBass, mu.bass, 3.0f, 3.0f, dt);\n    hit = std::min(std::max(hit, onset), 1.0f);\n    if (hit > kick + 0.2f) heat = std::max(heat, hit);\n    kick = std::max(kick * std::exp(-dt * 5.0f), hit);\n    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));\n    heat *= std::exp(-dt * 2.0f);\n    flow += f.delta * f.speed * m.flujo * (0.15 + 0.5 * drive);\n    drift += f.delta * f.speed * (0.02 + 0.05 * drive);\n    rise += f.delta * f.speed * (0.25 + 0.6 * drive + 0.8 * heat);\n  }\n\n  void render(const Frame& f, Canvas& c) const override {\n    auto m = modifiers(f);\n    float amp = f.intensity;\n    std::vector<float> u;\n    u.reserve(24);\n    u.insert(u.end(), {float(std::fmod(flow, 1000.0)), bass * amp, kick * amp, energy});\n    u.insert(u.end(), {m.calor, float(m.placas), m.brasas ? 1.0f : 0.0f, flash * amp});\n    u.insert(u.end(), {float(std::fmod(drift, 1000.0)), f.glow, heat * amp, float(std::fmod(rise, 1000.0))});\n    for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});\n    c.material(\"magma_crust\", {0, 0, f.width, f.height}, u);\n  }\n};\n",
+      "shaderSources": {
+        "magma_crust": "#version 460 core\n#include <flutter/runtime_effect.glsl>\nuniform vec2 uSize;\nuniform vec4 uA;   // flujo de lava, graves, golpe, energía\nuniform vec4 uB;   // calor, tamaño de placas, brasas, destello\nuniform vec4 uD;   // deriva de las placas, glow, fogonazo de calor, subida de brasas\nuniform vec3 uC0;\nuniform vec3 uC1;\nuniform vec3 uC2;\nuniform vec3 uC3;\nout vec4 fragColor;\n\nfloat hash12(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * 0.1031);\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.x + p3.y) * p3.z);\n}\n\nvec2 hash22(vec2 p) {\n  vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));\n  p3 += dot(p3, p3.yzx + 33.33);\n  return fract((p3.xx + p3.yz) * p3.zy);\n}\n\nfloat noise(vec2 p) {\n  vec2 i = floor(p);\n  vec2 f = fract(p);\n  vec2 u = f * f * (3.0 - 2.0 * f);\n  return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),\n             mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);\n}\n\nvoid main() {\n  vec2 frag = FlutterFragCoord().xy;\n  float scale = min(uSize.x, uSize.y);\n  vec2 p = frag / scale;\n  vec2 g = p * (12.0 / uB.y);\n  // Placas de corteza: celdas de Voronoi que se desplazan muy despacio.\n  vec2 gi = floor(g);\n  vec2 gf = fract(g);\n  float d1 = 8.0;\n  float d2 = 8.0;\n  vec2 nearest = vec2(0.0);\n  for (int j = -1; j <= 1; j++) {\n    for (int i = -1; i <= 1; i++) {\n      vec2 cell = gi + vec2(float(i), float(j));\n      vec2 h = hash22(cell);\n      vec2 o = vec2(float(i), float(j)) + 0.5 + 0.38 * sin(uD.x * (0.6 + h) + h * 6.2831);\n      float d = length(gf - o);\n      if (d < d1) {\n        d2 = d1;\n        d1 = d;\n        nearest = cell;\n      } else if (d < d2) {\n        d2 = d;\n      }\n    }\n  }\n  float edge = d2 - d1;\n  // Grieta: más ancha y brillante con los graves y el calor.\n  float width = (0.035 + 0.05 * uA.y + 0.06 * uD.z) * uB.x;\n  float crack = smoothstep(width, width * 0.3, edge);\n  // En el overlay el calor queda pegado a las grietas: la roca es transparente.\n  float heatGlow = exp(-edge / (width * 1.4));\n\n  // Roca de la corteza: textura oscura con brillo rojizo junto a las grietas.\n  float rock = noise(g * 3.0 + nearest * 7.0) * 0.7 + hash12(floor(frag * 0.5)) * 0.3;\n  vec3 crust = uC0 + vec3(0.06, 0.04, 0.035) * rock;\n  crust += uC1 * heatGlow * (0.25 + 0.5 * uA.y + 0.6 * uD.z) * uB.x;\n  vec3 col = crust;\n  // Lava que fluye bajo la corteza: sólo se calcula dentro de las grietas.\n  if (crack > 0.002) {\n    vec2 lp = p * 3.0 + vec2(uA.x * 0.4, -uA.x * 0.25);\n    float w = noise(lp * 0.7 + uA.x * 0.1);\n    float lava = noise(lp + vec2(w * 2.0, 0.0)) * 0.6 + noise(lp * 2.3 - w) * 0.4;\n    vec3 lavaCol = mix(uC1, uC2, smoothstep(0.3, 0.7, lava));\n    lavaCol = mix(lavaCol, uC3, smoothstep(0.65, 0.95, lava) * (0.6 + 0.6 * uA.y));\n    col = mix(crust, lavaCol * (1.1 + 0.6 * uA.z), crack);\n  }\n\n  // Brasas que suben con el calor.\n  if (uB.z > 0.5) {\n    vec2 eg = vec2(p.x * 22.0, p.y * 22.0 + uD.w * 6.0);\n    vec2 ec = floor(eg);\n    vec2 el = fract(eg) - 0.5;\n    float h = hash12(ec + 3.7);\n    vec2 off = vec2(hash12(ec + 1.1), hash12(ec + 9.4)) - 0.5;\n    float ember = step(0.94 - 0.05 * uA.z - 0.04 * uD.z, h) * exp(-dot(el - off * 0.6, el - off * 0.6) * 140.0);\n    float flicker = 0.6 + 0.4 * sin(uD.w * 9.0 + h * 40.0);\n    col += mix(uC2, uC3, h) * ember * flicker * (1.2 + uA.z);\n  }\n  col *= uD.y * 0.4 + 0.6;\n  col *= 1.0 - 0.3 * smoothstep(0.7, 1.5, length((frag - 0.5 * uSize) / scale * vec2(0.9, 0.65)));\n  // Fondo transparente: color premultiplicado y opacidad según el brillo; la\n  // luz muy tenue se vuelve transparente del todo para no dejar velo.\n  col = clamp(col, 0.0, 1.0);\n  float veilPeak = max(col.r, max(col.g, col.b));\n  float clearCut = smoothstep(0.04, 0.12, veilPeak);\n  col *= clearCut;\n  float alpha = clamp(veilPeak * 1.25, 0.0, 1.0) * clearCut;\n  fragColor = vec4(col, alpha);\n}\n"
+      },
+      "images": {},
+      "nativeBuild": {
+        "abi": 1,
+        "hash": "a931c5f75b0b5b53037efab838f6e6b6922707e6f236be712130751c25718d34",
+        "sdkHash": "f66cc55f3f2b81ab299656797cd58924570ce2da69a3e7edfbb58a6f5d0d88a2",
+        "materials": {
+          "magma_crust": {
+            "compilerHash": "d44d3fbee49c09093c07183eb32a159529ed41e473416b2b40c6d7647a35f89f",
+            "asset": "packages/visual_catalog/assets/native/magma_transparente_magma_crust.iplr",
+            "assetHash": "23cc31bb91d8fe92476704d6d762c9f8f564503891ca47bacd38b1c755f2ef94",
+            "metalSource": "#include <metal_stdlib>\n#include <simd/simd.h>\n\nusing namespace metal;\n\nstruct magma_transparente_magma_crust_fragment_main_out\n{\n    float4 fragColor [[color(0)]];\n};\n\nstruct magma_transparente_magma_crust_fragment_main_in\n{\n    float2 _fragCoord [[user(locn0)]];\n};\n\nfragment magma_transparente_magma_crust_fragment_main_out magma_transparente_magma_crust_fragment_main(magma_transparente_magma_crust_fragment_main_in in [[stage_in]], constant float2& uSize [[buffer(0)]], constant float4& uA [[buffer(1)]], constant float4& uB [[buffer(2)]], constant float4& uD [[buffer(3)]], constant float3& uC0 [[buffer(4)]], constant float3& uC1 [[buffer(5)]], constant float3& uC2 [[buffer(6)]], constant float3& uC3 [[buffer(7)]])\n{\n    magma_transparente_magma_crust_fragment_main_out out = {};\n    float2 _154 = float2(fast::min(uSize.x, uSize.y));\n    float2 _155 = in._fragCoord / _154;\n    float2 _165 = _155 * (12.0 / uB.y);\n    float2 _168 = floor(_165);\n    float2 _171 = fract(_165);\n    float _1355;\n    float _1356;\n    float2 _1357;\n    _1357 = float2(0.0);\n    _1356 = 8.0;\n    _1355 = 8.0;\n    float _1362;\n    float _1363;\n    float2 _1366;\n    for (int _1354 = -1; _1354 <= 1; _1357 = _1366, _1356 = _1362, _1355 = _1363, _1354++)\n    {\n        _1363 = _1355;\n        _1362 = _1356;\n        _1366 = _1357;\n        float _1393;\n        float2 _1396;\n        float _1373;\n        for (int _1360 = -1; _1360 <= 1; _1363 = _1373, _1362 = _1393, _1360++, _1366 = _1396)\n        {\n            float2 _204 = float2(float(_1360), float(_1354));\n            float2 _205 = _168 + _204;\n            float3 _594 = fract(_205.xyx * float3(0.103100001811981201171875, 0.10300000011920928955078125, 0.097300000488758087158203125));\n            float3 _603 = _594 + float3(dot(_594, _594.yzx + float3(33.3300018310546875)));\n            float2 _612 = fract((_603.xx + _603.yz) * _603.zy);\n            float _239 = length(_171 - ((_204 + float2(0.5)) + (sin(((float2(0.60000002384185791015625) + _612) * uD.x) + (_612 * 6.283100128173828125)) * 0.37999999523162841796875)));\n            bool _242 = _239 < _1362;\n            if (_242)\n            {\n                _1373 = _1362;\n            }\n            else\n            {\n                _1373 = (_239 < _1363) ? _239 : _1363;\n            }\n            _1393 = _242 ? _239 : _1362;\n            _1396 = select(_1366, _205, bool2(_242));\n        }\n    }\n    float _262 = _1355 - _1356;\n    float _278 = ((0.0350000001490116119384765625 + (0.0500000007450580596923828125 * uA.y)) + (0.0599999986588954925537109375 * uD.z)) * uB.x;\n    float _285 = smoothstep(_278, _278 * 0.300000011920928955078125, _262);\n    float2 _300 = (_165 * 3.0) + (_1357 * 7.0);\n    float2 _623 = floor(_300);\n    float2 _625 = fract(_300);\n    float2 _633 = (_625 * _625) * (float2(3.0) - (_625 * 2.0));\n    float3 _660 = fract(_623.xyx * 0.103100001811981201171875);\n    float3 _669 = _660 + float3(dot(_660, _660.yzx + float3(33.3300018310546875)));\n    float3 _685 = fract((_623 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n    float3 _694 = _685 + float3(dot(_685, _685.yzx + float3(33.3300018310546875)));\n    float _640 = _633.x;\n    float3 _710 = fract((_623 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n    float3 _719 = _710 + float3(dot(_710, _710.yzx + float3(33.3300018310546875)));\n    float3 _735 = fract((_623 + float2(1.0)).xyx * 0.103100001811981201171875);\n    float3 _744 = _735 + float3(dot(_735, _735.yzx + float3(33.3300018310546875)));\n    float3 _760 = fract(floor(in._fragCoord * 0.5).xyx * 0.103100001811981201171875);\n    float3 _769 = _760 + float3(dot(_760, _760.yzx + float3(33.3300018310546875)));\n    float3 _339 = (uC0 + (float3(0.0599999986588954925537109375, 0.039999999105930328369140625, 0.0350000001490116119384765625) * ((mix(mix(fract((_669.x + _669.y) * _669.z), fract((_694.x + _694.y) * _694.z), _640), mix(fract((_719.x + _719.y) * _719.z), fract((_744.x + _744.y) * _744.z), _640), _633.y) * 0.699999988079071044921875) + (fract((_769.x + _769.y) * _769.z) * 0.300000011920928955078125)))) + (((uC1 * exp((-_262) / (_278 * 1.39999997615814208984375))) * ((0.25 + (0.5 * uA.y)) + (0.60000002384185791015625 * uD.z))) * uB.x);\n    float3 _1358;\n    if (_285 > 0.00200000009499490261077880859375)\n    {\n        float2 _359 = (_155 * 3.0) + float2(uA.x * 0.4000000059604644775390625, uA.x * (-0.25));\n        float2 _368 = (_359 * 0.699999988079071044921875) + float2(uA.x * 0.100000001490116119384765625);\n        float2 _789 = floor(_368);\n        float2 _791 = fract(_368);\n        float2 _799 = (_791 * _791) * (float2(3.0) - (_791 * 2.0));\n        float3 _826 = fract(_789.xyx * 0.103100001811981201171875);\n        float3 _835 = _826 + float3(dot(_826, _826.yzx + float3(33.3300018310546875)));\n        float3 _851 = fract((_789 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n        float3 _860 = _851 + float3(dot(_851, _851.yzx + float3(33.3300018310546875)));\n        float _806 = _799.x;\n        float3 _876 = fract((_789 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n        float3 _885 = _876 + float3(dot(_876, _876.yzx + float3(33.3300018310546875)));\n        float3 _901 = fract((_789 + float2(1.0)).xyx * 0.103100001811981201171875);\n        float3 _910 = _901 + float3(dot(_901, _901.yzx + float3(33.3300018310546875)));\n        float _819 = mix(mix(fract((_835.x + _835.y) * _835.z), fract((_860.x + _860.y) * _860.z), _806), mix(fract((_885.x + _885.y) * _885.z), fract((_910.x + _910.y) * _910.z), _806), _799.y);\n        float2 _376 = _359 + float2(_819 * 2.0, 0.0);\n        float2 _930 = floor(_376);\n        float2 _932 = fract(_376);\n        float2 _940 = (_932 * _932) * (float2(3.0) - (_932 * 2.0));\n        float3 _967 = fract(_930.xyx * 0.103100001811981201171875);\n        float3 _976 = _967 + float3(dot(_967, _967.yzx + float3(33.3300018310546875)));\n        float3 _992 = fract((_930 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n        float3 _1001 = _992 + float3(dot(_992, _992.yzx + float3(33.3300018310546875)));\n        float _947 = _940.x;\n        float3 _1017 = fract((_930 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n        float3 _1026 = _1017 + float3(dot(_1017, _1017.yzx + float3(33.3300018310546875)));\n        float3 _1042 = fract((_930 + float2(1.0)).xyx * 0.103100001811981201171875);\n        float3 _1051 = _1042 + float3(dot(_1042, _1042.yzx + float3(33.3300018310546875)));\n        float2 _385 = (_359 * 2.2999999523162841796875) - float2(_819);\n        float2 _1071 = floor(_385);\n        float2 _1073 = fract(_385);\n        float2 _1081 = (_1073 * _1073) * (float2(3.0) - (_1073 * 2.0));\n        float3 _1108 = fract(_1071.xyx * 0.103100001811981201171875);\n        float3 _1117 = _1108 + float3(dot(_1108, _1108.yzx + float3(33.3300018310546875)));\n        float3 _1133 = fract((_1071 + float2(1.0, 0.0)).xyx * 0.103100001811981201171875);\n        float3 _1142 = _1133 + float3(dot(_1133, _1133.yzx + float3(33.3300018310546875)));\n        float _1088 = _1081.x;\n        float3 _1158 = fract((_1071 + float2(0.0, 1.0)).xyx * 0.103100001811981201171875);\n        float3 _1167 = _1158 + float3(dot(_1158, _1158.yzx + float3(33.3300018310546875)));\n        float3 _1183 = fract((_1071 + float2(1.0)).xyx * 0.103100001811981201171875);\n        float3 _1192 = _1183 + float3(dot(_1183, _1183.yzx + float3(33.3300018310546875)));\n        float _389 = (mix(mix(fract((_976.x + _976.y) * _976.z), fract((_1001.x + _1001.y) * _1001.z), _947), mix(fract((_1026.x + _1026.y) * _1026.z), fract((_1051.x + _1051.y) * _1051.z), _947), _940.y) * 0.60000002384185791015625) + (mix(mix(fract((_1117.x + _1117.y) * _1117.z), fract((_1142.x + _1142.y) * _1142.z), _1088), mix(fract((_1167.x + _1167.y) * _1167.z), fract((_1192.x + _1192.y) * _1192.z), _1088), _1081.y) * 0.4000000059604644775390625);\n        _1358 = mix(_339, mix(mix(uC1, uC2, float3(smoothstep(0.300000011920928955078125, 0.699999988079071044921875, _389))), uC3, float3(smoothstep(0.64999997615814208984375, 0.949999988079071044921875, _389) * (0.60000002384185791015625 + (0.60000002384185791015625 * uA.y)))) * (1.10000002384185791015625 + (0.60000002384185791015625 * uA.z)), float3(_285));\n    }\n    else\n    {\n        _1358 = _339;\n    }\n    float3 _1359;\n    if (uB.z > 0.5)\n    {\n        float2 _442 = float2(_155.x * 22.0, (_155.y * 22.0) + (uD.w * 6.0));\n        float2 _445 = floor(_442);\n        float3 _1208 = fract((_445 + float2(3.7000000476837158203125)).xyx * 0.103100001811981201171875);\n        float3 _1217 = _1208 + float3(dot(_1208, _1208.yzx + float3(33.3300018310546875)));\n        float _1226 = fract((_1217.x + _1217.y) * _1217.z);\n        float3 _1233 = fract((_445 + float2(1.10000002384185791015625)).xyx * 0.103100001811981201171875);\n        float3 _1242 = _1233 + float3(dot(_1233, _1233.yzx + float3(33.3300018310546875)));\n        float3 _1258 = fract((_445 + float2(9.3999996185302734375)).xyx * 0.103100001811981201171875);\n        float3 _1267 = _1258 + float3(dot(_1258, _1258.yzx + float3(33.3300018310546875)));\n        float2 _488 = (fract(_442) - float2(0.5)) - ((float2(fract((_1242.x + _1242.y) * _1242.z), fract((_1267.x + _1267.y) * _1267.z)) - float2(0.5)) * 0.60000002384185791015625);\n        _1359 = _1358 + (((mix(uC2, uC3, float3(_1226)) * (step((0.939999997615814208984375 - (0.0500000007450580596923828125 * uA.z)) - (0.039999999105930328369140625 * uD.z), _1226) * exp(dot(_488, _488) * (-140.0)))) * (0.60000002384185791015625 + (0.4000000059604644775390625 * sin((uD.w * 9.0) + (_1226 * 40.0))))) * (1.2000000476837158203125 + uA.z));\n    }\n    else\n    {\n        _1359 = _1358;\n    }\n    float3 _553 = fast::clamp((_1359 * ((uD.y * 0.4000000059604644775390625) + 0.60000002384185791015625)) * (1.0 - (0.300000011920928955078125 * smoothstep(0.699999988079071044921875, 1.5, length(((in._fragCoord - (uSize * 0.5)) / _154) * float2(0.89999997615814208984375, 0.64999997615814208984375))))), float3(0.0), float3(1.0));\n    float _562 = fast::max(_553.x, fast::max(_553.y, _553.z));\n    float _566 = smoothstep(0.039999999105930328369140625, 0.119999997317790985107421875, _562);\n    out.fragColor = float4(_553 * _566, fast::clamp(_562 * 1.25, 0.0, 1.0) * _566);\n    return out;\n}\n\n",
+            "entryPoint": "magma_transparente_magma_crust_fragment_main",
             "floatCount": 26,
             "samplerCount": 0,
             "uniforms": [
