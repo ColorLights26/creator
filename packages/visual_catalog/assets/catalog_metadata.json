@@ -2,6 +2,38 @@
   "schemaVersion": 1,
   "visuals": [
     {
+      "id": "arbol_fractal",
+      "name": "Árbol Fractal",
+      "description": "Árbol de luz que se ramifica una y otra vez del dorado al fucsia: se mece con los graves, cada golpe sube como un pulso por sus ramas y florece en las puntas.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "organic",
+        "glowing",
+        "calm"
+      ],
+      "concepts": [
+        "fractal tree",
+        "recursion",
+        "branches",
+        "bloom"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "arcos_sueno",
       "name": "Arcos del Sueño",
       "description": "Pasillo infinito de arcos rojos, naranjas y dorados que se derriten, con un río ondulado de turquesa y crema hacia una puerta de luz; respira con la música.",
@@ -502,6 +534,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "capas_papel",
+      "name": "Capas de Papel",
+      "description": "Paisaje abstracto de papel recortado en capas magenta, naranja y amarillo con sombras y profundidad; cada capa ondula con su banda de la música.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "crafty",
+        "warm",
+        "dreamy"
+      ],
+      "concepts": [
+        "paper cut",
+        "parallax",
+        "layers",
+        "landscape"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "cascada_codigo",
       "name": "Cascada de Código",
       "description": "Columnas de símbolos rojos con cabezas doradas que caen como el código de Matrix; aceleran con la energía y cada golpe enciende una onda.",
@@ -691,6 +755,38 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "circulos_infinitos",
+      "name": "Círculos Infinitos",
+      "description": "Espiral de círculos tangentes que se encogen sin fin hacia el centro, con círculos dentro de los círculos: un zoom infinito y perfecto en verde ácido que late con la música.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "hypnotic",
+        "mathematical",
+        "electric"
+      ],
+      "concepts": [
+        "doyle spiral",
+        "infinite zoom",
+        "circle packing",
+        "log polar"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -1053,6 +1149,38 @@
         "electricity",
         "tesla",
         "lightning"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "escalera_imposible",
+      "name": "Escalera Imposible",
+      "description": "La escalera infinita de Escher y Penrose en isométrico: siempre sube y nunca termina, con pulsos de luz que trepan al ritmo de la música.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "surreal",
+        "hypnotic",
+        "clean"
+      ],
+      "concepts": [
+        "penrose stairs",
+        "impossible geometry",
+        "isometric",
+        "escher"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -1555,6 +1683,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "helice_holografica",
+      "name": "Hélice Holográfica",
+      "description": "Doble hélice de ADN proyectada como holograma: gira en azul eléctrico, sus peldaños se encienden en rojo con las bandas de la música y cada golpe la hace temblar con un fallo digital.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "futuristic",
+        "scientific",
+        "electric"
+      ],
+      "concepts": [
+        "dna",
+        "double helix",
+        "hologram",
+        "sci-fi"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "hipervelocidad",
       "name": "Hipervelocidad",
       "description": "Viaje a la velocidad de la luz entre estrellas con estelas blancas y azules.",
@@ -1945,6 +2105,38 @@
         "glow",
         "spectrum",
         "border"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "magma",
+      "name": "Magma",
+      "description": "Corteza volcánica negra con grietas de lava naranja que se abren con los graves, roca fundida que fluye debajo y brasas que saltan con cada golpe.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "relax"
+      ],
+      "moods": [
+        "intense",
+        "warm",
+        "epic"
+      ],
+      "concepts": [
+        "lava",
+        "magma",
+        "cracks",
+        "embers"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -2975,6 +3167,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "pop_art",
+      "name": "Pop Art",
+      "description": "Cómic de Lichtenstein en movimiento: tramas de puntos rojos sobre amarillo que laten con la música, estallidos de cómic en cada golpe, líneas cinéticas y paneles al estilo Warhol.",
+      "purposes": [
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "bold",
+        "playful",
+        "energetic"
+      ],
+      "concepts": [
+        "pop art",
+        "halftone",
+        "comic",
+        "warhol",
+        "lichtenstein"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "portal_cuantico",
       "name": "Portal Cuántico",
       "description": "Túnel hipnótico de geometría sagrada fractal con anillos neón y aberración cromática que pulsa con el ritmo.",
@@ -3041,6 +3265,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "prisma",
+      "name": "Prisma",
+      "description": "Un haz de luz blanca entra en un prisma de cristal y sale convertido en arcoíris; cada color late con su banda de la música.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "iconic",
+        "minimal",
+        "hypnotic"
+      ],
+      "concepts": [
+        "prism",
+        "rainbow",
+        "light dispersion",
+        "album art"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "prismatic_halo",
       "name": "Halo · capa de luz",
       "description": "Un halo de luz transparente que acompaña los acentos musicales.",
@@ -3087,6 +3343,38 @@
         "oil",
         "dye",
         "projector"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "puerta_estelar",
+      "name": "Puerta Estelar",
+      "description": "Dos planos de luz psicodélica en violeta, naranja y verde ácido pasan a toda velocidad hacia ti, como la puerta estelar de 2001; cambian con cada golpe.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "psychedelic"
+      ],
+      "moods": [
+        "psychedelic",
+        "epic",
+        "hypnotic"
+      ],
+      "concepts": [
+        "slit-scan",
+        "star gate",
+        "speed",
+        "retro sci-fi"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -3262,6 +3550,38 @@
       "concepts": [],
       "credits": {
         "author": "Creator SDK",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "teselado_hiperbolico",
+      "name": "Teselado Hiperbólico",
+      "description": "Mosaico infinito dentro de un círculo, como los de Escher: piezas rojas y negras con bordes dorados que se encogen hacia el borde y fluyen con la música.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "hypnotic",
+        "elegant",
+        "mathematical"
+      ],
+      "concepts": [
+        "hyperbolic",
+        "poincare disk",
+        "escher",
+        "tessellation"
+      ],
+      "credits": {
+        "author": "Chic Apps",
         "license": "",
         "source": ""
       },
