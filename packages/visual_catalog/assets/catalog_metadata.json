@@ -2,6 +2,70 @@
   "schemaVersion": 1,
   "visuals": [
     {
+      "id": "arcos_sueno",
+      "name": "Arcos del Sueño",
+      "description": "Pasillo infinito de arcos rojos, naranjas y dorados que se derriten, con un río ondulado de turquesa y crema hacia una puerta de luz; respira con la música.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "psychedelic"
+      ],
+      "moods": [
+        "surreal",
+        "psychedelic",
+        "dreamy"
+      ],
+      "concepts": [
+        "arches",
+        "corridor",
+        "surrealism",
+        "tunnel"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "atractor_lorenz",
+      "name": "Atractor de Lorenz",
+      "description": "Miles de partículas azul eléctrico recorren en 3D la mariposa del caos; cada golpe las dispersa y vuelven a caer sobre la forma.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "hypnotic",
+        "scientific",
+        "epic"
+      ],
+      "concepts": [
+        "lorenz attractor",
+        "chaos",
+        "particles",
+        "3d"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "aura",
       "name": "Aura",
       "description": "Manchas de color melocotón, lila y azul que giran y se funden despacio con grano fino, respirando con la música.",
@@ -438,6 +502,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "cascada_codigo",
+      "name": "Cascada de Código",
+      "description": "Columnas de símbolos rojos con cabezas doradas que caen como el código de Matrix; aceleran con la energía y cada golpe enciende una onda.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "gaming"
+      ],
+      "moods": [
+        "cyberpunk",
+        "intense",
+        "iconic"
+      ],
+      "concepts": [
+        "digital rain",
+        "matrix",
+        "code",
+        "glyphs"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "catedral_luz",
       "name": "Catedral de Luz",
       "description": "Haces volumétricos a través de un rosetón de vidrieras que se encienden con el espectro y estallan en cada golpe.",
@@ -630,6 +726,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "corazon_matematico",
+      "name": "Corazón Matemático",
+      "description": "Cientos de líneas de neón rojo, magenta y violeta unen los puntos de un círculo según las tablas de multiplicar y forman corazones, flores y estrellas.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "hypnotic",
+        "elegant",
+        "vivid"
+      ],
+      "concepts": [
+        "times tables",
+        "cardioid",
+        "string art",
+        "mathematics"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "cordillera_sonido",
       "name": "Cordillera de Sonido",
       "description": "La música dibuja una cordillera en 3D: cada fila es un instante de la canción y las cumbres avanzan hacia ti, al estilo Unknown Pleasures.",
@@ -656,6 +784,38 @@
       },
       "thumbnail": {
         "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "corredor_neon",
+      "name": "Corredor de Neón",
+      "description": "Corredor infinito de marcos de neón con paredes de cromo líquido que alterna entre rojo fuego y blanco helado; avanza y destella con cada golpe.",
+      "purposes": [
+        "party",
+        "club",
+        "visualizer"
+      ],
+      "moods": [
+        "intense",
+        "futuristic",
+        "hypnotic"
+      ],
+      "concepts": [
+        "tunnel",
+        "corridor",
+        "neon frames",
+        "liquid chrome"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
       },
       "publication": "draft",
       "role": "background",
@@ -844,6 +1004,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "derretimiento",
+      "name": "Derretimiento",
+      "description": "Bandas de color psicodélicas en rojo, naranja, magenta y turquesa que se ondulan y gotean como pintura derretida al ritmo de la música.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "psychedelic"
+      ],
+      "moods": [
+        "psychedelic",
+        "surreal",
+        "fluid"
+      ],
+      "concepts": [
+        "melting",
+        "psychedelic",
+        "drip",
+        "bands"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "descarga_tesla",
       "name": "Descarga Tesla",
       "description": "Plasma eléctrico a pantalla completa: rayos ramificados desde un núcleo de energía que siguen el espectro y estallan con cada golpe.",
@@ -936,6 +1128,38 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "estrella_neon",
+      "name": "Estrella de Neón",
+      "description": "Caleidoscopio de seis puntas: estrellas de neón dorado salen del centro, láseres azules cruzan la pantalla y mármol rojo y naranja estalla con la música.",
+      "purposes": [
+        "party",
+        "club",
+        "visualizer"
+      ],
+      "moods": [
+        "epic",
+        "psychedelic",
+        "intense"
+      ],
+      "concepts": [
+        "hexagram",
+        "kaleidoscope",
+        "lasers",
+        "marble"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -1447,6 +1671,70 @@
       "reactivity": "optional"
     },
     {
+      "id": "ilusion_optica",
+      "name": "Ilusión Óptica",
+      "description": "Patrones op art en rojo, negro y blanco que parecen moverse, respirar y hundirse aunque son planos; laten y se deforman con cada golpe.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "hypnotic",
+        "bold",
+        "trippy"
+      ],
+      "concepts": [
+        "op art",
+        "optical illusion",
+        "moire",
+        "bridget riley"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "jardin_alucinante",
+      "name": "Jardín Alucinante",
+      "description": "Flores psicodélicas de póster setentero en magenta, naranja, amarillo y turquesa que giran y florecen con cada golpe sobre un sol de rayos.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "psychedelic"
+      ],
+      "moods": [
+        "psychedelic",
+        "joyful",
+        "retro"
+      ],
+      "concepts": [
+        "flower power",
+        "psychedelic",
+        "bloom",
+        "poster art"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "llama_fractal",
       "name": "Llama Fractal",
       "description": "Llamas fractales de seda luminosa en azul eléctrico y violeta que se pliegan en remolinos y mutan de forma con cada golpe.",
@@ -1732,6 +2020,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "mandala_alucinante",
+      "name": "Mandala Alucinante",
+      "description": "Mandala fractal ornamentado que se transforma sin parar con colores psicodélicos que circulan; respira con los graves y cambia de simetría con los golpes.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "psychedelic"
+      ],
+      "moods": [
+        "psychedelic",
+        "hypnotic",
+        "mystic"
+      ],
+      "concepts": [
+        "fractal",
+        "mandala",
+        "kaleidoscope",
+        "psychedelic art"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "mandala_fuego",
       "name": "Mandala de Fuego",
       "description": "Mandala de líneas incandescentes sobre negro: estrellas que emanan hacia fuera, un anillo negro que estalla con cada golpe y brasas que suben.",
@@ -1924,6 +2244,102 @@
       "reactivity": "optional"
     },
     {
+      "id": "moho_luminoso",
+      "name": "Moho Luminoso",
+      "description": "Red viva de venas de luz roja y amarilla que crece, se ramifica y se reorganiza sola; cada golpe suelta una explosión de filamentos.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "relax"
+      ],
+      "moods": [
+        "organic",
+        "hypnotic",
+        "epic"
+      ],
+      "concepts": [
+        "physarum",
+        "slime mold",
+        "generative",
+        "network"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "monolitos_cromados",
+      "name": "Monolitos Cromados",
+      "description": "Bloques gigantes de cromo flotan en el vacío y reflejan luces de neón rojo y blanco; se separan con cada golpe y sus bordes arden con los graves.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "club"
+      ],
+      "moods": [
+        "epic",
+        "futuristic",
+        "monumental"
+      ],
+      "concepts": [
+        "chrome",
+        "monoliths",
+        "neon",
+        "raymarching"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "murmuracion",
+      "name": "Murmuración",
+      "description": "Miles de chispas doradas vuelan juntas como una bandada de estorninos: se estiran, giran y se pliegan, y estallan con cada golpe.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "hypnotic",
+        "organic",
+        "epic"
+      ],
+      "concepts": [
+        "murmuration",
+        "flock",
+        "particles",
+        "emergence"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "muro_cinetico",
       "name": "Muro Cinético",
       "description": "Pared de miles de plaquitas de plata que se mecen como con viento; olas de luz verde menta la recorren y cada golpe es una ráfaga que la hace destellar.",
@@ -2113,6 +2529,70 @@
       "reactivity": "optional"
     },
     {
+      "id": "nucleo_cristal",
+      "name": "Núcleo de Cristal",
+      "description": "Un cristal de luz en espejo late en el centro y lanza hacia fuera contornos de neón azul, naranja, rojo y blanco que cambian de forma con cada golpe.",
+      "purposes": [
+        "party",
+        "club",
+        "visualizer"
+      ],
+      "moods": [
+        "epic",
+        "energetic",
+        "futuristic"
+      ],
+      "concepts": [
+        "crystal",
+        "kaleidoscope",
+        "neon outlines",
+        "vj loop"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "ojo_psicodelico",
+      "name": "Ojo Psicodélico",
+      "description": "Un ojo gigante de iris turquesa y dorado mira a su alrededor rodeado de ondas rojas y naranjas que se derriten; la pupila late con los graves.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "psychedelic"
+      ],
+      "moods": [
+        "surreal",
+        "psychedelic",
+        "hypnotic"
+      ],
+      "concepts": [
+        "eye",
+        "surrealism",
+        "melting",
+        "psychedelic art"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "olas_cubos",
       "name": "Olas de Cubos",
       "description": "Tablero isométrico de cubos de marfil y coral que suben y bajan en ondas hipnóticas; cada golpe lanza una ola desde el centro.",
@@ -2163,6 +2643,38 @@
         "voice",
         "waves",
         "glow"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "osciloscopio",
+      "name": "Osciloscopio",
+      "description": "Un haz de luz verde eléctrico dibuja figuras que se transforman — espirales, flores y nudos en 3D — y que la música deforma y hace saltar.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "retro",
+        "technical",
+        "hypnotic"
+      ],
+      "concepts": [
+        "oscilloscope",
+        "lissajous",
+        "vector",
+        "phosphor"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -2238,6 +2750,70 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "pasillo_geometrico",
+      "name": "Pasillo Geométrico",
+      "description": "Triángulos, rombos, cruces y estrellas de neón rojo y blanco que nacen en el centro y crecen hacia ti con cada golpe, con ráfagas de picos.",
+      "purposes": [
+        "party",
+        "club",
+        "visualizer"
+      ],
+      "moods": [
+        "intense",
+        "bold",
+        "futuristic"
+      ],
+      "concepts": [
+        "geometric",
+        "neon shapes",
+        "zoom",
+        "vj loop"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "patrones_turing",
+      "name": "Patrones de Turing",
+      "description": "Manchas de naranja neón que crecen y se transforman en laberintos, rayas y corales sobre negro y turquesa; mutan con cada golpe.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "organic",
+        "hypnotic",
+        "vivid"
+      ],
+      "concepts": [
+        "reaction diffusion",
+        "turing patterns",
+        "labyrinth",
+        "generative"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -2790,6 +3366,70 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "tunel_cibernetico",
+      "name": "Túnel Cibernético",
+      "description": "Túnel futurista de bloques azules y rojos con polígonos de neón, orbes en los vértices, láseres cian y chispas doradas que pasan volando.",
+      "purposes": [
+        "party",
+        "club",
+        "gaming"
+      ],
+      "moods": [
+        "futuristic",
+        "intense",
+        "epic"
+      ],
+      "concepts": [
+        "cyber tunnel",
+        "neon polygon",
+        "lasers",
+        "vj loop"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "tunel_laser",
+      "name": "Túnel Láser Arcoíris",
+      "description": "Túnel de paneles dorados encendidos con marcos de neón arcoíris girados y láseres amarillos, magenta, cian y verdes que barren la pantalla.",
+      "purposes": [
+        "party",
+        "club",
+        "visualizer"
+      ],
+      "moods": [
+        "festive",
+        "energetic",
+        "colorful"
+      ],
+      "concepts": [
+        "tunnel",
+        "lasers",
+        "rainbow",
+        "led panels"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -3863,6 +4503,38 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "zoom_infinito",
+      "name": "Zoom Infinito",
+      "description": "Viaje sin fin hacia dentro del fractal de Mandelbrot con colores de fuego: espirales que aparecen sin parar y laten con la música.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "hypnotic",
+        "epic",
+        "psychedelic"
+      ],
+      "concepts": [
+        "mandelbrot",
+        "fractal",
+        "zoom",
+        "infinity"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     }
   ]
