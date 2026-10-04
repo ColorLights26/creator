@@ -2,6 +2,38 @@
   "schemaVersion": 1,
   "visuals": [
     {
+      "id": "algoritmos_ordenacion",
+      "name": "Algoritmos de Ordenación",
+      "description": "Barras con todo el arcoíris que se desordenan y se vuelven a ordenar solas, cada vez con un algoritmo distinto (burbuja, rápido, montículo, mezcla…), al ritmo de la música.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "satisfying",
+        "digital",
+        "vivid"
+      ],
+      "concepts": [
+        "sorting algorithms",
+        "computer science",
+        "rainbow",
+        "bars"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 4.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "arbol_fractal",
       "name": "Árbol Fractal",
       "description": "Árbol de luz que se ramifica una y otra vez del dorado al fucsia: se mece con los graves, cada golpe sube como un pulso por sus ramas y florece en las puntas.",
@@ -124,6 +156,38 @@
       },
       "thumbnail": {
         "timeSeconds": 12.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "atractor_clifford",
+      "name": "Atractor de Clifford",
+      "description": "Decenas de miles de puntos siguen una fórmula caótica y forman velos de seda naranja y dorada que se pliegan y se transforman sin parar al ritmo de la música.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "hypnotic",
+        "silky",
+        "warm"
+      ],
+      "concepts": [
+        "clifford attractor",
+        "strange attractor",
+        "chaos",
+        "particles"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
       },
       "publication": "draft",
       "role": "background",
@@ -313,6 +377,38 @@
       },
       "thumbnail": {
         "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "bauhaus",
+      "name": "Bauhaus",
+      "description": "Un póster Bauhaus animado: círculos, medias lunas, cuartos de círculo, triángulos y franjas en rojo, amarillo, azul y negro sobre crema que giran y cambian a golpe de música.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "graphic",
+        "bold",
+        "playful"
+      ],
+      "concepts": [
+        "bauhaus",
+        "geometric",
+        "flat design",
+        "poster"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
       },
       "publication": "draft",
       "role": "background",
@@ -1078,6 +1174,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "confeti",
+      "name": "Confeti",
+      "description": "Capa transparente de fiesta: cañones de confeti de colores que disparan con cada golpe y papelitos que caen girando en 3D sobre cualquier otro visual.",
+      "purposes": [
+        "party",
+        "celebration",
+        "visualizer"
+      ],
+      "moods": [
+        "festive",
+        "playful",
+        "joyful"
+      ],
+      "concepts": [
+        "confetti",
+        "celebration",
+        "overlay",
+        "physics"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "constelacion_viva",
       "name": "Constelación Táctil",
       "description": "Constelación 3D de estrellas luminosas unidas por líneas de luz con pulsos de energía; estalla y se expande con cada golpe.",
@@ -1270,6 +1398,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "cristal_electrico",
+      "name": "Cristal Eléctrico",
+      "description": "Una figura de Lichtenberg, el rayo fractal que se quema en la madera, crece ramificándose al rojo vivo; cada golpe manda una descarga blanca que recorre todas sus ramas.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "electric",
+        "organic",
+        "intense"
+      ],
+      "concepts": [
+        "lichtenberg figure",
+        "fractal",
+        "lightning",
+        "growth"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 5.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "cristal_prismatico",
       "name": "Cristal Prismático",
       "description": "Gema cuántica hiperfacetada con dispersión óptica arcoíris, refracción interna y caústicas que estallan al ritmo de la música.",
@@ -1391,6 +1551,38 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "cuerdas_vibrantes",
+      "name": "Cuerdas Vibrantes",
+      "description": "El famoso efecto de las cuerdas de guitarra grabadas desde dentro: cuerdas doradas y plateadas que ondulan en serpientes de luz, cada una con su banda de la música, bajo una luz roja.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "warm",
+        "musical",
+        "hypnotic"
+      ],
+      "concepts": [
+        "guitar strings",
+        "rolling shutter",
+        "vibration",
+        "waves"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -1543,6 +1735,38 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "dona_ascii",
+      "name": "Dona ASCII",
+      "description": "La famosa rosquilla 3D hecha sólo con caracteres de texto, girando en ámbar de monitor antiguo; con la música late, se acelera y cambia a esfera, cubo y octaedro.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "retro",
+        "geeky",
+        "hypnotic"
+      ],
+      "concepts": [
+        "ascii art",
+        "donut.c",
+        "terminal",
+        "3d"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -1901,6 +2125,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "flor_vida",
+      "name": "Flor de la Vida",
+      "description": "Geometría sagrada: la Flor de la Vida se dibuja círculo a círculo, sus pétalos se encienden en oro y violeta y se convierte en el cubo de Metatrón, latiendo con la música.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "spiritual",
+        "hypnotic",
+        "elegant"
+      ],
+      "concepts": [
+        "flower of life",
+        "sacred geometry",
+        "metatron cube",
+        "mandala"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 12.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "fluido_colores",
       "name": "Fluido de Colores",
       "description": "Simulación de fluido real: chorros de tinta roja, violeta y menta que se arremolinan y mezclan; cada golpe lanza un chorro nuevo.",
@@ -2040,6 +2296,38 @@
       "concepts": [],
       "credits": {
         "author": "Creator SDK",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "geometria_islamica",
+      "name": "Geometría Islámica",
+      "description": "Lacería de estrellas de 8 y 12 puntas como en los azulejos de la Alhambra: cintas de oro sobre carmín, esmeralda y azul noche que se transforman y brillan con la música.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "elegant",
+        "hypnotic",
+        "ornamental"
+      ],
+      "concepts": [
+        "islamic geometry",
+        "girih",
+        "star pattern",
+        "zellige"
+      ],
+      "credits": {
+        "author": "Chic Apps",
         "license": "",
         "source": ""
       },
@@ -2598,6 +2886,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "laberinto_vivo",
+      "name": "Laberinto Vivo",
+      "description": "Un laberinto que se excava solo, se inunda de luz de colores desde la entrada y al final muestra en blanco el camino hasta la salida; cada golpe acelera la búsqueda.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "satisfying",
+        "digital",
+        "hypnotic"
+      ],
+      "concepts": [
+        "maze generation",
+        "pathfinding",
+        "algorithm",
+        "neon"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 9.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "lampara_lava",
       "name": "Lámpara de Lava",
       "description": "Gotas brillantes de cera roja y naranja que suben, se estiran y se fusionan dentro de un líquido violeta; los graves las calientan y cada golpe las hace temblar.",
@@ -2787,6 +3107,38 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "lluvia_notas",
+      "name": "Lluvia de Notas",
+      "description": "Como los vídeos de piano con notas de colores: barras de neón rojas, naranjas y amarillas brotan de un teclado de luz al ritmo de la música y suben hasta perderse arriba.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "musical",
+        "warm",
+        "elegant"
+      ],
+      "concepts": [
+        "piano roll",
+        "synthesia",
+        "notes",
+        "keyboard"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 6.0
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -3325,6 +3677,38 @@
       },
       "thumbnail": {
         "timeSeconds": 12.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "medidores_vu",
+      "name": "Medidores VU",
+      "description": "Un panel de equipo de música antiguo: medidores analógicos con luz ámbar cuyas agujas bailan con cada banda de la música y piloto rojo que se enciende en cada golpe.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "retro",
+        "warm",
+        "analog"
+      ],
+      "concepts": [
+        "vu meter",
+        "hi-fi",
+        "needles",
+        "analog"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
       },
       "publication": "draft",
       "role": "background",
@@ -4352,6 +4736,70 @@
       "reactivity": "optional"
     },
     {
+      "id": "pendulos_dobles",
+      "name": "Caos de Péndulos Dobles",
+      "description": "Cientos de péndulos dobles casi idénticos se mueven como uno solo hasta que el caos los separa y estallan en un abanico de arcoíris; con la música vuelven a juntarse.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "hypnotic",
+        "chaotic",
+        "vivid"
+      ],
+      "concepts": [
+        "double pendulum",
+        "chaos",
+        "butterfly effect",
+        "physics"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 14.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "pixel_sorting",
+      "name": "Pixel Sorting",
+      "description": "Arte glitch: un atardecer de colores intensos cuyos píxeles se ordenan por brillo en franjas que se derriten y gotean; cada golpe rasga la imagen y la ordena todavía más.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "club"
+      ],
+      "moods": [
+        "glitch",
+        "vivid",
+        "edgy"
+      ],
+      "concepts": [
+        "pixel sorting",
+        "glitch art",
+        "databending",
+        "streaks"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "placa_circuitos",
       "name": "Placa de Circuitos",
       "description": "Una placa de circuitos ámbar vista de cerca: paquetes de datos corren por las pistas y con cada golpe el chip central dispara una onda de energía que recorre toda la placa.",
@@ -4904,6 +5352,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "tablero_galton",
+      "name": "Tablero de Galton",
+      "description": "Cientos de bolas de colores caen rebotando entre clavos y se apilan formando la campana perfecta del azar; cada golpe suelta una ráfaga y cuando se llena se vacía.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "satisfying",
+        "playful",
+        "warm"
+      ],
+      "concepts": [
+        "galton board",
+        "plinko",
+        "probability",
+        "bell curve"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 10.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "teselado_hiperbolico",
       "name": "Teselado Hiperbólico",
       "description": "Mosaico infinito dentro de un círculo, como los de Escher: piezas rojas y negras con bordes dorados que se encogen hacia el borde y fluyen con la música.",
@@ -4922,6 +5402,38 @@
         "poincare disk",
         "escher",
         "tessellation"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "teselado_penrose",
+      "name": "Teselado de Penrose",
+      "description": "El mosaico de Penrose que nunca se repite: rombos ámbar y rojos con simetría de cinco puntas que se encienden en ondas de luz con cada golpe de la música.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "mathematical",
+        "elegant",
+        "warm"
+      ],
+      "concepts": [
+        "penrose tiling",
+        "aperiodic",
+        "golden ratio",
+        "quasicrystal"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -5157,6 +5669,38 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "un_bit",
+      "name": "1-Bit",
+      "description": "Escena 3D en un solo bit, como el juego Obra Dinn: un cubo y esferas rojas que orbitan, dibujados sólo con tramas de puntos blancos sobre negro; todo late con la música.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "retro",
+        "graphic",
+        "minimal"
+      ],
+      "concepts": [
+        "1-bit",
+        "dithering",
+        "obra dinn",
+        "bayer"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
