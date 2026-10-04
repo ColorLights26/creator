@@ -57,12 +57,19 @@ def main():
         run(common + [str(root / 'test/runtime_test.cpp'), '-o', unit])
         run([unit], timeout=10)
         authored = str(Path(tmp) / 'authored-test')
-        run(common + ['-I' + str(Path(options.generated).resolve()), str(root / 'src/creator_registry.cpp'),
-                      str(root / 'test/authored_probe.cpp'), '-o', authored])
+        # The caps only catch a hung tool: they grow with the catalog (every
+        # program is compiled and replayed under sanitizers; each one with
+        # modifiers or variations is also swept).
+        generated = Path(options.generated).resolve()
+        programs = (generated / 'creator_programs.inc').read_text().count('namespace authored_')
+        cases_file = generated / 'creator_probe_cases.inc'
+        cases = cases_file.read_text().count('{"creator_') if cases_file.exists() else 0
+        run(common + ['-I' + str(generated), str(root / 'src/creator_registry.cpp'),
+                      str(root / 'test/authored_probe.cpp'), '-o', authored], timeout=90 + 2 * programs)
         # Recorre todo el catálogo con ASan/UBSan: el tiempo crece con cada
         # visual. El tope sólo debe atrapar un programa colgado.
         sweep = [options.signals] + (['--strict-modifiers'] if options.strict_modifiers else [])
-        run([authored, *sweep], timeout=120)
+        run([authored, *sweep], timeout=120 + 2 * programs + 30 * cases)
 
 if __name__ == '__main__':
     main()

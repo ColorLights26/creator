@@ -117,8 +117,10 @@ En C++: `auto m = modifiers(f)` para decidir (tipado y acotado) y
   mínimo/máximo, 8 combinaciones, cada variación, un cambio en vivo y la regla
   de 30/60 FPS con valores no iniciales. Un visual con `reactivity: none` se
   barre sin música, como lo toca la app. Revienta o presupuesto: falla. «No
-  cambia nada»: falla en CI y en la aprobación (`--strict-modifiers`). Todos
-  los visuales se revisan aunque uno falle.
+  cambia nada»: aviso en CI para los borradores (falla si es la plantilla o un
+  visual de prueba) y error en la aprobación (`--strict-modifiers`). Todos los
+  visuales se revisan aunque uno falle; los topes de tiempo crecen con el
+  catálogo.
 - **En vivo**: `setModifiers` y `setPalette` en `SceneCompositorController`.
   Android escribe los floats y reconfigura sin reiniciar; iOS manda
   `updateDocument` (`controlIdentity` ignora `options`, así que no reinicia).
