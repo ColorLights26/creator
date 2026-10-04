@@ -98,6 +98,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "arena_colores",
+      "name": "Arena de Colores",
+      "description": "Simulación de arena real: chorros de arena roja, naranja, turquesa, amarilla y fucsia caen y se apilan en dunas por capas; cada golpe cambia el color y cuando se llena se vacía por el centro.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "satisfying",
+        "playful",
+        "vivid"
+      ],
+      "concepts": [
+        "falling sand",
+        "sand art",
+        "cellular automaton",
+        "layers"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 12.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "atractor_lorenz",
       "name": "Atractor de Lorenz",
       "description": "Miles de partículas azul eléctrico recorren en 3D la mariposa del caos; cada golpe las dispersa y vuelven a caer sobre la forma.",
@@ -1514,6 +1546,102 @@
       "reactivity": "optional"
     },
     {
+      "id": "eco_infinito",
+      "name": "Eco Infinito",
+      "description": "Al estilo del clásico MilkDrop de Winamp: la forma de la música deja ecos de arcoíris que giran y se hunden hacia el infinito, cada uno con lo que sonó un instante antes.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "club"
+      ],
+      "moods": [
+        "psychedelic",
+        "retro",
+        "hypnotic"
+      ],
+      "concepts": [
+        "milkdrop",
+        "feedback",
+        "echo",
+        "spectrum"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "enjambre_metamorfo",
+      "name": "Enjambre Metamorfo",
+      "description": "Miles de partículas violeta y naranja que se transforman de esfera a toro, cubo, doble hélice y onda; respiran con los graves y estallan en los golpes fuertes.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "club"
+      ],
+      "moods": [
+        "futuristic",
+        "energetic",
+        "hypnotic"
+      ],
+      "concepts": [
+        "particles",
+        "morphing",
+        "3d shapes",
+        "swarm"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "epiciclos",
+      "name": "Epiciclos",
+      "description": "Círculos que giran dentro de círculos dibujando con un lápiz de luz figuras que cambian con la música: el tamaño de cada círculo lo marca su banda del espectro.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "mathematical",
+        "hypnotic",
+        "elegant"
+      ],
+      "concepts": [
+        "fourier series",
+        "epicycles",
+        "drawing",
+        "harmonics"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 4.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "escalera_imposible",
       "name": "Escalera Imposible",
       "description": "La escalera infinita de Escher y Penrose en isométrico: siempre sube y nunca termina, con pulsos de luz que trepan al ritmo de la música.",
@@ -2310,6 +2438,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "interferencia",
+      "name": "Interferencia",
+      "description": "Varias fuentes lanzan anillos de ondas rojas y naranjas que se cruzan y forman patrones de interferencia; cada golpe crea una fuente nueva cuyo frente se abre paso entre las demás.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "hypnotic",
+        "scientific",
+        "warm"
+      ],
+      "concepts": [
+        "wave interference",
+        "ripple tank",
+        "physics",
+        "moire"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 4.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "jardin_alucinante",
       "name": "Jardín Alucinante",
       "description": "Flores psicodélicas de póster setentero en magenta, naranja, amarillo y turquesa que giran y florecen con cada golpe sobre un sol de rayos.",
@@ -2371,6 +2531,102 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "juego_vida",
+      "name": "Juego de la Vida",
+      "description": "El autómata de Conway en neón: células que nacen en blanco, maduran en naranja y mueren en rojo, naves que cruzan la pantalla y explosiones de vida con cada golpe.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "digital",
+        "organic",
+        "energetic"
+      ],
+      "concepts": [
+        "game of life",
+        "cellular automaton",
+        "emergence",
+        "pixels"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 4.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "laberinto_truchet",
+      "name": "Laberinto Truchet",
+      "description": "Losetas con arcos de neón lima y rojo que forman caminos sin fin; cada golpe gira una ola de losetas y la luz corre por los caminos nuevos.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "hypnotic",
+        "graphic",
+        "electric"
+      ],
+      "concepts": [
+        "truchet tiles",
+        "maze",
+        "generative",
+        "neon"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "lampara_lava",
+      "name": "Lámpara de Lava",
+      "description": "Gotas brillantes de cera roja y naranja que suben, se estiran y se fusionan dentro de un líquido violeta; los graves las calientan y cada golpe las hace temblar.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "retro",
+        "warm",
+        "liquid"
+      ],
+      "concepts": [
+        "lava lamp",
+        "metaballs",
+        "wax",
+        "liquid"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 4.0
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -2851,6 +3107,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "mancha_rorschach",
+      "name": "Mancha de Rorschach",
+      "description": "Una mancha de tinta negra y roja perfectamente simétrica sobre papel crema que respira, se transforma y salpica con la música, como las láminas del test de Rorschach.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "artistic",
+        "mysterious",
+        "bold"
+      ],
+      "concepts": [
+        "rorschach",
+        "inkblot",
+        "symmetry",
+        "ink"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "mandala_alucinante",
       "name": "Mandala Alucinante",
       "description": "Mandala fractal ornamentado que se transforma sin parar con colores psicodélicos que circulan; respira con los graves y cambia de simetría con los golpes.",
@@ -2976,6 +3264,70 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "mapa_topografico",
+      "name": "Mapa Topográfico",
+      "description": "Curvas de nivel rojas de un terreno vivo sobre negro: con los graves las montañas crecen y las líneas se aprietan, y cada golpe levanta una cumbre que se enciende.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "minimal",
+        "hypnotic",
+        "warm"
+      ],
+      "concepts": [
+        "topographic map",
+        "contour lines",
+        "terrain",
+        "elevation"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "marmoleado",
+      "name": "Marmoleado",
+      "description": "Arte ebru en vivo: gotas de tinta carmesí, amarilla, azul y blanca se abren en anillos sobre el agua y un peine las arrastra en plumas y remolinos con cada golpe.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "satisfying",
+        "artistic",
+        "vivid"
+      ],
+      "concepts": [
+        "paper marbling",
+        "ebru",
+        "ink",
+        "combing"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 12.0
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -3520,6 +3872,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "nudo_toroidal",
+      "name": "Nudo Toroidal",
+      "description": "Un tubo de neón amarillo con franjas rojas anudado sobre sí mismo que gira en 3D; las franjas corren con la música y en cada frase el nudo se transforma en otro.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "hypnotic",
+        "bold",
+        "mathematical"
+      ],
+      "concepts": [
+        "torus knot",
+        "3d",
+        "tube",
+        "topology"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "ojo_psicodelico",
       "name": "Ojo Psicodélico",
       "description": "Un ojo gigante de iris turquesa y dorado mira a su alrededor rodeado de ondas rojas y naranjas que se derriten; la pupila late con los graves.",
@@ -3581,6 +3965,38 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "ola_pendulos",
+      "name": "Ola de Péndulos",
+      "description": "Una fila de péndulos de luz de largos distintos: juntos forman serpientes, ondas y patrones que se deshacen y vuelven a formarse al ritmo de la música.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "hypnotic",
+        "warm",
+        "satisfying"
+      ],
+      "concepts": [
+        "pendulum wave",
+        "physics",
+        "interference",
+        "motion"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -3709,6 +4125,38 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "panal_energia",
+      "name": "Panal de Energía",
+      "description": "Un escudo de energía de hexágonos ámbar: cada golpe es un impacto que enciende las celdas en rojo y lanza una onda de luz por todo el panal.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "club"
+      ],
+      "moods": [
+        "futuristic",
+        "energetic",
+        "warm"
+      ],
+      "concepts": [
+        "hexagon",
+        "energy shield",
+        "sci-fi",
+        "impact"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -3890,6 +4338,38 @@
         "iridescence",
         "interference",
         "bubble"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "placa_circuitos",
+      "name": "Placa de Circuitos",
+      "description": "Una placa de circuitos ámbar vista de cerca: paquetes de datos corren por las pistas y con cada golpe el chip central dispara una onda de energía que recorre toda la placa.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "tech",
+        "futuristic",
+        "warm"
+      ],
+      "concepts": [
+        "circuit board",
+        "pcb",
+        "data",
+        "energy pulse"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -4549,6 +5029,38 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "tuberias_3d",
+      "name": "Tuberías 3D",
+      "description": "El salvapantallas clásico de tuberías en 3D, rehecho con brillo: tubos rojos, amarillos y azules que crecen, giran en codos y llenan el espacio al ritmo de la música.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "retro",
+        "playful",
+        "satisfying"
+      ],
+      "concepts": [
+        "3d pipes",
+        "screensaver",
+        "growth",
+        "retro computing"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 6.0
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
