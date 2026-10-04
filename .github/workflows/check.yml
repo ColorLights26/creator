@@ -89,7 +89,7 @@ jobs:
         run: flutter test --no-pub --dart-define=CREATOR_TEST_LIBRARY=/tmp/libcreator_test.so --dart-define=CREATOR_PIXEL_OUTPUT=/tmp/creator-pixels test/native_scene_pixels_test.dart
       - name: Studio tests, including the compiled portable shader
         working-directory: studio
-        run: flutter test --no-pub test/creator_studio_test.dart test/visual_registry_generator_test.dart test/android_shader_runtime_test.dart test/creator_thumbnail_test.dart
+        run: flutter test --no-pub test/creator_studio_test.dart test/adjustment_session_test.dart test/team_review_test.dart test/visual_registry_generator_test.dart test/android_shader_runtime_test.dart test/creator_thumbnail_test.dart
       - name: Resolve compositor test dependencies
         working-directory: packages/scene_compositor
         run: flutter pub get

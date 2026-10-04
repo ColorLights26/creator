@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -18,8 +19,11 @@ import '../team_review/team_review_controller.dart';
 import '../team_review/team_voting_summary.dart';
 import '../team_review/team_vote_filter.dart';
 import '../team_review/visual_revision.dart';
+import 'adjustments/adjustment_session.dart';
+import 'adjustments/adjustments_button.dart';
+import 'adjustments/adjustments_sheet.dart';
+import 'adjustments/personal_variations.dart';
 import 'studio_view.dart';
-import 'visual_adjustments.dart';
 
 export 'studio_view.dart'
     show
@@ -59,8 +63,12 @@ class CreatorStudio extends StatefulWidget {
     this.backdropBuilder = _defaultBackdrop,
     this.recordingsLoader = loadStudioRecordings,
     this.teamReview,
+    this.personalVariations,
     super.key,
   });
+
+  /// Where saved looks ("Mía 1") live; on-device preferences by default.
+  final PersonalVariations? personalVariations;
 
   /// Shared 1-10 team voting. Null hides it (tests, offline kits).
   final TeamReviewController? teamReview;
@@ -111,14 +119,24 @@ class _CreatorStudioState extends State<CreatorStudio>
   final ValueNotifier<SceneRenderSignalFrameV2?> _latestSignal =
       ValueNotifier<SceneRenderSignalFrameV2?>(null);
 
-  // Ajustes: values the user moved for the visual on screen. They survive a
-  // track change and go back to the initial ones on another visual.
-  String? _adjustedVisualId;
-  CreatorControls? _liveControls;
-  Map<String, double> _liveModifiers = const {};
+  // Ajustes: what the team explores per visual during this Studio session.
+  // Nothing is saved to disk except looks someone saves on purpose.
+  final Map<String, ({String key, AdjustmentSession session})> _sessions = {};
+  late final PersonalVariations _personal =
+      widget.personalVariations ?? PersonalVariations();
+  final math.Random _seeds = math.Random();
+
+  /// What the compositor shows for the selected visual, and its seed (null
+  /// for the recording's).
+  AdjustmentValues? _sent;
+  int? _appliedSeed;
   bool _adjusting = false;
-  bool _controlsDirty = false;
-  bool _modifiersDirty = false;
+  bool _adjustmentsDirty = false;
+
+  /// Basics animate in Dart when a look replaces them at once; the engine
+  /// already morphs modifiers.
+  Timer? _basicsTween;
+  CreatorControls? _tweenControls;
 
   void _toggleMuted() {
     setState(() => _muted = !_muted);
@@ -310,6 +328,44 @@ class _CreatorStudioState extends State<CreatorStudio>
     final visual = _selected;
     final revision = visual == null ? null : _revisions[visual.id];
     if (review == null || visual == null || revision == null) return null;
+    final panel = _teamRatingPanel(review, visual, revision);
+    if (_session?.differsFromOriginal != true) return panel;
+    // The vote is for the original: say so while a variation is on screen.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          key: const ValueKey('adjustments-viewing-variation'),
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            children: [
+              const Icon(Icons.tune_rounded, size: 16, color: Colors.amber),
+              const SizedBox(width: 6),
+              const Expanded(
+                child: Text(
+                  'Estás viendo una variación',
+                  style: TextStyle(color: Colors.amber, fontSize: 13),
+                ),
+              ),
+              TextButton(
+                key: const ValueKey('adjustments-view-original'),
+                onPressed: _showOriginal,
+                child: const Text('Ver original'),
+              ),
+            ],
+          ),
+        ),
+        panel,
+      ],
+    );
+  }
+
+  Widget _teamRatingPanel(
+    TeamReviewController review,
+    CreatorVisualDefinition visual,
+    String revision,
+  ) {
     return TeamRatingPanel(
       controller: review,
       visualId: visual.id,
@@ -459,13 +515,10 @@ class _CreatorStudioState extends State<CreatorStudio>
     }
     _loading = true;
     _error = null;
-    if (visual.id != _adjustedVisualId) {
-      _adjustedVisualId = visual.id;
-      _liveControls = null;
-      _liveModifiers = const {};
-      _controlsDirty = false;
-      _modifiersDirty = false;
-    }
+    _sent = null;
+    _stopBasicsTween();
+    final session = _sessionFor(visual);
+    _appliedSeed = session.seed;
     setState(() {});
     _enqueue(() async {
       if (!_isCurrent(revision)) return;
@@ -477,14 +530,16 @@ class _CreatorStudioState extends State<CreatorStudio>
         pixelRatio: _pixelRatio,
       );
       if (!_isCurrent(revision)) return;
-      // setVisual restores the initial values; keep the user's Ajustes.
-      if (_liveControls case final CreatorControls controls) {
-        await _controller.setControls(controls);
+      // setVisual restores the initial values; keep what the team chose.
+      final shown = session.shown;
+      if (!mapEquals(shown.controls.toMap(), visual.controls.toMap())) {
+        await _controller.setControls(shown.controls);
       }
-      if (_liveModifiers.isNotEmpty) {
-        await _controller.setModifiers(_liveModifiers);
+      if (!mapEquals(shown.modifiers, session.original.modifiers)) {
+        await _controller.setModifiers(shown.modifiers);
       }
       if (!_isCurrent(revision)) return;
+      _sent = shown;
       await _controller.setReactive(_effectiveReaction);
       _replayElapsed = Duration.zero;
       _tickerStartElapsed = Duration.zero;
@@ -501,34 +556,112 @@ class _CreatorStudioState extends State<CreatorStudio>
     });
   }
 
-  /// Sends Ajustes changes live. A drag produces many values: only the latest
-  /// is sent, with at most one update waiting behind the compositor queue.
-  void _adjust({CreatorControls? controls, Map<String, double>? modifiers}) {
-    if (controls != null) {
-      _liveControls = controls;
-      _controlsDirty = true;
+  /// The seed the visual starts from: the recording's, unless the team asked
+  /// for another arrangement in Ajustes.
+  int get _seed =>
+      _session?.seed ?? _recordings[_sourceIndex].recording.qaSessionSeed;
+
+  AdjustmentSession? get _session {
+    final visual = _selected;
+    return visual == null ? null : _sessionFor(visual);
+  }
+
+  /// One session per visual for the whole Studio session. A reload that
+  /// changes the visual's modifiers or variations starts a fresh one.
+  AdjustmentSession _sessionFor(CreatorVisualDefinition visual) {
+    final key = [
+      _revisions[visual.id],
+      jsonEncode(visual.toMetadata()['variations']),
+      for (final modifier in visual.modifiers) jsonEncode(modifier.toMap()),
+    ].join('|');
+    final existing = _sessions[visual.id];
+    if (existing != null && existing.key == key) return existing.session;
+    existing?.session.dispose();
+    final session = AdjustmentSession(visual)
+      ..addListener(() => _sessionChanged(visual.id));
+    _sessions[visual.id] = (key: key, session: session);
+    return session;
+  }
+
+  void _sessionChanged(String visualId) {
+    if (_disposed || visualId != _selectedId) return;
+    final session = _sessions[visualId]!.session;
+    if (session.seed != _appliedSeed) {
+      _appliedSeed = session.seed;
+      _restartWithSeed();
     }
-    if (modifiers != null) {
-      _liveModifiers = modifiers;
-      _modifiersDirty = true;
+    final sent = _sent;
+    if (session.jumped && sent != null) {
+      _tweenBasics(_tweenControls ?? sent.controls, session.shown.controls);
+    } else {
+      _stopBasicsTween();
     }
+    _scheduleAdjustments();
     setState(() {});
+  }
+
+  void _tweenBasics(CreatorControls from, CreatorControls to) {
+    _stopBasicsTween();
+    if (mapEquals(from.toMap(), to.toMap())) return;
+    const duration = 250, frame = 16;
+    var elapsed = 0;
+    _tweenControls = from;
+    _basicsTween = Timer.periodic(const Duration(milliseconds: frame), (timer) {
+      elapsed += frame;
+      final t = Curves.easeOutCubic.transform(
+        (elapsed / duration).clamp(0.0, 1.0),
+      );
+      double lerp(double a, double b) => a + (b - a) * t;
+      _tweenControls =
+          elapsed >= duration
+              ? null
+              : CreatorControls(
+                intensity: lerp(from.intensity, to.intensity),
+                speed: lerp(from.speed, to.speed),
+                detail: lerp(from.detail, to.detail),
+                glow: lerp(from.glow, to.glow),
+              );
+      if (elapsed >= duration) timer.cancel();
+      _scheduleAdjustments();
+    });
+  }
+
+  void _stopBasicsTween() {
+    _basicsTween?.cancel();
+    _basicsTween = null;
+    _tweenControls = null;
+  }
+
+  /// Sends what Ajustes shows. A drag produces many values: only the latest
+  /// is sent, with at most one update waiting behind the compositor queue,
+  /// and never to a visual other than the one it was meant for.
+  void _scheduleAdjustments() {
+    _adjustmentsDirty = true;
     if (_adjusting) return;
     _adjusting = true;
     final revision = _revision;
+    final visualId = _selectedId;
     _enqueue(() async {
       try {
-        while (_isCurrent(revision) && (_controlsDirty || _modifiersDirty)) {
-          if (_controlsDirty) {
-            _controlsDirty = false;
-            if (_liveControls case final CreatorControls controls) {
-              await _controller.setControls(controls);
-            }
+        while (_adjustmentsDirty &&
+            _isCurrent(revision) &&
+            _selectedId == visualId) {
+          _adjustmentsDirty = false;
+          final session = _sessions[visualId]?.session;
+          final sent = _sent;
+          if (session == null || sent == null) break;
+          final shown = session.shown;
+          final next = (
+            controls: _tweenControls ?? shown.controls,
+            modifiers: shown.modifiers,
+          );
+          if (!mapEquals(next.controls.toMap(), sent.controls.toMap())) {
+            await _controller.setControls(next.controls);
           }
-          if (_modifiersDirty) {
-            _modifiersDirty = false;
-            await _controller.setModifiers(_liveModifiers);
+          if (!mapEquals(next.modifiers, sent.modifiers)) {
+            await _controller.setModifiers(next.modifiers);
           }
+          if (_isCurrent(revision) && _selectedId == visualId) _sent = next;
         }
       } finally {
         _adjusting = false;
@@ -536,31 +669,46 @@ class _CreatorStudioState extends State<CreatorStudio>
     });
   }
 
-  bool get _adjustmentsChanged {
-    final visual = _selected;
-    if (visual == null) return false;
-    final controls = _liveControls;
-    return (controls != null &&
-            !mapEquals(controls.toMap(), visual.controls.toMap())) ||
-        (_liveModifiers.isNotEmpty &&
-            !mapEquals(_liveModifiers, visual.modifierDefaults));
+  /// Another arrangement of the same visual: restarts it with a new seed,
+  /// keeping the chosen values.
+  void _anotherSeed() => _session?.seed = _seeds.nextInt(0x7fffffff);
+
+  void _restartWithSeed() {
+    final revision = _revision;
+    final seed = _seed;
+    _enqueue(() async {
+      if (!_isCurrent(revision)) return;
+      await _controller.reset(qaSessionSeed: seed);
+      if (_isCurrent(revision)) _replayPrimed = true;
+    });
+  }
+
+  /// Back to exactly what the team votes: initial values, recording's seed.
+  void _showOriginal() => _session?.resetToOriginal();
+
+  String? get _look {
+    final session = _session;
+    if (session == null || !session.differsFromOriginal) return null;
+    return switch (session.chip) {
+      null || originalChipName => 'cambiados',
+      final String name => name,
+    };
   }
 
   Widget? _adjustmentsButton() {
     final visual = _selected;
-    if (visual == null || _error != null) return null;
+    final session = _session;
+    if (visual == null || session == null || _error != null) return null;
     return VisualAdjustmentsButton(
       modifierCount: visual.modifiers.length,
-      modified: _adjustmentsChanged,
+      look: _look,
       onPressed:
           () => unawaited(
-            showVisualAdjustments(
+            showAdjustmentsSheet(
               context: context,
-              visual: visual,
-              controls: _liveControls ?? visual.controls,
-              modifiers: _liveModifiers,
-              onControls: (controls) => _adjust(controls: controls),
-              onModifiers: (modifiers) => _adjust(modifiers: modifiers),
+              session: session,
+              store: _personal,
+              onAnotherSeed: _anotherSeed,
             ),
           ),
     );
@@ -642,18 +790,14 @@ class _CreatorStudioState extends State<CreatorStudio>
   Future<void> _deliverReplay(Duration elapsed, int revision) async {
     if (!_effectiveReaction) {
       if (!_replayPrimed) {
-        await _controller.reset(
-          qaSessionSeed: _recordings[_sourceIndex].recording.qaSessionSeed,
-        );
+        await _controller.reset(qaSessionSeed: _seed);
         if (_isCurrent(revision)) _replayPrimed = true;
       }
       return;
     }
     final batch = _replay.advance(elapsed);
     if (!_replayPrimed) {
-      await _controller.reset(
-        qaSessionSeed: _recordings[_sourceIndex].recording.qaSessionSeed,
-      );
+      await _controller.reset(qaSessionSeed: _seed);
       if (!_isCurrent(revision)) return;
       _replayPrimed = true;
     }
@@ -718,6 +862,10 @@ class _CreatorStudioState extends State<CreatorStudio>
     WidgetsBinding.instance.removeObserver(this);
     widget.teamReview?.removeListener(_teamReviewChanged);
     _performance.dispose();
+    _stopBasicsTween();
+    for (final entry in _sessions.values) {
+      entry.session.dispose();
+    }
     _controller.removeListener(_controllerChanged);
     _ticker.dispose();
     _latestSignal.dispose();
@@ -816,6 +964,11 @@ class _CreatorStudioState extends State<CreatorStudio>
       ratingPanel: _ratingPanel(),
       performanceOverlay: VisualPerformanceOverlay(sample: _performance.sample),
       adjustments: _adjustmentsButton(),
+      compareLabel: _session?.comparing == true ? originalChipName : null,
+      onCompare:
+          _session?.differsFromOriginal == true
+              ? (comparing) => _session?.comparing = comparing
+              : null,
       backdropVisuals: [
         for (var index = 0; index < _catalog.length; index++)
           if (_catalog[index].role == CreatorRole.background)

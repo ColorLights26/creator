@@ -98,6 +98,8 @@ class StudioView extends StatefulWidget {
     this.ratingPanel,
     this.performanceOverlay,
     this.adjustments,
+    this.compareLabel,
+    this.onCompare,
     this.backdropVisuals = const [],
     this.backdropBuilder,
     this.voteFilters = const [],
@@ -139,6 +141,14 @@ class StudioView extends StatefulWidget {
   /// Opens the visual's Ajustes (its modifiers and the basic controls),
   /// shown above "Pruébalo con".
   final Widget? adjustments;
+
+  /// Shown over the visual while it displays something else than the
+  /// team's choice (holding to compare with the original).
+  final String? compareLabel;
+
+  /// Holding the visual compares it: true when the finger lands, false when
+  /// it lifts. Null when there is nothing to compare.
+  final ValueChanged<bool>? onCompare;
 
   /// Catalog backgrounds that can sit, frozen, behind an overlay.
   final List<StudioBackdropVisual> backdropVisuals;
@@ -649,9 +659,49 @@ class _StudioViewState extends State<StudioView> {
                         }
                       }
                     },
+                    onLongPressStart:
+                        widget.onCompare == null
+                            ? null
+                            : (_) => widget.onCompare!(true),
+                    onLongPressEnd:
+                        widget.onCompare == null
+                            ? null
+                            : (_) => widget.onCompare!(false),
+                    onLongPressCancel:
+                        widget.onCompare == null
+                            ? null
+                            : () => widget.onCompare!(false),
                     child: _preview(context),
                   ),
                 ),
+                if (widget.compareLabel case final String label)
+                  Positioned(
+                    top: MediaQuery.paddingOf(context).top + 64,
+                    left: 0,
+                    right: 0,
+                    child: IgnorePointer(
+                      child: Center(
+                        child: Container(
+                          key: const ValueKey('compare-label'),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: .6),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            label,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
 
                 // 2. Floating Bottom Hero & Controls Overlay
                 AnimatedOpacity(

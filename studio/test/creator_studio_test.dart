@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:audiovisual_creator/studio/creator_studio.dart';
 import 'package:audiovisual_creator/studio/studio_backdrop.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scene_compositor/scene_compositor.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const _aurora = CreatorVisualDefinition(
   id: 'aurora',
@@ -43,6 +45,13 @@ const _galaxy = CreatorVisualDefinition(
       'Estilo',
       options: ['Auto', 'Nítido', 'Nebuloso'],
     ),
+  ],
+  variations: [
+    CreatorVariation('Tormenta', {
+      'brazos': 6,
+      'estilo': 'Nebuloso',
+      'speed': 1.4,
+    }),
   ],
 );
 
@@ -681,54 +690,69 @@ void main() {
     },
   );
 
+  Future<_Controller> pumpAdjustments(WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1200, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({});
+    final controller = _Controller();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CreatorStudio(
+          catalogBuilder: () => [_galaxy, _aurora],
+          controllerFactory: () => controller,
+          recordingsLoader: () async => [],
+          thumbnailBuilder: (_, _) => const SizedBox(),
+        ),
+      ),
+    );
+    await _flush(tester);
+    return controller;
+  }
+
+  Future<void> openAdjustments(WidgetTester tester) async {
+    final button = find.byKey(const ValueKey('visual-adjustments-button'));
+    await tester.ensureVisible(button);
+    await tester.pump();
+    await tester.tap(button);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+  }
+
+  Future<void> tapKey(WidgetTester tester, String key) async {
+    final target = find.byKey(ValueKey(key));
+    await tester.ensureVisible(target);
+    await tester.pump();
+    await tester.tap(target);
+    await _flush(tester);
+  }
+
+  Future<void> closeAdjustments(WidgetTester tester) async {
+    await tester.tap(find.byTooltip('Cerrar'));
+    await tester.pump(const Duration(milliseconds: 600));
+  }
+
   testWidgets(
     'Ajustes changes modifiers live and keeps them across a track change',
     (tester) async {
-      tester.view.physicalSize = const Size(1200, 2400);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-      final controller = _Controller();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: CreatorStudio(
-            catalogBuilder: () => [_galaxy, _aurora],
-            controllerFactory: () => controller,
-            recordingsLoader: () async => [],
-            thumbnailBuilder: (_, _) => const SizedBox(),
-          ),
-        ),
-      );
-      await _flush(tester);
-      final button = find.byKey(const ValueKey('visual-adjustments-button'));
+      final controller = await pumpAdjustments(tester);
       expect(find.text('Ajustes · 4 modificadores'), findsOneWidget);
       expect(controller.sentModifiers, isEmpty);
 
-      Future<void> open() async {
-        await tester.ensureVisible(button);
-        await tester.pump();
-        await tester.tap(button);
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 600));
-      }
-
-      Future<void> tap(String key) async {
-        final target = find.byKey(ValueKey(key));
-        await tester.ensureVisible(target);
-        await tester.pump();
-        await tester.tap(target);
-        await _flush(tester);
-      }
-
-      await open();
+      await openAdjustments(tester);
       expect(find.text('Ajustes · Galaxia'), findsOneWidget);
       expect(find.text('Brazos'), findsOneWidget);
-      // A small range keeps its decimals instead of showing 0.00.
-      expect(find.text('0.004'), findsOneWidget);
-      // The body only reads speed: the other basic sliders say so.
-      expect(find.text('Detalle · este visual no lo usa'), findsOneWidget);
-      expect(find.text('Velocidad · este visual no lo usa'), findsNothing);
+      // Only the basics the code reads are shown (this one reads speed).
+      expect(
+        find.byKey(const ValueKey('adjustments-basic-speed')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('adjustments-basic-detail')),
+        findsNothing,
+      );
 
-      await tap('adjustments-modifier-estilo-2');
+      await tapKey(tester, 'adjustments-modifier-estilo-2');
       expect(controller.sentModifiers.last, {
         'brazos': 4.0,
         'grosor': .004,
@@ -744,8 +768,7 @@ void main() {
       await _flush(tester);
       expect(controller.sentModifiers.last['nucleo'], 0);
 
-      await tester.tap(find.byTooltip('Cerrar'));
-      await tester.pump(const Duration(milliseconds: 600));
+      await closeAdjustments(tester);
       expect(
         find.text('Ajustes · 4 modificadores · cambiados'),
         findsOneWidget,
@@ -765,26 +788,108 @@ void main() {
         'estilo': 2.0,
       });
 
-      await open();
-      await tap('adjustments-reset');
+      await openAdjustments(tester);
+      await tapKey(tester, 'adjustments-chip-original');
       expect(controller.sentModifiers.last, _galaxy.modifierDefaults);
-      expect(controller.sentControls.last.toMap(), _galaxy.controls.toMap());
 
       // Another visual starts from its own initial values and explains why
-      // it has no modifiers of its own.
-      await tester.tap(find.byTooltip('Cerrar'));
-      await tester.pump(const Duration(milliseconds: 600));
+      // it has no modifiers of its own; coming back keeps the session.
+      await closeAdjustments(tester);
       await tester.tap(find.byKey(const ValueKey('visual-selector')));
       await tester.pump(const Duration(milliseconds: 250));
       await tester.tap(find.text('Aurora').last);
       await _flush(tester);
       expect(controller.visuals.last, 'aurora');
       expect(find.text('Ajustes'), findsOneWidget);
-      await open();
+      await openAdjustments(tester);
       expect(
         find.byKey(const ValueKey('adjustments-no-modifiers')),
         findsOneWidget,
       );
+
+      await tester.pumpWidget(const SizedBox());
+      await _flush(tester);
+    },
+  );
+
+  testWidgets(
+    'looks: variations, dice, undo, hold to compare, another seed, saving',
+    (tester) async {
+      final controller = await pumpAdjustments(tester);
+      await openAdjustments(tester);
+
+      // An author variation: modifiers morph in the engine, basics in Dart.
+      await tapKey(tester, 'adjustments-chip-Tormenta');
+      await tester.pump(const Duration(milliseconds: 400));
+      await _flush(tester);
+      expect(controller.sentModifiers.last, {
+        'brazos': 6.0,
+        'grosor': .004,
+        'nucleo': 1.0,
+        'estilo': 2.0,
+      });
+      final speeds = [for (final c in controller.sentControls) c.speed];
+      expect(speeds.last, 1.4);
+      expect(speeds.where((v) => v > 1 && v < 1.4), isNotEmpty);
+
+      // Variar changes something; Deshacer goes back to Tormenta.
+      final before = controller.sentModifiers.last;
+      await tapKey(tester, 'adjustments-vary');
+      await tester.pump(const Duration(milliseconds: 400));
+      await _flush(tester);
+      final varied = {
+        ...controller.sentModifiers.last,
+        'speed': controller.sentControls.last.speed,
+      };
+      expect(varied, isNot({...before, 'speed': 1.4}));
+      await tapKey(tester, 'adjustments-undo');
+      await tester.pump(const Duration(milliseconds: 400));
+      await _flush(tester);
+      expect(controller.sentModifiers.last, before);
+      expect(controller.sentControls.last.speed, 1.4);
+
+      // Sorprender stays inside every declared range.
+      await tapKey(tester, 'adjustments-surprise');
+      await tester.pump(const Duration(milliseconds: 400));
+      await _flush(tester);
+      for (final modifier in _galaxy.modifiers) {
+        expect(
+          modifier.accepts(controller.sentModifiers.last[modifier.id]!),
+          isTrue,
+        );
+      }
+
+      // Guardar keeps the look as a chip.
+      await tapKey(tester, 'adjustments-save');
+      expect(
+        find.byKey(const ValueKey('adjustments-mine-Mía 1')),
+        findsOneWidget,
+      );
+      final saved = controller.sentModifiers.last;
+
+      // Another seed restarts the same visual with another arrangement.
+      final resets = controller.resets.length;
+      await tester.tap(find.byKey(const ValueKey('adjustments-more')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.text('Otra semilla'));
+      await tester.pump(const Duration(milliseconds: 400));
+      await _flush(tester);
+      expect(controller.resets.length, resets + 1);
+      expect(controller.resets.last, isNot(controller.resets.first));
+      await closeAdjustments(tester);
+
+      // Holding the visual shows the original; lifting brings the look back.
+      final gesture = await tester.startGesture(const Offset(600, 300));
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+      await _flush(tester);
+      expect(find.byKey(const ValueKey('compare-label')), findsOneWidget);
+      expect(controller.sentModifiers.last, _galaxy.modifierDefaults);
+      await gesture.up();
+      await tester.pump(const Duration(milliseconds: 400));
+      await _flush(tester);
+      expect(find.byKey(const ValueKey('compare-label')), findsNothing);
+      expect(controller.sentModifiers.last, saved);
 
       await tester.pumpWidget(const SizedBox());
       await _flush(tester);
