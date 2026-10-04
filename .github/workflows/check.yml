@@ -80,6 +80,8 @@ jobs:
         run: |
           cp studio/test/fixtures/native_composition/*.dart packages/visual_catalog/lib/visuals/
           cp studio/test/fixtures/native_composition/*.png packages/visual_catalog/assets/images/
+          cp templates/visual_template.dart packages/visual_catalog/lib/visuals/template_example.dart
+          cp studio/test/fixtures/template_example/*.dart packages/visual_catalog/lib/visuals/
           (cd studio && dart run tool/compile_creator.dart)
           dart studio/tool/generate_template.dart --check
           python3 packages/scene_program_native/test/check_native.py --generated studio/build/creator_native
@@ -124,6 +126,8 @@ jobs:
         run: |
           cp test/fixtures/native_composition/*.dart ../packages/visual_catalog/lib/visuals/
           cp test/fixtures/native_composition/*.png ../packages/visual_catalog/assets/images/
+          cp ../templates/visual_template.dart ../packages/visual_catalog/lib/visuals/template_example.dart
+          cp test/fixtures/template_example/*.dart ../packages/visual_catalog/lib/visuals/
           flutter pub get
           dart run tool/compile_creator.dart
       - name: Stateful scenes on Metal

@@ -1,11 +1,11 @@
 // PARA FRANCO: copia TODO este archivo a tu IA y describe el visual que quieres.
 // Pega su respuesta completa en tu archivo .dart. Metadata en el archivo compañero.
 // Guarda y usa Stop → Run. No necesitas registrar nada ni tocar el motor.
-// Sus modificadores aparecen en Studio, en el botón Ajustes, para probarlos.
+// Sus modificadores y variaciones aparecen en Studio, en Ajustes, para probarlos.
 //
 // PARA LA IA: entrega únicamente este archivo Dart completo, sin Markdown.
-// Conserva las instrucciones y la referencia; reemplaza modifiers y nativeSource
-// por los de tu escena. Conserva el import: lo necesitan los modificadores.
+// Conserva las instrucciones y la referencia; reemplaza modifiers, variations y
+// nativeSource por los de tu escena. Conserva el import: lo necesitan.
 // nativeSource es C++17: define class Visual final : public Scene.
 // Puedes crear algoritmos, structs, vectores, estado persistente, partículas,
 // curvas y funciones auxiliares. La instancia es independiente por reproducción.
@@ -15,7 +15,20 @@
 // render(frame,canvas) const sólo dibuja. No uses globals mutables, relojes,
 // timers, sensores, red, archivos, hilos ni servicios de la app.
 // Frame.time/delta son segundos activos, con pausa y delta acotado por el motor.
-// Usa delta para velocidades; Random(seed) para inicialización reproducible.
+// Usa delta para velocidades; Random(seed) sólo en reset.
+//
+// 30 Y 60 FPS (Creator lo comprueba): sin música, el dibujo debe ser el mismo a
+// 30 y a 60 FPS. Acumula fases exactas: fase += f.delta * velocidad. Para
+// partículas, reserva un grupo fijo en reset y calcula cada una con una fórmula
+// del tiempo (edad = fmod(f.time + desfase, vida); posición = inicio + vel * edad):
+// renacen por ciclo, sin Random en update y sin crear ni borrar por cuadro. No
+// integres en posiciones valores suavizados por cuadro (x += suave * delta). Evita
+// pow, sqrt o log de valores que puedan ser negativos o cero.
+//
+// MÚSICA CON MEDIDA: la energía (f.music.energy, bass) respira lento; los eventos
+// (f.music.events) dan acentos cortos que se apagan. Con intensity 2 y música
+// fuerte, crece como mucho un 25%, deja ~30% de oscuridad y no apiles capas
+// aditivas hasta el blanco. Lo que reacciona debe notarse, pero no saturar.
 // Music.events ya está deduplicado. Si music.active=false, sus señales son cero.
 // Apagar música no borra partículas existentes. No inventes golpes desde bpm.
 // width/height son píxeles lógicos, origen arriba izquierda, y hacia abajo.
@@ -36,25 +49,51 @@
 // f.colors: paleta de la metadata. colors[0] es el fondo; colors[1..3], los
 //   acentos. No escribas colores fijos en el código: así la paleta se cambia.
 //
-// MODIFICADORES (SIEMPRE): declara de 2 a 6 ajustes propios que cambien de
-// verdad el visual: cantidad, simetría, forma, figura, estilo, estela, zoom...
+// MODIFICADORES (SIEMPRE): declara de 3 a 5, cada uno de una familia distinta:
+//   FORMA: cantidad, simetría, figura, estructura.
+//   MOVIMIENTO: el carácter (fluido, nervioso, orbital), nunca la velocidad.
+//   MÚSICA (obligatorio): a qué responde o cómo golpea; p. ej. el choice
+//     'Pulso': Graves / Golpes / Brillos.
+//   ATMÓSFERA: estela, bruma, profundidad, textura.
+// Cada uno debe cambiar el visual a simple vista: su mínimo y su máximo deben
+// parecer dos visuales distintos y los dos bonitos, también con detail 2,
+// intensity 2 y música fuerte. Si sólo cambia un detalle pequeño, quítalo.
+// No repitas los básicos (intensidad, velocidad, detalle, brillo) ni la paleta:
+// Creator rechaza el visual. Un interruptor sólo para un modo que cambia la
+// estructura (Espejo, Contorno), nunca para encender un adorno.
 // Van en const modifiers, antes de nativeSource. Tipos:
 //   CreatorModifier.slider('id', 'Nombre', min: .5, max: 2, value: 1)    decimal
 //   CreatorModifier.steps('id', 'Nombre', min: 3, max: 12, value: 6)     entero
 //   CreatorModifier.toggle('id', 'Nombre', value: true)                  sí / no
-//   CreatorModifier.choice('id', 'Nombre', options: ['Auto', 'A', 'B'])  opción
-// En C++: auto m = modifiers(f); y usa m.id (choice da el índice: 0, 1, 2...).
-// Léelos en update y render; reset no recibe el frame.
+//   CreatorModifier.choice('id', 'Nombre', options: ['A', 'B', 'C'])     opción
+// En C++: auto m = modifiers(f); para decidir (float, int, bool o el índice).
+//   auto g = glide(f); para transformarse: el motor ya suaviza cada cambio.
+//   g.<slider> y g.<steps> son decimales que se deslizan (5.4 brazos: mezcla 5
+//   y 6); g.<toggle> va de 0 a 1 (úsalo como opacidad); g.<choice>.weight(i) es
+//   el peso de la opción i y los pesos suman 1: mezcla las opciones con ellos.
+//   No escribas tu propio suavizado de los ajustes.
+// Calcula el aspecto en render (así se ve en pausa); update sólo acumula
+// movimiento. Reserva el máximo en reset; nunca reserves memoria ni reinicies
+// al cambiar un ajuste. Para materiales, pasa los valores y pesos como floats.
 // id: letras a-z sin acentos ni ñ, números y _; empieza por letra; hasta 24.
 //   Es el nombre en C++: no uses intensity, speed, detail, glow, colors,
-//   palette, music, time, delta, width, height, seed, modifiers ni palabras
-//   de C++ (double, float, auto, static, default, new, union...).
+//   palette, music, time, delta, width, height, seed, modifiers, glide ni
+//   palabras de C++ (double, float, auto, static, default, new, union...).
+//   No leas f.modifiers[...] ni declares nada llamado modifiers, glide o Creator*.
 // Nombre visible en español, hasta 24 caracteres; opciones hasta 20; máximo 8.
 // Rangos dentro de ±100000; steps admite hasta 1000 pasos entre min y max.
-// value es el aspecto inicial; el rango, sólo valores que se sigan viendo bien.
-// Si el visual cambia solo (figuras, simetrías, modos), pon 'Auto' primero.
-// Cambiar un modificador debe verse suave y en vivo: no reinicies ni reserves
-// memoria al cambiarlo; para cantidades, reserva el máximo en reset.
+//
+// VARIACIONES (SIEMPRE): 2 o 3 en const variations, después de modifiers:
+//   CreatorVariation('Tormenta', {'brazos': 8, 'pulso': 'Golpes', 'speed': 1.4})
+// Cada una debe parecer otro visual. Claves: los ids de tus modificadores o
+// intensity, speed, detail y glow. Un choice va con el texto de su opción y un
+// toggle con true o false. Nombre de hasta 20 caracteres, distinto de 'Original'.
+//
+// Creator prueba cada mínimo, máximo, opción y variación con música: un ajuste
+// que no cambia nada o que falla impide la aprobación.
+// ANTES DE ENTREGAR, comprueba: 3 a 5 ajustes de familias distintas y uno
+// musical; cada id se lee en el C++; ninguno repite un básico; extremos seguros
+// con detail 2; 2 o 3 variaciones; el movimiento es igual a 30 y 60 FPS.
 //
 // MATERIALES OPCIONALES: añade const shaderSources = <String, String>{
 //   'material': r"""#version 460 core
@@ -192,80 +231,123 @@
 
 import 'package:scene_compositor/authoring.dart';
 
-// Ajustes propios de este visual. Studio los muestra en Ajustes.
+// Ajustes propios de este visual: Studio los muestra en Ajustes.
 const modifiers = [
-  CreatorModifier.steps('brazos', 'Brazos', min: 2, max: 6, value: 4),
-  CreatorModifier.slider('giro', 'Giro', min: .2, max: 2, value: 1),
-  CreatorModifier.toggle('nucleo', 'Núcleo brillante', value: true),
+  // FORMA
+  CreatorModifier.steps('brazos', 'Brazos', min: 2, max: 8, value: 4),
+  // MÚSICA: cómo se ve el ritmo.
   CreatorModifier.choice(
-    'estilo',
-    'Estilo',
-    options: ['Auto', 'Nítido', 'Nebuloso'],
+    'pulso',
+    'Pulso',
+    options: ['Graves', 'Golpes', 'Brillos'],
   ),
+  // ATMÓSFERA
+  CreatorModifier.slider('estela', 'Estela', min: 0, max: 1, value: .35),
+  // MODO: cambia la estructura.
+  CreatorModifier.toggle('espejo', 'Espejo'),
+];
+
+// Combinaciones con nombre que parecen otro visual.
+const variations = [
+  CreatorVariation('Tormenta', {
+    'brazos': 8,
+    'pulso': 'Golpes',
+    'estela': .9,
+    'espejo': true,
+    'speed': 1.4,
+  }),
+  CreatorVariation('Calma', {
+    'brazos': 2,
+    'pulso': 'Graves',
+    'estela': .1,
+    'speed': .5,
+  }),
 ];
 
 const nativeSource = r"""
 class Visual final : public Scene {
-  // Reserve the maximum (detail 2): moving a setting never reallocates or restarts.
+  // Reserve the maximum (detail 2): changing a setting never reallocates.
   static constexpr int maxStars = 3000;
-  struct Star { float radius, offset, lift, drift; int slot, group; };
+  struct Star { float radius, offset, lift, drift, arm; int group; };
   std::vector<Star> stars;
-  float turn = 0, breath = 0, haze = 0, beats = 0;
+  float turn = 0, breath = 0, beat = 0;
  public:
   void reset(uint32_t seed) override {
     Random rng(seed); stars.clear(); stars.reserve(maxStars);
-    turn = 0; breath = 0; haze = 0; beats = 0;
+    turn = 0; breath = 0; beat = 0;
     for (int i = 0; i < maxStars; i++) {
       float r = std::sqrt(rng.unit());
       stars.push_back({r, r * 5.8f + (rng.unit() - .5f) * (.25f + r * .8f),
         (rng.unit() - .5f) * (.018f + r * .035f), .7f + rng.unit() * .6f,
-        int(rng.unit() * 720), i % 9});
+        rng.unit(), i % 9});
     }
   }
   void update(const Frame& f) override {
-    auto m = modifiers(f);
-    // Speed always through delta, accumulated: moving it never makes the spin jump.
-    turn += float(f.delta) * f.speed * m.giro * .06f;
-    float energy = f.music.energy * f.intensity;
-    breath += (energy - breath) * float(1 - std::exp(-f.delta * 3));
-    // Style "Auto" (option 0) switches between sharp and hazy every 8 beats.
-    beats += float(f.music.events[2].size());
-    float target = m.estilo == 1 ? 0.f : m.estilo == 2 ? 1.f
-                 : (int(beats / 8) % 2 == 1 ? 1.f : 0.f);
-    haze += (target - haze) * float(1 - std::exp(-f.delta * 2));
+    // Motion only: phases accumulate with delta, so 30 and 60 FPS match.
+    const float d = float(f.delta);
+    turn += d * f.speed * .06f;
+    // Music: the bass breathes slowly; each beat is a short accent that fades.
+    breath += (f.music.bass * f.intensity - breath) * (1 - std::exp(-d * 4));
+    if (!f.music.events[2].empty()) beat = std::min(1.f, f.intensity);
+    beat *= std::exp(-d * 5);
   }
   void render(const Frame& f, Canvas& c) const override {
-    auto m = modifiers(f);
-    // Palette from metadata: colors[0] background, colors[1..3] accents.
+    // Look is computed here, so every setting shows even while paused.
+    auto g = glide(f);  // transitions: gliding decimals, a 0..1 fade, weights
     const auto& pal = f.colors;
+    // Pulso decides how the music shows; its weights blend the options.
+    const float graves = g.pulso.weight(0) * breath;
+    const float golpes = g.pulso.weight(1) * beat;
+    const float brillos = g.pulso.weight(2) * f.music.spark * f.intensity;
     Color deep{pal[0].r * .25f, pal[0].g * .25f, pal[0].b * .25f, 1};
     c.rect({0, 0, f.width, f.height},
            Paint::radial({f.width * .5f, f.height * .47f}, f.height * .75f,
                          {pal[0].opacity(1), deep}));
     c.save(); c.translate(f.width * .5f, f.height * .48f); c.rotate(-.38f);
-    float scale = std::min(f.width * .62f, f.height * .42f) * (1 + breath * .045f);
-    Paint mist = Paint::radial({0, 0}, scale * .8f,
-      {pal[2].opacity((.12f + haze * .2f) * f.glow), pal[2].opacity(0)});
-    mist.blend = Blend::plus; c.rect({-scale, -scale, scale * 2, scale * 2}, mist);
-    int visible = std::min(maxStars, int(maxStars * .5f * f.detail));
-    float arm = float(2 * pi) / float(m.brazos);
+    const float scale = std::min(f.width * .62f, f.height * .42f) * (1 + graves * .2f);
+    // Estela: from sharp stars (0) to a soft, glowing nebula (1).
+    const float haze = g.estela;
+    Paint mist = Paint::radial({0, 0}, scale * (.6f + haze * .5f),
+      {pal[2].opacity((.05f + haze * .35f) * f.glow), pal[2].opacity(0)});
+    mist.blend = Blend::plus;
+    c.rect({-scale * 1.2f, -scale * 1.2f, scale * 2.4f, scale * 2.4f}, mist);
+    // Brazos glides (5.4 arms): each star sits at its share of the circle, so
+    // arms spread apart smoothly while the count changes.
+    const int fewer = int(std::floor(g.brazos)), more = fewer + 1;
+    const float between = g.brazos - float(fewer);
+    auto armAngle = [](float share, int arms) {
+      return std::floor(share * float(arms)) * float(2 * pi) / float(arms);
+    };
+    const int visible = std::min(maxStars, int(maxStars * .5f * f.detail));
+    Paint core = Paint::radial({0, 0}, scale * .28f,
+      {pal[3].opacity(.92f * std::min(1.f, f.glow)), pal[1].opacity(.22f), pal[1].opacity(0)},
+      {0, .22f, 1});
+    core.blend = Blend::screen;
+    c.circle({0, 0}, scale * (.28f + golpes * .08f), core);
     for (int group = 0; group < 9; group++) {
-      std::vector<Vec2> batch; batch.reserve(visible / 9 + 1);
+      std::vector<Vec2> batch, mirror;
+      batch.reserve(visible / 9 + 1); mirror.reserve(visible / 9 + 1);
       for (int i = 0; i < visible; i++) {
         const auto& s = stars[i];
         if (s.group != group) continue;
-        float a = float(s.slot % m.brazos) * arm + s.offset + turn * s.drift;
-        batch.push_back({std::cos(a) * s.radius * scale,
-          std::sin(a) * s.radius * scale * .49f + s.lift * scale});
+        const float from = armAngle(s.arm, fewer), to = armAngle(s.arm, more);
+        const float a = from + (to - from) * between + s.offset + turn * s.drift;
+        const Vec2 point{std::cos(a) * s.radius * scale,
+                         std::sin(a) * s.radius * scale * .49f + s.lift * scale};
+        batch.push_back(point);
+        mirror.push_back({-point.x, point.y});
       }
-      Paint p; p.blend = Blend::plus; p.color = pal[1 + group % 3].opacity(.65f);
-      c.points(batch, (.55f + (group / 3) * .5f) * (1 + haze * .8f), p);
-    }
-    if (m.nucleo) {
-      Paint core = Paint::radial({0, 0}, scale * .28f,
-        {pal[3].opacity(.92f * std::min(1.f, f.glow)), pal[1].opacity(.22f), pal[1].opacity(0)},
-        {0, .22f, 1});
-      core.blend = Blend::screen; c.circle({0, 0}, scale * .28f, core);
+      const float twinkle = .5f + .5f * std::sin(float(f.time) * 9 + group * 1.7f);
+      Paint p; p.blend = Blend::plus;
+      const float alpha = std::min(1.f, .55f + golpes * .45f + brillos * twinkle * .6f);
+      const float size = (.55f + (group / 3) * .5f) * (1 + haze * 1.6f + golpes * .8f);
+      p.color = pal[1 + group % 3].opacity(alpha);
+      c.points(batch, size, p);
+      // Espejo: a mirrored twin turns the spiral into a symmetric butterfly.
+      if (g.espejo > 0) {
+        p.color = pal[1 + (group + 1) % 3].opacity(alpha * g.espejo);
+        c.points(mirror, size, p);
+      }
     }
     c.restore();
   }
