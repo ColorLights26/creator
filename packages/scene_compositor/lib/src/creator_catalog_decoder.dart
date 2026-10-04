@@ -10,8 +10,8 @@ List<CreatorVisualDefinition> decodeCreatorCatalog({
   required String metadataJson,
   bool allowEmpty = false,
 }) {
-  if (utf8.encode(runtimeJson).length > 4 * 1024 * 1024 ||
-      utf8.encode(metadataJson).length > 1024 * 1024) {
+  if (utf8.encode(runtimeJson).length > maxCreatorCatalogBytes ||
+      utf8.encode(metadataJson).length > maxCreatorMetadataBytes) {
     throw const FormatException('El catálogo supera su tamaño permitido.');
   }
   final runtime = _object(jsonDecode(runtimeJson), 'runtime');
@@ -22,7 +22,7 @@ List<CreatorVisualDefinition> decodeCreatorCatalog({
   final programs = _list(runtime['visuals'], 'runtime.visuals');
   final descriptions = _list(metadata['visuals'], 'metadata.visuals');
   if ((!allowEmpty && programs.isEmpty) ||
-      programs.length > 256 ||
+      programs.length > maxCreatorCatalogVisuals ||
       programs.length != descriptions.length) {
     throw const FormatException(
       'Los catálogos no contienen los mismos visuales.',

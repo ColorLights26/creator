@@ -143,9 +143,14 @@ void _catalogAdmission() {
       'invalid shader boundary',
     );
   }
+  // El antiguo tope de 256 ya no existe: sólo se frena un catálogo desbocado.
+  validateCreatorCatalog([
+    for (var i = 0; i < 300; i++) _visual(id: 'visual_$i'),
+  ]);
   _throws<FormatException>(
     () => validateCreatorCatalog([
-      for (var i = 0; i < 257; i++) _visual(id: 'visual_$i'),
+      for (var i = 0; i <= maxCreatorCatalogVisuals; i++)
+        _visual(id: 'visual_$i'),
     ]),
     'bounded catalog count',
   );

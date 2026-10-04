@@ -556,13 +556,20 @@ class CreatorVisualDefinition {
   }
 }
 
+/// Topes del catálogo. Sólo frenan un archivo corrupto o desbocado; no limitan
+/// cuántos visuales puede reunir un estudio.
+const maxCreatorCatalogVisuals = 100000;
+const maxCreatorCatalogBytes = 256 * 1024 * 1024;
+const maxCreatorMetadataBytes = 64 * 1024 * 1024;
+
 List<CreatorVisualDefinition> validateCreatorCatalog(
   List<CreatorVisualDefinition> visuals, {
   bool allowEmpty = false,
 }) {
-  if ((!allowEmpty && visuals.isEmpty) || visuals.length > 256) {
+  if ((!allowEmpty && visuals.isEmpty) ||
+      visuals.length > maxCreatorCatalogVisuals) {
     throw const FormatException(
-      'El catálogo debe tener entre 1 y 256 visuales.',
+      'El catálogo debe tener entre 1 y $maxCreatorCatalogVisuals visuales.',
     );
   }
   final ids = <String>{};
@@ -685,8 +692,9 @@ List<CreatorVisualDefinition> validateCreatorCatalog(
         'Shader inválido: define paintVisual sin includes, atributos ni entrypoints.',
       );
   }
-  if (utf8.encode(encodeCreatorCatalog(visuals)).length > 4 * 1024 * 1024) {
-    throw const FormatException('El catálogo supera 4 MB.');
+  if (utf8.encode(encodeCreatorCatalog(visuals)).length >
+      maxCreatorCatalogBytes) {
+    throw const FormatException('El catálogo supera 256 MB.');
   }
   return List.unmodifiable(visuals);
 }

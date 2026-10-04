@@ -96,13 +96,11 @@ void main() {
     );
   });
 
-  test('the limit counts complete pairs rather than both files', () {
-    for (var i = 0; i < 256; i++) {
+  test('a large catalog is accepted beyond the old 256-pair limit', () {
+    for (var i = 0; i < 300; i++) {
       writePair('visual_$i');
     }
-    expect(generateCreatorRegistry(visuals), contains('metadata_255.metadata'));
-    writePair('visual_256');
-    expect(() => generateCreatorRegistry(visuals), throwsFormatException);
+    expect(generateCreatorRegistry(visuals), contains('metadata_299.metadata'));
   });
 
   test('a symlink cannot silently import source outside the catalog', () {

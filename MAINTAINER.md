@@ -39,7 +39,8 @@ al fotograma anterior ni compute shaders.
 
 `const metadata = CreatorVisualMetadata(...)` vive en el compañero. Los visuales
 anteriores con `shaderSource` y `paintVisual` siguen funcionando. Se aceptan
-hasta 256 pares y `_metadata.dart` queda reservado para metadata. La plantilla
+hasta 100000 pares (el catálogo generado, hasta 256 MB) y `_metadata.dart`
+queda reservado para metadata. La plantilla
 se genera del bloque AUTHOR API de `scene_program_native/src/creator_scene.hpp`
 y `templates/visual_template_body.cpp`; `generate_template.dart --check` y CI
 comprueban la referencia y la compilación del ejemplo.

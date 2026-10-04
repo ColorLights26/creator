@@ -81,7 +81,10 @@ enum SceneCreatorCatalog {
   private static var loadError: String?
   private(set) static var assetRoot: URL?
   private static var preparationErrors = [String: String]()
-  private static let maximumCatalogBytes = 4 * 1024 * 1024
+  // Topes del catálogo: sólo frenan un archivo corrupto o desbocado, no el
+  // número de visuales. Coinciden con maxCreatorCatalog* de scene_compositor.
+  static let maximumCatalogBytes = 256 * 1024 * 1024
+  static let maximumCatalogVisuals = 100_000
   static let controlRanges: [String: ClosedRange<Float>] = [
     "intensity": 0...2, "speed": 0...2, "detail": 0.25...2, "glow": 0...2,
   ]
@@ -135,7 +138,7 @@ enum SceneCreatorCatalog {
     guard data.count <= maximumCatalogBytes,
       let root = try JSONSerialization.jsonObject(with: data) as? [String: Any],
       Set(root.keys) == ["schemaVersion", "visuals"], number(root["schemaVersion"]) == 1,
-      let values = root["visuals"] as? [[String: Any]], values.count <= 256
+      let values = root["visuals"] as? [[String: Any]], values.count <= maximumCatalogVisuals
     else { throw CatalogError("catalog_header_invalid") }
     var result = [String: Program]()
     var ids = Set<String>()

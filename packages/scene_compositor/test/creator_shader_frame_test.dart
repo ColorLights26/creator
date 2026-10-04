@@ -54,8 +54,15 @@ void main() {
       expect(split[3], 0xabcd);
       expect(split[4], 0x1234);
       expect(() => _state(seed: 0x100000000), throwsArgumentError);
-      expect(() => _state(visualIndex: 255), returnsNormally);
-      expect(() => _state(visualIndex: 256), throwsArgumentError);
+      expect(() => _state(visualIndex: 256), returnsNormally);
+      expect(
+        () => _state(visualIndex: maxCreatorCatalogVisuals - 1),
+        returnsNormally,
+      );
+      expect(
+        () => _state(visualIndex: maxCreatorCatalogVisuals),
+        throwsArgumentError,
+      );
       expect(() => _state(visualIndex: -1), throwsArgumentError);
     },
   );
@@ -142,8 +149,12 @@ void main() {
   );
 
   test('installed index accepts every position of a full catalog', () {
-    expect(_uniforms(_state(visualIndex: 255))[33], 255);
-    expect(() => _state(visualIndex: 256), throwsArgumentError);
+    const last = maxCreatorCatalogVisuals - 1;
+    expect(_uniforms(_state(visualIndex: last))[33], last);
+    expect(
+      () => _state(visualIndex: maxCreatorCatalogVisuals),
+      throwsArgumentError,
+    );
     expect(() => _state(visualIndex: -1), throwsArgumentError);
   });
 

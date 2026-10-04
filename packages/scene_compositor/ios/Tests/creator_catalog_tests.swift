@@ -39,14 +39,20 @@ enum CreatorCatalogTests {
     precondition(parsed.count == 4 && parsed["creator_test"]?.shader?.floatCount == 32)
     do { _ = try SceneCreatorCatalog.decode(data([entry, entry])); preconditionFailure("Duplicate accepted") }
     catch {}
-    let overLimit = (0...256).map { i -> [String: Any] in
-      var item = entry
-      item["id"] = "test_\(i)"
-      item["programId"] = "creator_test_\(i)"
-      return item
+    func many(_ count: Int) -> [[String: Any]] {
+      (0..<count).map { i -> [String: Any] in
+        var item = entry
+        item["id"] = "test_\(i)"
+        item["programId"] = "creator_test_\(i)"
+        return item
+      }
     }
-    do { _ = try SceneCreatorCatalog.decode(data(overLimit)); preconditionFailure("Over-limit visuals accepted") }
-    catch {}
+    // El antiguo tope de 256 ya no existe: sólo se rechaza un catálogo desbocado.
+    precondition(try SceneCreatorCatalog.decode(data(many(300))).count == 300)
+    do {
+      _ = try SceneCreatorCatalog.decode(data(many(SceneCreatorCatalog.maximumCatalogVisuals + 1)))
+      preconditionFailure("Over-limit visuals accepted")
+    } catch {}
     var invalid = entry
     invalid["shaderSource"] = "#include <another_runtime>"
     do { _ = try SceneCreatorCatalog.decode(data([invalid])); preconditionFailure("Extra runtime accepted") }
