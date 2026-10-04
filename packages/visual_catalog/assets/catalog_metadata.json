@@ -162,6 +162,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "arena_colores_transparente",
+      "name": "Arena de Colores Transparente",
+      "description": "Simulación de arena real: chorros de arena roja, naranja, turquesa, amarilla y fucsia caen y se apilan en dunas por capas; cada golpe cambia el color y cuando se llena se vacía por el centro sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "satisfying",
+        "playful",
+        "vivid"
+      ],
+      "concepts": [
+        "falling sand",
+        "sand art",
+        "cellular automaton",
+        "layers"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 12.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "atractor_clifford",
       "name": "Atractor de Clifford",
       "description": "Decenas de miles de puntos siguen una fórmula caótica y forman velos de seda naranja y dorada que se pliegan y se transforman sin parar al ritmo de la música.",
@@ -377,6 +409,38 @@
       },
       "thumbnail": {
         "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "avalancha_fractal",
+      "name": "Avalancha Fractal",
+      "description": "Granos que se apilan en el centro y se derrumban según una regla simple: de las avalanchas crece un mandala fractal perfecto en rojo, naranja y amarillo que se expande con la música.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "mathematical",
+        "hypnotic",
+        "satisfying"
+      ],
+      "concepts": [
+        "abelian sandpile",
+        "self-organized criticality",
+        "fractal",
+        "cellular automaton"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 14.0
       },
       "publication": "draft",
       "role": "background",
@@ -1142,6 +1206,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "circulo_trap",
+      "name": "Círculo Trap",
+      "description": "El visualizador circular más imitado de YouTube: varias ondas circulares de colores superpuestas que bailan con el espectro, temblor de pantalla con los graves y partículas que salen despedidas.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "club"
+      ],
+      "moods": [
+        "energetic",
+        "bold",
+        "club"
+      ],
+      "concepts": [
+        "audio spectrum",
+        "circular visualizer",
+        "trap nation style",
+        "particles"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "circulos_infinitos",
       "name": "Círculos Infinitos",
       "description": "Espiral de círculos tangentes que se encogen sin fin hacia el centro, con círculos dentro de los círculos: un zoom infinito y perfecto en verde ácido que late con la música.",
@@ -1430,6 +1526,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "cristal_electrico_transparente",
+      "name": "Cristal Eléctrico Transparente",
+      "description": "Una figura de Lichtenberg, el rayo fractal que se quema en la madera, crece ramificándose al rojo vivo; cada golpe manda una descarga blanca que recorre todas sus ramas sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "electric",
+        "organic",
+        "intense"
+      ],
+      "concepts": [
+        "lichtenberg figure",
+        "fractal",
+        "lightning",
+        "growth"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 5.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "cristal_prismatico",
       "name": "Cristal Prismático",
       "description": "Gema cuántica hiperfacetada con dispersión óptica arcoíris, refracción interna y caústicas que estallan al ritmo de la música.",
@@ -1554,6 +1682,70 @@
       "reactivity": "optional"
     },
     {
+      "id": "cubo_led",
+      "name": "Cubo LED 3D",
+      "description": "Un cubo de 8×8×8 luces que gira en el espacio: lluvia, ondas, el espectro de la música en volumen, explosiones y espirales encendidas en rojo, naranja y amarillo.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "club"
+      ],
+      "moods": [
+        "tech",
+        "energetic",
+        "retro"
+      ],
+      "concepts": [
+        "led cube",
+        "3d",
+        "voxels",
+        "maker"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "cubo_magico",
+      "name": "Cubo Mágico",
+      "description": "Un cubo de colores de 3×3 que gira en 3D, se desordena capa a capa al ritmo de la música y luego se resuelve solo, con un destello al quedar perfecto.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "satisfying",
+        "playful",
+        "vivid"
+      ],
+      "concepts": [
+        "puzzle cube",
+        "3d",
+        "scramble",
+        "solve"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 5.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "cuerdas_vibrantes",
       "name": "Cuerdas Vibrantes",
       "description": "El famoso efecto de las cuerdas de guitarra grabadas desde dentro: cuerdas doradas y plateadas que ondulan en serpientes de luz, cada una con su banda de la música, bajo una luz roja.",
@@ -1580,6 +1772,38 @@
       },
       "thumbnail": {
         "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "curvas_fractales",
+      "name": "Curvas Fractales",
+      "description": "Una sola línea de luz que llena la pantalla plegándose en curvas fractales cada vez más finas (Hilbert, dragón, Gosper y Koch) mientras un pulso de color la recorre con la música.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "mathematical",
+        "hypnotic",
+        "elegant"
+      ],
+      "concepts": [
+        "space-filling curve",
+        "hilbert curve",
+        "dragon curve",
+        "l-system"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 5.0
       },
       "publication": "draft",
       "role": "background",
@@ -1802,6 +2026,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "eco_infinito_transparente",
+      "name": "Eco Infinito Transparente",
+      "description": "Al estilo del clásico MilkDrop de Winamp: la forma de la música deja ecos de arcoíris que giran y se hunden hacia el infinito, cada uno con lo que sonó un instante antes sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "club"
+      ],
+      "moods": [
+        "psychedelic",
+        "retro",
+        "hypnotic"
+      ],
+      "concepts": [
+        "milkdrop",
+        "feedback",
+        "echo",
+        "spectrum"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "enjambre_metamorfo",
       "name": "Enjambre Metamorfo",
       "description": "Miles de partículas violeta y naranja que se transforman de esfera a toro, cubo, doble hélice y onda; respiran con los graves y estallan en los golpes fuertes.",
@@ -1831,6 +2087,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "enjambre_metamorfo_transparente",
+      "name": "Enjambre Metamorfo Transparente",
+      "description": "Miles de partículas violeta y naranja que se transforman de esfera a toro, cubo, doble hélice y onda; respiran con los graves y estallan en los golpes fuertes sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "club"
+      ],
+      "moods": [
+        "futuristic",
+        "energetic",
+        "hypnotic"
+      ],
+      "concepts": [
+        "particles",
+        "morphing",
+        "3d shapes",
+        "swarm"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -1866,6 +2154,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "epiciclos_transparente",
+      "name": "Epiciclos Transparente",
+      "description": "Círculos que giran dentro de círculos dibujando con un lápiz de luz figuras que cambian con la música: el tamaño de cada círculo lo marca su banda del espectro sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "mathematical",
+        "hypnotic",
+        "elegant"
+      ],
+      "concepts": [
+        "fourier series",
+        "epicycles",
+        "drawing",
+        "harmonics"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 4.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "escalera_imposible",
       "name": "Escalera Imposible",
       "description": "La escalera infinita de Escher y Penrose en isométrico: siempre sube y nunca termina, con pulsos de luz que trepan al ritmo de la música.",
@@ -1884,6 +2204,39 @@
         "impossible geometry",
         "isometric",
         "escher"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "escena_demo",
+      "name": "Escena Demo",
+      "description": "Los efectos míticos de las demos de Amiga y PC de los noventa: barras de cobre que ondulan, la columna retorcida, el fuego de píxeles y el suelo giratorio, alternando con la música.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "club"
+      ],
+      "moods": [
+        "retro",
+        "energetic",
+        "nostalgic"
+      ],
+      "concepts": [
+        "demoscene",
+        "copper bars",
+        "twister",
+        "pixel fire",
+        "rotozoom"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -1959,6 +2312,102 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "espectrograma",
+      "name": "Espectrograma",
+      "description": "La música vista como un mapa de calor que cae como una cascada: cada fila es un instante y cada columna una frecuencia; de vez en cuando aparece una figura escondida en el sonido, como hizo Aphex Twin.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "scientific",
+        "hypnotic",
+        "warm"
+      ],
+      "concepts": [
+        "spectrogram",
+        "waterfall",
+        "frequency",
+        "hidden image"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 6.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "espiral_dominos",
+      "name": "Espiral de Dominós",
+      "description": "Cientos de fichas de colores vistas desde arriba que caen en cadena formando espirales y anillos de arcoíris; la música acelera la ola y al final todas vuelven a levantarse.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "satisfying",
+        "playful",
+        "vivid"
+      ],
+      "concepts": [
+        "dominoes",
+        "chain reaction",
+        "spiral",
+        "toppling"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 7.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "espiral_primos",
+      "name": "Espiral de Primos",
+      "description": "Miles de números primos colocados en espiral: al alejarse aparecen brazos y rayos misteriosos de colores que respiran con la música, como en el famoso vídeo de 3Blue1Brown.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "mathematical",
+        "hypnotic",
+        "cosmic"
+      ],
+      "concepts": [
+        "prime numbers",
+        "polar spiral",
+        "number theory",
+        "patterns"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 6.0
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -2154,6 +2603,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "flor_vida_transparente",
+      "name": "Flor de la Vida Transparente",
+      "description": "Geometría sagrada: la Flor de la Vida se dibuja círculo a círculo, sus pétalos se encienden en oro y violeta y se convierte en el cubo de Metatrón, latiendo con la música sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "spiritual",
+        "hypnotic",
+        "elegant"
+      ],
+      "concepts": [
+        "flower of life",
+        "sacred geometry",
+        "metatron cube",
+        "mandala"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 12.0
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -2417,6 +2898,38 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "goteo_pollock",
+      "name": "Goteo Pollock",
+      "description": "Un cuadro de Jackson Pollock que se pinta solo: latigazos de pintura negra, roja, amarilla y blanca, charcos y salpicaduras que caen con cada golpe de la música hasta llenar el lienzo.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "artistic",
+        "chaotic",
+        "bold"
+      ],
+      "concepts": [
+        "action painting",
+        "pollock",
+        "drip painting",
+        "abstract expressionism"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 12.0
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
@@ -2758,6 +3271,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "interferencia_transparente",
+      "name": "Interferencia Transparente",
+      "description": "Varias fuentes lanzan anillos de ondas rojas y naranjas que se cruzan y forman patrones de interferencia; cada golpe crea una fuente nueva cuyo frente se abre paso entre las demás sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "hypnotic",
+        "scientific",
+        "warm"
+      ],
+      "concepts": [
+        "wave interference",
+        "ripple tank",
+        "physics",
+        "moire"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 4.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "jardin_alucinante",
       "name": "Jardín Alucinante",
       "description": "Flores psicodélicas de póster setentero en magenta, naranja, amarillo y turquesa que giran y florecen con cada golpe sobre un sol de rayos.",
@@ -2851,6 +3396,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "juego_vida_transparente",
+      "name": "Juego de la Vida Transparente",
+      "description": "El autómata de Conway en neón: células que nacen en blanco, maduran en naranja y mueren en rojo, naves que cruzan la pantalla y explosiones de vida con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "digital",
+        "organic",
+        "energetic"
+      ],
+      "concepts": [
+        "game of life",
+        "cellular automaton",
+        "emergence",
+        "pixels"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 4.0
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -3046,6 +3623,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "lluvia_chispas",
+      "name": "Lluvia de Chispas",
+      "description": "Chorros de chispas de metal al rojo vivo como los de una radial en cámara lenta: estelas blancas, amarillas y naranjas que vuelan, rebotan en el suelo y estallan con cada golpe.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "club"
+      ],
+      "moods": [
+        "intense",
+        "industrial",
+        "energetic"
+      ],
+      "concepts": [
+        "sparks",
+        "grinder",
+        "particles",
+        "slow motion"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "lluvia_cinetica",
       "name": "Lluvia Cinética",
       "description": "Cientos de gotas de cobre suspendidas en 3D que suben y bajan juntas formando olas, espirales y cúpulas al ritmo de la música.",
@@ -3136,6 +3745,70 @@
       },
       "thumbnail": {
         "timeSeconds": 6.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "lluvia_notas_transparente",
+      "name": "Lluvia de Notas Transparente",
+      "description": "Como los vídeos de piano con notas de colores: barras de neón rojas, naranjas y amarillas brotan de un teclado de luz al ritmo de la música y suben hasta perderse arriba sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "musical",
+        "warm",
+        "elegant"
+      ],
+      "concepts": [
+        "piano roll",
+        "synthesia",
+        "notes",
+        "keyboard"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 6.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "luciernagas",
+      "name": "Luciérnagas Sincronizadas",
+      "description": "Cientos de luciérnagas que parpadean al azar y poco a poco se ponen de acuerdo hasta encenderse todas a la vez; con música, cada golpe las sincroniza con el ritmo.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "magical",
+        "organic",
+        "calm"
+      ],
+      "concepts": [
+        "fireflies",
+        "synchronization",
+        "kuramoto",
+        "emergence"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 16.0
       },
       "publication": "draft",
       "role": "background",
@@ -3491,6 +4164,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "mancha_rorschach_transparente",
+      "name": "Mancha de Rorschach Transparente",
+      "description": "Una mancha de tinta negra y roja perfectamente simétrica sobre papel crema que respira, se transforma y salpica con la música, como las láminas del test de Rorschach sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "artistic",
+        "mysterious",
+        "bold"
+      ],
+      "concepts": [
+        "rorschach",
+        "inkblot",
+        "symmetry",
+        "ink"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "mandala_alucinante",
       "name": "Mandala Alucinante",
       "description": "Mandala fractal ornamentado que se transforma sin parar con colores psicodélicos que circulan; respira con los graves y cambia de simetría con los golpes.",
@@ -3648,6 +4353,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "mapa_topografico_transparente",
+      "name": "Mapa Topográfico Transparente",
+      "description": "Curvas de nivel rojas de un terreno vivo sobre negro: con los graves las montañas crecen y las líneas se aprietan, y cada golpe levanta una cumbre que se enciende sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "minimal",
+        "hypnotic",
+        "warm"
+      ],
+      "concepts": [
+        "topographic map",
+        "contour lines",
+        "terrain",
+        "elevation"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -4384,6 +5121,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "ola_pendulos_transparente",
+      "name": "Ola de Péndulos Transparente",
+      "description": "Una fila de péndulos de luz de largos distintos: juntos forman serpientes, ondas y patrones que se deshacen y vuelven a formarse al ritmo de la música sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "hypnotic",
+        "warm",
+        "satisfying"
+      ],
+      "concepts": [
+        "pendulum wave",
+        "physics",
+        "interference",
+        "motion"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "olas_cubos",
       "name": "Olas de Cubos",
       "description": "Tablero isométrico de cubos de marfil y coral que suben y bajan en ondas hipnóticas; cada golpe lanza una ola desde el centro.",
@@ -4530,6 +5299,38 @@
         "energy shield",
         "sci-fi",
         "impact"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "panel_discos",
+      "name": "Panel de Discos",
+      "description": "Un panel de miles de discos amarillos y negros que se voltean en olas y forman ondas, barras del espectro, rayos y espirales al ritmo de la música, como las obras de arte cinético.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "kinetic",
+        "graphic",
+        "satisfying"
+      ],
+      "concepts": [
+        "flip-disc",
+        "flip-dot",
+        "kinetic art",
+        "display"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -4768,6 +5569,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "pendulos_dobles_transparente",
+      "name": "Caos de Péndulos Dobles Transparente",
+      "description": "Cientos de péndulos dobles casi idénticos se mueven como uno solo hasta que el caos los separa y estallan en un abanico de arcoíris; con la música vuelven a juntarse sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "hypnotic",
+        "chaotic",
+        "vivid"
+      ],
+      "concepts": [
+        "double pendulum",
+        "chaos",
+        "butterfly effect",
+        "physics"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 14.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "pixel_sorting",
       "name": "Pixel Sorting",
       "description": "Arte glitch: un atardecer de colores intensos cuyos píxeles se ordenan por brillo en franjas que se derriten y gotean; cada golpe rasga la imagen y la ordena todavía más.",
@@ -4829,6 +5662,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "placa_circuitos_transparente",
+      "name": "Placa de Circuitos Transparente",
+      "description": "Una placa de circuitos ámbar vista de cerca: paquetes de datos corren por las pistas y con cada golpe el chip central dispara una onda de energía que recorre toda la placa sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "tech",
+        "futuristic",
+        "warm"
+      ],
+      "concepts": [
+        "circuit board",
+        "pcb",
+        "data",
+        "energy pulse"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -5180,6 +6045,486 @@
       "reactivity": "optional"
     },
     {
+      "id": "rorschach_caleidoscopio",
+      "name": "Rorschach Caleidoscopio",
+      "description": "Una mancha de Rorschach con simetría de caleidoscopio: tintas roja, naranja y amarilla sobre negro que giran, se pliegan y estallan en anillos con la música.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "psychedelic",
+        "hypnotic",
+        "intense"
+      ],
+      "concepts": [
+        "rorschach",
+        "kaleidoscope",
+        "radial symmetry",
+        "ink"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "rorschach_caleidoscopio_transparente",
+      "name": "Rorschach Caleidoscopio Transparente",
+      "description": "Una mancha de Rorschach con simetría de caleidoscopio: tintas roja, naranja y amarilla sobre negro que giran, se pliegan y estallan en anillos con la música. Sin fondo: se ve lo que hay detrás.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "psychedelic",
+        "hypnotic",
+        "intense"
+      ],
+      "concepts": [
+        "rorschach",
+        "kaleidoscope",
+        "radial symmetry",
+        "ink"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "rorschach_glitch",
+      "name": "Rorschach Glitch",
+      "description": "Una mancha de Rorschach corrupta: se rasga en franjas, se desdobla en fantasmas rojos y amarillos y se invierte de golpe con cada beat, como una señal que se rompe.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "glitch",
+        "disturbing",
+        "intense"
+      ],
+      "concepts": [
+        "rorschach",
+        "glitch",
+        "datamosh",
+        "strobe"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "rorschach_glitch_transparente",
+      "name": "Rorschach Glitch Transparente",
+      "description": "Una mancha de Rorschach corrupta: se rasga en franjas, se desdobla en fantasmas rojos y amarillos y se invierte de golpe con cada beat, como una señal que se rompe. Sin fondo: se ve lo que hay detrás.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "glitch",
+        "disturbing",
+        "intense"
+      ],
+      "concepts": [
+        "rorschach",
+        "glitch",
+        "datamosh",
+        "strobe"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "rorschach_polilla",
+      "name": "Rorschach Polilla",
+      "description": "La mancha de Rorschach cobra vida como una polilla gigante: sus alas de tinta baten al ritmo de la música y en ellas se abren ojos de fuego que te observan.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "eerie",
+        "organic",
+        "hypnotic"
+      ],
+      "concepts": [
+        "rorschach",
+        "moth",
+        "eyespots",
+        "wings"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "rorschach_polilla_transparente",
+      "name": "Rorschach Polilla Transparente",
+      "description": "La mancha de Rorschach cobra vida como una polilla gigante: sus alas de tinta baten al ritmo de la música y en ellas se abren ojos de fuego que te observan. Sin fondo: se ve lo que hay detrás.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "eerie",
+        "organic",
+        "hypnotic"
+      ],
+      "concepts": [
+        "rorschach",
+        "moth",
+        "eyespots",
+        "wings"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "rorschach_rayos_x",
+      "name": "Rorschach Rayos X",
+      "description": "La mancha de Rorschach vista en negativo como una radiografía de un ser vivo: brilla con venas por dentro, late como un corazón y una franja de escáner la recorre.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "disturbing",
+        "eerie",
+        "organic"
+      ],
+      "concepts": [
+        "rorschach",
+        "x-ray",
+        "veins",
+        "heartbeat"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "rorschach_rayos_x_transparente",
+      "name": "Rorschach Rayos X Transparente",
+      "description": "La mancha de Rorschach vista en negativo como una radiografía de un ser vivo: brilla con venas por dentro, late como un corazón y una franja de escáner la recorre. Sin fondo: se ve lo que hay detrás.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "disturbing",
+        "eerie",
+        "organic"
+      ],
+      "concepts": [
+        "rorschach",
+        "x-ray",
+        "veins",
+        "heartbeat"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "rorschach_rostro",
+      "name": "Rorschach Rostro",
+      "description": "Una mancha de Rorschach que resulta ser una cara: dos ojos que te miran y parpadean, una boca que se abre con los graves y pupilas que se dilatan con cada golpe.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "disturbing",
+        "mysterious",
+        "creepy"
+      ],
+      "concepts": [
+        "rorschach",
+        "pareidolia",
+        "face",
+        "eyes"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "rorschach_rostro_transparente",
+      "name": "Rorschach Rostro Transparente",
+      "description": "Una mancha de Rorschach que resulta ser una cara: dos ojos que te miran y parpadean, una boca que se abre con los graves y pupilas que se dilatan con cada golpe. Sin fondo: se ve lo que hay detrás.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "disturbing",
+        "mysterious",
+        "creepy"
+      ],
+      "concepts": [
+        "rorschach",
+        "pareidolia",
+        "face",
+        "eyes"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "rorschach_sangrante",
+      "name": "Rorschach Sangrante",
+      "description": "Una mancha de Rorschach de tinta roja como la sangre que late como un corazón y gotea hacia abajo en regueros que se alargan sin parar sobre el papel.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "disturbing",
+        "dark",
+        "intense"
+      ],
+      "concepts": [
+        "rorschach",
+        "inkblot",
+        "dripping",
+        "blood red"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "rorschach_sangrante_transparente",
+      "name": "Rorschach Sangrante Transparente",
+      "description": "Una mancha de Rorschach de tinta roja como la sangre que late como un corazón y gotea hacia abajo en regueros que se alargan sin parar sobre el papel. Sin fondo: se ve lo que hay detrás.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "disturbing",
+        "dark",
+        "intense"
+      ],
+      "concepts": [
+        "rorschach",
+        "inkblot",
+        "dripping",
+        "blood red"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "rorschach_tentaculos",
+      "name": "Rorschach Tentáculos",
+      "description": "Una mancha de Rorschach de la que brotan tentáculos de tinta que se retuercen, se enroscan y se lanzan hacia fuera con cada golpe de la música.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "disturbing",
+        "organic",
+        "dark"
+      ],
+      "concepts": [
+        "rorschach",
+        "tentacles",
+        "ink",
+        "creature"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "rorschach_tentaculos_transparente",
+      "name": "Rorschach Tentáculos Transparente",
+      "description": "Una mancha de Rorschach de la que brotan tentáculos de tinta que se retuercen, se enroscan y se lanzan hacia fuera con cada golpe de la música. Sin fondo: se ve lo que hay detrás.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "disturbing",
+        "organic",
+        "dark"
+      ],
+      "concepts": [
+        "rorschach",
+        "tentacles",
+        "ink",
+        "creature"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "sala_infinita",
+      "name": "Sala Infinita",
+      "description": "Una sala de espejos como las de Yayoi Kusama: cientos de luces colgantes reflejadas hasta el infinito que cambian de color en olas con la música mientras flotas entre ellas.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "party"
+      ],
+      "moods": [
+        "immersive",
+        "dreamy",
+        "vivid"
+      ],
+      "concepts": [
+        "infinity mirror room",
+        "kusama",
+        "lights",
+        "reflections"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "salto_hiperespacial",
       "name": "Salto Hiperespacial",
       "description": "Túnel de aros hexagonales y octogonales con 260 estelas estelares que se aceleran con los graves.",
@@ -5384,6 +6729,70 @@
       "reactivity": "optional"
     },
     {
+      "id": "tablero_galton_transparente",
+      "name": "Tablero de Galton Transparente",
+      "description": "Cientos de bolas de colores caen rebotando entre clavos y se apilan formando la campana perfecta del azar; cada golpe suelta una ráfaga y cuando se llena se vacía sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "satisfying",
+        "playful",
+        "warm"
+      ],
+      "concepts": [
+        "galton board",
+        "plinko",
+        "probability",
+        "bell curve"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 10.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "telar",
+      "name": "Telar",
+      "description": "Un telar teje sin parar una tela de colores andinos: hilos rojos, naranjas, amarillos, fucsias y turquesa que se cruzan en tafetán, sarga, rombos y espiga mientras la lanzadera vuela con la música.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "crafty",
+        "warm",
+        "hypnotic"
+      ],
+      "concepts": [
+        "weaving",
+        "loom",
+        "textile",
+        "pattern"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional"
+    },
+    {
       "id": "teselado_hiperbolico",
       "name": "Teselado Hiperbólico",
       "description": "Mosaico infinito dentro de un círculo, como los de Escher: piezas rojas y negras con bordes dorados que se encogen hacia el borde y fluyen con la música.",
@@ -5541,6 +6950,38 @@
       },
       "publication": "draft",
       "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
+      "id": "tres_cuerpos",
+      "name": "Tres Cuerpos",
+      "description": "Estrellas que bailan atraídas por su gravedad real: la famosa órbita en forma de ocho, triángulos que giran y lanzamientos caóticos, con estelas de fuego que laten con la música.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "cosmic",
+        "hypnotic",
+        "dramatic"
+      ],
+      "concepts": [
+        "three-body problem",
+        "gravity",
+        "orbits",
+        "chaos"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 5.0
+      },
+      "publication": "draft",
+      "role": "background",
       "reactivity": "optional"
     },
     {
