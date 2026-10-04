@@ -111,6 +111,8 @@ struct CreatorSceneTests {
   }
   static func main() throws {
     guard CommandLine.arguments.count == 3, let device = MTLCreateSystemDefaultDevice() else { throw SceneCreatorFailure("Metal device / catalog arguments required") }
+    // A pipe would otherwise keep PASS lines buffered and lose them when a failure traps.
+    setvbuf(stdout, nil, _IOLBF, 0)
     let catalog = CommandLine.arguments[1], output = URL(fileURLWithPath: CommandLine.arguments[2])
     try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
     SceneCreatorCatalog.loadBundledIfNeeded(assetPath: catalog)
@@ -118,54 +120,58 @@ struct CreatorSceneTests {
     for entry in root["visuals"] as! [[String: Any]] where entry["kind"] as? String == "scene" {
       let id = entry["programId"] as! String
       guard let program = SceneCreatorCatalog.program(id) else { throw SceneCreatorFailure("Native catalog rejected \(id): \(SceneCreatorCatalog.diagnostics)") }
-      try continuity(program, device: device)
-      if program.id == "modifier_probe" { try modifiers(program, device: device) }
-      func render(music: Bool, disabled: Bool = false) throws -> [UInt8] {
-        let reactive = program.reactivity != "none" && !disabled
-        let scene = try SceneCreatorNativeScene(program: program, options: [:], mode: nil, reactive: reactive, seed: nil, device: device)
-        let allocator = SceneSurfaceNativeOutputAllocator(device: device, shaderWrite: true)
-        scene.setPlaying(true, hostTime: 0)
-        var last: MTLTexture?
-        for i in 0...60 {
-          _ = scene.consume(signal(i, music: music))
-          last = try scene.render(size: CGSize(width: 320, height: 568), hostTime: Double(i)/30,
-            reducedMotion: false, width: 320, height: 568, outputAllocator: allocator)
+      // main has no run loop: like the app's render queue, drain every scene and
+      // frame, or each intermediate Metal texture of the catalog lives until exit.
+      do { try autoreleasepool {
+        try continuity(program, device: device)
+        if program.id == "modifier_probe" { try modifiers(program, device: device) }
+        func render(music: Bool, disabled: Bool = false) throws -> [UInt8] {
+          let reactive = program.reactivity != "none" && !disabled
+          let scene = try SceneCreatorNativeScene(program: program, options: [:], mode: nil, reactive: reactive, seed: nil, device: device)
+          let allocator = SceneSurfaceNativeOutputAllocator(device: device, shaderWrite: true)
+          scene.setPlaying(true, hostTime: 0)
+          var last: MTLTexture?
+          for i in 0...60 {
+            _ = scene.consume(signal(i, music: music))
+            last = try autoreleasepool { try scene.render(size: CGSize(width: 320, height: 568), hostTime: Double(i)/30,
+              reducedMotion: false, width: 320, height: 568, outputAllocator: allocator) }
+          }
+          return try pixels(last!, device: device)
         }
-        return try pixels(last!, device: device)
-      }
-      let neutral = try render(music: false), active = try render(music: true)
-      if program.id == "composition_probe" {
-        let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-          .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-          .appendingPathComponent("studio/test/fixtures/native_composition/pixels.json")
-        let samples = try JSONSerialization.jsonObject(with: Data(contentsOf: fixture)) as! [[Any]]
-        for sample in samples {
-          let offset = ((sample[1] as! Int) * 320 + (sample[0] as! Int)) * 4
-          let rgba = sample[2] as! [Int]
-          for channel in 0..<4 {
-            let bgraChannel = channel == 0 ? 2 : channel == 2 ? 0 : channel
-            guard abs(Int(active[offset + bgraChannel]) - rgba[channel]) <= 2 else {
-              throw SceneCreatorFailure("Composition pixels differ at \(sample): channel \(channel)")
+        let neutral = try render(music: false), active = try render(music: true)
+        if program.id == "composition_probe" {
+          let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("studio/test/fixtures/native_composition/pixels.json")
+          let samples = try JSONSerialization.jsonObject(with: Data(contentsOf: fixture)) as! [[Any]]
+          for sample in samples {
+            let offset = ((sample[1] as! Int) * 320 + (sample[0] as! Int)) * 4
+            let rgba = sample[2] as! [Int]
+            for channel in 0..<4 {
+              let bgraChannel = channel == 0 ? 2 : channel == 2 ? 0 : channel
+              guard abs(Int(active[offset + bgraChannel]) - rgba[channel]) <= 2 else {
+                throw SceneCreatorFailure("Composition pixels differ at \(sample): channel \(channel)")
+              }
             }
           }
+          print("PASS image/sampler orientation, true group opacity, nested clips, holes, plus and screen")
         }
-        print("PASS image/sampler orientation, true group opacity, nested clips, holes, plus and screen")
-      }
-      try png(active, width: 320, height: 568, url: output.appendingPathComponent("\(id).png"))
-      try png(neutral, width: 320, height: 568, url: output.appendingPathComponent("\(id)_neutral.png"))
-      let different = zip(neutral, active).filter { abs(Int($0)-Int($1)) > 2 }.count
-      if program.reactivity == "none" { guard different == 0 else { throw SceneCreatorFailure("Ambient scene reacts: \(id)") } }
-      else { guard different > 16 else { throw SceneCreatorFailure("Musical scene has no visible reaction: \(id)") } }
-      if program.reactivity == "optional" {
-        let disabled = try render(music: true, disabled: true)
-        guard zip(neutral,disabled).allSatisfy({ abs(Int($0)-Int($1)) <= 1 }) else { throw SceneCreatorFailure("Disabled reaction still changes pixels: \(id)") }
-      }
-      let alpha = stride(from: 3, to: active.count, by: 4).map { active[$0] }
-      if program.role == "background" { guard alpha.allSatisfy({$0==255}) else { throw SceneCreatorFailure("Background is not opaque: \(id)") } }
-      else { guard alpha.contains(where: {$0<16}), alpha.contains(where: {$0>16}) else { throw SceneCreatorFailure("Overlay lacks visible/translucent content: \(id)") } }
-      try png(active, width: 320, height: 568, url: output.appendingPathComponent("\(id).png"))
-      print("PASS authored \(id): native Metal scene, alpha and state replay")
-      print("PASS behavior \(id): \(program.reactivity), identical-history musical/neutral probes")
+        try png(active, width: 320, height: 568, url: output.appendingPathComponent("\(id).png"))
+        try png(neutral, width: 320, height: 568, url: output.appendingPathComponent("\(id)_neutral.png"))
+        let different = zip(neutral, active).filter { abs(Int($0)-Int($1)) > 2 }.count
+        if program.reactivity == "none" { guard different == 0 else { throw SceneCreatorFailure("Ambient scene reacts: \(id)") } }
+        else { guard different > 16 else { throw SceneCreatorFailure("Musical scene has no visible reaction: \(id)") } }
+        if program.reactivity == "optional" {
+          let disabled = try render(music: true, disabled: true)
+          guard zip(neutral,disabled).allSatisfy({ abs(Int($0)-Int($1)) <= 1 }) else { throw SceneCreatorFailure("Disabled reaction still changes pixels: \(id)") }
+        }
+        let alpha = stride(from: 3, to: active.count, by: 4).map { active[$0] }
+        if program.role == "background" { guard alpha.allSatisfy({$0==255}) else { throw SceneCreatorFailure("Background is not opaque: \(id)") } }
+        else { guard alpha.contains(where: {$0<16}), alpha.contains(where: {$0>16}) else { throw SceneCreatorFailure("Overlay lacks visible/translucent content: \(id)") } }
+        try png(active, width: 320, height: 568, url: output.appendingPathComponent("\(id).png"))
+        print("PASS authored \(id): native Metal scene, alpha and state replay")
+        print("PASS behavior \(id): \(program.reactivity), identical-history musical/neutral probes")
+      } } catch { throw SceneCreatorFailure("\(id): \(error.localizedDescription)") }
     }
   }
 }

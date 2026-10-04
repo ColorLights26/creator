@@ -2,6 +2,7 @@
 """Build and inspect real native scenes on Metal, without application services."""
 import argparse
 import importlib.util
+import json
 from pathlib import Path
 import re
 import tempfile
@@ -19,11 +20,14 @@ def main():
     spec.loader.exec_module(module)
     run = module.run
     runtime = package/'ios/Classes/Runtime'
+    # Compilar y recorrer el catálogo crece con cada escena (~0,1 s y ~1 s en
+    # una Mac M2): los topes escalan y sólo deben atrapar un programa colgado.
+    scenes = sum(entry.get('kind') == 'scene' for entry in json.loads(Path(args.catalog).read_text())['visuals'])
     with tempfile.TemporaryDirectory(prefix='creator-metal-') as directory:
         tmp = Path(directory)
         run(['clang++', '-std=c++17', '-O2', '-dynamiclib', str(native/'src/creator_scene.cpp'),
              str(native/'src/creator_registry.cpp'), '-I'+str(Path(args.generated).resolve()),
-             '-o', str(tmp/'libscene_program_native.dylib')])
+             '-o', str(tmp/'libscene_program_native.dylib')], timeout=90 + scenes)
         (tmp/'module.modulemap').write_text('module scene_program_native {\n header "'+str(native/'src/creator_abi.h')+'"\n export *\n}\n')
         source = (runtime/'SceneRenderV2ImageSurface.swift').read_text()
         allocator = re.search(r'@available\(iOS 15\.0, \*\)\n(?:private )?final class SceneSurfaceNativeOutputAllocator \{.*?^\}',source,re.S|re.M)
@@ -35,7 +39,7 @@ def main():
              '-Xlinker','-rpath','-Xlinker',str(tmp),'-o',executable,str(tmp/'Allocator.swift'),
              *map(str,sorted(runtime.glob('SceneCatalog*.swift'))),str(runtime/'SceneRenderSignalFrameV2.swift'),
              str(package/'ios/Tests/creator_scene_tests.swift')],timeout=120)
-        run([executable,str(Path(args.catalog).resolve()),str(Path(args.output).resolve())],timeout=120)
+        run([executable,str(Path(args.catalog).resolve()),str(Path(args.output).resolve())],timeout=120 + 10 * scenes)
 
 if __name__ == '__main__':
     main()
