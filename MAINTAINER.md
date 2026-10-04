@@ -54,6 +54,55 @@ conserva autor, licencia y origen. Los controles `intensity`, `speed` y `glow`
 admiten 0–2; `detail`, 0.25–2. Mantener cuatro colores ARGB. La publicación es
 una etiqueta editorial: ninguna de sus opciones concede aprobación.
 
+## Modificadores
+
+Un visual nativo puede declarar sus propios ajustes. Van en el archivo del
+código, antes de `nativeSource`, y los escribe la IA (la plantilla se lo pide
+siempre). El colaborador pega un solo archivo:
+
+```dart
+import 'package:scene_compositor/authoring.dart';
+
+const modifiers = [
+  CreatorModifier.steps('brazos', 'Brazos', min: 2, max: 6, value: 4),
+  CreatorModifier.slider('giro', 'Giro', min: .2, max: 2, value: 1),
+  CreatorModifier.toggle('nucleo', 'Núcleo brillante', value: true),
+  CreatorModifier.choice('estilo', 'Estilo', options: ['Auto', 'Nítido']),
+];
+```
+
+En C++ se leen tipados y acotados: `auto m = modifiers(f); m.brazos`.
+
+- **Admisión** (`creator_source_admission.dart`): sólo literales. Fuera de los
+  textos admite las palabras de `CreatorModifier`, números, `true`/`false`; sin
+  `;` ni `$` en los textos. El import es obligatorio con la lista y se rechaza
+  sin ella. Nada se ejecuta al descubrir archivos.
+- **Validación** (`_validateModifiers` en `creator_visual_definition.dart`):
+  sólo `nativeSource`; máximo 8; id `^[a-z][a-z0-9_]{0,23}$`, único y fuera de
+  los reservados (básicos, `colors`, `music`, `time`… y palabras de C++);
+  nombre visible de 1 a 24 caracteres; rangos dentro de ±100000, `steps` con
+  hasta 1000 pasos; `choice` con 2 a 8 opciones únicas de hasta 20 caracteres;
+  el valor inicial debe estar en su rango.
+- **Cable**: un float por modificador, en orden de declaración (choice manda el
+  índice, toggle 0/1). `cp_configure` acepta 20 floats (usa los iniciales) o
+  20+N. La ABI sigue en 1: `native_compiler.dart` genera el lector
+  (`struct Modifiers` + `modifiers(f)`, con clamp) y su declaración entra en
+  `nativeBuild.hash`, así que cambiar un rango o un inicial recompila.
+- **Catálogo**: la clave `modifiers` sólo se escribe si hay. iOS rechaza claves
+  desconocidas, por eso los catálogos sin modificadores quedan idénticos. Swift
+  valida lo mismo (`SceneCatalogCreatorRegistry.swift`) y acepta los ids como
+  opciones del documento (`SceneCatalogCreatorScene.controls`).
+- **En vivo**: `SceneCompositorController.setModifiers`. Android escribe los
+  valores y reconfigura el programa sin reiniciarlo; iOS manda `updateDocument`.
+  Studio los muestra en **Ajustes** (`studio/lib/studio/visual_adjustments.dart`),
+  junto a los cuatro básicos; un básico que el código no lee aparece apagado.
+- **Voto**: la versión incluye los modificadores (sin el nombre visible) sólo
+  cuando existen. Los visuales sin modificadores conservan su versión y sus votos.
+- **Color Lights**: `creator_review.dart` arma el visual con la misma función
+  que Studio (`creatorVisualExpression`), así que la aprobación conserva los
+  modificadores. La app todavía no tiene controles para ellos: cada visual se ve
+  con sus valores iniciales.
+
 ## Miniaturas
 
 La miniatura automática usa una instancia aislada: reproduce semilla y señales
@@ -149,8 +198,8 @@ ranking y la exportación a CSV. Revocar una clave conserva sus votos.
 
 - Cada voto corresponde a un visual y a su **versión**:
   `studio/lib/team_review/visual_revision.dart` calcula una huella del código,
-  los materiales, las imágenes y los parámetros de render. El nombre y la
-  descripción no cuentan.
+  los materiales, las imágenes y los parámetros de render (incluidos los
+  modificadores, si tiene). El nombre y la descripción no cuentan.
 - Las notas del equipo de una versión se ocultan hasta que la persona vota.
 - El voto se elige y luego se **confirma**. Cambiarlo es una **función oculta**
   a propósito: hay que mantener el voto presionado 3 segundos

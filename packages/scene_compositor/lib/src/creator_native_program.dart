@@ -29,14 +29,15 @@ class CreatorNativeProgram {
       _api.free(name.cast());
       _api.free(hash.cast());
     }
-    _options = _api.allocate(20 * 4).cast<Float>();
+    _options = _api.allocate(_count * 4).cast<Float>();
     _signal = _api.allocate(520).cast<Uint8>();
     if (_options == nullptr || _signal == nullptr) {
       dispose();
       throw StateError('No se pudo reservar el estado del visual.');
     }
-    final values = _options.asTypedList(20);
+    final values = _options.asTypedList(_count);
     values.setAll(0, visual.controls.toMap().values);
+    values.setAll(20, visual.modifierDefaults.values);
     for (var i = 0; i < 4; i++) {
       final c = visual.colors[i];
       values.setAll(4 + i * 4, [
@@ -50,6 +51,9 @@ class CreatorNativeProgram {
 
   final CreatorVisualDefinition visual;
   final _NativeApi _api;
+
+  /// 4 controls, 4 RGBA colors, then one value per declared modifier.
+  int get _count => 20 + visual.modifiers.length;
   _Handle _handle = nullptr;
   Pointer<Float> _options = nullptr;
   Pointer<Uint8> _signal = nullptr;
@@ -76,7 +80,7 @@ class CreatorNativeProgram {
       _api.configure(
         _handle,
         _options,
-        20,
+        _count,
         reactive ? 1 : 0,
         playing ? 1 : 0,
         hostTime,
@@ -93,7 +97,16 @@ class CreatorNativeProgram {
   void setControls(CreatorControls controls) {
     _open();
     controls.validate();
-    _options.asTypedList(20).setAll(0, controls.toMap().values);
+    _options.asTypedList(_count).setAll(0, controls.toMap().values);
+  }
+
+  /// [values] by modifier id; missing ones go back to their initial value.
+  /// Like [setControls], the program receives them on the next [configure].
+  void setModifiers(Map<String, double> values) {
+    _open();
+    _options
+        .asTypedList(_count)
+        .setAll(20, visual.resolveModifiers(values).values);
   }
 
   void update({

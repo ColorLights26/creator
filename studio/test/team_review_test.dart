@@ -199,6 +199,53 @@ void main() {
       expect(visualRevision(_aurora), matches(RegExp(r'^[0-9a-f]{16}$')));
     });
 
+    test('modifiers: names are cosmetic, ranges and initial values count', () {
+      CreatorVisualDefinition build(List<CreatorModifier> modifiers) =>
+          CreatorVisualDefinition(
+            id: 'a',
+            name: 'A',
+            nativeSource: 'x',
+            modifiers: modifiers,
+          );
+      final base = visualRevision(
+        build(const [
+          CreatorModifier.choice('modo', 'Modo', options: ['Auto', 'Nebuloso']),
+        ]),
+      );
+      expect(
+        visualRevision(
+          build(const [
+            CreatorModifier.choice(
+              'modo',
+              'Estilo',
+              options: ['Auto', 'Neblinoso'],
+            ),
+          ]),
+        ),
+        base,
+      );
+      expect(
+        visualRevision(
+          build(const [
+            CreatorModifier.choice(
+              'modo',
+              'Modo',
+              options: ['Auto', 'Nebuloso'],
+              value: 1,
+            ),
+          ]),
+        ),
+        isNot(base),
+      );
+      // Without modifiers the version is the one votes already use.
+      expect(
+        visualRevision(build(const [])),
+        visualRevision(
+          const CreatorVisualDefinition(id: 'a', name: 'A', nativeSource: 'x'),
+        ),
+      );
+    });
+
     test('ignores compiler output that differs between machines', () {
       CreatorVisualDefinition build(String compiler, String image) =>
           CreatorVisualDefinition(

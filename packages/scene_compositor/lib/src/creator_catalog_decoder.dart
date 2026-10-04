@@ -93,6 +93,12 @@ List<CreatorVisualDefinition> decodeCreatorCatalog({
         detail: _number(controls['detail'], '$id.detail'),
         glow: _number(controls['glow'], '$id.glow'),
       ),
+      modifiers: [
+        for (final value in item['modifiers'] == null
+            ? const []
+            : _list(item['modifiers'], '$id.modifiers'))
+          _modifier(_object(value, '$id.modifier'), id),
+      ],
       description: _string(info['description'], '$id.description'),
       purposes: _tags(info['purposes'], '$id.purposes'),
       moods: _tags(info['moods'], '$id.moods'),
@@ -128,6 +134,50 @@ List<CreatorVisualDefinition> decodeCreatorCatalog({
     visuals.add(visual);
   }
   return validateCreatorCatalog(visuals, allowEmpty: allowEmpty);
+}
+
+CreatorModifier _modifier(Map<String, dynamic> item, String visual) {
+  final id = _string(item['id'], '$visual.modifier.id');
+  final label = _string(item['label'], '$visual.$id.label');
+  final field = '$visual.$id';
+  final kind = _enum(CreatorModifierKind.values, item['kind'], '$field.kind');
+  final min = _number(item['min'], '$field.min');
+  final max = _number(item['max'], '$field.max');
+  final value = _number(item['value'], '$field.value');
+  int whole(double number, String name) {
+    if (number != number.roundToDouble()) {
+      throw FormatException('$field.$name debe ser un entero.');
+    }
+    return number.toInt();
+  }
+
+  return switch (kind) {
+    CreatorModifierKind.slider => CreatorModifier.slider(
+      id,
+      label,
+      min: min,
+      max: max,
+      value: value,
+    ),
+    CreatorModifierKind.steps => CreatorModifier.steps(
+      id,
+      label,
+      min: whole(min, 'min'),
+      max: whole(max, 'max'),
+      value: whole(value, 'value'),
+    ),
+    CreatorModifierKind.toggle => CreatorModifier.toggle(
+      id,
+      label,
+      value: whole(value, 'value') == 1,
+    ),
+    CreatorModifierKind.choice => CreatorModifier.choice(
+      id,
+      label,
+      options: _tags(item['options'], '$field.options'),
+      value: whole(value, 'value'),
+    ),
+  };
 }
 
 Map<String, dynamic> _object(Object? value, String field) {

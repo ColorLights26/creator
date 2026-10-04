@@ -23,6 +23,29 @@ const _quiet = CreatorVisualDefinition(
   shaderSource: 'vec4 paintVisual() { return vec4(0); }',
 );
 
+const _galaxy = CreatorVisualDefinition(
+  id: 'galaxia',
+  name: 'Galaxia',
+  nativeSource:
+      'class Visual final : public Scene { float turn = f.delta * f.speed; };',
+  modifiers: [
+    CreatorModifier.steps('brazos', 'Brazos', min: 2, max: 6, value: 4),
+    CreatorModifier.slider(
+      'grosor',
+      'Grosor',
+      min: .004,
+      max: .02,
+      value: .004,
+    ),
+    CreatorModifier.toggle('nucleo', 'Núcleo', value: true),
+    CreatorModifier.choice(
+      'estilo',
+      'Estilo',
+      options: ['Auto', 'Nítido', 'Nebuloso'],
+    ),
+  ],
+);
+
 class _Controller extends SceneCompositorController {
   final visuals = <String>[];
   final viewports = <Size>[];
@@ -31,6 +54,8 @@ class _Controller extends SceneCompositorController {
   final resets = <int?>[];
   final cleanup = <String>[];
   final actions = <String>[];
+  final sentControls = <CreatorControls>[];
+  final sentModifiers = <Map<String, double>>[];
   bool _closed = false;
   Completer<void>? attachGate;
   Object? attachError;
@@ -66,6 +91,16 @@ class _Controller extends SceneCompositorController {
 
   @override
   Future<void> setReactive(bool value) async {}
+  @override
+  Future<void> setControls(CreatorControls controls) async {
+    sentControls.add(controls);
+  }
+
+  @override
+  Future<void> setModifiers(Map<String, double> values) async {
+    sentModifiers.add(values);
+  }
+
   @override
   Future<void> sendSignal(SceneRenderSignalFrameV2 frame) async {
     signals.add(frame);
@@ -640,6 +675,116 @@ void main() {
       await pick('alpha');
       expect(checkerboard, findsOneWidget);
       expect(find.byKey(const ValueKey('still-plasma')), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+      await _flush(tester);
+    },
+  );
+
+  testWidgets(
+    'Ajustes changes modifiers live and keeps them across a track change',
+    (tester) async {
+      tester.view.physicalSize = const Size(1200, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final controller = _Controller();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CreatorStudio(
+            catalogBuilder: () => [_galaxy, _aurora],
+            controllerFactory: () => controller,
+            recordingsLoader: () async => [],
+            thumbnailBuilder: (_, _) => const SizedBox(),
+          ),
+        ),
+      );
+      await _flush(tester);
+      final button = find.byKey(const ValueKey('visual-adjustments-button'));
+      expect(find.text('Ajustes · 4 modificadores'), findsOneWidget);
+      expect(controller.sentModifiers, isEmpty);
+
+      Future<void> open() async {
+        await tester.ensureVisible(button);
+        await tester.pump();
+        await tester.tap(button);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
+      }
+
+      Future<void> tap(String key) async {
+        final target = find.byKey(ValueKey(key));
+        await tester.ensureVisible(target);
+        await tester.pump();
+        await tester.tap(target);
+        await _flush(tester);
+      }
+
+      await open();
+      expect(find.text('Ajustes · Galaxia'), findsOneWidget);
+      expect(find.text('Brazos'), findsOneWidget);
+      // A small range keeps its decimals instead of showing 0.00.
+      expect(find.text('0.004'), findsOneWidget);
+      // The body only reads speed: the other basic sliders say so.
+      expect(find.text('Detalle · este visual no lo usa'), findsOneWidget);
+      expect(find.text('Velocidad · este visual no lo usa'), findsNothing);
+
+      await tap('adjustments-modifier-estilo-2');
+      expect(controller.sentModifiers.last, {
+        'brazos': 4.0,
+        'grosor': .004,
+        'nucleo': 1.0,
+        'estilo': 2.0,
+      });
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const ValueKey('adjustments-modifier-nucleo')),
+          matching: find.byType(Switch),
+        ),
+      );
+      await _flush(tester);
+      expect(controller.sentModifiers.last['nucleo'], 0);
+
+      await tester.tap(find.byTooltip('Cerrar'));
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(
+        find.text('Ajustes · 4 modificadores · cambiados'),
+        findsOneWidget,
+      );
+
+      // Restarting the visual (new track, reload) brings back its initial
+      // values; Ajustes sends the chosen ones again right after.
+      final sent = controller.sentModifiers.length;
+      await tester.tap(find.byTooltip('Recargar visuales'));
+      await _flush(tester);
+      expect(controller.visuals, ['galaxia', 'galaxia']);
+      expect(controller.sentModifiers.length, sent + 1);
+      expect(controller.sentModifiers.last, {
+        'brazos': 4.0,
+        'grosor': .004,
+        'nucleo': 0.0,
+        'estilo': 2.0,
+      });
+
+      await open();
+      await tap('adjustments-reset');
+      expect(controller.sentModifiers.last, _galaxy.modifierDefaults);
+      expect(controller.sentControls.last.toMap(), _galaxy.controls.toMap());
+
+      // Another visual starts from its own initial values and explains why
+      // it has no modifiers of its own.
+      await tester.tap(find.byTooltip('Cerrar'));
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.tap(find.byKey(const ValueKey('visual-selector')));
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.tap(find.text('Aurora').last);
+      await _flush(tester);
+      expect(controller.visuals.last, 'aurora');
+      expect(find.text('Ajustes'), findsOneWidget);
+      await open();
+      expect(
+        find.byKey(const ValueKey('adjustments-no-modifiers')),
+        findsOneWidget,
+      );
 
       await tester.pumpWidget(const SizedBox());
       await _flush(tester);

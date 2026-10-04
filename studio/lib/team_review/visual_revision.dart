@@ -25,6 +25,16 @@ String visualRevision(CreatorVisualDefinition visual) {
       'seed': visual.seed,
       'colors': visual.colors,
       'controls': visual.controls.toMap(),
+      // Only when declared, so visuals without modifiers keep their votes.
+      // Names and option texts are cosmetic (a choice sends its index);
+      // ranges and initial values change the look.
+      if (visual.modifiers.isNotEmpty)
+        'modifiers': [
+          for (final modifier in visual.modifiers)
+            {...modifier.toMap()}
+              ..remove('label')
+              ..remove('options'),
+        ],
     }),
   );
   return sha256.convert(utf8.encode(canonical)).toString().substring(0, 16);

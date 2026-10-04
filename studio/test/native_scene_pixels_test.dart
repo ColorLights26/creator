@@ -134,7 +134,8 @@ void main() {
               expect(
                 alpha.any((a) => a < 16),
                 isTrue,
-                reason: '${visual.id} overlay must leave transparent areas (alpha < 16)',
+                reason:
+                    '${visual.id} overlay must leave transparent areas (alpha < 16)',
               );
             }
             stdout.writeln('PASS pixel: ${visual.id}');
@@ -149,6 +150,77 @@ void main() {
       });
     },
     // CI supplies the compiled library and runs this explicitly.
+    skip: library.isEmpty,
+  );
+
+  testWidgets(
+    'declared modifiers reach the authored C++ and change its pixels',
+    (tester) async {
+      await tester.runAsync(() async {
+        final visual = creatorVisuals.singleWhere(
+          (v) => v.id == 'modifier_probe',
+        );
+        Future<List<int>> render(Map<String, double>? modifiers) async {
+          final scene = CreatorNativeProgram(visual, libraryPath: library);
+          final renderer = await CreatorCommandCanvas.prepare(visual);
+          final shaders = <ui.Shader>[];
+          ui.Picture? picture;
+          ui.Image? image;
+          try {
+            if (modifiers != null) scene.setModifiers(modifiers);
+            scene.configure(reactive: false, playing: true, hostTime: 0);
+            scene.update(
+              width: 320,
+              height: 568,
+              hostTime: 0,
+              reducedMotion: false,
+            );
+            final recorder = ui.PictureRecorder(), canvas = ui.Canvas(recorder);
+            shaders.addAll(renderer.paint(canvas, scene.draw()));
+            picture = recorder.endRecording();
+            image = await picture.toImage(320, 568);
+            final data =
+                (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!;
+            return data.buffer.asUint8List();
+          } finally {
+            image?.dispose();
+            picture?.dispose();
+            for (final shader in shaders) shader.dispose();
+            renderer.dispose();
+            scene.dispose();
+          }
+        }
+
+        void expectColor(List<int> pixels, int x, int y, List<int> rgba) {
+          final offset = (y * 320 + x) * 4;
+          expect(pixels.sublist(offset, offset + 4), [
+            for (final c in rgba) closeTo(c, 2),
+          ], reason: 'pixel ($x, $y)');
+        }
+
+        const black = [0, 0, 0, 255], white = [255, 255, 255, 255];
+        const red = [255, 0, 0, 255];
+        final initial = await render(null);
+        expectColor(initial, 133, 115, white); // 4th square of 4
+        expectColor(initial, 169, 115, black); // no 5th square
+        expectColor(initial, 150, 220, red); // half width
+        expectColor(initial, 200, 220, black);
+        expectColor(initial, 160, 320, black); // frame off
+        expectColor(initial, 160, 420, [0, 0, 255, 255]); // first option
+
+        final changed = await render({
+          'lados': 6,
+          'ancho': 1,
+          'marco': 1,
+          'tono': 1,
+        });
+        expectColor(changed, 169, 115, white);
+        expectColor(changed, 300, 220, red);
+        expectColor(changed, 160, 320, [0, 255, 0, 255]);
+        expectColor(changed, 160, 420, [255, 255, 0, 255]);
+        stdout.writeln('PASS modifiers: steps, slider, toggle and choice');
+      });
+    },
     skip: library.isEmpty,
   );
 }

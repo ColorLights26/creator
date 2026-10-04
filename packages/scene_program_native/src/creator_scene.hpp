@@ -40,6 +40,7 @@ struct Frame {
   bool reducedMotion = false;
   float intensity = 1, speed = 1, detail = 1, glow = 1;
   std::array<Color, 4> colors;
+  std::array<float, 8> modifiers{}; // raw values; read them typed: modifiers(f).<id>
   Music music; // already authorized; zero when disabled/unavailable
 };
 class Random {
@@ -130,6 +131,7 @@ struct Program {
   std::unique_ptr<Scene> (*create)();
   std::vector<std::string> materials;
   std::vector<std::string> images;
+  std::vector<float> modifiers; // declared modifiers' initial values, in order
 };
 const std::vector<Program>& installedPrograms();
 void validateCommands(const std::vector<float>& buffer, const Program& program);

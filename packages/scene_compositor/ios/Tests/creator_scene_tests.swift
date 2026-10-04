@@ -48,6 +48,37 @@ struct CreatorSceneTests {
       to: document(changed, reactive: program.reactivity == "music"))?.count == 1 else { throw SceneCreatorFailure("Document update discarded stateful control transaction") }
     print("PASS continuity creator_\(program.id): resize, controls, reaction, rollback and seed reset")
   }
+  /// Declared modifiers arrive as document options and change the authored C++.
+  static func modifiers(_ program: SceneCreatorCatalog.Program, device: MTLDevice) throws {
+    func frame(_ options: [String: Any]) throws -> [UInt8] {
+      let scene = try SceneCreatorNativeScene(program: program, options: options, mode: nil, reactive: false, seed: nil, device: device)
+      let allocator = SceneSurfaceNativeOutputAllocator(device: device, shaderWrite: true)
+      scene.setPlaying(true, hostTime: 0)
+      var last: MTLTexture?
+      last = try scene.render(size: CGSize(width: 320, height: 568), hostTime: 0,
+        reducedMotion: false, width: 320, height: 568, outputAllocator: allocator)
+      return try pixels(last!, device: device)
+    }
+    func near(_ pixels: [UInt8], _ x: Int, _ y: Int, _ rgba: [Int]) -> Bool {
+      let offset = (y * 320 + x) * 4
+      let bgra = [pixels[offset + 2], pixels[offset + 1], pixels[offset], pixels[offset + 3]]
+      return zip(bgra, rgba).allSatisfy { abs(Int($0) - $1) <= 2 }
+    }
+    let initial = try frame([:])
+    let changed = try frame(["lados": 6, "ancho": 1.0, "marco": true, "tono": 1])
+    guard near(initial, 133, 115, [255, 255, 255, 255]), near(initial, 169, 115, [0, 0, 0, 255]),
+      near(initial, 150, 220, [255, 0, 0, 255]), near(initial, 200, 220, [0, 0, 0, 255]),
+      near(initial, 160, 320, [0, 0, 0, 255]), near(initial, 160, 420, [0, 0, 255, 255]),
+      near(changed, 169, 115, [255, 255, 255, 255]), near(changed, 300, 220, [255, 0, 0, 255]),
+      near(changed, 160, 320, [0, 255, 0, 255]), near(changed, 160, 420, [255, 255, 0, 255])
+    else { throw SceneCreatorFailure("Modifiers did not reach the authored program") }
+    for bad: [String: Any] in [["lados": 2.5], ["lados": 9], ["ancho": 1.5], ["marco": 0.5],
+      ["tono": 2], ["tono": true], ["otro": 1]] {
+      guard SceneCreatorNativeScene.controls(program: program, options: bad, mode: nil, reactive: false) == nil
+      else { throw SceneCreatorFailure("Invalid modifier value accepted: \(bad)") }
+    }
+    print("PASS modifiers creator_\(program.id): steps, slider, toggle and choice on Metal; invalid values refused")
+  }
   static func signal(_ sequence: Int, music: Bool) -> SceneRenderSignalFrameV2 {
     let event = SceneRenderSignalEventV2(serial: Int64(sequence / 12 + 1), active: music && sequence % 12 == 0,
       timestampMicros: Int64(sequence * 33333), strength: music ? 0.8 : 0, band: .low)
@@ -88,6 +119,7 @@ struct CreatorSceneTests {
       let id = entry["programId"] as! String
       guard let program = SceneCreatorCatalog.program(id) else { throw SceneCreatorFailure("Native catalog rejected \(id): \(SceneCreatorCatalog.diagnostics)") }
       try continuity(program, device: device)
+      if program.id == "modifier_probe" { try modifiers(program, device: device) }
       func render(music: Bool, disabled: Bool = false) throws -> [UInt8] {
         let reactive = program.reactivity != "none" && !disabled
         let scene = try SceneCreatorNativeScene(program: program, options: [:], mode: nil, reactive: reactive, seed: nil, device: device)

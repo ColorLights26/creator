@@ -89,6 +89,208 @@ class CreatorControls {
   };
 }
 
+enum CreatorModifierKind { slider, steps, toggle, choice }
+
+/// A setting the author exposes for one visual. It is declared next to the
+/// C++ code that reads it (`modifiers(f).<id>`), shown under Ajustes in the
+/// studio and sent to the engine as one number: the slider value, the step,
+/// 0/1 for a toggle or the index of the chosen option.
+class CreatorModifier {
+  /// A decimal value between [min] and [max].
+  const CreatorModifier.slider(
+    this.id,
+    this.label, {
+    required this.min,
+    required this.max,
+    required this.value,
+  }) : kind = CreatorModifierKind.slider,
+       options = const [];
+
+  /// A whole number between [min] and [max] (counts, symmetry, segments).
+  const CreatorModifier.steps(
+    this.id,
+    this.label, {
+    required int this.min,
+    required int this.max,
+    required int this.value,
+  }) : kind = CreatorModifierKind.steps,
+       options = const [];
+
+  /// On or off.
+  const CreatorModifier.toggle(this.id, this.label, {bool value = false})
+    : kind = CreatorModifierKind.toggle,
+      min = 0,
+      max = 1,
+      value = value ? 1 : 0,
+      options = const [];
+
+  /// One of [options]; the code receives its index. Put "Auto" first when the
+  /// visual already changes on its own.
+  const CreatorModifier.choice(
+    this.id,
+    this.label, {
+    required this.options,
+    int this.value = 0,
+  }) : kind = CreatorModifierKind.choice,
+       min = 0,
+       max = -1;
+
+  /// Snake case: also the field name in C++.
+  final String id;
+
+  /// Spanish, shown in the studio.
+  final String label;
+  final CreatorModifierKind kind;
+  final num min;
+  final num max;
+  final num value;
+  final List<String> options;
+
+  double get lower => kind == CreatorModifierKind.choice ? 0 : min.toDouble();
+  double get upper =>
+      kind == CreatorModifierKind.choice
+          ? (options.length - 1).toDouble()
+          : max.toDouble();
+
+  /// Whether [candidate] is a value the engine accepts for this modifier.
+  bool accepts(double candidate) =>
+      candidate.isFinite &&
+      candidate >= lower &&
+      candidate <= upper &&
+      (kind == CreatorModifierKind.slider ||
+          candidate == candidate.roundToDouble());
+
+  Map<String, Object> toMap() => {
+    'id': id,
+    'label': label,
+    'kind': kind.name,
+    'min': lower,
+    'max': upper,
+    'value': value.toDouble(),
+    if (kind == CreatorModifierKind.choice) 'options': options,
+  };
+}
+
+/// Names the engine already uses for every visual, plus every C++ keyword,
+/// alternative token and lowercase macro that cannot be a field name.
+const creatorReservedModifierIds = {
+  'intensity',
+  'speed',
+  'detail',
+  'glow',
+  'colors',
+  'palette',
+  'music',
+  'music_reactive',
+  'time',
+  'delta',
+  'width',
+  'height',
+  'seed',
+  'modifiers',
+  'alignas',
+  'alignof',
+  'and',
+  'and_eq',
+  'asm',
+  'auto',
+  'bitand',
+  'bitor',
+  'bool',
+  'break',
+  'case',
+  'catch',
+  'char',
+  'char8_t',
+  'char16_t',
+  'char32_t',
+  'class',
+  'compl',
+  'concept',
+  'const',
+  'const_cast',
+  'consteval',
+  'constexpr',
+  'constinit',
+  'continue',
+  'co_await',
+  'co_return',
+  'co_yield',
+  'decltype',
+  'default',
+  'delete',
+  'do',
+  'double',
+  'dynamic_cast',
+  'else',
+  'enum',
+  'explicit',
+  'export',
+  'extern',
+  'false',
+  'float',
+  'for',
+  'friend',
+  'goto',
+  'if',
+  'inline',
+  'int',
+  'long',
+  'mutable',
+  'namespace',
+  'new',
+  'noexcept',
+  'not',
+  'not_eq',
+  'nullptr',
+  'operator',
+  'or',
+  'or_eq',
+  'private',
+  'protected',
+  'public',
+  'register',
+  'reinterpret_cast',
+  'requires',
+  'return',
+  'short',
+  'signed',
+  'sizeof',
+  'static',
+  'static_assert',
+  'static_cast',
+  'struct',
+  'switch',
+  'template',
+  'this',
+  'thread_local',
+  'throw',
+  'true',
+  'try',
+  'typedef',
+  'typeid',
+  'typename',
+  'union',
+  'unsigned',
+  'using',
+  'virtual',
+  'void',
+  'volatile',
+  'wchar_t',
+  'while',
+  'xor',
+  'xor_eq',
+  'errno',
+  'assert',
+  'offsetof',
+  'stdin',
+  'stdout',
+  'stderr',
+};
+
+/// At most this many modifiers per visual; the engine reserves the slots.
+const creatorMaximumModifiers = 8;
+
 /// One installed GPU program. The scene only references its stable [programId].
 /// Source code is bundled at build time and never sent over the scene channel.
 class CreatorVisualDefinition {
@@ -115,6 +317,7 @@ class CreatorVisualDefinition {
     this.seed = 42,
     this.colors = const [0xff061427, 0xff00d5b1, 0xff6774ff, 0xffe9cbff],
     this.controls = const CreatorControls(),
+    this.modifiers = const [],
   });
 
   final String id;
@@ -141,7 +344,15 @@ class CreatorVisualDefinition {
   final List<int> colors;
   final CreatorControls controls;
 
+  /// Settings the author exposes, declared next to the C++ code.
+  final List<CreatorModifier> modifiers;
+
   String get programId => 'creator_$id';
+
+  /// Default value of every modifier, by id, in declaration order.
+  Map<String, double> get modifierDefaults => {
+    for (final modifier in modifiers) modifier.id: modifier.value.toDouble(),
+  };
 
   Map<String, Object> toMetadata() => {
     'id': id,
@@ -167,6 +378,9 @@ class CreatorVisualDefinition {
     'seed': seed,
     'colors': colors,
     'controls': controls.toMap(),
+    // Only when declared: catalogs without modifiers stay byte-identical.
+    if (modifiers.isNotEmpty)
+      'modifiers': [for (final modifier in modifiers) modifier.toMap()],
     'shaderSource': shaderSource,
     if (isNative) ...{
       'kind': 'scene',
@@ -185,9 +399,11 @@ class CreatorVisualDefinition {
     required bool reactive,
     int? qaSessionSeed,
     CreatorControls? liveControls,
+    Map<String, double>? liveModifiers,
   }) {
     final effectiveControls = liveControls ?? controls;
     effectiveControls.validate();
+    final effectiveModifiers = resolveModifiers(liveModifiers);
     if (!width.isFinite ||
         !height.isFinite ||
         width <= 0 ||
@@ -242,6 +458,7 @@ class CreatorVisualDefinition {
               if (qaSessionSeed != null) 'seed': qaSessionSeed,
               'options': {
                 ...effectiveControls.toMap(),
+                ...effectiveModifiers,
                 'Music Reactive': reactive,
               },
             },
@@ -290,6 +507,23 @@ class CreatorVisualDefinition {
         },
       ],
     };
+  }
+
+  /// Every modifier with its default, overridden by [values]. Unknown ids or
+  /// values outside a modifier's range are rejected, never ignored.
+  Map<String, double> resolveModifiers(Map<String, double>? values) {
+    final resolved = modifierDefaults;
+    for (final MapEntry(:key, :value) in (values ?? const {}).entries) {
+      final modifier = modifiers.where((m) => m.id == key).firstOrNull;
+      if (modifier == null) {
+        throw ArgumentError('$id no tiene el modificador $key.');
+      }
+      if (!modifier.accepts(value)) {
+        throw ArgumentError('$key: $value está fuera de su rango.');
+      }
+      resolved[key] = value;
+    }
+    return resolved;
   }
 }
 
@@ -375,6 +609,7 @@ List<CreatorVisualDefinition> validateCreatorCatalog(
         'Control ${entry.key} fuera de rango.',
       );
     }
+    _validateModifiers(visual, require);
     if (visual.isNative) {
       require(
         visual.shaderSource.isEmpty,
@@ -424,6 +659,74 @@ List<CreatorVisualDefinition> validateCreatorCatalog(
     throw const FormatException('El catálogo supera 4 MB.');
   }
   return List.unmodifiable(visuals);
+}
+
+void _validateModifiers(
+  CreatorVisualDefinition visual,
+  void Function(bool condition, String message) require,
+) {
+  final modifiers = visual.modifiers;
+  if (modifiers.isEmpty) return;
+  require(
+    visual.isNative,
+    'Los modificadores sólo existen en visuales con nativeSource.',
+  );
+  require(
+    modifiers.length <= creatorMaximumModifiers,
+    'Máximo $creatorMaximumModifiers modificadores.',
+  );
+  final ids = <String>{};
+  for (final modifier in modifiers) {
+    final name = modifier.id;
+    require(
+      RegExp(r'^[a-z][a-z0-9_]{0,23}$').hasMatch(name),
+      'Modificador $name: usa letras a-z sin acentos ni ñ, números y _; '
+      'empieza por letra (hasta 24 caracteres).',
+    );
+    require(ids.add(name), 'Modificador $name repetido.');
+    require(
+      !creatorReservedModifierIds.contains(name),
+      'Modificador $name: ese nombre está reservado, elige otro.',
+    );
+    require(
+      modifier.label.trim().isNotEmpty && modifier.label.length <= 24,
+      'Modificador $name: el nombre visible debe tener de 1 a 24 caracteres.',
+    );
+    switch (modifier.kind) {
+      case CreatorModifierKind.slider:
+      case CreatorModifierKind.steps:
+        require(
+          modifier.min.isFinite &&
+              modifier.max.isFinite &&
+              modifier.min.abs() <= 100000 &&
+              modifier.max.abs() <= 100000 &&
+              modifier.min < modifier.max,
+          'Modificador $name: min debe ser menor que max (hasta ±100000).',
+        );
+        if (modifier.kind == CreatorModifierKind.steps) {
+          require(
+            modifier.max - modifier.min <= 1000,
+            'Modificador $name: como mucho 1000 pasos.',
+          );
+        }
+      case CreatorModifierKind.toggle:
+        break;
+      case CreatorModifierKind.choice:
+        require(
+          modifier.options.length >= 2 &&
+              modifier.options.length <= 8 &&
+              modifier.options.every(
+                (option) => option.trim().isNotEmpty && option.length <= 20,
+              ) &&
+              modifier.options.toSet().length == modifier.options.length,
+          'Modificador $name: de 2 a 8 opciones distintas, de hasta 20 caracteres.',
+        );
+    }
+    require(
+      modifier.accepts(modifier.value.toDouble()),
+      'Modificador $name: el valor inicial está fuera de su rango.',
+    );
+  }
 }
 
 String encodeCreatorCatalog(List<CreatorVisualDefinition> visuals) =>

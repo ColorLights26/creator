@@ -30,6 +30,10 @@ class SceneCompositorController extends ChangeNotifier {
   Future<void> _pending = Future.value();
   CreatorVisualDefinition? _visual;
   CreatorControls? _controls;
+  Map<String, double> _modifiers = const {};
+
+  /// Current modifier values of the installed visual, by id.
+  Map<String, double> get modifiers => Map.unmodifiable(_modifiers);
   Size _size = Size.zero;
   double _pixelRatio = 1;
   static const _pipChannel = MethodChannel('com.chic.dev/picture_in_picture');
@@ -127,6 +131,7 @@ class SceneCompositorController extends ChangeNotifier {
     await _detach();
     _visual = visual;
     _controls = visual.controls;
+    _modifiers = visual.modifierDefaults;
     _visualIndex = installedVisuals.indexWhere(
       (entry) => entry['id'] == visual.id,
     );
@@ -179,6 +184,7 @@ class SceneCompositorController extends ChangeNotifier {
           reactive: reactive,
           qaSessionSeed: _qaSeed,
           liveControls: _controls,
+          liveModifiers: _modifiers,
         ),
       });
     }
@@ -199,11 +205,36 @@ class SceneCompositorController extends ChangeNotifier {
           reactive: _reactive,
           qaSessionSeed: _qaSeed,
           liveControls: controls,
+          liveModifiers: _modifiers,
         ),
       });
     }
     _controls = controls;
   });
+
+  /// Changes the visual's own modifiers live, without restarting it. Missing
+  /// ids go back to their initial value; unknown ids or values out of range
+  /// are rejected.
+  Future<void> setModifiers(Map<String, double> values) => _queue(() async {
+    final visual = _visual;
+    if (visual == null) throw StateError('No visual is installed.');
+    final resolved = visual.resolveModifiers(values);
+    if (_android != null) _android!.setModifiers(resolved);
+    if (_sessionId != null) {
+      await _invoke<Object>('updateDocument', {
+        'sessionId': _sessionId!,
+        'sceneDocument': visual.sceneDocument(
+          width: _size.width,
+          height: _size.height,
+          reactive: _reactive,
+          qaSessionSeed: _qaSeed,
+          liveControls: _controls,
+          liveModifiers: resolved,
+        ),
+      });
+    }
+    _modifiers = resolved;
+  }, clearsError: false);
 
   Future<void> sendSignal(SceneRenderSignalFrameV2 frame) => _queue(() async {
     if (!_reactive) return;
@@ -268,6 +299,7 @@ class SceneCompositorController extends ChangeNotifier {
       );
       if (_qaSeed != null) session.reset(reactive: _reactive, seed: _qaSeed);
       session.setControls(_controls ?? visual.controls);
+      if (_modifiers.isNotEmpty) session.setModifiers(_modifiers);
       session.measureCost = _measureRenderCost;
       _android = session;
       _preview = AndroidCreatorPreview(
@@ -291,6 +323,7 @@ class SceneCompositorController extends ChangeNotifier {
           reactive: _reactive,
           qaSessionSeed: _qaSeed,
           liveControls: _controls,
+          liveModifiers: _modifiers,
         ),
       });
       final texture = receipt?['textureId'];

@@ -54,6 +54,20 @@ enum CreatorCatalogTests {
     invalid = entry; invalid["seed"] = -1
     do { _ = try SceneCreatorCatalog.decode(data([invalid])); preconditionFailure("Invalid seed accepted") }
     catch {}
+    let lados: [String: Any] = ["id": "lados", "label": "Lados", "kind": "steps", "min": 3, "max": 8, "value": 4]
+    let tono: [String: Any] = ["id": "tono", "label": "Tono", "kind": "choice", "min": 0, "max": 1, "value": 0,
+      "options": ["Azul", "Amarillo"]]
+    invalid = entry; invalid["modifiers"] = [lados]
+    do { _ = try SceneCreatorCatalog.decode(data([invalid])); preconditionFailure("Shader visual declared modifiers") }
+    catch {}
+    let absent = try SceneCreatorCatalog.modifiers(nil), declared = try SceneCreatorCatalog.modifiers([lados, tono])
+    precondition(absent.isEmpty && declared.map(\.id) == ["lados", "tono"])
+    for bad: [[String: Any]] in [[], [lados, lados], [lados.merging(["id": "speed"]) { $1 }],
+      [lados.merging(["value": 4.5]) { $1 }], [lados.merging(["extra": 1]) { $1 }],
+      [tono.merging(["max": 2]) { $1 }], [lados.merging(["kind": "toggle"]) { $1 }]] {
+      do { _ = try SceneCreatorCatalog.modifiers(bad); preconditionFailure("Invalid modifiers accepted: \(bad)") }
+      catch {}
+    }
     let path = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try encoded.write(to: path)
     defer { try? FileManager.default.removeItem(at: path) }
@@ -99,6 +113,7 @@ enum CreatorCatalogTests {
     let pixel = buffer.contents().assumingMemoryBound(to: UInt8.self)
     precondition(abs(Int(pixel[0]) - 204) <= 1 && abs(Int(pixel[1]) - 102) <= 1 && abs(Int(pixel[2]) - 51) <= 1 && pixel[3] == 255,
       "CreatorFrame Metal ABI or output color is incorrect")
+    print("PASS modifiers: declarations validated; legacy shaders cannot declare them")
     print("PASS creator catalog validation, exact signal mapping, event deduplication, pause, nonreactive state, Metal uniform ABI and output pixels")
     for id in ["creator_test", "creator_music", "creator_ambient"] {
       try verifyReactivity(programID: id, program: parsed[id]!, renderer: renderer, device: device)

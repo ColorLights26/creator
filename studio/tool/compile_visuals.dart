@@ -113,11 +113,13 @@ String generateCreatorRegistry(Directory visualsDirectory) {
     final source = parseCreatorVisualSource(
       File('${visualsDirectory.path}/${names[i]}').readAsStringSync(),
     );
-    expressions.add(
-      source.native
-          ? "  metadata_$i.metadata.withNative(visual_$i.nativeSource, shaderSources: ${source.materials.isEmpty ? 'const {}' : 'visual_$i.shaderSources'}, sourceFile: '${names[i]}', sourceLine: ${source.line}),"
-          : '  metadata_$i.metadata.withShader(visual_$i.shaderSource),',
+    final expression = creatorVisualExpression(
+      source,
+      code: 'visual_$i',
+      metadata: 'metadata_$i',
+      file: names[i],
     );
+    expressions.add('  $expression,');
   }
   return '''// Generated from lib/visuals/*.dart. Do not edit.
 import 'package:scene_compositor/authoring.dart';

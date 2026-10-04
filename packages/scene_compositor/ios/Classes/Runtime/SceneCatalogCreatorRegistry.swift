@@ -22,11 +22,57 @@ enum SceneCreatorCatalog {
     let shader: SceneCatalogShaderDefinition?
     var nativeBuild: [String: Any] = [:]
     var images: [String: String] = [:]
+    /// Author-declared settings, in the order the C++ reader expects them.
+    var modifiers: [Modifier] = []
     var isNative: Bool { !nativeBuild.isEmpty }
 
     func allows(reactive: Bool) -> Bool {
       reactivity == "optional" || (reactivity == "music") == reactive
     }
+  }
+
+  /// One number per modifier: a slider value, a whole step, 0/1 or an index.
+  struct Modifier {
+    let id: String
+    let kind: String
+    let lower: Float
+    let upper: Float
+    let value: Float
+
+    func accepts(_ candidate: Float) -> Bool {
+      candidate.isFinite && candidate >= lower && candidate <= upper &&
+        (kind == "slider" || candidate.rounded() == candidate)
+    }
+  }
+
+  static func modifiers(_ raw: Any?) throws -> [Modifier] {
+    guard let raw else { return [] }
+    guard let values = raw as? [[String: Any]], !values.isEmpty, values.count <= 8 else {
+      throw CatalogError("catalog_modifiers_invalid")
+    }
+    var ids = Set<String>(), result = [Modifier]()
+    for value in values {
+      let kind = value["kind"] as? String
+      let keys: Set<String> = ["id", "label", "kind", "min", "max", "value"]
+      guard Set(value.keys) == (kind == "choice" ? keys.union(["options"]) : keys),
+        let id = value["id"] as? String, id.range(of: "^[a-z][a-z0-9_]{0,23}$", options: .regularExpression) != nil,
+        controlRanges[id] == nil, ids.insert(id).inserted,
+        let label = value["label"] as? String, !label.isEmpty, label.count <= 24,
+        let kind, ["slider", "steps", "toggle", "choice"].contains(kind),
+        let lower = number(value["min"]), let upper = number(value["max"]), let initial = number(value["value"]),
+        lower < upper, abs(lower) <= 100_000, abs(upper) <= 100_000
+      else { throw CatalogError("catalog_modifier_invalid") }
+      if kind == "choice" {
+        guard let options = value["options"] as? [String], (2...8).contains(options.count),
+          lower == 0, upper == Double(options.count - 1) else { throw CatalogError("catalog_modifier_invalid: \(id)") }
+      }
+      if kind == "toggle" { guard lower == 0, upper == 1 else { throw CatalogError("catalog_modifier_invalid: \(id)") } }
+      if kind != "slider" { guard lower.rounded() == lower, upper.rounded() == upper else { throw CatalogError("catalog_modifier_invalid: \(id)") } }
+      let modifier = Modifier(id: id, kind: kind, lower: Float(lower), upper: Float(upper), value: Float(initial))
+      guard modifier.accepts(modifier.value) else { throw CatalogError("catalog_modifier_invalid: \(id)") }
+      result.append(modifier)
+    }
+    return result
   }
 
   private static let lock = NSLock()
@@ -97,7 +143,11 @@ enum SceneCreatorCatalog {
       let native = value["kind"] as? String == "scene"
       let baseKeys: Set<String> = ["id", "name", "programId", "role", "reactivity",
         "framesPerSecond", "seed", "colors", "controls", "shaderSource"]
-      guard Set(value.keys) == (native ? baseKeys.union(["kind", "nativeSource", "shaderSources", "images", "nativeBuild"]) : baseKeys),
+      // Only native programs may declare modifiers; without them the keys are
+      // exactly the original ones.
+      let declared = value["modifiers"] != nil
+      guard !declared || native,
+        Set(value.keys).subtracting(declared ? ["modifiers"] : []) == (native ? baseKeys.union(["kind", "nativeSource", "shaderSources", "images", "nativeBuild"]) : baseKeys),
         let id = value["id"] as? String, id.range(of: "^[a-z][a-z0-9_]{0,63}$", options: .regularExpression) != nil,
         ids.insert(id).inserted,
         let name = value["name"] as? String, !name.isEmpty, name.count <= 100,
@@ -144,7 +194,7 @@ enum SceneCreatorCatalog {
         #endif
         result[programID] = Program(id: id, role: role, reactivity: reactivity,
           framesPerSecond: Int(fps), seed: UInt32(seed), colors: rgba, controls: parsedControls,
-          shader: nil, nativeBuild: build, images: images)
+          shader: nil, nativeBuild: build, images: images, modifiers: try modifiers(value["modifiers"]))
         continue
       }
       let metalSource = shaderHeader + "\n" + source + "\n" + shaderFooter

@@ -103,6 +103,9 @@ Map<String, Object> prepareCreatorNative({
           for (final name in materials)
             [name, visual.shaderSources[name], compiled[name]],
           imageHashes,
+          // The generated modifiers(f) reader is compiled into the program.
+          if (visual.modifiers.isNotEmpty)
+            [for (final modifier in visual.modifiers) modifier.toMap()],
         ]),
       ),
     );
@@ -118,6 +121,7 @@ Map<String, Object> prepareCreatorNative({
     declarations.writeln(
       'namespace authored_${visual.id} {\nusing namespace creator;',
     );
+    declarations.writeln(creatorModifierReader(visual));
     declarations.writeln(
       '#line ${visual.sourceLine} ${jsonEncode(visual.sourceFile)}',
     );
@@ -127,7 +131,7 @@ Map<String, Object> prepareCreatorNative({
       'std::unique_ptr<creator::Scene> make() { return std::make_unique<Visual>(); }\n}',
     );
     entries.add(
-      '{${jsonEncode(visual.programId)}, ${jsonEncode(hash)}, &authored_${visual.id}::make, {${materials.map(jsonEncode).join(',')}}, {${images.map(jsonEncode).join(',')}}}',
+      '{${jsonEncode(visual.programId)}, ${jsonEncode(hash)}, &authored_${visual.id}::make, {${materials.map(jsonEncode).join(',')}}, {${images.map(jsonEncode).join(',')}}, {${visual.modifiers.map((m) => _floatLiteral(m.value.toDouble())).join(',')}}}',
     );
   }
   declarations.writeln(
@@ -139,6 +143,40 @@ Map<String, Object> prepareCreatorNative({
     utf8.encode(declarations.toString()),
   );
   return {'schemaVersion': 1, 'visuals': manifests};
+}
+
+/// The typed `modifiers(f)` reader placed before the author's code: one field
+/// per declared modifier, already clamped to its range. Visuals without
+/// modifiers get an empty one, so a misspelled field is a compile error.
+String creatorModifierReader(CreatorVisualDefinition visual) {
+  final fields = StringBuffer();
+  final values = <String>[];
+  for (var i = 0; i < visual.modifiers.length; i++) {
+    final modifier = visual.modifiers[i];
+    final raw = 'f.modifiers[$i]';
+    final range =
+        '${_floatLiteral(modifier.lower)}, ${_floatLiteral(modifier.upper)}';
+    switch (modifier.kind) {
+      case CreatorModifierKind.slider:
+        fields.write(' float ${modifier.id};');
+        values.add('std::clamp($raw, $range)');
+      case CreatorModifierKind.steps:
+      case CreatorModifierKind.choice:
+        fields.write(' int ${modifier.id};');
+        values.add('int(std::lround(std::clamp($raw, $range)))');
+      case CreatorModifierKind.toggle:
+        fields.write(' bool ${modifier.id};');
+        values.add('$raw > .5f');
+    }
+  }
+  return '// Modificadores declarados en ${visual.sourceFile}: modifiers(f).<id>.\n'
+      'struct Modifiers {$fields };\n'
+      'inline Modifiers modifiers(const Frame& f) { (void)f; return {${values.join(', ')}}; }';
+}
+
+String _floatLiteral(double value) {
+  final text = value.toString();
+  return '${text.contains('.') || text.contains('e') ? text : '$text.0'}f';
 }
 
 Map<String, Object> _compileMaterial(

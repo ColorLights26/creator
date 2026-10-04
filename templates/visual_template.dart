@@ -1,9 +1,11 @@
 // PARA FRANCO: copia TODO este archivo a tu IA y describe el visual que quieres.
 // Pega su respuesta completa en tu archivo .dart. Metadata en el archivo compañero.
 // Guarda y usa Stop → Run. No necesitas registrar nada ni tocar el motor.
+// Sus modificadores aparecen en Studio, en el botón Ajustes, para probarlos.
 //
 // PARA LA IA: entrega únicamente este archivo Dart completo, sin Markdown.
-// Conserva las instrucciones y la referencia, reemplaza nativeSource por tu escena.
+// Conserva las instrucciones y la referencia; reemplaza modifiers y nativeSource
+// por los de tu escena. Conserva el import: lo necesitan los modificadores.
 // nativeSource es C++17: define class Visual final : public Scene.
 // Puedes crear algoritmos, structs, vectores, estado persistente, partículas,
 // curvas y funciones auxiliares. La instancia es independiente por reproducción.
@@ -24,6 +26,35 @@
 // El motor posee cadencia/calidad/recursos: 30 FPS por defecto; pedir 60 no lo fuerza.
 // Acota memoria y trabajo según tu escena. No existe un máximo artificial de 8 bucles.
 // El código nativo se valida antes de aprobarse; esa validación NO es un sandbox.
+//
+// AJUSTES BÁSICOS: todo visual los tiene y Studio los muestra. Úsalos siempre.
+// f.intensity: cuánto reacciona a la música; multiplica la respuesta al audio.
+// f.speed: ritmo del movimiento. Acumúlalo con delta (fase += f.delta*f.speed);
+//   nunca uses f.time*f.speed: al mover el ajuste, el dibujo saltaría.
+// f.detail (0.25 a 2): densidad. Reserva el máximo en reset y dibuja una parte.
+// f.glow: halo, niebla o resplandor.
+// f.colors: paleta de la metadata. colors[0] es el fondo; colors[1..3], los
+//   acentos. No escribas colores fijos en el código: así la paleta se cambia.
+//
+// MODIFICADORES (SIEMPRE): declara de 2 a 6 ajustes propios que cambien de
+// verdad el visual: cantidad, simetría, forma, figura, estilo, estela, zoom...
+// Van en const modifiers, antes de nativeSource. Tipos:
+//   CreatorModifier.slider('id', 'Nombre', min: .5, max: 2, value: 1)    decimal
+//   CreatorModifier.steps('id', 'Nombre', min: 3, max: 12, value: 6)     entero
+//   CreatorModifier.toggle('id', 'Nombre', value: true)                  sí / no
+//   CreatorModifier.choice('id', 'Nombre', options: ['Auto', 'A', 'B'])  opción
+// En C++: auto m = modifiers(f); y usa m.id (choice da el índice: 0, 1, 2...).
+// Léelos en update y render; reset no recibe el frame.
+// id: letras a-z sin acentos ni ñ, números y _; empieza por letra; hasta 24.
+//   Es el nombre en C++: no uses intensity, speed, detail, glow, colors,
+//   palette, music, time, delta, width, height, seed, modifiers ni palabras
+//   de C++ (double, float, auto, static, default, new, union...).
+// Nombre visible en español, hasta 24 caracteres; opciones hasta 20; máximo 8.
+// Rangos dentro de ±100000; steps admite hasta 1000 pasos entre min y max.
+// value es el aspecto inicial; el rango, sólo valores que se sigan viendo bien.
+// Si el visual cambia solo (figuras, simetrías, modos), pon 'Auto' primero.
+// Cambiar un modificador debe verse suave y en vivo: no reinicies ni reserves
+// memoria al cambiarlo; para cantidades, reserva el máximo en reset.
 //
 // MATERIALES OPCIONALES: añade const shaderSources = <String, String>{
 //   'material': r"""#version 460 core
@@ -76,6 +107,7 @@
 //   bool reducedMotion = false;
 //   float intensity = 1, speed = 1, detail = 1, glow = 1;
 //   std::array<Color, 4> colors;
+//   std::array<float, 8> modifiers{}; // raw values; read them typed: modifiers(f).<id>
 //   Music music; // already authorized; zero when disabled/unavailable
 // };
 // class Random {
@@ -158,46 +190,84 @@
 // // Keep mutable state on Visual, not in globals. No clocks, IO, sensors or threads.
 // } // namespace creator
 
+import 'package:scene_compositor/authoring.dart';
+
+// Ajustes propios de este visual. Studio los muestra en Ajustes.
+const modifiers = [
+  CreatorModifier.steps('brazos', 'Brazos', min: 2, max: 6, value: 4),
+  CreatorModifier.slider('giro', 'Giro', min: .2, max: 2, value: 1),
+  CreatorModifier.toggle('nucleo', 'Núcleo brillante', value: true),
+  CreatorModifier.choice(
+    'estilo',
+    'Estilo',
+    options: ['Auto', 'Nítido', 'Nebuloso'],
+  ),
+];
+
 const nativeSource = r"""
 class Visual final : public Scene {
-  struct Star { float radius, angle, lift, drift; int group; };
+  // Reserve the maximum (detail 2): moving a setting never reallocates or restarts.
+  static constexpr int maxStars = 3000;
+  struct Star { float radius, offset, lift, drift; int slot, group; };
   std::vector<Star> stars;
-  float turn = 0, breath = 0;
+  float turn = 0, breath = 0, haze = 0, beats = 0;
  public:
   void reset(uint32_t seed) override {
-    Random rng(seed); stars.clear(); stars.reserve(1500); turn=0; breath=0;
-    for(int i=0;i<1500;i++) {
-      float r=std::sqrt(rng.unit()); int arm=i%4;
-      stars.push_back({r, float(arm*pi/2)+r*5.8f+(rng.unit()-.5f)*(.25f+r*.8f),
-        (rng.unit()-.5f)*(.018f+r*.035f), .7f+rng.unit()*.6f, i%9});
+    Random rng(seed); stars.clear(); stars.reserve(maxStars);
+    turn = 0; breath = 0; haze = 0; beats = 0;
+    for (int i = 0; i < maxStars; i++) {
+      float r = std::sqrt(rng.unit());
+      stars.push_back({r, r * 5.8f + (rng.unit() - .5f) * (.25f + r * .8f),
+        (rng.unit() - .5f) * (.018f + r * .035f), .7f + rng.unit() * .6f,
+        int(rng.unit() * 720), i % 9});
     }
   }
   void update(const Frame& f) override {
-    turn += float(f.delta)*f.speed*.06f;
-    float target=f.music.energy;
-    breath += (target-breath)*float(1-std::exp(-f.delta*3));
+    auto m = modifiers(f);
+    // Speed always through delta, accumulated: moving it never makes the spin jump.
+    turn += float(f.delta) * f.speed * m.giro * .06f;
+    float energy = f.music.energy * f.intensity;
+    breath += (energy - breath) * float(1 - std::exp(-f.delta * 3));
+    // Style "Auto" (option 0) switches between sharp and hazy every 8 beats.
+    beats += float(f.music.events[2].size());
+    float target = m.estilo == 1 ? 0.f : m.estilo == 2 ? 1.f
+                 : (int(beats / 8) % 2 == 1 ? 1.f : 0.f);
+    haze += (target - haze) * float(1 - std::exp(-f.delta * 2));
   }
   void render(const Frame& f, Canvas& c) const override {
-    Paint sky=Paint::radial({f.width*.5f,f.height*.47f},f.height*.75f,
-      {Color::argb(0xff151031),Color::argb(0xff03040d)});
-    c.rect({0,0,f.width,f.height},sky);
-    c.save(); c.translate(f.width*.5f,f.height*.48f); c.rotate(-.38f);
-    float scale=std::min(f.width*.62f,f.height*.42f)*(1+breath*.045f);
-    Paint haze=Paint::radial({0,0},scale*.8f,{Color{.24f,.1f,.5f,.2f},Color{.08f,.02f,.3f,0}});
-    haze.blend=Blend::plus; c.rect({-scale,-scale,scale*2,scale*2},haze);
-    for(int group=0;group<9;group++) {
-      std::vector<Vec2> batch;batch.reserve(170);
-      for(const auto& s:stars) if(s.group==group) {
-        float a=s.angle+turn*s.drift;
-        batch.push_back({std::cos(a)*s.radius*scale,
-          std::sin(a)*s.radius*scale*.49f+s.lift*scale});
+    auto m = modifiers(f);
+    // Palette from metadata: colors[0] background, colors[1..3] accents.
+    const auto& pal = f.colors;
+    Color deep{pal[0].r * .25f, pal[0].g * .25f, pal[0].b * .25f, 1};
+    c.rect({0, 0, f.width, f.height},
+           Paint::radial({f.width * .5f, f.height * .47f}, f.height * .75f,
+                         {pal[0].opacity(1), deep}));
+    c.save(); c.translate(f.width * .5f, f.height * .48f); c.rotate(-.38f);
+    float scale = std::min(f.width * .62f, f.height * .42f) * (1 + breath * .045f);
+    Paint mist = Paint::radial({0, 0}, scale * .8f,
+      {pal[2].opacity((.12f + haze * .2f) * f.glow), pal[2].opacity(0)});
+    mist.blend = Blend::plus; c.rect({-scale, -scale, scale * 2, scale * 2}, mist);
+    int visible = std::min(maxStars, int(maxStars * .5f * f.detail));
+    float arm = float(2 * pi) / float(m.brazos);
+    for (int group = 0; group < 9; group++) {
+      std::vector<Vec2> batch; batch.reserve(visible / 9 + 1);
+      for (int i = 0; i < visible; i++) {
+        const auto& s = stars[i];
+        if (s.group != group) continue;
+        float a = float(s.slot % m.brazos) * arm + s.offset + turn * s.drift;
+        batch.push_back({std::cos(a) * s.radius * scale,
+          std::sin(a) * s.radius * scale * .49f + s.lift * scale});
       }
-      Paint p;p.blend=Blend::plus;
-      p.color=group%3==0?Color{.58f,.69f,1,.65f}:group%3==1?Color{1,.67f,.48f,.6f}:Color{.9f,.72f,1,.72f};
-      c.points(batch,.55f+(group/3)*.5f,p);
+      Paint p; p.blend = Blend::plus; p.color = pal[1 + group % 3].opacity(.65f);
+      c.points(batch, (.55f + (group / 3) * .5f) * (1 + haze * .8f), p);
     }
-    Paint core=Paint::radial({0,0},scale*.28f,{Color{1,.87f,.68f,.92f},Color{.65f,.34f,.75f,.22f},Color{.2f,.1f,.6f,0}},{0,.22f,1});
-    core.blend=Blend::screen;c.circle({0,0},scale*.28f,core);c.restore();
+    if (m.nucleo) {
+      Paint core = Paint::radial({0, 0}, scale * .28f,
+        {pal[3].opacity(.92f * std::min(1.f, f.glow)), pal[1].opacity(.22f), pal[1].opacity(0)},
+        {0, .22f, 1});
+      core.blend = Blend::screen; c.circle({0, 0}, scale * .28f, core);
+    }
+    c.restore();
   }
 };
 """;

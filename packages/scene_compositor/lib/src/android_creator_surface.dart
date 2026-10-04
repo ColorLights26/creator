@@ -218,6 +218,20 @@ class AndroidCreatorSession extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Live modifier change. While playing the next frame picks it up; a
+  /// paused surface redraws once. Restarting would lose the simulation.
+  void setModifiers(Map<String, double> values) {
+    if (_closed || _native == null) return;
+    _native.setModifiers(values);
+    _native.configure(
+      reactive: _reactive,
+      playing: _state.playing,
+      hostTime: _hostTime,
+    );
+    if (!_state.playing) _generation++;
+    notifyListeners();
+  }
+
   void reset({required bool reactive, int? seed}) {
     if (_closed) return;
     final wasPlaying = _state.playing;

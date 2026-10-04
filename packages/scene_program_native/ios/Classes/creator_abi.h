@@ -21,7 +21,9 @@ CP_API CPInstance* cp_create(const char* program, const char* expected_hash, uin
 CP_API void cp_destroy(CPInstance* instance);
 CP_API const char* cp_error(CPInstance* instance);
 CP_API int32_t cp_reset(CPInstance* instance, uint32_t seed);
-// options: intensity,speed,detail,glow followed by 4 straight RGBA colors.
+// options: intensity,speed,detail,glow followed by 4 straight RGBA colors,
+// then one value per declared modifier. Sending only the first 20 keeps
+// every modifier at its declared initial value.
 CP_API int32_t cp_configure(CPInstance* instance, const float* options, uint32_t count,
                            int32_t reactive, int32_t playing, double host_time);
 CP_API int32_t cp_consume(CPInstance* instance, const uint8_t* bytes, uint32_t size);

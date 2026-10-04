@@ -39,14 +39,18 @@ class CreatorVisualMetadata {
   final CreatorControls controls;
   final Map<String, String> images;
 
+  /// [modifiers] come from the code file: they are declared next to the C++
+  /// that reads them, never in this metadata.
   CreatorVisualDefinition withNative(
     String nativeSource, {
     Map<String, String> shaderSources = const {},
+    List<CreatorModifier> modifiers = const [],
     String sourceFile = 'visual.dart',
     int sourceLine = 1,
   }) => _join(
     nativeSource: nativeSource,
     shaderSources: shaderSources,
+    modifiers: modifiers,
     sourceFile: sourceFile,
     sourceLine: sourceLine,
   );
@@ -58,12 +62,14 @@ class CreatorVisualMetadata {
     String shaderSource = '',
     String nativeSource = '',
     Map<String, String> shaderSources = const {},
+    List<CreatorModifier> modifiers = const [],
     String sourceFile = 'visual.dart',
     int sourceLine = 1,
   }) => CreatorVisualDefinition(
     shaderSource: shaderSource,
     nativeSource: nativeSource,
     shaderSources: shaderSources,
+    modifiers: modifiers,
     sourceFile: sourceFile,
     sourceLine: sourceLine,
     images: images,

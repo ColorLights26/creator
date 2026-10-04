@@ -26,18 +26,33 @@ final class SceneCreatorNativeScene {
     "simulationAverageMicros": updateTotal / Double(max(1, updates)), "simulationMaximumMicros": updateMaximum] }
 
   static func controls(program: SceneCreatorCatalog.Program, options: [String: Any], mode: String?, reactive: Bool) -> [Float]? {
+    let declared = Set(program.modifiers.map(\.id))
     guard program.isNative, program.allows(reactive: reactive), mode == nil || mode == "default",
-      Set(options.keys).isSubset(of: Set(SceneCreatorCatalog.controlRanges.keys).union(["Music Reactive"])) else { return nil }
+      Set(options.keys).isSubset(of: Set(SceneCreatorCatalog.controlRanges.keys).union(declared).union(["Music Reactive"])) else { return nil }
     var values = program.controls
+    var modifiers = [String: Float]()
+    for modifier in program.modifiers { modifiers[modifier.id] = modifier.value }
     for (key, raw) in options {
       if key == "Music Reactive" {
         guard let number = raw as? NSNumber, CFGetTypeID(number) == CFBooleanGetTypeID(), number.boolValue == reactive else { return nil }
+      } else if let modifier = program.modifiers.first(where: { $0.id == key }) {
+        let candidate: Float
+        if let flag = raw as? NSNumber, CFGetTypeID(flag) == CFBooleanGetTypeID() {
+          guard modifier.kind == "toggle" else { return nil }
+          candidate = flag.boolValue ? 1 : 0
+        } else {
+          guard let value = SceneCreatorCatalog.number(raw) else { return nil }
+          candidate = Float(value)
+        }
+        guard modifier.accepts(candidate) else { return nil }
+        modifiers[key] = candidate
       } else {
         guard let value = SceneCreatorCatalog.number(raw), SceneCreatorCatalog.controlRanges[key]?.contains(Float(value)) == true else { return nil }
         values[key] = Float(value)
       }
     }
-    return ["intensity", "speed", "detail", "glow"].map { values[$0]! } + program.colors
+    return ["intensity", "speed", "detail", "glow"].map { values[$0]! } + program.colors +
+      program.modifiers.map { modifiers[$0.id]! }
   }
 
   init(program: SceneCreatorCatalog.Program, options: [String: Any], mode: String?, reactive: Bool,

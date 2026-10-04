@@ -19,6 +19,7 @@ import '../team_review/team_voting_summary.dart';
 import '../team_review/team_vote_filter.dart';
 import '../team_review/visual_revision.dart';
 import 'studio_view.dart';
+import 'visual_adjustments.dart';
 
 export 'studio_view.dart'
     show
@@ -109,6 +110,15 @@ class _CreatorStudioState extends State<CreatorStudio>
   int _revision = 0;
   final ValueNotifier<SceneRenderSignalFrameV2?> _latestSignal =
       ValueNotifier<SceneRenderSignalFrameV2?>(null);
+
+  // Ajustes: values the user moved for the visual on screen. They survive a
+  // track change and go back to the initial ones on another visual.
+  String? _adjustedVisualId;
+  CreatorControls? _liveControls;
+  Map<String, double> _liveModifiers = const {};
+  bool _adjusting = false;
+  bool _controlsDirty = false;
+  bool _modifiersDirty = false;
 
   void _toggleMuted() {
     setState(() => _muted = !_muted);
@@ -449,6 +459,13 @@ class _CreatorStudioState extends State<CreatorStudio>
     }
     _loading = true;
     _error = null;
+    if (visual.id != _adjustedVisualId) {
+      _adjustedVisualId = visual.id;
+      _liveControls = null;
+      _liveModifiers = const {};
+      _controlsDirty = false;
+      _modifiersDirty = false;
+    }
     setState(() {});
     _enqueue(() async {
       if (!_isCurrent(revision)) return;
@@ -459,6 +476,14 @@ class _CreatorStudioState extends State<CreatorStudio>
         size: viewport,
         pixelRatio: _pixelRatio,
       );
+      if (!_isCurrent(revision)) return;
+      // setVisual restores the initial values; keep the user's Ajustes.
+      if (_liveControls case final CreatorControls controls) {
+        await _controller.setControls(controls);
+      }
+      if (_liveModifiers.isNotEmpty) {
+        await _controller.setModifiers(_liveModifiers);
+      }
       if (!_isCurrent(revision)) return;
       await _controller.setReactive(_effectiveReaction);
       _replayElapsed = Duration.zero;
@@ -474,6 +499,71 @@ class _CreatorStudioState extends State<CreatorStudio>
       _syncReplay();
       setState(() {});
     });
+  }
+
+  /// Sends Ajustes changes live. A drag produces many values: only the latest
+  /// is sent, with at most one update waiting behind the compositor queue.
+  void _adjust({CreatorControls? controls, Map<String, double>? modifiers}) {
+    if (controls != null) {
+      _liveControls = controls;
+      _controlsDirty = true;
+    }
+    if (modifiers != null) {
+      _liveModifiers = modifiers;
+      _modifiersDirty = true;
+    }
+    setState(() {});
+    if (_adjusting) return;
+    _adjusting = true;
+    final revision = _revision;
+    _enqueue(() async {
+      try {
+        while (_isCurrent(revision) && (_controlsDirty || _modifiersDirty)) {
+          if (_controlsDirty) {
+            _controlsDirty = false;
+            if (_liveControls case final CreatorControls controls) {
+              await _controller.setControls(controls);
+            }
+          }
+          if (_modifiersDirty) {
+            _modifiersDirty = false;
+            await _controller.setModifiers(_liveModifiers);
+          }
+        }
+      } finally {
+        _adjusting = false;
+      }
+    });
+  }
+
+  bool get _adjustmentsChanged {
+    final visual = _selected;
+    if (visual == null) return false;
+    final controls = _liveControls;
+    return (controls != null &&
+            !mapEquals(controls.toMap(), visual.controls.toMap())) ||
+        (_liveModifiers.isNotEmpty &&
+            !mapEquals(_liveModifiers, visual.modifierDefaults));
+  }
+
+  Widget? _adjustmentsButton() {
+    final visual = _selected;
+    if (visual == null || _error != null) return null;
+    return VisualAdjustmentsButton(
+      modifierCount: visual.modifiers.length,
+      modified: _adjustmentsChanged,
+      onPressed:
+          () => unawaited(
+            showVisualAdjustments(
+              context: context,
+              visual: visual,
+              controls: _liveControls ?? visual.controls,
+              modifiers: _liveModifiers,
+              onControls: (controls) => _adjust(controls: controls),
+              onModifiers: (modifiers) => _adjust(modifiers: modifiers),
+            ),
+          ),
+    );
   }
 
   void _togglePlaying() {
@@ -725,6 +815,7 @@ class _CreatorStudioState extends State<CreatorStudio>
       pictureInPictureActive: _controller.pictureInPictureActive,
       ratingPanel: _ratingPanel(),
       performanceOverlay: VisualPerformanceOverlay(sample: _performance.sample),
+      adjustments: _adjustmentsButton(),
       backdropVisuals: [
         for (var index = 0; index < _catalog.length; index++)
           if (_catalog[index].role == CreatorRole.background)

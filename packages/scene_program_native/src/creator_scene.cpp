@@ -141,10 +141,14 @@ void cp_destroy(CPInstance* p){delete p;}
 const char* cp_error(CPInstance* p){return p?p->error.c_str():creationError.c_str();}
 int32_t cp_reset(CPInstance* p,uint32_t seed){return protect(p,[&]{p->scene->reset(seed);p->frame.seed=seed;p->frame.time=0;p->frame.delta=0;p->frame.music={};p->latest={};p->hasHost=false;p->session=-1;p->sequence=-1;p->serials.fill(-1);clearEvents(p);p->commands.clear();});}
 int32_t cp_configure(CPInstance* p,const float* o,uint32_t count,int32_t reactive,int32_t playing,double host){return protect(p,[&]{
-  creator::require(o&&count==20&&std::isfinite(host)&&host>=0,"Invalid frame configuration");
+  const auto& defaults=p->definition->modifiers;
+  creator::require(o&&defaults.size()<=p->frame.modifiers.size()&&(count==20||count==20+defaults.size())&&std::isfinite(host)&&host>=0,"Invalid frame configuration");
   for(int i=0;i<20;++i)creator::require(std::isfinite(o[i])&&o[i]>=0&&o[i]<=(i<4?2:1),"Invalid options");
   creator::require(o[2]>=.25,"Invalid detail");p->frame.intensity=o[0];p->frame.speed=o[1];p->frame.detail=o[2];p->frame.glow=o[3];
   for(int i=0;i<4;++i)p->frame.colors[i]={o[4+4*i],o[5+4*i],o[6+4*i],o[7+4*i]};
+  // 20 values alone keep every modifier at its declared initial value.
+  p->frame.modifiers.fill(0);
+  for(size_t i=0;i<defaults.size();++i){float v=count==20?defaults[i]:o[20+i];creator::require(std::isfinite(v)&&std::fabs(v)<=100000,"Invalid modifier");p->frame.modifiers[i]=v;}
   if(p->playing!=bool(playing)){p->host=host;p->hasHost=true;clearEvents(p);}if(p->reactive!=bool(reactive)){clearEvents(p);p->latest={};p->frame.music={};}
   p->reactive=reactive;p->playing=playing;
 });}

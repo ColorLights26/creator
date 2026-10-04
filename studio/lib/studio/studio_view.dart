@@ -97,6 +97,7 @@ class StudioView extends StatefulWidget {
     this.onToggleMuted,
     this.ratingPanel,
     this.performanceOverlay,
+    this.adjustments,
     this.backdropVisuals = const [],
     this.backdropBuilder,
     this.voteFilters = const [],
@@ -134,6 +135,10 @@ class StudioView extends StatefulWidget {
 
   /// Live CPU/FPS of the visual, shown under the app bar with the controls.
   final Widget? performanceOverlay;
+
+  /// Opens the visual's Ajustes (its modifiers and the basic controls),
+  /// shown above "Pruébalo con".
+  final Widget? adjustments;
 
   /// Catalog backgrounds that can sit, frozen, behind an overlay.
   final List<StudioBackdropVisual> backdropVisuals;
@@ -1112,6 +1117,11 @@ class _StudioViewState extends State<StudioView> {
               ),
             ),
           ),
+        ],
+
+        if (widget.adjustments case final Widget adjustments) ...[
+          const SizedBox(height: 10),
+          adjustments,
         ],
 
         const SizedBox(height: 12),

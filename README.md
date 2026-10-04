@@ -166,6 +166,24 @@ el micrófono ni reproduce una canción. Recorre 32 segundos con partes suaves,
 subidas, una pausa y acentos de distinta fuerza, en vez de un pulso constante.
 Así puedes probar sin conectar sensores.
 
+### Prueba sus Ajustes
+
+Encima de **Pruébalo con** está el botón **Ajustes**. Ábrelo con el visual en
+pantalla: los cambios se ven al instante, sin reiniciar el dibujo.
+
+- **Modificadores**: los ajustes propios de ese visual, como cantidad de brazos,
+  giro, forma o estilo. **La plantilla le pide a la IA que los cree siempre**, así
+  que tus visuales nuevos los traen. El botón dice cuántos tiene.
+- **Básicos**: Intensidad, Velocidad, Detalle y Brillo, comunes a todos. Si el
+  código no usa alguno, aparece apagado con «este visual no lo usa».
+- **Aleatorio** prueba combinaciones; **Restablecer** vuelve a los iniciales.
+- **Copiar valores** copia los que elegiste. Pégaselos a la IA y pídele: «Usa estos
+  valores como iniciales». Así quedan como el aspecto de partida.
+
+Para pedir otros modificadores, díselo a la IA con la plantilla y tu archivo:
+«Añade un modificador para elegir la forma de las partículas». Los valores que
+muevas en Ajustes son para probar: **el voto del equipo es para los iniciales**.
+
 ## 6. Para crear otro visual
 
 Repite los pasos con otro nombre y otro `id`. Por ejemplo:
@@ -190,6 +208,7 @@ existente; para crear Fuego, añade otra pareja. Puedes conservar los ejemplos.
 | Elegí transparente, pero sigue mostrando un fondo negro | Pide a la IA transparencia real en el código del dibujo; revisa que la metadata use `.overlay`. |
 | No reacciona a la música que pongo en mi habitación | El estudio usa señales de demostración y no escucha el micrófono. Prueba la Demo sintética y revisa la opción de reacción. |
 | Me indican que «figura como reactivo pero no cambia» | Si quieres reacción, adjunta el mensaje, la plantilla y tu código a la IA. Si el visual debe ser ambiental, elige `.none` en la metadata. |
+| Un error menciona `modifiers` | Pega el error, la plantilla y tu archivo a la IA. Suele ser un nombre repetido, un valor inicial fuera de su rango o el `import` borrado. |
 | El código de la IA no compila | Copia el primer error completo, el contenido de tu visual y la plantilla a la IA. Usa el mensaje de abajo. |
 
 ```text

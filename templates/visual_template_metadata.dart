@@ -19,5 +19,7 @@ const metadata = CreatorVisualMetadata(
   // Apagar la reacción pone las señales en cero, sin detener el tiempo del dibujo.
   reactivity: CreatorReactivity.optional,
   colors: [0xff030918, 0xff20d7ba, 0xff6562eb, 0xffffb9de],
+  // Valores iniciales de los ajustes básicos de Studio: Intensidad, Velocidad,
+  // Detalle y Brillo. Los modificadores propios van en el archivo del código.
   controls: CreatorControls(intensity: 1, speed: .6, detail: 1, glow: .8),
 );

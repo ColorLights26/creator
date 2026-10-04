@@ -158,6 +158,114 @@ void main() {
     );
   });
 
+  group('modifiers', () {
+    const authoring = "import 'package:scene_compositor/authoring.dart';";
+    const list = '''const modifiers = [
+  CreatorModifier.steps('lados', 'Lados (n)', min: 3, max: 12, value: 6),
+  CreatorModifier.slider('zoom', 'Zoom [x]', min: .5, max: 2, value: 1),
+  CreatorModifier.toggle('borde', 'Borde', value: true),
+  CreatorModifier.choice('modo', 'Modo', options: ['Auto', 'Ola', 'Rayo']),
+];''';
+    const native =
+        "const nativeSource = r'''class Visual final : public Scene {};''';";
+
+    void writeNative(String name, String code) {
+      writePair(name);
+      File('${visuals.path}/$name.dart').writeAsStringSync(code);
+    }
+
+    Matcher failsNaming(String file, String reason) => throwsA(
+      isA<FormatException>().having(
+        (e) => e.message,
+        'message',
+        allOf(contains(file), contains(reason)),
+      ),
+    );
+
+    test('a declared list reaches the registry next to nativeSource', () {
+      writeNative('olas', '$authoring\n\n$list\n\n$native\n');
+      writeNative('lisa', '$native\n');
+      final registry = generateCreatorRegistry(visuals);
+      expect(
+        registry,
+        contains(
+          'withNative(visual_1.nativeSource, shaderSources: const {}, '
+          'modifiers: visual_1.modifiers, ',
+        ),
+      );
+      expect(
+        registry,
+        contains(
+          'withNative(visual_0.nativeSource, shaderSources: const {}, '
+          "sourceFile: 'lisa.dart'",
+        ),
+      );
+    });
+
+    test('numbers may use exponents, hex and digit separators', () {
+      writeNative(
+        'olas',
+        "$authoring\nconst modifiers = [\n"
+            "  CreatorModifier.slider('a', 'A', min: 1e-3, max: 2E1, value: 1),\n"
+            "  CreatorModifier.steps('b', 'B', min: 0x2, max: 1_000, value: 10),\n"
+            "];\n$native",
+      );
+      expect(
+        generateCreatorRegistry(visuals),
+        contains('modifiers: visual_0.modifiers'),
+      );
+    });
+
+    test('the import and the list only travel together', () {
+      writeNative('olas', '$list\n$native');
+      expect(
+        () => generateCreatorRegistry(visuals),
+        failsNaming('olas.dart', 'import'),
+      );
+      writeNative('olas', '$authoring\n$native');
+      expect(
+        () => generateCreatorRegistry(visuals),
+        failsNaming('olas.dart', 'const modifiers'),
+      );
+    });
+
+    test('only literal declarations pass; nothing runs during discovery', () {
+      for (final (bad, reason) in [
+        (
+          "CreatorModifier.slider('a', 'A', min: lerp(0, 1), max: 2, value: 1),",
+          'lerp',
+        ),
+        ("CreatorModifier.toggle('a', 'A'); final x = 1;", 'final'),
+        (r"CreatorModifier.toggle('a', 'A ${1 + 1}'),", r'$'),
+        (
+          "CreatorModifier.toggle('a', 'A'),\n];\nconst otro = [",
+          'nativeSource',
+        ),
+      ]) {
+        writeNative(
+          'olas',
+          '$authoring\nconst modifiers = [\n$bad\n];\n$native',
+        );
+        expect(
+          () => generateCreatorRegistry(visuals),
+          failsNaming('olas.dart', reason),
+          reason: bad,
+        );
+      }
+    });
+
+    test('legacy shader visuals have no modifiers', () {
+      writeNative(
+        'olas',
+        "$authoring\n$list\nconst shaderSource = r'''vec4 paintVisual(vec2 uv, CreatorFrame f) { return vec4(1.0); }''';",
+      );
+      expect(
+        () => generateCreatorRegistry(visuals),
+        failsNaming('olas.dart', 'nativeSource'),
+      );
+    });
+  });
+
   test('the complete copyable templates pass the same admission gate', () {
     final root = Directory.current.parent;
     File('${visuals.path}/olas.dart').writeAsStringSync(
@@ -168,7 +276,11 @@ void main() {
         '${root.path}/templates/visual_template_metadata.dart',
       ).readAsStringSync(),
     );
-    expect(() => generateCreatorRegistry(visuals), returnsNormally);
+    // The template teaches modifiers by declaring them.
+    expect(
+      generateCreatorRegistry(visuals),
+      contains('modifiers: visual_0.modifiers'),
+    );
     final source = File('${visuals.path}/olas.dart');
     source.writeAsStringSync(
       source.readAsStringSync().replaceFirst(
