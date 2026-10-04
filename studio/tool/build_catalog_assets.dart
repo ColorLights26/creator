@@ -19,15 +19,12 @@ void main() {
       '${root.parent.path}/packages/visual_catalog',
     );
     final visuals = validateCreatorCatalog(creatorSourceVisuals);
-    final problems = [
-      for (final visual in visuals) ...lintCreatorVisual(visual),
-    ];
-    if (problems.isNotEmpty) {
-      throw FormatException(
-        '${problems.join('\n')}\n'
-        'El visual no se ha aceptado. Vuelve a enviar la plantilla y este '
-        'error a la IA.',
-      );
+    // Warnings only: one visual's naming never blocks the team's Studio.
+    // The app approval (creator_review.dart) turns them into errors.
+    for (final visual in visuals) {
+      for (final problem in lintCreatorVisual(visual)) {
+        stderr.writeln('Aviso: $problem');
+      }
     }
     for (final visual in visuals) {
       final thumbnail = visual.thumbnail;
