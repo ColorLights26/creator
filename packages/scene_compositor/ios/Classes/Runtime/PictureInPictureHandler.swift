@@ -360,7 +360,7 @@ func sceneSurfaceLayerSemanticsAreExplicit(
 /// A process-wide reservation precedes every V1 AVPlayer (including paused
 /// candidates and the companion). Document admission remains a separate limit.
 final class SceneSurfaceVideoReservations {
-    static let shared = SceneSurfaceVideoReservations(capacity: SceneSurfaceVideoAdmission.maximumResidentPlayers)
+    static let shared = SceneSurfaceVideoReservations(capacity: SceneVideoAdmissionContractGenerated.maximumVideoLayers)
     final class Lease {
         private let owner: SceneSurfaceVideoReservations
         fileprivate init(_ owner: SceneSurfaceVideoReservations) { self.owner = owner }
@@ -395,80 +395,109 @@ final class SceneSurfaceVideoReservations {
 
 func sceneSurfaceVideoLayerCountIsSupported(
     _ definitions: [[String: Any]],
-    maximum: Int = 2,
-    maximumAlpha: Int = 2,
-    maximumAlphaWithPackedSource: Int = 2
+    maximum: Int = SceneVideoAdmissionContractGenerated.maximumVideoLayers
 ) -> Bool {
-    guard
-        maximum >= 0,
-        maximumAlpha >= 0,
-        maximumAlphaWithPackedSource >= 0
-    else { return false }
-    let videoDefinitions = definitions.lazy.filter {
+    guard maximum >= 0 else { return false }
+    return definitions.lazy.filter {
         $0["sourceKind"] as? String == "video"
-    }
-    guard videoDefinitions.count <= maximum else { return false }
-    let alphaDefinitions = videoDefinitions.filter {
-        ($0["alphaMode"] as? String ?? "normal") != "normal"
-    }
-    guard alphaDefinitions.count <= maximumAlpha else { return false }
-    let includesPackedSource = alphaDefinitions.contains {
-        ($0["alphaMode"] as? String) == "packedSideBySide"
-    }
-    return !includesPackedSource ||
-        alphaDefinitions.count <= maximumAlphaWithPackedSource
+    }.count <= maximum
 }
 
-/// Installed, device-specific admission. The remote catalog cannot extend it.
-/// Larger documents must additionally pass the real-file range below.
+/// Installed admission, identical on every device. Numbers come only from
+/// `SceneVideoAdmissionContractGenerated`; the remote catalog cannot extend it.
+/// Above `unconditionalVideoLayers`, the decoded files must also pass the rule.
 enum SceneSurfaceVideoAdmission {
-    static let revision = "ios-v1-h264-four-v1"
-    static let maximumResidentPlayers = 4
-    static let maximumEncodedPixelsPerSecond = 225_000_000.0
-    static let current: (profileID: String, limit: Int) = {
-        var system = utsname()
-        uname(&system)
-        let model = withUnsafeBytes(of: &system.machine) { bytes in
-            String(decoding: bytes.prefix { $0 != 0 }, as: UTF8.self)
+    /// One video as the shared rule sees it (Dart `SceneVideoCandidate`).
+    /// Empty variants mean its facts are unknown.
+    struct Candidate {
+        struct Variant {
+            let codec: String
+            let avcProfile: Int?
+            let width: Int
+            let height: Int
+            let framesPerSecond: Double
         }
-        let os = ProcessInfo.processInfo.operatingSystemVersion
-        // Candidate profiles are exercised by the physical qualification run.
-        let installedModels: Set<String> = ["iPhone15,2", "iPad13,4"]
-        guard installedModels.contains(model), os.majorVersion == 27,
-              os.minorVersion == 0 else { return ("ios-v1-unqualified-two", 2) }
-        return ("\(revision):\(model):27.0", 4)
-    }()
+
+        let alphaMode: String
+        let variants: [Variant]
+    }
 
     static func supports(_ videos: [(SceneSurfaceVideoAssetInspection, String)]) -> Bool {
-        guard videos.count <= current.limit else { return false }
-        if videos.count <= 2 { return true }
-        var pixelsPerSecond = 0.0
-        for (media, alpha) in videos {
-            guard !media.contentSHA256.isEmpty, media.isCurrent,
-                  ["normal", "packedSideBySide"].contains(alpha),
-                  media.nominalFrameRate.isFinite,
-                  media.nominalFrameRate > 0, media.nominalFrameRate <= 30.01,
-                  !media.formatDescriptions.isEmpty else { return false }
-            var maximumPixels = 0
-            for format in media.formatDescriptions {
-                let dimensions = CMVideoFormatDescriptionGetDimensions(format)
-                guard CMFormatDescriptionGetMediaSubType(format) == kCMVideoCodecType_H264,
-                      dimensions.width > 0, dimensions.height > 0,
-                      dimensions.width <= 3840, dimensions.height <= 2160,
-                      dimensions.width.isMultiple(of: 2), dimensions.height.isMultiple(of: 2),
-                      let atoms = CMFormatDescriptionGetExtension(format,
+        admits(videos.map { candidate($0.0, alphaMode: $0.1) })
+    }
+
+    /// Facts of the real file; every format description is one variant.
+    static func candidate(
+        _ media: SceneSurfaceVideoAssetInspection,
+        alphaMode: String
+    ) -> Candidate {
+        let unknown = Candidate(alphaMode: alphaMode, variants: [])
+        let framesPerSecond = Double(media.nominalFrameRate)
+        guard !media.contentSHA256.isEmpty, media.isCurrent,
+              framesPerSecond.isFinite, framesPerSecond > 0 else { return unknown }
+        var variants = [Candidate.Variant]()
+        for format in media.formatDescriptions {
+            let dimensions = CMVideoFormatDescriptionGetDimensions(format)
+            guard dimensions.width > 0, dimensions.height > 0 else { return unknown }
+            let codec: String
+            var avcProfile: Int?
+            switch CMFormatDescriptionGetMediaSubType(format) {
+            case kCMVideoCodecType_H264:
+                // H.264 without a readable avcC profile cannot be verified.
+                guard let atoms = CMFormatDescriptionGetExtension(format,
                         extensionKey: kCMFormatDescriptionExtension_SampleDescriptionExtensionAtoms) as? [String: Any],
                       let configuration = atoms["avcC"] as? Data,
-                      configuration.count > 3,
-                      [66, 77, 88, 100].contains(Int(configuration[1]))
-                else { return false }
-                let pixels = Int(dimensions.width) * Int(dimensions.height)
-                guard pixels <= 1920 * 2160 else { return false }
-                maximumPixels = max(maximumPixels, pixels)
+                      configuration.count > 3 else { return unknown }
+                codec = "h264"
+                avcProfile = Int(configuration[configuration.startIndex + 1])
+            case kCMVideoCodecType_HEVC:
+                codec = "hevc"
+            default:
+                codec = "unsupported"
             }
-            pixelsPerSecond += Double(maximumPixels) * Double(media.nominalFrameRate)
+            variants.append(Candidate.Variant(
+                codec: codec,
+                avcProfile: avcProfile,
+                width: Int(dimensions.width),
+                height: Int(dimensions.height),
+                framesPerSecond: framesPerSecond
+            ))
         }
-        return pixelsPerSecond <= maximumEncodedPixelsPerSecond
+        return Candidate(alphaMode: alphaMode, variants: variants)
+    }
+
+    /// Mirrors Dart `SceneVideoAdmission.admits`; the shared conformance
+    /// cases in the generated contract keep both in step.
+    static func admits(_ videos: [Candidate]) -> Bool {
+        typealias Contract = SceneVideoAdmissionContractGenerated
+        guard videos.count <= Contract.maximumVideoLayers else { return false }
+        if videos.count <= Contract.unconditionalVideoLayers { return true }
+        var pixelsPerSecond = 0.0
+        for video in videos {
+            guard Contract.alphaModes.contains(video.alphaMode),
+                  !video.variants.isEmpty else { return false }
+            var largest = 0.0
+            for variant in video.variants {
+                guard admitsSource(variant) else { return false }
+                largest = max(largest, Double(variant.width * variant.height) * variant.framesPerSecond)
+            }
+            pixelsPerSecond += largest
+        }
+        return pixelsPerSecond <= Contract.maximumEncodedPixelsPerSecond
+    }
+
+    private static func admitsSource(_ variant: Candidate.Variant) -> Bool {
+        typealias Contract = SceneVideoAdmissionContractGenerated
+        let even = !Contract.evenDimensions ||
+            (variant.width.isMultiple(of: 2) && variant.height.isMultiple(of: 2))
+        return Contract.codecs.contains(variant.codec) &&
+            (variant.avcProfile.map(Contract.avcProfiles.contains) ?? true) &&
+            variant.framesPerSecond <=
+                Contract.maximumFramesPerSecond + Contract.framesPerSecondTolerance &&
+            even &&
+            variant.width <= Contract.maximumWidth &&
+            variant.height <= Contract.maximumHeight &&
+            variant.width * variant.height <= Contract.maximumEncodedPixelsPerVideo
     }
 }
 
@@ -5569,7 +5598,7 @@ final class SceneSurfaceStatefulStormRuntime {
     ) {
         var decoded = [CIImage]()
         for master in recipe.masterAssets {
-            let lookupKey = FlutterDartProject.lookupKey(
+            let lookupKey = BundledAssetLookup.lookupKey(
                 forAsset: master.asset,
                 fromPackage: master.package
             )
@@ -7465,12 +7494,12 @@ private final class PictureInPictureSceneLayerRuntime {
         let package = definition["assetPackage"] as? String
         let lookupKey: String
         if let package, !package.isEmpty {
-            lookupKey = FlutterDartProject.lookupKey(
+            lookupKey = BundledAssetLookup.lookupKey(
                 forAsset: asset,
                 fromPackage: package
             )
         } else {
-            lookupKey = FlutterDartProject.lookupKey(forAsset: asset)
+            lookupKey = BundledAssetLookup.lookupKey(forAsset: asset)
         }
         return Bundle.main.path(forResource: lookupKey, ofType: nil)
     }
@@ -9131,12 +9160,12 @@ final class PictureInPictureHandler: NSObject {
         } else if let asset, !asset.isEmpty {
             let lookupKey: String
             if let package, !package.isEmpty {
-                lookupKey = FlutterDartProject.lookupKey(
+                lookupKey = BundledAssetLookup.lookupKey(
                     forAsset: asset,
                     fromPackage: package
                 )
             } else {
-                lookupKey = FlutterDartProject.lookupKey(forAsset: asset)
+                lookupKey = BundledAssetLookup.lookupKey(forAsset: asset)
             }
             resolvedPath = Bundle.main.path(forResource: lookupKey, ofType: nil)
         } else {
@@ -11500,10 +11529,7 @@ private final class SceneSurfaceDocumentRuntime {
             !layerDefinitions.isEmpty,
             layerDefinitions.count <= 32,
             layerDefinitions.allSatisfy(sceneSurfaceLayerSemanticsAreExplicit),
-            sceneSurfaceVideoLayerCountIsSupported(layerDefinitions,
-                maximum: SceneSurfaceVideoAdmission.current.limit,
-                maximumAlpha: SceneSurfaceVideoAdmission.current.limit,
-                maximumAlphaWithPackedSource: SceneSurfaceVideoAdmission.current.limit)
+            sceneSurfaceVideoLayerCountIsSupported(layerDefinitions)
         else {
             return nil
         }
@@ -12497,7 +12523,7 @@ final class SceneSurfaceRenderEngine: NSObject {
         windowProvider: @escaping () -> UIWindow? = { nil }
     ) {
         SceneCreatorCatalog.loadBundledIfNeeded(
-            assetPath: Bundle.main.path(forResource: FlutterDartProject.lookupKey(
+            assetPath: Bundle.main.path(forResource: BundledAssetLookup.lookupKey(
                 forAsset: "assets/creator_catalog.json", fromPackage: "visual_catalog"), ofType: nil)
         )
         self.textureRegistry = textureRegistry
@@ -12560,12 +12586,13 @@ final class SceneSurfaceRenderEngine: NSObject {
             case "creatorDiagnostics":
                 result(SceneCreatorCatalog.diagnostics)
             case "videoAdmissionProfile":
-                result(["profileId": SceneSurfaceVideoAdmission.current.profileID,
-                        "maximumVideoLayers": SceneSurfaceVideoAdmission.current.limit,
-                        "maximumResidentPlayers": SceneSurfaceVideoAdmission.maximumResidentPlayers,
-                        "maximumEncodedPixelsPerVideo": 1920 * 2160,
-                        "maximumSourceFPSForExpandedMix": 30,
-                        "maximumEncodedPixelsPerSecond": SceneSurfaceVideoAdmission.maximumEncodedPixelsPerSecond,
+                result(["profileId": SceneVideoAdmissionContractGenerated.revision,
+                        "contractRevision": SceneVideoAdmissionContractGenerated.revision,
+                        "maximumVideoLayers": SceneVideoAdmissionContractGenerated.maximumVideoLayers,
+                        "maximumResidentPlayers": SceneVideoAdmissionContractGenerated.maximumVideoLayers,
+                        "maximumEncodedPixelsPerVideo": SceneVideoAdmissionContractGenerated.maximumEncodedPixelsPerVideo,
+                        "maximumSourceFPSForExpandedMix": SceneVideoAdmissionContractGenerated.maximumFramesPerSecond,
+                        "maximumEncodedPixelsPerSecond": SceneVideoAdmissionContractGenerated.maximumEncodedPixelsPerSecond,
                         "videoReservations": SceneSurfaceVideoReservations.shared.diagnostics])
             case "isSupported":
                 self.logCapabilityReceiptIfNeeded()

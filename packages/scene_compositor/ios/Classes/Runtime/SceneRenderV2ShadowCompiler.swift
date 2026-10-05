@@ -320,8 +320,9 @@ enum SceneRenderV2ShadowCompiler {
     } else if document.keys.contains("filterNode") {
       issues.append("filter_invalid")
     }
-    if videoDecoders > 2 { issues.append("budget_video_decoders") }
-    if packedDecoders > 2 { issues.append("budget_packed_alpha_decoders") }
+    let maximumDecoders = SceneVideoAdmissionContractGenerated.maximumVideoLayers
+    if videoDecoders > maximumDecoders { issues.append("budget_video_decoders") }
+    if packedDecoders > maximumDecoders { issues.append("budget_packed_alpha_decoders") }
     if renderPasses > 12 { issues.append("budget_render_passes") }
     if boundedIntermediatePasses > 192 { issues.append("budget_bounded_intermediate_passes") }
     if samplers > 16 { issues.append("budget_samplers") }

@@ -11,6 +11,42 @@ typealias SceneSurfaceNativeProgram = SceneRenderV2ImageSurfaceRuntime.NativePro
 import Metal
 import UIKit
 
+
+// The build filter validates identical bytes before publishing this map. Scene
+// documents retain their canonical asset/package values and plan hashes.
+enum BundledAssetLookup {
+  private static let aliases: [String: String] = {
+    let key = FlutterDartProject.lookupKey(forAsset: "AssetAliases.json")
+    guard let path = Bundle.main.path(forResource: key, ofType: nil) else {
+      return [:] // Unfiltered development bundles contain both original copies.
+    }
+    guard let data = FileManager.default.contents(atPath: path),
+          data.count <= 1_048_576,
+          let document = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+          document["schemaVersion"] as? Int == 1,
+          let values = document["aliases"] as? [String: String],
+          values.allSatisfy({ valid($0.key) && valid($0.value) && $0.key != $0.value }),
+          values.values.allSatisfy({ values[$0] == nil }) else {
+      NSLog("Invalid bundled asset alias manifest")
+      return [:]
+    }
+    return values
+  }()
+
+  private static func valid(_ key: String) -> Bool {
+    !key.isEmpty && !key.hasPrefix("/") &&
+      !key.contains("\\") && !key.contains("?") && !key.contains("#") &&
+      !key.split(separator: "/", omittingEmptySubsequences: false).contains(where: {
+        $0.isEmpty || $0 == "." || $0 == ".."
+      })
+  }
+
+  static func lookupKey(forAsset asset: String, fromPackage package: String? = nil) -> String {
+    let canonical = package.map { "packages/\($0)/\(asset)" } ?? asset
+    return FlutterDartProject.lookupKey(forAsset: aliases[canonical] ?? canonical)
+  }
+}
+
 struct SceneRenderV2RGBGainConfig: Equatable {
   let flowGain: Double
   let sparkGain: Double
@@ -4700,7 +4736,7 @@ final class SceneRenderV2MediaCommitGate {
 func sceneRenderV2DecoderTransitionWithinBudget(
   liveDecoderCount: Int,
   newDecoderCount: Int,
-  maximumDecoderCount: Int = 2
+  maximumDecoderCount: Int = SceneVideoAdmissionContractGenerated.maximumVideoLayers
 ) -> Bool {
   liveDecoderCount >= 0 &&
     newDecoderCount >= 0 &&
@@ -8115,7 +8151,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
       guard case .media(let layer) = node else { return nil }
       return layer
     }
-    guard layers.filter({ $0.kind.isVideo }).count <= 2 else {
+    guard layers.filter({ $0.kind.isVideo }).count <=
+      SceneVideoAdmissionContractGenerated.maximumVideoLayers else {
       throw RuntimeError("video_decoder_budget_exceeded")
     }
     let reused = layers.compactMap { layer -> MediaState? in
@@ -11566,8 +11603,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
     if let asset {
       guard !asset.isEmpty else { return nil }
       let key = package.map {
-        FlutterDartProject.lookupKey(forAsset: asset, fromPackage: $0)
-      } ?? FlutterDartProject.lookupKey(forAsset: asset)
+        BundledAssetLookup.lookupKey(forAsset: asset, fromPackage: $0)
+      } ?? BundledAssetLookup.lookupKey(forAsset: asset)
       guard let resolved = Bundle.main.path(forResource: key, ofType: nil) else {
         return nil
       }
@@ -11689,8 +11726,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
     guard loadImage else { return CIImage.empty() }
     let package = resource["assetPackage"] as? String
     let key = package.map {
-      FlutterDartProject.lookupKey(forAsset: asset, fromPackage: $0)
-    } ?? FlutterDartProject.lookupKey(forAsset: asset)
+      BundledAssetLookup.lookupKey(forAsset: asset, fromPackage: $0)
+    } ?? BundledAssetLookup.lookupKey(forAsset: asset)
     guard
       let path = Bundle.main.path(forResource: key, ofType: nil),
       let imageSource = CGImageSourceCreateWithURL(
@@ -12220,8 +12257,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
         if let asset {
           let package = resource["assetPackage"] as? String
           let key = package.map {
-            FlutterDartProject.lookupKey(forAsset: asset, fromPackage: $0)
-          } ?? FlutterDartProject.lookupKey(forAsset: asset)
+            BundledAssetLookup.lookupKey(forAsset: asset, fromPackage: $0)
+          } ?? BundledAssetLookup.lookupKey(forAsset: asset)
           guard let bundled = Bundle.main.path(forResource: key, ofType: nil) else {
             return nil
           }
@@ -12434,8 +12471,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
       guard !asset.isEmpty else { return nil }
       if resolveResource {
         let key = package.map {
-          FlutterDartProject.lookupKey(forAsset: asset, fromPackage: $0)
-        } ?? FlutterDartProject.lookupKey(forAsset: asset)
+          BundledAssetLookup.lookupKey(forAsset: asset, fromPackage: $0)
+        } ?? BundledAssetLookup.lookupKey(forAsset: asset)
         guard let resolved = Bundle.main.path(forResource: key, ofType: nil) else {
           return nil
         }
