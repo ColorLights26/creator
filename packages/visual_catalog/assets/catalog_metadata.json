@@ -34,6 +34,57 @@
       "reactivity": "optional"
     },
     {
+      "id": "anillos_humo",
+      "name": "Anillos de Humo",
+      "description": "Aros de humo que salen disparados desde abajo, girando sobre sí mismos y creciendo hasta deshacerse, iluminados por un foco; cada golpe de la música dispara uno nuevo.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "relax"
+      ],
+      "moods": [
+        "smoky",
+        "hypnotic",
+        "cinematic"
+      ],
+      "concepts": [
+        "vortex rings",
+        "smoke",
+        "air cannon",
+        "stage light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 6.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Cañón",
+          "values": {
+            "disparo": "Centro",
+            "pulso": "Golpes",
+            "remolino": 1
+          }
+        },
+        {
+          "name": "Sueño",
+          "values": {
+            "disparo": "Espiral",
+            "bruma": 1,
+            "remolino": 0.3,
+            "speed": 0.6
+          }
+        }
+      ]
+    },
+    {
       "id": "arbol_fractal",
       "name": "Árbol Fractal",
       "description": "Árbol de luz que se ramifica una y otra vez del dorado al fucsia: se mece con los graves, cada golpe sube como un pulso por sus ramas y florece en las puntas.",
@@ -192,6 +243,57 @@
       "publication": "draft",
       "role": "overlay",
       "reactivity": "optional"
+    },
+    {
+      "id": "art_deco",
+      "name": "Art Déco",
+      "description": "Ornamentos de oro sobre negro de los años veinte: un sol de rayos con arcos escalonados, abanicos que se abren en olas o la corona de un rascacielos, al ritmo de la música.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "luxurious",
+        "elegant",
+        "retro"
+      ],
+      "concepts": [
+        "art deco",
+        "gatsby",
+        "sunburst",
+        "gold ornament"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 4.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Gatsby",
+          "values": {
+            "motivo": "Abanicos",
+            "relleno": true,
+            "lujo": 1
+          }
+        },
+        {
+          "name": "Rascacielos",
+          "values": {
+            "motivo": "Torre",
+            "ritmo": "Mecánico",
+            "relleno": false,
+            "pulso": "Destellos"
+          }
+        }
+      ]
     },
     {
       "id": "atractor_clifford",
@@ -1142,6 +1244,58 @@
       "reactivity": "optional"
     },
     {
+      "id": "celulas_voronoi",
+      "name": "Células de Voronoi",
+      "description": "Un tejido de células de Voronoi con membranas brillantes y núcleos que se mueven y se dividen; cada golpe de la música parte media pantalla y los agudos mandan impulsos por las membranas.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "organic",
+        "alive",
+        "scientific"
+      ],
+      "concepts": [
+        "voronoi",
+        "cells",
+        "mitosis",
+        "tissue"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 5.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Mitosis",
+          "values": {
+            "celulas": "Burbujas",
+            "vida": 1,
+            "pulso": "Golpes",
+            "microscopio": 0.8
+          }
+        },
+        {
+          "name": "Panal Vivo",
+          "values": {
+            "celulas": "Panal",
+            "microscopio": 0,
+            "pulso": "Graves",
+            "vida": 0.2
+          }
+        }
+      ]
+    },
+    {
       "id": "cimatica",
       "name": "Cimática",
       "description": "El sonido hecho visible: arena luminosa que vibra sobre una placa y forma figuras geométricas que cambian con la música.",
@@ -1492,6 +1646,57 @@
       "publication": "draft",
       "role": "background",
       "reactivity": "optional"
+    },
+    {
+      "id": "cristal_bismuto",
+      "name": "Cristal de Bismuto",
+      "description": "Cristales de bismuto en escalera con terrazas metálicas de oro, naranja y rojo; la música corre olas de color por los escalones y enciende destellos en las aristas.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "metallic",
+        "geometric",
+        "luxurious"
+      ],
+      "concepts": [
+        "bismuth",
+        "hopper crystal",
+        "iridescence",
+        "oxide"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 5.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Escalera",
+          "values": {
+            "espiral": true,
+            "escalones": 12,
+            "giro": "Rotación"
+          }
+        },
+        {
+          "name": "Joya",
+          "values": {
+            "escalones": 5,
+            "reflejo": 1,
+            "giro": "Flotar",
+            "pulso": "Destellos"
+          }
+        }
+      ]
     },
     {
       "id": "cristal_electrico",
@@ -1962,6 +2167,56 @@
       "reactivity": "optional"
     },
     {
+      "id": "destellos_anamorficos",
+      "name": "Destellos Anamórficos",
+      "description": "Luces con las rayas horizontales de las lentes de cine, estrellas de difracción o arcos, sin fondo para ponerlas encima de otro visual; cada golpe de la música hace estallar algunas.",
+      "purposes": [
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "cinematic",
+        "futuristic",
+        "glamorous"
+      ],
+      "concepts": [
+        "anamorphic lens flare",
+        "sci-fi",
+        "light streaks",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 5.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Ciencia Ficción",
+          "values": {
+            "lente": "Anamórfica",
+            "recorrido": "Barrido",
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Estrellas",
+          "values": {
+            "lente": "Estrella",
+            "recorrido": "Fijas",
+            "pulso": "Brillos",
+            "neblina": 0.8
+          }
+        }
+      ]
+    },
+    {
       "id": "dona_ascii",
       "name": "Dona ASCII",
       "description": "La famosa rosquilla 3D hecha sólo con caracteres de texto, girando en ámbar de monitor antiguo; con la música late, se acelera y cambia a esfera, cubo y octaedro.",
@@ -2376,6 +2631,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "espiral_dominos_transparente",
+      "name": "Espiral de Dominós Transparente",
+      "description": "Cientos de fichas de colores vistas desde arriba que caen en cadena formando espirales y anillos de arcoíris; la música acelera la ola y al final todas vuelven a levantarse sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "satisfying",
+        "playful",
+        "vivid"
+      ],
+      "concepts": [
+        "dominoes",
+        "chain reaction",
+        "spiral",
+        "toppling"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 7.0
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -2933,6 +3220,38 @@
       "reactivity": "optional"
     },
     {
+      "id": "goteo_pollock_transparente",
+      "name": "Goteo Pollock Transparente",
+      "description": "Un cuadro de Jackson Pollock que se pinta solo: latigazos de pintura negra, roja, amarilla y blanca, charcos y salpicaduras que caen con cada golpe de la música hasta llenar el lienzo sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "artistic",
+        "chaotic",
+        "bold"
+      ],
+      "concepts": [
+        "action painting",
+        "pollock",
+        "drip painting",
+        "abstract expressionism"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 12.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional"
+    },
+    {
       "id": "haces_estadio",
       "name": "Haces de Estadio",
       "description": "Iluminación de concierto: conos de luz de cabezas móviles que pulsan con cada golpe y cambian de coreografía y color con cada compás.",
@@ -3431,6 +3750,58 @@
       "reactivity": "optional"
     },
     {
+      "id": "kandinsky",
+      "name": "Kandinsky Sinestesia",
+      "description": "Un cuadro de Kandinsky que se pinta con la música: los graves hacen círculos con halos, los medios triángulos y arcos, los agudos líneas y puntos, alrededor de un gran círculo que late.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "artistic",
+        "playful",
+        "vibrant"
+      ],
+      "concepts": [
+        "kandinsky",
+        "synesthesia",
+        "abstract art",
+        "composition"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 6.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Varios Círculos",
+          "values": {
+            "figuras": "Círculos",
+            "noche": true,
+            "danza": "Flotar",
+            "halos": 1
+          }
+        },
+        {
+          "name": "Composición VIII",
+          "values": {
+            "figuras": "Ángulos",
+            "noche": false,
+            "pulso": "Instrumentos",
+            "danza": "Girar"
+          }
+        }
+      ]
+    },
+    {
       "id": "laberinto_truchet",
       "name": "Laberinto Truchet",
       "description": "Losetas con arcos de neón lima y rojo que forman caminos sin fin; cada golpe gira una ola de losetas y la luz corre por los caminos nuevos.",
@@ -3812,6 +4183,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "luciernagas_transparente",
+      "name": "Luciérnagas Sincronizadas Transparente",
+      "description": "Cientos de luciérnagas que parpadean al azar y poco a poco se ponen de acuerdo hasta encenderse todas a la vez; con música, cada golpe las sincroniza con el ritmo sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "magical",
+        "organic",
+        "calm"
+      ],
+      "concepts": [
+        "fireflies",
+        "synchronization",
+        "kuramoto",
+        "emergence"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 16.0
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -4580,6 +4983,58 @@
       "reactivity": "optional"
     },
     {
+      "id": "mil_relojes",
+      "name": "Mil Relojes",
+      "description": "Una pared de relojes cuyas agujas de luz se mueven juntas y dibujan olas, espirales, remolinos y rombos gigantes; cada golpe de la música las sacude con una onda.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "hypnotic",
+        "elegant",
+        "mesmerizing"
+      ],
+      "concepts": [
+        "kinetic art",
+        "clocks",
+        "a million times",
+        "choreography"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 8.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Galería",
+          "values": {
+            "figura": "Rombos",
+            "barrido": "A la vez",
+            "esferas": true,
+            "estela": 0
+          }
+        },
+        {
+          "name": "Luz Pintada",
+          "values": {
+            "figura": "Espiral",
+            "estela": 1,
+            "esferas": false,
+            "pulso": "Graves"
+          }
+        }
+      ]
+    },
+    {
       "id": "moho_luminoso",
       "name": "Moho Luminoso",
       "description": "Red viva de venas de luz roja y amarilla que crece, se ramifica y se reorganiza sola; cada golpe suelta una explosión de filamentos.",
@@ -4674,6 +5129,56 @@
       "publication": "draft",
       "role": "background",
       "reactivity": "optional"
+    },
+    {
+      "id": "monstruo_maicena",
+      "name": "Monstruo de Maicena",
+      "description": "Un fluido no newtoniano sobre un altavoz: con cada golpe de graves le brotan dedos, garras o bulbos que se retuercen y se derrumban, brillantes y húmedos.",
+      "purposes": [
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "weird",
+        "organic",
+        "intense"
+      ],
+      "concepts": [
+        "non-newtonian fluid",
+        "oobleck",
+        "speaker",
+        "cornstarch"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 6.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Pesadilla",
+          "values": {
+            "forma": "Garras",
+            "consistencia": 0.1,
+            "humedad": 1
+          }
+        },
+        {
+          "name": "Laboratorio",
+          "values": {
+            "forma": "Bulbos",
+            "consistencia": 0.9,
+            "humedad": 0.15,
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "murmuracion",
@@ -5342,6 +5847,38 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional"
+    },
+    {
+      "id": "panel_discos_transparente",
+      "name": "Panel de Discos Transparente",
+      "description": "Un panel de miles de discos amarillos y negros que se voltean en olas y forman ondas, barras del espectro, rayos y espirales al ritmo de la música, como las obras de arte cinético sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "kinetic",
+        "graphic",
+        "satisfying"
+      ],
+      "concepts": [
+        "flip-disc",
+        "flip-dot",
+        "kinetic art",
+        "display"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional"
     },
     {
@@ -6045,6 +6582,110 @@
       "reactivity": "optional"
     },
     {
+      "id": "reaccion_bz",
+      "name": "Reacción BZ",
+      "description": "La reacción química de Belousov-Zhabotinsky: espirales y anillos de color que avanzan, chocan y se anulan; con la música nacen focos nuevos y la química se acelera.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "relax"
+      ],
+      "moods": [
+        "hypnotic",
+        "organic",
+        "scientific"
+      ],
+      "concepts": [
+        "belousov-zhabotinsky",
+        "chemical waves",
+        "excitable media",
+        "spirals"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 10.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Placa",
+          "values": {
+            "placa": true,
+            "brazos": 1,
+            "deriva": "Quieta",
+            "frente": 0.2
+          }
+        },
+        {
+          "name": "Tormenta Química",
+          "values": {
+            "brazos": 3,
+            "deriva": "Turbulenta",
+            "frente": 1,
+            "pulso": "Energía",
+            "speed": 1.4
+          }
+        }
+      ]
+    },
+    {
+      "id": "rorschach_calavera",
+      "name": "Rorschach Calavera",
+      "description": "En el hueco de la mancha de Rorschach aparece una calavera con cuencas en las que brillan dos brasas; la mandíbula castañea o habla y con cada golpe de la música se abre en una carcajada.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "disturbing",
+        "dark",
+        "gothic"
+      ],
+      "concepts": [
+        "rorschach",
+        "skull",
+        "memento mori",
+        "negative space"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Memento Mori",
+          "values": {
+            "presencia": 1,
+            "mandibula": "Castañea",
+            "derretir": 0.15
+          }
+        },
+        {
+          "name": "Derretida",
+          "values": {
+            "derretir": 1,
+            "mandibula": "Habla",
+            "pulso": "Graves",
+            "negativo": true
+          }
+        }
+      ]
+    },
+    {
       "id": "rorschach_caleidoscopio",
       "name": "Rorschach Caleidoscopio",
       "description": "Una mancha de Rorschach con simetría de caleidoscopio: tintas roja, naranja y amarilla sobre negro que giran, se pliegan y estallan en anillos con la música.",
@@ -6109,6 +6750,260 @@
       "reactivity": "optional"
     },
     {
+      "id": "rorschach_cosmico",
+      "name": "Rorschach Cósmico",
+      "description": "Una mancha de Rorschach que es una ventana al espacio: dentro hay nebulosas, una galaxia o estrellas que viajan hacia ti, con un borde que brilla como un horizonte de sucesos.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "cosmic",
+        "mind-blowing",
+        "dreamy"
+      ],
+      "concepts": [
+        "rorschach",
+        "nebula",
+        "galaxy",
+        "portal"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Portal",
+          "values": {
+            "interior": "Galaxia",
+            "viaje": "Giro",
+            "papel": false
+          }
+        },
+        {
+          "name": "Hiperespacio",
+          "values": {
+            "interior": "Estrellas",
+            "viaje": "Zoom",
+            "pulso": "Golpes",
+            "horizonte": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "rorschach_demonio",
+      "name": "Rorschach Demonio",
+      "description": "La mancha de Rorschach se convierte en un demonio con cuernos, ojos ardientes y una boca llena de colmillos que ruge con cada golpe de la música, entre brasas que suben.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "disturbing",
+        "dark",
+        "intense"
+      ],
+      "concepts": [
+        "rorschach",
+        "demon",
+        "horns",
+        "fangs"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Bestia",
+          "values": {
+            "cuernos": 1,
+            "acecho": "Convulsiona",
+            "brasas": 1,
+            "sangre": true
+          }
+        },
+        {
+          "name": "Sonrisa",
+          "values": {
+            "cuernos": 0.25,
+            "acecho": "Quieto",
+            "pulso": "Graves"
+          }
+        }
+      ]
+    },
+    {
+      "id": "rorschach_enjambre",
+      "name": "Rorschach Enjambre",
+      "description": "Una mancha de Rorschach hecha de miles de bichos que se mueven sin parar: hormigas, moscas o gusanos que forman la figura y se dispersan con cada golpe de la música.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "disturbing",
+        "creepy",
+        "organic"
+      ],
+      "concepts": [
+        "rorschach",
+        "swarm",
+        "insects",
+        "crawling"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Plaga",
+          "values": {
+            "bichos": "Moscas",
+            "inquietud": 1,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Hormiguero",
+          "values": {
+            "bichos": "Hormigas",
+            "mancha": 0,
+            "inquietud": 0.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "rorschach_estrobo",
+      "name": "Rorschach Estrobo",
+      "description": "Una mancha de Rorschach que cambia de forma de golpe con cada golpe de la música, salta entre dos, cuatro, seis y ocho espejos, invierte el blanco y el negro y hace temblar la pantalla.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "intense",
+        "aggressive",
+        "club"
+      ],
+      "concepts": [
+        "rorschach",
+        "strobe",
+        "jump cut",
+        "kaleidoscope"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Club",
+          "values": {
+            "simetria": "Cambiante",
+            "corte": "Seco",
+            "pulso": "Golpes",
+            "temblor": 1
+          }
+        },
+        {
+          "name": "Trance",
+          "values": {
+            "simetria": "Caleidoscopio",
+            "corte": "Fundido",
+            "invertir": false,
+            "pulso": "Graves"
+          }
+        }
+      ]
+    },
+    {
+      "id": "rorschach_fractal",
+      "name": "Rorschach Fractal",
+      "description": "Una mancha de Rorschach hecha de un fractal de Julia: bordes infinitos de ramas, conejos o espirales que cambian sin parar, con bandas de color que corren por el borde.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "mind-blowing",
+        "mathematical",
+        "hypnotic"
+      ],
+      "concepts": [
+        "rorschach",
+        "julia set",
+        "fractal",
+        "infinite edge"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Dendritas",
+          "values": {
+            "familia": "Dendritas",
+            "bandas": 1,
+            "deriva": "Viaje"
+          }
+        },
+        {
+          "name": "Conejos",
+          "values": {
+            "familia": "Conejo",
+            "deriva": "Latido",
+            "negativo": true
+          }
+        }
+      ]
+    },
+    {
       "id": "rorschach_glitch",
       "name": "Rorschach Glitch",
       "description": "Una mancha de Rorschach corrupta: se rasga en franjas, se desdobla en fantasmas rojos y amarillos y se invierte de golpe con cada beat, como una señal que se rompe.",
@@ -6171,6 +7066,208 @@
       "publication": "draft",
       "role": "overlay",
       "reactivity": "optional"
+    },
+    {
+      "id": "rorschach_hipnotico",
+      "name": "Rorschach Hipnótico",
+      "description": "Una mancha de Rorschach de la que salen ecos de su propia forma en bandas blancas y negras que fluyen sin parar hacia dentro o hacia fuera, como una ilusión óptica que te atrapa.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "hypnotic",
+        "psychedelic",
+        "intense"
+      ],
+      "concepts": [
+        "rorschach",
+        "op art",
+        "contour echoes",
+        "hypnosis"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Vórtice",
+          "values": {
+            "torsion": 1,
+            "caida": "Hacia dentro",
+            "ecos": 10
+          }
+        },
+        {
+          "name": "Eco",
+          "values": {
+            "ecos": 4,
+            "invertir": false,
+            "caida": "Vaivén",
+            "pulso": "Graves"
+          }
+        }
+      ]
+    },
+    {
+      "id": "rorschach_mercurio",
+      "name": "Rorschach Mercurio",
+      "description": "Una mancha de Rorschach de metal líquido que refleja fuego o luces de estudio, con gotas sueltas que orbitan; cada golpe de la música manda una onda por la superficie.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "luxurious",
+        "fluid",
+        "hypnotic"
+      ],
+      "concepts": [
+        "rorschach",
+        "liquid metal",
+        "chrome",
+        "mercury"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Mercurio Puro",
+          "values": {
+            "entorno": "Estudio",
+            "gotas": 6,
+            "viscosidad": 0.2
+          }
+        },
+        {
+          "name": "Metal Fundido",
+          "values": {
+            "entorno": "Fuego",
+            "viscosidad": 0.9,
+            "pulso": "Graves",
+            "cuatro": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "rorschach_neon",
+      "name": "Rorschach Neón",
+      "description": "Una mancha de Rorschach dibujada con tubos de neón rojos, naranjas y amarillos sobre una pared de ladrillo; zumban, parpadean y se encienden a tope con cada golpe de la música.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "nightlife",
+        "electric",
+        "retro"
+      ],
+      "concepts": [
+        "rorschach",
+        "neon sign",
+        "glow",
+        "brick wall"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Bar de Noche",
+          "values": {
+            "tubos": 2,
+            "zumbido": 1,
+            "trazo": "Fijo"
+          }
+        },
+        {
+          "name": "Letrero Vivo",
+          "values": {
+            "tubos": 4,
+            "trazo": "Dibujándose",
+            "relleno": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "rorschach_ojos",
+      "name": "Rorschach Ojos",
+      "description": "Una mancha de Rorschach llena de ojos que parpadean y te siguen con la mirada; con cada golpe de la música todos se cierran a la vez y vuelven a abrirse.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "disturbing",
+        "eerie",
+        "surreal"
+      ],
+      "concepts": [
+        "rorschach",
+        "eyes",
+        "pareidolia",
+        "watching"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Te Observan",
+          "values": {
+            "ojos": "Muchos",
+            "mirada": "Te sigue",
+            "venas": 0.9
+          }
+        },
+        {
+          "name": "Cíclope",
+          "values": {
+            "ojos": "Uno gigante",
+            "mirada": "Nerviosa",
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "rorschach_polilla",
@@ -6857,6 +7954,107 @@
       "reactivity": "optional"
     },
     {
+      "id": "tinta_agua",
+      "name": "Tinta en Agua",
+      "description": "Gotas de tinta roja, naranja y ámbar que caen en agua oscura y se abren en hongos, volutas y nubes en cámara lenta; cada golpe de la música suelta una gota nueva.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "fluid",
+        "dreamy",
+        "elegant"
+      ],
+      "concepts": [
+        "ink in water",
+        "slow motion",
+        "plumes",
+        "fluid"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 7.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Tormenta de Tinta",
+          "values": {
+            "gotas": "Lluvia",
+            "turbulencia": 1,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Humo Lento",
+          "values": {
+            "gotas": "Columna",
+            "turbulencia": 0.2,
+            "contraluz": 1,
+            "speed": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "tipografia_cinetica",
+      "name": "Tipografía Cinética",
+      "description": "Palabras gigantes que entran con cada golpe de la música, de golpe, cayendo o girando letra a letra, con filas de palabras que pasan detrás y un fogonazo rojo en cada golpe.",
+      "purposes": [
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "bold",
+        "energetic",
+        "graphic"
+      ],
+      "concepts": [
+        "kinetic typography",
+        "motion graphics",
+        "words",
+        "poster"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Cartel",
+          "values": {
+            "composicion": "Columna",
+            "contorno": false,
+            "entrada": "Caída"
+          }
+        },
+        {
+          "name": "Club",
+          "values": {
+            "composicion": "Mosaico",
+            "contorno": true,
+            "pulso": "Graves",
+            "idioma": "Inglés"
+          }
+        }
+      ]
+    },
+    {
       "id": "torbellino_igneo",
       "name": "Torbellino Ígneo",
       "description": "Torbellino de estelas de luz naranja que giran en espiral hacia un núcleo incandescente y estallan hacia fuera con cada golpe.",
@@ -7015,6 +8213,57 @@
       "publication": "draft",
       "role": "background",
       "reactivity": "optional"
+    },
+    {
+      "id": "tubo_rubens",
+      "name": "Tubo de Rubens",
+      "description": "Una fila de llamas sobre un tubo que dibujan el sonido: ondas estacionarias, el espectro de la canción o una onda viajera; cada golpe cambia el modo de la onda y aviva el fuego.",
+      "purposes": [
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "fiery",
+        "scientific",
+        "intense"
+      ],
+      "concepts": [
+        "rubens' tube",
+        "standing waves",
+        "flames",
+        "acoustics"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 5.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Ecualizador",
+          "values": {
+            "onda": "Espectro",
+            "pulso": "Graves",
+            "reflejo": true
+          }
+        },
+        {
+          "name": "Laboratorio",
+          "values": {
+            "onda": "Estacionaria",
+            "pulso": "Tono",
+            "llama": 0.1,
+            "reflejo": false,
+            "calor": 0.2
+          }
+        }
+      ]
     },
     {
       "id": "tunel_cibernetico",
@@ -8092,6 +9341,56 @@
       "publication": "draft",
       "role": "background",
       "reactivity": "optional"
+    },
+    {
+      "id": "vision_termica",
+      "name": "Visión Térmica",
+      "description": "La fiesta vista con una cámara de calor: manchas, bailarines o aire caliente en negro, morado, rojo, naranja y amarillo, con el visor de la cámara; cada golpe es un fogonazo de calor.",
+      "purposes": [
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "intense",
+        "futuristic",
+        "warm"
+      ],
+      "concepts": [
+        "thermal camera",
+        "infrared",
+        "heat map",
+        "flir"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 5.0
+      },
+      "publication": "draft",
+      "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Fiesta Térmica",
+          "values": {
+            "fuentes": "Siluetas",
+            "pulso": "Golpes",
+            "sensor": 0.6
+          }
+        },
+        {
+          "name": "Mapa de Calor",
+          "values": {
+            "isotermas": true,
+            "fuentes": "Ondas",
+            "conveccion": 1,
+            "sensor": 0.1
+          }
+        }
+      ]
     },
     {
       "id": "vitral_estalla",
