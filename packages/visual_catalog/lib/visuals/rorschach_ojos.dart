@@ -5,12 +5,15 @@
 // abren más ojos, se hinchan y TODOS se clavan en ti con las pupilas
 // dilatadas. Pulso: Golpes los multiplica y los hace mirarte; Graves dilata
 // las pupilas y hace latir las venas; Agudos los vuelve nerviosos, a saltos.
+// Onda expansiva: al pasar por cada ojo, este se abre de golpe aunque
+// estuviera cerrado, contrae la pupila y te mira; la tinta tiembla en rojo.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   CreatorModifier.choice('mutacion', 'Metamorfosis', options: ['Cada golpe', 'Cada compás', 'Lenta']),
   CreatorModifier.choice('pulso', 'Pulso', options: ['Golpes', 'Graves', 'Agudos']),
+  CreatorModifier.slider('onda', 'Onda expansiva', min: 0, max: 2, value: 1),
   CreatorModifier.choice('ojos', 'Ojos', options: ['Muchos', 'Pocos y grandes', 'Uno gigante']),
   CreatorModifier.slider('venas', 'Venas', min: 0, max: 1, value: .5),
   CreatorModifier.slider('locura', 'Locura', min: 0, max: 1, value: .5),
@@ -34,6 +37,14 @@ class Visual final : public Scene {
   float beatPower = 0, spread = 0, spreadVel = 0;
   uint32_t shapes = 0, beats = 0;
   std::array<Lobe, kLobes> from{}, to{};
+  // Ondas expansivas: nacen con cada golpe. Música fuerte: onda fuerte,
+  // rápida y nítida; música tranquila: baja, lenta y suave.
+  struct Wave { double born; float power, speed, width, decay; };
+  static constexpr int kWaves = 4;
+  std::array<Wave, kWaves> waves{};
+  uint32_t waveNext = 0;
+  double lastWave = -100;
+  float lastPhase = 0;
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
@@ -77,6 +88,11 @@ class Visual final : public Scene {
     shapeAt = at;
 
   }
+  void spawnWave(double at, float power, float speed, float width, float decay) {
+    waves[size_t(waveNext % uint32_t(kWaves))] = {at, power, speed, width, decay};
+    waveNext++;
+    lastWave = at;
+  }
 
  public:
   void reset(uint32_t seed) override {
@@ -88,6 +104,10 @@ class Visual final : public Scene {
     beatPower = spread = spreadVel = 0;
     shapes = seed % 977u;
     beats = 0;
+    for (auto& wv : waves) wv = {-100.0, 0.0f, 0.0f, 0.05f, 1.0f};
+    waveNext = 0;
+    lastWave = -100;
+    lastPhase = 0;
     for (int i = 0; i < kLobes; i++) from[size_t(i)] = to[size_t(i)] = pick(shapes, i);
 
   }
@@ -124,6 +144,26 @@ class Visual final : public Scene {
     clock += step;
     // La tinta fluye más deprisa con la energía y con cada golpe.
     flow += step * (0.3 + 1.2 * double(drive) + 0.9 * double(kick)) * 0.8;
+    // Onda expansiva con cada golpe: su fuerza y su velocidad salen de la
+    // música (lo fuerte que suena y lo fuerte que pega el golpe).
+    if (fresh && mu.active && clock - lastWave > 0.16) {
+      const float lv = std::clamp(std::max(drive, energy), 0.0f, 1.0f);
+      spawnWave(clock, (0.3f + 0.7f * hit) * (0.35f + 0.85f * lv), 0.3f + 1.25f * lv + 0.35f * hit,
+                0.085f - 0.045f * lv, 0.8f + 2.4f * lv);
+    }
+    // Música tranquila, sin golpes marcados: la onda sigue el pulso del tema
+    // (o los acentos) y, si no hay pulso, sale cada pocos segundos; baja y lenta.
+    if (mu.active) {
+      float accent = 0;
+      for (const auto& e : mu.events[1]) accent = std::max(accent, e.strength);
+      const bool tick = (mu.bpm > 0.0f && mu.phase + 0.5f < lastPhase) || accent > 0.15f;
+      const double quiet = clock - lastWave;
+      if ((tick && quiet > 0.45) || quiet > 2.4) {
+        const float lv = std::clamp(std::max(drive, energy), 0.0f, 1.0f);
+        spawnWave(clock, 0.3f + 0.45f * lv, 0.3f + 0.6f * lv, 0.09f - 0.03f * lv, 0.9f + 1.2f * lv);
+      }
+    }
+    lastPhase = mu.phase;
     // Metamorfosis: la forma cambia con cada golpe, cada cuatro o despacio.
     if (fresh && mu.active && m.mutacion != 2) {
       const uint32_t every = m.mutacion == 0 ? 1u : 4u;
@@ -139,6 +179,8 @@ class Visual final : public Scene {
           // Sin música, cada forma nueva llega con un sobresalto.
           beatPower = 0.6f;
           sinceBeat = sinceIdle;
+          // ...y con una onda baja y lenta.
+          spawnWave(clock - sinceIdle, 0.32f, 0.38f, 0.09f, 1.0f);
         }
       }
     }
@@ -159,7 +201,7 @@ class Visual final : public Scene {
     const float ft = float(std::fmod(flow, 1000.0));
 
     std::vector<float> u;
-    u.reserve(64);
+    u.reserve(80);
     u.insert(u.end(), {ft, std::min(bass * amp, 1.5f), std::min(kick * amp, 1.0f), std::min(energy * amp, 1.0f)});
     u.insert(u.end(), {g.ojos.weight(0), g.ojos.weight(1), g.ojos.weight(2), g.venas});
     u.insert(u.end(), {f.glow, std::min(flash * amp, 1.0f), std::min(spark * amp, 1.0f), float(std::fmod(clock, 1000.0))});
@@ -177,6 +219,15 @@ class Visual final : public Scene {
     u.insert(u.end(), {golpe, graves, agudos, morphP});
     u.insert(u.end(), {std::max(-0.2f, spread) * amp * g.pulso.weight(0), float(std::min(sinceBeat, 9.0)),
                        std::min(pulse * amp, 1.2f), float(shapes % 997u)});
+    // Ondas: radio, fuerza, ancho y edad. Se frenan al crecer y se apagan.
+    const float ondaK = amp * g.onda;
+    for (const Wave& wv : waves) {
+      const float a = float(std::min(std::max(clock - wv.born, 0.0), 30.0));
+      const float radius = wv.speed * a / (1.0f + 0.35f * a);
+      float power = std::min(wv.power * std::exp(-a * wv.decay) * ondaK, 1.6f);
+      if (power < 0.004f) power = 0.0f;
+      u.insert(u.end(), {radius, power, wv.width * (1.0f + 0.6f * radius), a});
+    }
     for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[size_t(i)].r, f.colors[size_t(i)].g, f.colors[size_t(i)].b});
     c.material("inkblot_eyes", {0, 0, f.width, f.height}, u);
   }
@@ -200,6 +251,10 @@ uniform vec4 uL5;
 uniform vec4 uX;   // datos de la variante
 uniform vec4 uY;   // Pulso: golpe, graves, agudos; avance del cambio de forma
 uniform vec4 uP;   // expansión del golpe, edad del golpe, golpe, número de forma
+uniform vec4 uW0;  // ondas expansivas: radio, fuerza, ancho, edad
+uniform vec4 uW1;
+uniform vec4 uW2;
+uniform vec4 uW3;
 uniform vec3 uC0;
 uniform vec3 uC1;
 uniform vec3 uC2;
@@ -263,6 +318,36 @@ float growth() {
   return 0.08 * uY.y + 0.22 * uP.x + 0.04 * uA.w;
 }
 
+// Ondas expansivas de la música; d es la distancia al origen de la onda.
+float ringOf(vec4 W, float d) {
+  float x = (d - W.x) / W.z;
+  return W.y * exp(-x * x);
+}
+
+// Frente: el anillo de todas las ondas.
+float waveFront(float d) {
+  return ringOf(uW0, d) + ringOf(uW1, d) + ringOf(uW2, d) + ringOf(uW3, d);
+}
+
+// Rizo con signo: el frente y dos ecos detrás que se apagan.
+float rippleOf(vec4 W, float d) {
+  float x = (d - W.x) / W.z;
+  return W.y * exp(-x * x * (x > 0.0 ? 1.0 : 0.22)) * cos(x * 2.6);
+}
+
+float waveRipple(float d) {
+  return rippleOf(uW0, d) + rippleOf(uW1, d) + rippleOf(uW2, d) + rippleOf(uW3, d);
+}
+
+// Estela: lo que la onda ya ha barrido, apagándose hacia el centro.
+float wakeOf(vec4 W, float d) {
+  return W.y * smoothstep(W.x + W.z, W.x - W.z, d) * exp(-max(W.x - d, 0.0) * 5.0);
+}
+
+float waveWake(float d) {
+  return wakeOf(uW0, d) + wakeOf(uW1, d) + wakeOf(uW2, d) + wakeOf(uW3, d);
+}
+
 vec3 paper(vec2 frag, vec2 p) {
   float fiber = hash12(floor(frag * vec2(0.5, 0.08))) * 0.6 + noise(frag * 0.05) * 0.4;
   vec3 col = uC0 * (0.92 + 0.08 * fiber);
@@ -291,7 +376,7 @@ float spatter(vec2 q, float F, float amount, float seed) {
 }
 
 // Un ojo de una rejilla: color en rgb y cobertura en a.
-vec4 eyeAt(vec2 q, float cs, float seed, float giant, float F, float clk, float mad, float side) {
+vec4 eyeAt(vec2 q, float cs, float seed, float giant, float F, float clk, float mad, float side, float rotB) {
   if (F < 0.05) return vec4(0.0);
   vec2 cell = floor(q / cs);
   cell = mix(cell, vec2(0.0), giant);
@@ -302,34 +387,39 @@ vec4 eyeAt(vec2 q, float cs, float seed, float giant, float F, float clk, float 
   off += (vec2(hash12(cell + jump * 1.7 + seed), hash12(cell + jump * 2.3 + seed)) - 0.5) * 0.07 * (mad + uY.z);
   vec2 c = mix((cell + 0.5 + off) * cs, vec2(0.0, -0.02), giant);
   float sz = 0.62 + 0.6 * hash12(cell + 2.9 + seed) * (0.3 + 0.7 * mad);
+  // Onda expansiva: al pasar por un ojo, se abre de golpe y te mira.
+  vec2 cr = c - 0.37;
+  vec2 cq = mix(c, vec2(0.866 * cr.x + 0.5 * cr.y, -0.5 * cr.x + 0.866 * cr.y), rotB);
+  float startle = clamp(waveFront(length(cq - vec2(0.0, -0.02))) * 1.4, 0.0, 1.0);
   float room = (0.5 - max(abs(off.x), abs(off.y))) * cs;
-  float er = mix(min(cs * 0.37 * sz * (1.0 + 0.25 * uY.x), room), 0.3 * (1.0 + 0.25 * uY.x), giant);
+  float er = mix(min(cs * 0.37 * sz * (1.0 + 0.25 * uY.x + 0.4 * startle), room), 0.3 * (1.0 + 0.25 * uY.x), giant);
   float ang = mix((h.y - 0.5) * 1.5 * mad + sin(clk * (0.7 + h.x) + h.y * 6.3) * 0.3 * mad, 0.0, giant);
   vec2 d = q - c;
   float ca = cos(ang);
   float sa = sin(ang);
   vec2 e = vec2(ca * d.x + sa * d.y, -sa * d.x + ca * d.y) / er;
   // Cada ojo se abre y se cierra por su cuenta; el golpe los abre todos.
-  float alive = step(hash12(cell + seed + floor(clk * 0.35 + h.x * 3.0)), 0.68 + 0.32 * uY.x);
+  float alive = max(step(hash12(cell + seed + floor(clk * 0.35 + h.x * 3.0)), 0.68 + 0.32 * uY.x), step(0.3, startle));
   float present = smoothstep(0.05, 0.25, F) * max(alive, giant);
   if (present * step(abs(e.y), 0.8) * step(abs(e.x), 1.05) <= 0.0) return vec4(0.0);
   float bl = fract(clk * (0.18 + 0.12 * h.x + 0.25 * mad) + h.y);
   float open = (1.0 - exp(-sq((bl - 0.5) / 0.025))) * (1.0 - 0.95 * step(uP.y, 0.08) * step(0.01, uY.x));
+  open = max(open, startle);
   // Con el golpe se abren de par en par.
-  float lid = open * (0.62 + 0.25 * uY.x) * max(1.0 - e.x * e.x, 0.0);
+  float lid = open * (0.62 + 0.25 * uY.x + 0.2 * startle) * max(1.0 - e.x * e.x, 0.0);
   float eyeMask = smoothstep(lid + 0.05, lid - 0.05, abs(e.y)) * step(abs(e.x), 1.0) * present;
   // Mirada: cada uno a lo suyo, a saltos con los agudos; el golpe los clava en ti.
   vec2 wander = (vec2(hash12(cell + jump), hash12(cell + jump + 4.0)) - 0.5) * 0.9;
-  vec2 look = mix(wander, vec2(0.0), clamp(uY.x * 2.0, 0.0, 1.0));
+  vec2 look = mix(wander, vec2(0.0), clamp(uY.x * 2.0 + startle * 2.0, 0.0, 1.0));
   look.x *= side;
   vec2 ie = e - look;
   float iris = smoothstep(0.45, 0.39, length(ie));
-  float pupilR = 0.16 * (1.0 + 0.9 * uY.y + 0.7 * uY.x - 0.3 * uY.z) * (0.8 + 0.5 * hash12(cell + jump * 0.31 + seed) * mad);
+  float pupilR = 0.16 * (1.0 + 0.9 * uY.y + 0.7 * uY.x - 0.3 * uY.z) * (0.8 + 0.5 * hash12(cell + jump * 0.31 + seed) * mad) * (1.0 - 0.45 * startle);
   float pupil = smoothstep(pupilR + 0.02, pupilR - 0.02, length(ie));
   vec3 sclera = uC3 * (0.95 - 0.25 * length(e));
   float vein = smoothstep(0.06, 0.0, abs(noise(e * 6.0 + cell * 3.0) - 0.5)) * smoothstep(0.25, 1.0, length(e));
   sclera = mix(sclera, uC2 * 0.85, vein * clamp(uB.w * (0.7 + 0.9 * uY.y), 0.0, 1.0));
-  vec3 irisCol = uC2 * (0.55 + 0.6 * noise(vec2(atan(ie.y, ie.x) * 3.0, length(ie) * 8.0))) * (1.0 + 0.7 * uD.z + 0.8 * uY.x);
+  vec3 irisCol = uC2 * (0.55 + 0.6 * noise(vec2(atan(ie.y, ie.x) * 3.0, length(ie) * 8.0))) * (1.0 + 0.7 * uD.z + 0.8 * uY.x + 2.0 * startle);
   vec3 eye = mix(sclera, irisCol, iris);
   eye = mix(eye, uC1 * 0.3, pupil);
   eye += uC3 * smoothstep(0.09, 0.0, length(ie - vec2(-0.13, -0.15))) * 0.9;
@@ -352,6 +442,10 @@ void main() {
   vec3 col = paper(frag, p);
   float ink = smoothstep(-0.008, 0.008, F);
   col = mix(col, inkShade(uC1, uC2, F, n, frag), ink);
+  // La onda recorre la tinta como un escalofrío rojo y mancha el papel.
+  float of = clamp(waveFront(length(p - vec2(0.0, -0.02))), 0.0, 1.2);
+  col += uC2 * of * 0.8 * ink;
+  col = mix(col, uC2 * 0.7 + uC0 * 0.3, of * 0.3 * (1.0 - ink));
   // Los ojos van con la tinta: la corriente los arrastra y los deforma.
   vec2 qe = q + w * 0.22 * (0.3 + mad);
   float giant = step(0.5, uB.z);
@@ -359,9 +453,9 @@ void main() {
   float cs = (uB.x * 0.13 + uB.y * 0.24 + uB.z * 0.24) / uX.z * (1.0 - 0.28 * uY.x);
   // Dos rejillas cruzadas: ojos grandes y, entre ellos, otros más pequeños.
   vec2 qb = vec2(qe.x * 0.866 - qe.y * 0.5, qe.x * 0.5 + qe.y * 0.866) + 0.37;
-  vec4 small = eyeAt(qb, cs * 0.62, 31.7, 0.0, F, clk * 1.3, mad, side) * (1.0 - giant);
+  vec4 small = eyeAt(qb, cs * 0.62, 31.7, 0.0, F, clk * 1.3, mad, side, 1.0) * (1.0 - giant);
   col = mix(col, small.rgb, small.a);
-  vec4 big = eyeAt(qe, cs, 0.0, giant, F, clk, mad, side);
+  vec4 big = eyeAt(qe, cs, 0.0, giant, F, clk, mad, side, 0.0);
   col = mix(col, big.rgb, big.a);
   col *= 0.96 + 0.06 * uD.x;
   col = mix(col, uC2, uD.y * 0.04);

@@ -5,12 +5,15 @@
 // extendiéndose por el papel. Con cada golpe (o cada pocos segundos sin
 // música) se hace una lámina nueva. Pulso: Golpes hace una lámina nueva y la
 // tinta brilla; Graves hace respirar la mancha; Agudos saca gotitas.
+// Onda expansiva: la hoja recibe el golpe y bota; la onda la recorre con luz
+// y sombra, extiende la tinta y la salpica.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   CreatorModifier.choice('mutacion', 'Metamorfosis', options: ['Cada golpe', 'Cada compás', 'Lenta']),
   CreatorModifier.choice('pulso', 'Pulso', options: ['Golpes', 'Graves', 'Agudos']),
+  CreatorModifier.slider('onda', 'Onda expansiva', min: 0, max: 2, value: 1),
   CreatorModifier.choice('tintas', 'Tintas', options: ['Fuego', 'Sangre', 'Noche']),
   CreatorModifier.slider('sombra', 'Profundidad', min: 0, max: 1.5, value: 1),
   CreatorModifier.slider('gotas', 'Salpicaduras', min: 0, max: 1, value: .4),
@@ -34,6 +37,14 @@ class Visual final : public Scene {
   float beatPower = 0, spread = 0, spreadVel = 0;
   uint32_t shapes = 0, beats = 0;
   std::array<Lobe, kLobes> from{}, to{};
+  // Ondas expansivas: nacen con cada golpe. Música fuerte: onda fuerte,
+  // rápida y nítida; música tranquila: baja, lenta y suave.
+  struct Wave { double born; float power, speed, width, decay; };
+  static constexpr int kWaves = 4;
+  std::array<Wave, kWaves> waves{};
+  uint32_t waveNext = 0;
+  double lastWave = -100;
+  float lastPhase = 0;
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
@@ -78,6 +89,11 @@ class Visual final : public Scene {
     // La hoja nueva empieza con la forma ya elegida.
     for (int i = 0; i < kLobes; i++) from[size_t(i)] = to[size_t(i)];
   }
+  void spawnWave(double at, float power, float speed, float width, float decay) {
+    waves[size_t(waveNext % uint32_t(kWaves))] = {at, power, speed, width, decay};
+    waveNext++;
+    lastWave = at;
+  }
 
  public:
   void reset(uint32_t seed) override {
@@ -89,6 +105,10 @@ class Visual final : public Scene {
     beatPower = spread = spreadVel = 0;
     shapes = seed % 977u;
     beats = 0;
+    for (auto& wv : waves) wv = {-100.0, 0.0f, 0.0f, 0.05f, 1.0f};
+    waveNext = 0;
+    lastWave = -100;
+    lastPhase = 0;
     for (int i = 0; i < kLobes; i++) from[size_t(i)] = to[size_t(i)] = pick(shapes, i);
 
   }
@@ -125,6 +145,26 @@ class Visual final : public Scene {
     clock += step;
     // La tinta fluye más deprisa con la energía y con cada golpe.
     flow += step * (0.3 + 1.2 * double(drive) + 0.9 * double(kick)) * 0.6;
+    // Onda expansiva con cada golpe: su fuerza y su velocidad salen de la
+    // música (lo fuerte que suena y lo fuerte que pega el golpe).
+    if (fresh && mu.active && clock - lastWave > 0.16) {
+      const float lv = std::clamp(std::max(drive, energy), 0.0f, 1.0f);
+      spawnWave(clock, (0.3f + 0.7f * hit) * (0.35f + 0.85f * lv), 0.3f + 1.25f * lv + 0.35f * hit,
+                0.085f - 0.045f * lv, 0.8f + 2.4f * lv);
+    }
+    // Música tranquila, sin golpes marcados: la onda sigue el pulso del tema
+    // (o los acentos) y, si no hay pulso, sale cada pocos segundos; baja y lenta.
+    if (mu.active) {
+      float accent = 0;
+      for (const auto& e : mu.events[1]) accent = std::max(accent, e.strength);
+      const bool tick = (mu.bpm > 0.0f && mu.phase + 0.5f < lastPhase) || accent > 0.15f;
+      const double quiet = clock - lastWave;
+      if ((tick && quiet > 0.45) || quiet > 2.4) {
+        const float lv = std::clamp(std::max(drive, energy), 0.0f, 1.0f);
+        spawnWave(clock, 0.3f + 0.45f * lv, 0.3f + 0.6f * lv, 0.09f - 0.03f * lv, 0.9f + 1.2f * lv);
+      }
+    }
+    lastPhase = mu.phase;
     // Metamorfosis: la forma cambia con cada golpe, cada cuatro o despacio.
     if (fresh && mu.active && m.mutacion != 2) {
       const uint32_t every = m.mutacion == 0 ? 1u : 4u;
@@ -140,6 +180,8 @@ class Visual final : public Scene {
           // Sin música, cada forma nueva llega con un sobresalto.
           beatPower = 0.6f;
           sinceBeat = sinceIdle;
+          // ...y con una onda baja y lenta.
+          spawnWave(clock - sinceIdle, 0.32f, 0.38f, 0.09f, 1.0f);
         }
       }
     }
@@ -160,7 +202,7 @@ class Visual final : public Scene {
     const float ft = float(std::fmod(flow, 1000.0));
 
     std::vector<float> u;
-    u.reserve(64);
+    u.reserve(80);
     u.insert(u.end(), {ft, std::min(bass * amp, 1.5f), std::min(kick * amp, 1.0f), std::min(energy * amp, 1.0f)});
     u.insert(u.end(), {g.tintas.weight(1), g.tintas.weight(2), g.sombra, g.gotas});
     u.insert(u.end(), {f.glow, std::min(flash * amp, 1.0f), std::min(spark * amp, 1.0f), float(std::fmod(clock, 1000.0))});
@@ -178,6 +220,15 @@ class Visual final : public Scene {
     u.insert(u.end(), {golpe, graves, agudos, morphP});
     u.insert(u.end(), {std::max(-0.2f, spread) * amp * g.pulso.weight(0), float(std::min(sinceBeat, 9.0)),
                        std::min(pulse * amp, 1.2f), float(shapes % 997u)});
+    // Ondas: radio, fuerza, ancho y edad. Se frenan al crecer y se apagan.
+    const float ondaK = amp * g.onda;
+    for (const Wave& wv : waves) {
+      const float a = float(std::min(std::max(clock - wv.born, 0.0), 30.0));
+      const float radius = wv.speed * a / (1.0f + 0.35f * a);
+      float power = std::min(wv.power * std::exp(-a * wv.decay) * ondaK, 1.6f);
+      if (power < 0.004f) power = 0.0f;
+      u.insert(u.end(), {radius, power, wv.width * (1.0f + 0.6f * radius), a});
+    }
     for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[size_t(i)].r, f.colors[size_t(i)].g, f.colors[size_t(i)].b});
     c.material("inkblot_fold", {0, 0, f.width, f.height}, u);
   }
@@ -201,6 +252,10 @@ uniform vec4 uL5;
 uniform vec4 uX;   // datos de la variante
 uniform vec4 uY;   // Pulso: golpe, graves, agudos; avance del cambio de forma
 uniform vec4 uP;   // expansión del golpe, edad del golpe, golpe, número de forma
+uniform vec4 uW0;  // ondas expansivas: radio, fuerza, ancho, edad
+uniform vec4 uW1;
+uniform vec4 uW2;
+uniform vec4 uW3;
 uniform vec3 uC0;
 uniform vec3 uC1;
 uniform vec3 uC2;
@@ -264,6 +319,36 @@ float growth() {
   return 0.08 * uY.y + 0.22 * uP.x + 0.04 * uA.w;
 }
 
+// Ondas expansivas de la música; d es la distancia al origen de la onda.
+float ringOf(vec4 W, float d) {
+  float x = (d - W.x) / W.z;
+  return W.y * exp(-x * x);
+}
+
+// Frente: el anillo de todas las ondas.
+float waveFront(float d) {
+  return ringOf(uW0, d) + ringOf(uW1, d) + ringOf(uW2, d) + ringOf(uW3, d);
+}
+
+// Rizo con signo: el frente y dos ecos detrás que se apagan.
+float rippleOf(vec4 W, float d) {
+  float x = (d - W.x) / W.z;
+  return W.y * exp(-x * x * (x > 0.0 ? 1.0 : 0.22)) * cos(x * 2.6);
+}
+
+float waveRipple(float d) {
+  return rippleOf(uW0, d) + rippleOf(uW1, d) + rippleOf(uW2, d) + rippleOf(uW3, d);
+}
+
+// Estela: lo que la onda ya ha barrido, apagándose hacia el centro.
+float wakeOf(vec4 W, float d) {
+  return W.y * smoothstep(W.x + W.z, W.x - W.z, d) * exp(-max(W.x - d, 0.0) * 5.0);
+}
+
+float waveWake(float d) {
+  return wakeOf(uW0, d) + wakeOf(uW1, d) + wakeOf(uW2, d) + wakeOf(uW3, d);
+}
+
 vec3 paper(vec2 frag, vec2 p) {
   float fiber = hash12(floor(frag * vec2(0.5, 0.08))) * 0.6 + noise(frag * 0.05) * 0.4;
   vec3 col = uC0 * (0.92 + 0.08 * fiber);
@@ -291,7 +376,7 @@ float spatter(vec2 q, float F, float amount, float seed) {
   return 1.0 - smoothstep(rad - 0.05, rad, length(fract(g) - 0.5 - off * 0.45));
 }
 
-vec4 sheet(vec2 s, vec2 frag, float a, float spread, out float inkAmt) {
+vec4 sheet(vec2 s, vec2 frag, float a, float spread, float splash, out float inkAmt) {
   // Tinta en la hoja (s en coordenadas de la hoja; la mancha es simétrica
   // y algo más pequeña para que quepa en la tarjeta).
   vec2 q = vec2(abs(s.x), s.y) * 1.14;
@@ -310,7 +395,7 @@ vec4 sheet(vec2 s, vec2 frag, float a, float spread, out float inkAmt) {
   ink = mix(ink, cGold, gold * (0.7 + 0.5 * uY.x));
   ink *= 1.0 + 0.35 * uY.x;
   ink = mix(ink, uC1 * 0.5, smoothstep(0.1, 0.0, F) * 0.6);
-  float sp = spatter(q, F, (0.03 + 0.4 * uY.z) * uB.w * drop, floor(uD.w * 4.0));
+  float sp = spatter(q, F, ((0.03 + 0.4 * uY.z) * uB.w + 0.45 * splash) * drop, floor(uD.w * 4.0));
   inkAmt = max(inkAmt, sp);
   return vec4(mix(ink, uC1, sp), F);
 }
@@ -341,6 +426,12 @@ void main() {
   float pressed = step(0.75, a);
   // Al apretar la tinta se extiende un poco, y luego sigue chupando papel.
   float spread = 0.07 * smoothstep(0.75, 1.0, a) + 0.05 * (1.0 - exp(-max(a - 1.35, 0.0) * 0.3));
+  // Onda expansiva: la hoja recibe el golpe y bota; la onda la recorre,
+  // extiende la tinta y la salpica a su paso.
+  float pd = length(p);
+  float pf = waveFront(pd);
+  float prip = waveRipple(pd);
+  float sheetMask = 0.0;
   vec3 col = table(p, frag);
   // Sombra de la hoja sobre la mesa (más ancha cuando la solapa se levanta).
   vec2 sd = vec2(max(abs(p.x - 0.015 - 0.03 * sn) - halfW * (p.x > 0.0 ? max(cs, 0.0) : 1.0), 0.0),
@@ -349,7 +440,8 @@ void main() {
   bool onLeft = p.x <= 0.0 && p.x > -halfW && abs(p.y) < halfH;
   if (onLeft) {
     float inkL;
-    vec4 left = sheet(vec2(p.x, p.y), frag, a, spread, inkL);
+    vec4 left = sheet(vec2(p.x, p.y), frag, a, spread + 0.05 * pf, pf, inkL);
+    sheetMask = 1.0;
     col = mix(paper(frag, p), left.rgb, inkL);
     // Sombra de la solapa al pasar por encima.
     col *= 1.0 - sn * exp(p.x * 6.0 / max(uB.z, 0.05)) * 0.55 * uB.z;
@@ -366,18 +458,21 @@ void main() {
     if (cs >= 0.0) {
       // Cara de delante: blanca hasta que se aprieta; luego la mancha en espejo.
       float inkR;
-      vec4 right = sheet(vec2(-u, fy), frag, a, spread, inkR);
+      vec4 right = sheet(vec2(-u, fy), frag, a, spread + 0.05 * pf, pf, inkR);
       flapCol = mix(paper(frag, vec2(u, fy)), right.rgb, inkR * pressed);
     } else {
       // Dorso de la hoja: la tinta se transparenta un poco.
       float inkR;
-      vec4 right = sheet(vec2(-u, fy), frag, a, spread, inkR);
+      vec4 right = sheet(vec2(-u, fy), frag, a, spread + 0.05 * pf, pf, inkR);
       flapCol = mix(paper(frag, vec2(u, fy)) * 0.9, right.rgb * 0.6 + uC0 * 0.4, inkR * pressed * 0.18);
     }
     // La luz de la lámpara resbala por la solapa levantada.
     float sheen = sn * exp(-sq(u / halfW - 0.6) * 6.0) * 0.12;
     col = flapCol * shade * (1.0 - 0.25 * uB.z * (1.0 - abs(cs))) + sheen;
+    sheetMask = 1.0;
   }
+  // La hoja bota: bandas de luz y sombra que recorren el papel.
+  col *= 1.0 + 0.24 * prip * sheetMask;
   // El pliegue en el centro de la hoja.
   col *= 1.0 - 0.18 * exp(-abs(p.x) * 120.0) * (0.4 + 0.6 * uB.z) * step(abs(p.y), halfH);
   col += uC3 * uD.y * 0.04;

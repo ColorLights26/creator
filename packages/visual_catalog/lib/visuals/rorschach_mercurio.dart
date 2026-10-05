@@ -6,12 +6,15 @@
 // vuelven a fundirse con ella; debajo, su reflejo en un charco. Pulso: Golpes
 // la salpica y la ondula; Graves la hincha y enciende el horizonte; Agudos
 // le saca destellos.
+// Onda expansiva: el metal líquido se levanta y se ondula en anillos, y el
+// suelo se enciende con su brillo.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   CreatorModifier.choice('mutacion', 'Metamorfosis', options: ['Cada golpe', 'Cada compás', 'Lenta']),
   CreatorModifier.choice('pulso', 'Pulso', options: ['Golpes', 'Graves', 'Agudos']),
+  CreatorModifier.slider('onda', 'Onda expansiva', min: 0, max: 2, value: 1),
   CreatorModifier.steps('gotas', 'Gotas', min: 0, max: 10, value: 6),
   CreatorModifier.slider('viscosidad', 'Viscosidad', min: 0, max: 1, value: .4),
   CreatorModifier.choice('reflejo', 'Reflejo', options: ['Llamas', 'Estudio', 'Aurora']),
@@ -35,6 +38,14 @@ class Visual final : public Scene {
   float beatPower = 0, spread = 0, spreadVel = 0;
   uint32_t shapes = 0, beats = 0;
   std::array<Lobe, kLobes> from{}, to{};
+  // Ondas expansivas: nacen con cada golpe. Música fuerte: onda fuerte,
+  // rápida y nítida; música tranquila: baja, lenta y suave.
+  struct Wave { double born; float power, speed, width, decay; };
+  static constexpr int kWaves = 4;
+  std::array<Wave, kWaves> waves{};
+  uint32_t waveNext = 0;
+  double lastWave = -100;
+  float lastPhase = 0;
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
@@ -78,6 +89,11 @@ class Visual final : public Scene {
     shapeAt = at;
 
   }
+  void spawnWave(double at, float power, float speed, float width, float decay) {
+    waves[size_t(waveNext % uint32_t(kWaves))] = {at, power, speed, width, decay};
+    waveNext++;
+    lastWave = at;
+  }
 
  public:
   void reset(uint32_t seed) override {
@@ -89,6 +105,10 @@ class Visual final : public Scene {
     beatPower = spread = spreadVel = 0;
     shapes = seed % 977u;
     beats = 0;
+    for (auto& wv : waves) wv = {-100.0, 0.0f, 0.0f, 0.05f, 1.0f};
+    waveNext = 0;
+    lastWave = -100;
+    lastPhase = 0;
     for (int i = 0; i < kLobes; i++) from[size_t(i)] = to[size_t(i)] = pick(shapes, i);
 
   }
@@ -125,6 +145,26 @@ class Visual final : public Scene {
     clock += step;
     // La tinta fluye más deprisa con la energía y con cada golpe.
     flow += step * (0.3 + 1.2 * double(drive) + 0.9 * double(kick)) * 0.9;
+    // Onda expansiva con cada golpe: su fuerza y su velocidad salen de la
+    // música (lo fuerte que suena y lo fuerte que pega el golpe).
+    if (fresh && mu.active && clock - lastWave > 0.16) {
+      const float lv = std::clamp(std::max(drive, energy), 0.0f, 1.0f);
+      spawnWave(clock, (0.3f + 0.7f * hit) * (0.35f + 0.85f * lv), 0.3f + 1.25f * lv + 0.35f * hit,
+                0.085f - 0.045f * lv, 0.8f + 2.4f * lv);
+    }
+    // Música tranquila, sin golpes marcados: la onda sigue el pulso del tema
+    // (o los acentos) y, si no hay pulso, sale cada pocos segundos; baja y lenta.
+    if (mu.active) {
+      float accent = 0;
+      for (const auto& e : mu.events[1]) accent = std::max(accent, e.strength);
+      const bool tick = (mu.bpm > 0.0f && mu.phase + 0.5f < lastPhase) || accent > 0.15f;
+      const double quiet = clock - lastWave;
+      if ((tick && quiet > 0.45) || quiet > 2.4) {
+        const float lv = std::clamp(std::max(drive, energy), 0.0f, 1.0f);
+        spawnWave(clock, 0.3f + 0.45f * lv, 0.3f + 0.6f * lv, 0.09f - 0.03f * lv, 0.9f + 1.2f * lv);
+      }
+    }
+    lastPhase = mu.phase;
     // Metamorfosis: la forma cambia con cada golpe, cada cuatro o despacio.
     if (fresh && mu.active && m.mutacion != 2) {
       const uint32_t every = m.mutacion == 0 ? 1u : 4u;
@@ -140,6 +180,8 @@ class Visual final : public Scene {
           // Sin música, cada forma nueva llega con un sobresalto.
           beatPower = 0.6f;
           sinceBeat = sinceIdle;
+          // ...y con una onda baja y lenta.
+          spawnWave(clock - sinceIdle, 0.32f, 0.38f, 0.09f, 1.0f);
         }
       }
     }
@@ -160,7 +202,7 @@ class Visual final : public Scene {
     const float ft = float(std::fmod(flow, 1000.0));
 
     std::vector<float> u;
-    u.reserve(64);
+    u.reserve(80);
     u.insert(u.end(), {ft, std::min(bass * amp, 1.5f), std::min(kick * amp, 1.0f), std::min(energy * amp, 1.0f)});
     u.insert(u.end(), {g.gotas, g.viscosidad, f.detail, 0.0f});
     u.insert(u.end(), {f.glow, std::min(flash * amp, 1.0f), std::min(spark * amp, 1.0f), float(std::fmod(clock, 1000.0))});
@@ -178,6 +220,15 @@ class Visual final : public Scene {
     u.insert(u.end(), {golpe, graves, agudos, morphP});
     u.insert(u.end(), {std::max(-0.2f, spread) * amp * g.pulso.weight(0), float(std::min(sinceBeat, 9.0)),
                        std::min(pulse * amp, 1.2f), float(shapes % 997u)});
+    // Ondas: radio, fuerza, ancho y edad. Se frenan al crecer y se apagan.
+    const float ondaK = amp * g.onda;
+    for (const Wave& wv : waves) {
+      const float a = float(std::min(std::max(clock - wv.born, 0.0), 30.0));
+      const float radius = wv.speed * a / (1.0f + 0.35f * a);
+      float power = std::min(wv.power * std::exp(-a * wv.decay) * ondaK, 1.6f);
+      if (power < 0.004f) power = 0.0f;
+      u.insert(u.end(), {radius, power, wv.width * (1.0f + 0.6f * radius), a});
+    }
     for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[size_t(i)].r, f.colors[size_t(i)].g, f.colors[size_t(i)].b});
     c.material("inkblot_mercury", {0, 0, f.width, f.height}, u);
   }
@@ -201,6 +252,10 @@ uniform vec4 uL5;
 uniform vec4 uX;   // datos de la variante
 uniform vec4 uY;   // Pulso: golpe, graves, agudos; avance del cambio de forma
 uniform vec4 uP;   // expansión del golpe, edad del golpe, golpe, número de forma
+uniform vec4 uW0;  // ondas expansivas: radio, fuerza, ancho, edad
+uniform vec4 uW1;
+uniform vec4 uW2;
+uniform vec4 uW3;
 uniform vec3 uC0;
 uniform vec3 uC1;
 uniform vec3 uC2;
@@ -262,6 +317,36 @@ float blot(vec2 q, float t, float grow, out vec2 w, out float n) {
 // Los graves hinchan la mancha y el golpe la empuja hacia fuera.
 float growth() {
   return 0.08 * uY.y + 0.22 * uP.x + 0.04 * uA.w;
+}
+
+// Ondas expansivas de la música; d es la distancia al origen de la onda.
+float ringOf(vec4 W, float d) {
+  float x = (d - W.x) / W.z;
+  return W.y * exp(-x * x);
+}
+
+// Frente: el anillo de todas las ondas.
+float waveFront(float d) {
+  return ringOf(uW0, d) + ringOf(uW1, d) + ringOf(uW2, d) + ringOf(uW3, d);
+}
+
+// Rizo con signo: el frente y dos ecos detrás que se apagan.
+float rippleOf(vec4 W, float d) {
+  float x = (d - W.x) / W.z;
+  return W.y * exp(-x * x * (x > 0.0 ? 1.0 : 0.22)) * cos(x * 2.6);
+}
+
+float waveRipple(float d) {
+  return rippleOf(uW0, d) + rippleOf(uW1, d) + rippleOf(uW2, d) + rippleOf(uW3, d);
+}
+
+// Estela: lo que la onda ya ha barrido, apagándose hacia el centro.
+float wakeOf(vec4 W, float d) {
+  return W.y * smoothstep(W.x + W.z, W.x - W.z, d) * exp(-max(W.x - d, 0.0) * 5.0);
+}
+
+float waveWake(float d) {
+  return wakeOf(uW0, d) + wakeOf(uW1, d) + wakeOf(uW2, d) + wakeOf(uW3, d);
 }
 
 vec3 paper(vec2 frag, vec2 p) {
@@ -342,7 +427,11 @@ void main() {
   vec2 q = vec2(abs(p.x), p.y);
   vec3 env = field(q, t);
   float fine = (noise(q * 7.0 + vec2(0.0, t * 0.4)) - 0.5) * 0.14 * (1.0 - uB.y);
-  float F = env.x * 0.85 - 0.5 + growth() + fine;
+  // Onda expansiva: el mercurio se levanta y se ondula en anillos.
+  float rr = length(p) + 0.001;
+  float mrip = waveRipple(rr);
+  float mf = waveFront(rr);
+  float F = env.x * 0.85 - 0.5 + growth() + fine + 0.1 * mf;
   vec2 grad = env.yz * 0.85;
   grad.x *= p.x < 0.0 ? -1.0 : 1.0;
   float aa = 6.0 / scale;
@@ -350,14 +439,15 @@ void main() {
   // Fondo oscuro con el reflejo de la mancha en un charco.
   vec3 col = uC0 + uC1 * 0.18 * (1.0 - smoothstep(0.0, 1.0, length(p - vec2(0.0, 0.2))));
   col *= 1.0 - 0.6 * exp(-max(-F, 0.0) * 12.0) * (1.0 - mask);
+  // El suelo se enciende con el brillo de la onda.
+  col += (uC2 * 0.22 + uC3 * 0.05) * mf * (1.0 - mask) * (1.0 - smoothstep(0.2, 1.1, rr));
   if (mask > 0.0) {
     float depth = clamp(F / 0.25, 0.0, 1.0);
     vec2 dir = grad / (length(grad) + 0.0001);
     vec3 nrm = normalize(vec3(dir * (1.0 - depth) * 1.5 + grad * 0.035, 0.32 + depth));
-    // El golpe ondula la superficie desde el centro.
-    float rr = length(p) + 0.001;
-    float ripple = sin(rr * 42.0 - uP.y * 14.0) * exp(-uP.y * 2.2) * (0.6 * uY.x + 0.25 * uY.y);
-    nrm = normalize(nrm + vec3(p / rr * ripple * 0.45, 0.0));
+    // La onda ondula la superficie; los graves la hacen vibrar.
+    float ripple = mrip * 0.55 + sin(rr * 42.0 - t * 5.0) * 0.11 * uY.y;
+    nrm = normalize(nrm + vec3(p / rr * ripple, 0.0));
     vec3 r = reflect(vec3(0.0, 0.0, -1.0), nrm);
     vec3 metal = environment(r) * 0.92;
     // Tornasol de aceite en el borde.
@@ -367,7 +457,7 @@ void main() {
     metal += uC3 * pow(max(1.0 - nrm.z, 0.0), 4.0) * 0.4 * uD.x;
     float glint = step(0.965, hash12(floor(p * 90.0) + floor(uD.w * 10.0))) * pow(max(r.z, 0.0), 2.0);
     metal += uC3 * glint * (0.3 * uD.z + 1.4 * uY.z);
-    metal *= 1.0 + 0.25 * uY.x;
+    metal *= 1.0 + 0.25 * uY.x + 0.35 * mf;
     col = mix(col, metal, mask);
   }
   // Charco: la mancha se refleja debajo, borrosa.
