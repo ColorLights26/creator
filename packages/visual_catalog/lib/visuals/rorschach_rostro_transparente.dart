@@ -5,6 +5,9 @@
 // mira a un lado y a otro y se clava en ti con cada golpe, dilatándose. Los
 // ojos parpadean de vez en cuando y una boca se abre con los graves,
 // mostrando un interior rojo oscuro. Todo late y cambia de forma despacio.
+// Párpados cambia la expresión: abiertos, los ojos son redondos y asustados;
+// pesados, un párpado de tinta los corta en diagonal hacia la nariz y quedan
+// como rendijas que vigilan. Con cualquier valor siguen parpadeando.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -12,7 +15,9 @@ const modifiers = [
   CreatorModifier.slider('tamano', 'Tamaño de la cara', min: .6, max: 1.4, value: 1),
   CreatorModifier.toggle('mirada', 'Ojos que miran', value: true),
   CreatorModifier.toggle('boca', 'Boca', value: true),
-  CreatorModifier.toggle('parpadeo', 'Parpadeo', value: true),
+  // FORMA de la mirada: 0 = ojos muy abiertos, .35 = la cara de siempre,
+  // 1 = párpados pesados.
+  CreatorModifier.slider('parpadeo', 'Párpados', min: 0, max: 1, value: .35),
 ];
 
 const nativeSource = r'''
@@ -97,13 +102,19 @@ class Visual final : public Scene {
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto g = glide(f);
     float amp = f.intensity;
     float t = float(std::fmod(morph, 1000.0));
     float pulse = sinceBeat < 2.0 ? beatPower * float(std::exp(-sinceBeat * 3.0)) : 0.0f;
+    // Párpados (.35 es la cara de siempre): abiertos, el hueco del ojo crece
+    // hasta 1,45 veces; pesados, se cierra a 0,7 y un párpado lo corta.
+    const float lid = std::clamp(g.parpadeo, 0.0f, 1.0f);
+    const float wide = lid < 0.35f ? 1.0f + (0.35f - lid) / 0.35f * 0.45f : 1.0f - (lid - 0.35f) / 0.65f * 0.3f;
+    const float heavy = std::clamp((lid - 0.35f) / 0.65f, 0.0f, 1.0f);
     std::vector<float> u;
     u.reserve(56);
     u.insert(u.end(), {t, bass * amp, kick * amp, energy});
-    u.insert(u.end(), {0.0f, m.tamano, m.boca ? 1.0f : 0.0f, 0.0f});
+    u.insert(u.end(), {wide, m.tamano, m.boca ? 1.0f : 0.0f, heavy});
     u.insert(u.end(), {f.glow, flash * amp, spark * amp, float(std::fmod(clock, 1000.0))});
     // Lóbulos de la mancha: cinco manchas grandes que derivan despacio.
     static const float lx[5] = {0.08f, 0.24f, 0.2f, 0.27f, 0.06f};
@@ -118,7 +129,7 @@ class Visual final : public Scene {
     float gx = m.mirada ? 0.8f * std::sin(float(clock) * 0.7f) * std::cos(float(clock) * 0.31f) * (1.0f - stare) : 0.0f;
     float gy = m.mirada ? 0.5f * std::sin(float(clock) * 0.53f + 1.0f) * (1.0f - stare) : 0.0f;
     double bt = clock - nextBlink;
-    float blink = m.parpadeo && bt >= 0.0 && bt < 0.25 ? float(std::sin(bt / 0.25 * 3.14159265)) : 0.0f;
+    float blink = bt >= 0.0 && bt < 0.25 ? float(std::sin(bt / 0.25 * 3.14159265)) : 0.0f;
     u.insert(u.end(), {gx, gy, blink, std::clamp(bass * 1.3f + 0.15f * kick, 0.0f, 1.0f) * amp});
     u.insert(u.end(), {pulse, std::max(-0.2f, spread) * amp, 0.0f, 0.0f});
     for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});
@@ -222,11 +233,18 @@ void main() {
   // Ojos: sin reflejar, para que miren los dos al mismo lado.
   vec2 ps = p / s;
   float blink = uX.z;
+  // Párpados: uB.x abre o cierra el hueco; uB.w baja un párpado de tinta.
+  float wide = uB.x;
+  float heavy = uB.w;
   for (int e = 0; e < 2; e++) {
     vec2 c = vec2(e == 0 ? -0.15 : 0.15, -0.1);
-    float open = 0.055 * (1.0 - 0.95 * blink) * (1.0 + 0.25 * uA.z);
-    float de = ellipse(ps, c, vec2(0.085, max(open, 0.002)));
-    float hole = smoothstep(1.0, 0.92, de);
+    float open = 0.055 * wide * (1.0 - 0.95 * blink) * (1.0 + 0.25 * uA.z);
+    vec2 r = vec2(0.085 * (0.9 + 0.1 * wide), max(open, 0.002));
+    float de = ellipse(ps, c, r);
+    // El párpado pesado baja en diagonal hacia la nariz (fuera del ojo en 0).
+    float inner = clamp((0.15 - abs(ps.x)) / 0.085, -1.0, 1.0);
+    float lidY = c.y - 1.2 * r.y + heavy * r.y * (1.2 + 0.7 * inner);
+    float hole = smoothstep(1.0, 0.92, de) * smoothstep(lidY - 0.004, lidY + 0.004, ps.y);
     vec2 g = c + vec2(uX.x * 0.035, uX.y * 0.02);
     float dIris = length(ps - g);
     float veins = smoothstep(0.86, 1.0, 1.0 - abs(noise(ps * 60.0) - 0.5) * 2.0) * 0.7;
@@ -237,6 +255,7 @@ void main() {
     eye = mix(eye, vec3(0.0), smoothstep(pupil, pupil - 0.003, dIris));
     eye += vec3(1.0) * smoothstep(0.006, 0.0, length(ps - g - vec2(-0.01, -0.01))) * 0.8;
     eye *= 1.0 - 0.5 * smoothstep(0.6, 1.0, de);
+    eye *= 1.0 - 0.45 * heavy * (1.0 - smoothstep(lidY, lidY + 0.03, ps.y));
     col = mix(col, eye, hole);
     cover = max(cover, hole);
   }

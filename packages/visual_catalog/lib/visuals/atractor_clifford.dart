@@ -8,14 +8,17 @@
 // velos se pliegan sin parar, y cada ocho golpes (o cada diez segundos sin
 // música) una forma se funde en otra; el encuadre se ajusta a cada figura. El
 // color va del rojo de las zonas tranquilas al amarillo-blanco de los saltos
-// largos. Los graves empujan la forma y cada golpe la hace destellar.
+// largos. Grano cambia la textura: de hilos de seda finísimos a un polvo de
+// granos gruesos y tenues, como pastel. El Brillo básico da la luz de los
+// puntos. Los graves empujan la forma y cada golpe la hace destellar.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   CreatorModifier.steps('miles', 'Miles de puntos', min: 6, max: 30, value: 18),
   CreatorModifier.slider('cambio', 'Velocidad de cambio', min: .2, max: 2.5, value: 1),
-  CreatorModifier.slider('brillo', 'Brillo', min: .4, max: 2, value: 1),
+  // ATMÓSFERA: textura de los velos, de seda fina a polvo grueso.
+  CreatorModifier.slider('grano', 'Grano', min: 0, max: 1, value: 0),
   CreatorModifier.toggle('giro', 'Giro lento', value: true),
 ];
 
@@ -149,6 +152,7 @@ class Visual final : public Scene {
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto gl = glide(f);
     float amp = f.intensity;
     const Color& bg = f.colors[0];
     c.rect({0, 0, f.width, f.height}, Paint::radial({f.width * 0.5f, f.height * 0.5f}, std::max(f.width, f.height) * 0.7f,
@@ -188,13 +192,19 @@ class Visual final : public Scene {
       groups[size_t(g)].push_back({X, Y});
     }
     float density = std::clamp(18000.0f / float(std::max(n, 1)), 0.5f, 3.0f);
-    float base = 0.11f * m.brillo * density * (1.0f + 0.6f * kick + 0.3f * bass) * amp;
+    // Brillo básico (glow 0..2): la luz de cada punto, nunca a cero.
+    float light = 0.4f + 0.6f * std::clamp(f.glow, 0.0f, 2.0f);
+    // Grano: puntos más gruesos y cada uno más tenue, así la luz total se
+    // reparte en un polvo suave en vez de saturar.
+    float grain = 1.0f + 2.6f * std::clamp(gl.grano, 0.0f, 1.0f);
+    float soften = 1.0f / (grain * std::sqrt(grain));
+    float base = 0.11f * light * soften * density * (1.0f + 0.6f * kick + 0.3f * bass) * amp;
     for (int g = 0; g < 3; g++) {
       const Color& col = f.colors[size_t(1 + g)];
       Paint p;
       p.blend = Blend::plus;
       p.color = col.opacity(std::clamp(base * (g == 2 ? 1.3f : 1.0f), 0.0f, 1.0f));
-      c.points(groups[size_t(g)], (0.9f + 0.3f * spark) * px, p);
+      c.points(groups[size_t(g)], (0.9f + 0.3f * spark) * px * grain, p);
     }
     if (flash > 0.01f) {
       Paint fl;

@@ -5,13 +5,16 @@
 // rastro de colores que se despliega con cada golpe. Los graves hacen
 // temblar la pantalla y crecer el disco, y las partículas salen despedidas
 // del centro más rápido cuanta más energía hay. Sin música, el círculo
-// respira con una onda tranquila.
+// respira con una onda tranquila. Con remolino, las capas se abren en abanico
+// y se mecen con retraso, sus picos se curvan como aspas y las partículas
+// salen en espiral.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   CreatorModifier.steps('capas', 'Capas de onda', min: 2, max: 6, value: 5),
-  CreatorModifier.choice('colores', 'Colores', options: ['Fuego', 'Arcoíris', 'Paleta']),
+  // MOVIMIENTO: de ondas alineadas y quietas a un abanico que se mece.
+  CreatorModifier.slider('remolino', 'Remolino', min: 0, max: 1, value: 0),
   CreatorModifier.toggle('temblor', 'Temblor de pantalla', value: true),
   CreatorModifier.toggle('particulas', 'Partículas', value: true),
 ];
@@ -25,7 +28,7 @@ class Visual final : public Scene {
   float kick = 0, flash = 0, drive = 0;
   std::array<std::array<float, kBins>, kLayers> layers{};
   // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.
-  double clock = 0, rise = 0;
+  double clock = 0, rise = 0, sway = 0;
   bool live = false;
   std::array<float, kParticles> pAngle{}, pSpeed{}, pPhase{}, pSize{};
 
@@ -46,6 +49,7 @@ class Visual final : public Scene {
     for (auto& l : layers) l.fill(0);
     clock = 0;
     rise = 0;
+    sway = 0;
     live = false;
     for (int i = 0; i < kParticles; i++) {
       pAngle[size_t(i)] = rng.unit() * 6.2831853f;
@@ -75,6 +79,7 @@ class Visual final : public Scene {
     flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
     clock += f.delta * f.speed;
     rise += f.delta * f.speed * (1.0 + 2.5 * drive + 2.0 * kick);
+    sway = std::fmod(sway + f.delta * f.speed * 0.9, 6.283185307179586);
     live = mu.active;
     if (mu.active) {
       // Cada capa sigue a la anterior con retraso: el círculo deja un rastro.
@@ -90,6 +95,7 @@ class Visual final : public Scene {
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto gl = glide(f);
     float amp = f.intensity;
     const Color& bg = f.colors[0];
     float side = std::min(f.width, f.height);
@@ -102,15 +108,16 @@ class Visual final : public Scene {
     }
     Vec2 center{f.width * 0.5f + shakeX, f.height * 0.5f + shakeY};
     int n = std::clamp(m.capas, 2, kLayers);
-    std::array<Color, kLayers> pal;
-    if (m.colores == 1) {
-      pal = {Color{1.0f, 1.0f, 1.0f, 1.0f}, Color{1.0f, 0.2f, 0.3f, 1.0f}, Color{1.0f, 0.6f, 0.1f, 1.0f}, Color{1.0f, 0.95f, 0.2f, 1.0f},
-             Color{0.3f, 1.0f, 0.4f, 1.0f}, Color{0.3f, 0.5f, 1.0f, 1.0f}};
-    } else if (m.colores == 2) {
-      pal = {f.colors[3], f.colors[2], f.colors[1], f.colors[3], f.colors[2], f.colors[1]};
-    } else {
-      pal = {f.colors[3], f.colors[2], f.colors[1], Color{0.85f, 0.05f, 0.35f, 1.0f}, Color{0.55f, 0.02f, 0.12f, 1.0f}, Color{0.35f, 0.01f, 0.05f, 1.0f}};
-    }
+    // De delante hacia atrás: los acentos de la paleta y el primero cada vez
+    // más oscuro, así el rastro se hunde en el fondo.
+    auto dim = [](const Color& col, float k) { return Color{col.r * k, col.g * k, col.b * k, 1.0f}; };
+    const std::array<Color, kLayers> pal = {f.colors[3], f.colors[2], f.colors[1],
+                                            dim(f.colors[1], 0.85f), dim(f.colors[1], 0.55f), dim(f.colors[1], 0.35f)};
+    // Remolino: cada capa gira un poco más que la de delante y se mece con
+    // retraso, y lo que sobresale de cada onda se curva hacia un lado; a 0
+    // todas quedan alineadas como el visualizador clásico.
+    const float swirl = gl.remolino;
+    auto twist = [&](int l) { return swirl * (0.6f * float(l) + 0.35f * float(std::sin(sway + 0.7 * double(l)))); };
     // Fondo con resplandor del color principal y rayos tenues que giran.
     c.rect({0, 0, f.width, f.height}, Paint::radial(center, std::max(f.width, f.height) * 0.75f,
                                                    {Color{std::min(1.0f, bg.r + pal[2].r * 0.12f * (1.0f + bass)), std::min(1.0f, bg.g + pal[2].g * 0.06f * (1.0f + bass)),
@@ -124,7 +131,8 @@ class Visual final : public Scene {
       for (int i = 0; i < kParticles; i++) {
         float life = float(std::fmod(rise * double(pSpeed[size_t(i)]) + double(pPhase[size_t(i)]), 1.0));
         float r = R * 1.05f + life * life * reach;
-        float a = pAngle[size_t(i)] + float(clock * 0.05);
+        // Con remolino salen en espiral: el ángulo avanza con la distancia.
+        float a = pAngle[size_t(i)] + float(clock * 0.05) + swirl * 1.6f * life;
         groups[size_t(i % 3)].push_back({center.x + r * std::cos(a), center.y + r * std::sin(a)});
       }
       for (int g = 0; g < 3; g++) {
@@ -138,9 +146,10 @@ class Visual final : public Scene {
     const int samples = 72;
     for (int l = n - 1; l >= 0; l--) {
       Path p;
+      const float turn = twist(l);
       for (int k = 0; k <= samples * 2; k++) {
         float u = float(k) / float(samples * 2);
-        float a = -1.5707963f + u * 6.2831853f;
+        float a = -1.5707963f + u * 6.2831853f + turn;
         float mirror = 1.0f - std::fabs(1.0f - 2.0f * u);
         float pos = mirror * float(kBins - 1) * 0.85f;
         int i0 = int(pos);
@@ -155,7 +164,10 @@ class Visual final : public Scene {
           v1 = idle(i1, clock - 0.08 * double(l));
         }
         float v = (v0 + (v1 - v0) * fr) * amp;
-        float r = R * (1.02f + 0.07f * float(l)) + side * 0.2f * v * (1.0f + 0.22f * float(l));
+        float bulge = std::max(v * (1.0f + 0.22f * float(l)), 0.0f);
+        float r = R * (1.02f + 0.07f * float(l)) + side * 0.2f * bulge;
+        // Cuanto más sobresale, más se curva (hasta ~1 radián).
+        a += swirl * 1.1f * bulge / (0.5f + bulge);
         float x = center.x + r * std::cos(a), y = center.y + r * std::sin(a);
         if (k == 0) p.moveTo(x, y); else p.lineTo(x, y);
       }

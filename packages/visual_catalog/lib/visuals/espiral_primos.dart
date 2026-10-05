@@ -5,13 +5,16 @@
 // lejos, cientos de rayos rectos, todo por cómo se reparten los primos entre
 // los restos al dividir. El zoom se acerca y se aleja sin parar, la espiral
 // gira despacio y cada brazo tiene su color. Los graves hacen latir los
-// puntos, cada golpe los enciende y la energía acelera el zoom.
+// puntos, cada golpe los enciende y la energía acelera el zoom. Con estela,
+// cada primo arrastra una cola que se curva hacia dentro al girar: la espiral
+// parece una galaxia en remolino, y cada golpe estira las colas.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   CreatorModifier.slider('velocidad', 'Velocidad del zoom', min: .2, max: 2.5, value: 1),
-  CreatorModifier.choice('colores', 'Colores', options: ['Brazos', 'Arcoíris', 'Fuego']),
+  // ATMÓSFERA: de puntos nítidos a cometas con cola.
+  CreatorModifier.slider('estela', 'Estela', min: 0, max: 1, value: 0),
   CreatorModifier.slider('tamano', 'Tamaño de puntos', min: .5, max: 2, value: 1),
   CreatorModifier.toggle('noprimos', 'Mostrar no primos', value: false),
 ];
@@ -27,12 +30,6 @@ class Visual final : public Scene {
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
-  }
-
-  static Color hsv(float h) {
-    h = h - std::floor(h);
-    return {std::clamp(std::fabs(h * 6.0f - 3.0f) - 1.0f, 0.0f, 1.0f), std::clamp(2.0f - std::fabs(h * 6.0f - 2.0f), 0.0f, 1.0f),
-            std::clamp(2.0f - std::fabs(h * 6.0f - 4.0f), 0.0f, 1.0f), 1.0f};
   }
 
  public:
@@ -77,6 +74,7 @@ class Visual final : public Scene {
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto gl = glide(f);
     float amp = f.intensity;
     const Color& bg = f.colors[0];
     c.rect({0, 0, f.width, f.height}, Paint::radial({f.width * 0.5f, f.height * 0.5f}, std::max(f.width, f.height) * 0.7f,
@@ -95,6 +93,18 @@ class Visual final : public Scene {
     const int buckets = 11;
     std::array<std::vector<Vec2>, buckets> groups;
     for (auto& g : groups) g.reserve(primes.size() / 8);
+    // Estela: cada primo deja una cola detrás de su giro, en tres tramos que
+    // se apagan y adelgazan. Más puntos por cola cuando hay pocos primos; el
+    // total se queda en unos 30 000. Se pintan encima sin sumar luz, así las
+    // colas que se cruzan nunca queman a blanco.
+    const float trail = gl.estela;
+    const size_t shown = size_t(std::upper_bound(primes.begin(), primes.end(), int(pMax)) - primes.begin());
+    const int tailPoints = trail > 0.005f ? std::clamp(int(30000 / std::max<size_t>(shown, 1)), 3, 28) : 0;
+    // Con miles de primos las colas se acortan para que sigan viéndose los
+    // rayos y quede oscuridad entre ellos.
+    const float crowd = std::clamp(std::sqrt(1200.0f / float(std::max<size_t>(shown, 1))), 0.4f, 1.0f);
+    const float tailLength = trail * dot * crowd * (26.0f + 6.0f * kick * amp);
+    std::array<std::array<std::vector<Vec2>, 3>, buckets> tails;
     // El color sigue los brazos: de cerca por resto entre 6, luego entre 44.
     int mod = pMax < 2500.0f ? 6 : 44;
     for (int p : primes) {
@@ -102,8 +112,19 @@ class Visual final : public Scene {
       double a = std::fmod(double(p), 6.283185307179586) + double(rot);
       float r = float(p) * s;
       Vec2 q{center.x + r * float(std::cos(a)), center.y + r * float(std::sin(a))};
-      int b = int(float(p % mod) / float(mod) * float(buckets));
-      groups[size_t(std::min(b, buckets - 1))].push_back(q);
+      int b = std::min(int(float(p % mod) / float(mod) * float(buckets)), buckets - 1);
+      groups[size_t(b)].push_back(q);
+      if (tailPoints > 0) {
+        // Paso angular de la cola: tramos de un punto, sin dar la vuelta cerca del centro.
+        double step = double(std::min(tailLength / float(tailPoints) / std::max(r, dot), 1.2f / float(tailPoints)));
+        for (int j = 1; j <= tailPoints; j++) {
+          float u = float(j) / float(tailPoints);
+          double aj = a - step * double(j);
+          float rj = r * (1.0f - 0.12f * trail * u);
+          tails[size_t(b)][size_t(std::min(2, (j - 1) * 3 / tailPoints))].push_back(
+              {center.x + rj * float(std::cos(aj)), center.y + rj * float(std::sin(aj))});
+        }
+      }
     }
     if (m.noprimos && pMax < 4000.0f) {
       std::vector<Vec2> rest;
@@ -121,19 +142,18 @@ class Visual final : public Scene {
       c.points(rest, dot * 0.55f, dim);
     }
     for (int b = 0; b < buckets; b++) {
-      float t = float(b) / float(buckets - 1);
-      Color col;
-      if (m.colores == 1) {
-        col = hsv(t * 0.9f);
-      } else if (m.colores == 2) {
-        const Color& a0 = f.colors[1];
-        const Color& a1 = f.colors[3];
-        col = Color{a0.r + (a1.r - a0.r) * t, a0.g + (a1.g - a0.g) * t, a0.b + (a1.b - a0.b) * t, 1.0f};
-      } else {
-        std::array<Color, 3> pal = {f.colors[1], f.colors[2], f.colors[3]};
-        col = pal[size_t(b % 3)];
-      }
+      // Cada brazo con un acento de la paleta.
+      const Color& col = f.colors[size_t(1 + b % 3)];
       float lit = (0.8f + 0.35f * bass + 0.3f * kick) * amp;
+      if (tailPoints > 0) {
+        const std::array<float, 3> fadeTail = {0.8f, 0.55f, 0.28f}, thinTail = {1.0f, 0.85f, 0.65f};
+        for (int k = 0; k < 3; k++) {
+          Paint tail;
+          tail.color = Color{std::min(1.0f, col.r * lit), std::min(1.0f, col.g * lit), std::min(1.0f, col.b * lit),
+                             std::clamp(fadeTail[size_t(k)] * std::min(1.0f, trail * 1.5f), 0.0f, 1.0f)};
+          c.points(tails[size_t(b)][size_t(k)], dot * thinTail[size_t(k)], tail);
+        }
+      }
       Paint halo;
       halo.blend = Blend::plus;
       halo.color = col.opacity(std::clamp(0.16f * f.glow * amp, 0.0f, 1.0f));

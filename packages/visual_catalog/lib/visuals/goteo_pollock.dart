@@ -12,7 +12,9 @@ import 'package:scene_compositor/authoring.dart';
 const modifiers = [
   CreatorModifier.slider('ritmo', 'Ritmo de pintura', min: .3, max: 2.5, value: 1),
   CreatorModifier.slider('grosor', 'Grosor', min: .5, max: 2, value: 1),
-  CreatorModifier.choice('colores', 'Colores', options: ['Clásico', 'Fuego', 'Neón']),
+  // MOVIMIENTO: el gesto del pintor: latigazos largos, chorros gruesos que
+  // serpentean o salpicones. Conserva el id: las apariencias guardadas lo usan.
+  CreatorModifier.choice('colores', 'Gesto', options: ['Latigazos', 'Chorros', 'Salpicones']),
   CreatorModifier.choice('fondo', 'Lienzo', options: ['Lino', 'Negro']),
 ];
 
@@ -95,9 +97,12 @@ class Visual final : public Scene {
     strokes.push_back(std::move(s));
   }
 
-  int pickKind() {
+  // Qué trazo cae según el gesto: 0 latigazo, 1 chorro, 2 salpicón.
+  int pickKind(int gesture) {
+    static const float mix[3][2] = {{0.68f, 0.9f}, {0.18f, 0.88f}, {0.15f, 0.3f}};
+    const float* m = mix[std::clamp(gesture, 0, 2)];
     float r = rng.unit();
-    return r < 0.68f ? 0 : (r < 0.9f ? 1 : 2);
+    return r < m[0] ? 0 : (r < m[1] ? 1 : 2);
   }
 
  public:
@@ -142,10 +147,11 @@ class Visual final : public Scene {
     spawnAcc += step * rate;
     while (spawnAcc >= 1.0) {
       spawnAcc -= 1.0;
-      spawn(clock - spawnAcc / rate, pickKind(), m.grosor);
+      spawn(clock - spawnAcc / rate, pickKind(m.colores), m.grosor);
     }
     if (beat) {
-      spawn(clock, 0, m.grosor * (1.0f + 0.5f * hit));
+      // El trazo extra de cada golpe es el del gesto elegido.
+      spawn(clock, std::clamp(m.colores, 0, 2), m.grosor * (1.0f + 0.5f * hit));
       if (hit > 0.7f) spawn(clock, 2, m.grosor);
     }
     (void)before;
@@ -164,16 +170,9 @@ class Visual final : public Scene {
     Color paper = dark ? Color{0.035f, 0.03f, 0.03f, 1.0f} : f.colors[0];
     std::vector<float> u = {paper.r, paper.g, paper.b, dark ? 1.0f : 0.0f};
     c.material("linen", {0, 0, f.width, f.height}, u);
-    std::array<Color, 5> pal;
-    if (m.colores == 1) {
-      pal = {f.colors[1], f.colors[2], Color{1.0f, 0.5f, 0.0f, 1.0f}, f.colors[3], Color{0.55f, 0.04f, 0.04f, 1.0f}};
-    } else if (m.colores == 2) {
-      pal = {Color{1.0f, 0.1f, 0.25f, 1.0f}, Color{1.0f, 0.85f, 0.0f, 1.0f}, Color{0.55f, 1.0f, 0.1f, 1.0f}, Color{1.0f, 0.45f, 0.0f, 1.0f}, Color{1.0f, 1.0f, 1.0f, 1.0f}};
-    } else {
-      pal = {f.colors[3], f.colors[3], f.colors[1], f.colors[2], Color{0.88f, 0.48f, 0.08f, 1.0f}};
-    }
+    std::array<Color, 5> pal = {f.colors[3], f.colors[3], f.colors[1], f.colors[2], Color{0.88f, 0.48f, 0.08f, 1.0f}};
     // En lienzo negro, la pintura negra pasa a ser blanca.
-    if (dark && m.colores == 0) {
+    if (dark) {
       pal[0] = Color{0.95f, 0.93f, 0.88f, 1.0f};
       pal[1] = Color{0.95f, 0.93f, 0.88f, 1.0f};
     }

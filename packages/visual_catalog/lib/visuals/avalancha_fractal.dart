@@ -6,7 +6,9 @@
 // pinta según le queden 0, 1, 2 ó 3 granos. Los granos caen a ritmo
 // constante, la energía los multiplica y cada golpe deja caer un puñado que
 // hace crecer el mandala de golpe. Cuando llega al borde se apaga y empieza
-// otro, con una, dos o cuatro semillas.
+// otro, con una, dos o cuatro semillas. La textura cambia el material del
+// mandala: mosaico de teselas, cuentas redondas como un bordado de chaquira, o
+// encaje, donde sólo quedan los bordes de cada zona y las zonas lisas se vacían.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -14,7 +16,8 @@ const modifiers = [
   CreatorModifier.steps('grano', 'Tamaño de grano', min: 1, max: 4, value: 2),
   CreatorModifier.slider('caudal', 'Caudal', min: .3, max: 3, value: 1),
   CreatorModifier.choice('semillas', 'Semillas', options: ['Auto', 'Una', 'Dos', 'Cuatro']),
-  CreatorModifier.choice('colores', 'Colores', options: ['Fuego', 'Paleta inversa', 'Arcoíris']),
+  // ATMÓSFERA: el material del mandala.
+  CreatorModifier.choice('textura', 'Textura', options: ['Mosaico', 'Cuentas', 'Encaje']),
 ];
 
 const nativeSource = r'''
@@ -165,7 +168,7 @@ class Visual final : public Scene {
   }
 
   void render(const Frame& f, Canvas& c) const override {
-    auto m = modifiers(f);
+    auto g = glide(f);
     float amp = f.intensity;
     const Color& bg = f.colors[0];
     Paint back;
@@ -174,28 +177,54 @@ class Visual final : public Scene {
     if (w <= 0) return;
     float cw = f.width / float(w), ch = f.height / float(h);
     float fade = fadeStart >= 0.0 ? float(std::clamp(1.0 - (sim - fadeStart) / 1.5, 0.0, 1.0)) : 1.0f;
+    // Textura: cada celda se pinta como tesela, como cuenta redonda o, en
+    // encaje, sólo si es borde (alguna vecina tiene otros granos). Al cambiar,
+    // las celdas se reparten entre las texturas según sus pesos.
+    const std::array<float, 3> weight = {g.textura.weight(0), g.textura.weight(1), g.textura.weight(2)};
+    auto level = [&](int x, int y) {
+      return (x < 0 || y < 0 || x >= w || y >= h) ? 0u : std::min(grid[size_t(y * w + x)], 3u);
+    };
+    auto finish = [&](int x, int y) {
+      if (weight[0] >= 1.0f) return 0;
+      if (weight[1] >= 1.0f) return 1;
+      if (weight[2] >= 1.0f) return 2;
+      uint32_t k = uint32_t(x) * 73856093u ^ uint32_t(y) * 19349663u;
+      k ^= k >> 13;
+      k *= 0x5bd1e995u;
+      k ^= k >> 15;
+      float u = float(k & 0xffffu) / 65536.0f;
+      return u < weight[0] ? 0 : (u < weight[0] + weight[1] ? 1 : 2);
+    };
+    // Tipo de cada celda: -1 nada, 0..2 tesela del nivel, 3..5 cuenta del nivel.
+    auto kind = [&](int x, int y) {
+      uint32_t v = level(x, y);
+      if (v == 0) return -1;
+      int t = finish(x, y);
+      if (t == 1) return int(v) + 2;
+      if (t == 2 && level(x - 1, y) == v && level(x + 1, y) == v && level(x, y - 1) == v && level(x, y + 1) == v) return -1;
+      return int(v) - 1;
+    };
     std::array<Path, 3> paths;
+    std::array<std::vector<Vec2>, 3> beads;
     for (int y = 0; y < h; y++) {
       int x = 0;
       while (x < w) {
-        uint32_t v = std::min(grid[size_t(y * w + x)], 3u);
-        if (v == 0) {
+        int k = kind(x, y);
+        if (k < 0) {
+          x++;
+          continue;
+        }
+        if (k >= 3) {
+          beads[size_t(k - 3)].push_back({(float(x) + 0.5f) * cw, (float(y) + 0.5f) * ch});
           x++;
           continue;
         }
         int start = x;
-        while (x < w && std::min(grid[size_t(y * w + x)], 3u) == v) x++;
-        paths[size_t(v - 1)].rect({float(start) * cw, float(y) * ch, float(x - start) * cw + 0.5f, ch + 0.5f});
+        while (x < w && kind(x, y) == k) x++;
+        paths[size_t(k)].rect({float(start) * cw, float(y) * ch, float(x - start) * cw + 0.5f, ch + 0.5f});
       }
     }
-    std::array<Color, 3> pal;
-    if (m.colores == 1) {
-      pal = {f.colors[3], f.colors[2], f.colors[1]};
-    } else if (m.colores == 2) {
-      pal = {Color{0.2f, 0.4f, 1.0f, 1.0f}, Color{1.0f, 0.15f, 0.45f, 1.0f}, Color{1.0f, 0.85f, 0.1f, 1.0f}};
-    } else {
-      pal = {f.colors[1], f.colors[2], f.colors[3]};
-    }
+    const std::array<Color, 3> pal = {f.colors[1], f.colors[2], f.colors[3]};
     float lit = (0.85f + 0.3f * bass + 0.25f * kick) * amp * fade;
     for (int k = 0; k < 3; k++) {
       const Color& col = pal[size_t(k)];
@@ -203,6 +232,7 @@ class Visual final : public Scene {
       p.color = Color{std::min(1.0f, col.r * lit + bg.r * (1.0f - fade)), std::min(1.0f, col.g * lit + bg.g * (1.0f - fade)),
                       std::min(1.0f, col.b * lit + bg.b * (1.0f - fade)), 1.0f};
       c.path(paths[size_t(k)], p);
+      if (!beads[size_t(k)].empty()) c.points(beads[size_t(k)], 0.46f * std::min(cw, ch), p);
     }
     if (flash > 0.01f) {
       Paint fl;

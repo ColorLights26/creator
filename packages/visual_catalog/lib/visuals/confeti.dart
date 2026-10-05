@@ -6,14 +6,17 @@
 // dispara un cañón (alternando), en los golpes fuertes disparan los dos y
 // estalla otro puñado en el centro, y la energía hace llover confeti desde
 // arriba. Sin música hay una ráfaga cada pocos segundos. El fondo es
-// transparente: sólo se ve el confeti.
+// transparente: sólo se ve el confeti. El vuelo cambia cómo cae: aleteando,
+// atrapado en un remolino en el centro o barrido por ráfagas de viento. Los
+// seis colores salen de la paleta: sus tres acentos y los tonos intermedios.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   CreatorModifier.slider('cantidad', 'Cantidad', min: .3, max: 2, value: 1),
   CreatorModifier.slider('tamano', 'Tamaño', min: .5, max: 2, value: 1),
-  CreatorModifier.choice('colores', 'Colores', options: ['Arcoíris', 'Paleta', 'Dorado']),
+  // MOVIMIENTO: el carácter de la caída.
+  CreatorModifier.choice('vuelo', 'Vuelo', options: ['Aleteo', 'Remolino', 'Viento']),
   CreatorModifier.toggle('lluvia', 'Lluvia desde arriba', value: true),
 ];
 
@@ -35,6 +38,41 @@ class Visual final : public Scene {
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
+  }
+
+  // El tono intermedio de dos colores por el arco corto del círculo de tonos,
+  // con la saturación media y el valor del más luminoso: rojo y amarillo dan
+  // naranja, amarillo y azul dan verde.
+  static Color between(const Color& a, const Color& b) {
+    auto hsv = [](const Color& c, float& h, float& s, float& v) {
+      float hi = std::max({c.r, c.g, c.b}), lo = std::min({c.r, c.g, c.b}), d = hi - lo;
+      v = hi;
+      s = hi > 1e-5f ? d / hi : 0.0f;
+      h = 0.0f;
+      if (d > 1e-5f) {
+        if (hi == c.r) h = (c.g - c.b) / d;
+        else if (hi == c.g) h = 2.0f + (c.b - c.r) / d;
+        else h = 4.0f + (c.r - c.g) / d;
+        h /= 6.0f;
+        if (h < 0.0f) h += 1.0f;
+      }
+    };
+    float ha, sa, va, hb, sb, vb;
+    hsv(a, ha, sa, va);
+    hsv(b, hb, sb, vb);
+    if (sa < 0.05f) ha = hb;
+    if (sb < 0.05f) hb = ha;
+    float dh = hb - ha;
+    if (dh > 0.5f) dh -= 1.0f;
+    if (dh < -0.5f) dh += 1.0f;
+    float h = ha + dh * 0.5f;
+    h -= std::floor(h);
+    float s = 0.5f * (sa + sb), v = std::max(va, vb);
+    auto ch = [&](float n) {
+      float k = std::fmod(n + h * 6.0f, 6.0f);
+      return std::clamp(v - v * s * std::clamp(std::min(k, 4.0f - k), 0.0f, 1.0f), 0.0f, 1.0f);
+    };
+    return Color{ch(5.0f), ch(3.0f), ch(1.0f), 1.0f};
   }
 
   void spawn(float x, float y, float vx, float vy, float sizeMul) {
@@ -76,7 +114,8 @@ class Visual final : public Scene {
     }
   }
 
-  void step(float rainRate, float amount, float sizeMul, bool rain) {
+  // [flutter], [swirl] y [wind] son los pesos de Vuelo (suman 1).
+  void step(float rainRate, float amount, float sizeMul, bool rain, float flutter, float swirl, float wind) {
     float s = std::min(width, height);
     float dt = float(kStep);
     double t = double(steps) * kStep;
@@ -101,9 +140,13 @@ class Visual final : public Scene {
         spawn(rng.unit() * width, -s * 0.03f, (rng.unit() - 0.5f) * s * 0.2f, s * 0.15f, sizeMul);
       }
     }
-    const float g = s * 1.35f;
+    // En el remolino flotan: la gravedad pesa menos.
+    const float g = s * 1.35f * (1.0f - 0.55f * swirl);
     const float drag = 2.4f;
     float k = std::exp(-drag * dt);
+    const float cx = width * 0.5f, cy = height * 0.45f;
+    // Viento: ráfagas que cambian de lado despacio y ondulan con la altura.
+    const float gust = float(std::sin(t * 0.45));
     for (auto& p : pieces) {
       p.px = p.x;
       p.py = p.y;
@@ -113,11 +156,27 @@ class Visual final : public Scene {
       float kk = k * (1.0f - 0.02f * face);
       p.vx *= kk;
       p.vy *= kk;
-      p.vx += std::sin(p.flip * 0.5f + p.angle) * s * 0.35f * dt;
+      // Aleteo: cada papelito se mece de lado según cómo gira.
+      p.vx += std::sin(p.flip * 0.5f + p.angle) * s * 0.35f * dt * (flutter + 0.3f * wind);
+      if (swirl > 0.0f) {
+        // Remolino: empuje tangencial alrededor del centro (máximo a 0,35 del
+        // lado) y un tirón hacia dentro que los mantiene girando.
+        float dx = p.x - cx, dy = p.y - cy;
+        float r = std::sqrt(dx * dx + dy * dy + 1.0f);
+        float q = r / (0.35f * s);
+        float push = s * 3.4f * q / (1.0f + q * q) * swirl;
+        float pull = s * 0.9f * std::min(q, 1.5f) * swirl;
+        p.vx += (-dy / r * push - dx / r * pull) * dt;
+        p.vy += (dx / r * push - dy / r * pull) * dt;
+      }
+      if (wind > 0.0f) {
+        float blow = s * (1.25f * gust + 0.7f * std::sin(float(t) * 1.7f + p.y / s * 3.0f));
+        p.vx += blow * wind * dt;
+      }
       p.x += p.vx * dt;
       p.y += p.vy * dt;
-      p.angle += p.spin * dt;
-      p.flip += p.flipSpeed * dt;
+      p.angle += p.spin * dt * (1.0f + wind);
+      p.flip += p.flipSpeed * dt * (1.0f + 0.8f * wind);
     }
     pieces.erase(std::remove_if(pieces.begin(), pieces.end(), [&](const Piece& p) {
       return p.y > height + s * 0.08f || p.x < -s * 0.3f || p.x > width + s * 0.3f;
@@ -180,27 +239,23 @@ class Visual final : public Scene {
     int64_t target = int64_t(std::floor(sim / kStep + 1e-6));
     if (target - steps > 30) steps = target - 30;
     float rainRate = (6.0f + 40.0f * energy) * m.cantidad;
+    auto g = glide(f);
+    const float flutter = g.vuelo.weight(0), swirl = g.vuelo.weight(1), wind = g.vuelo.weight(2);
     while (steps < target) {
-      step(rainRate, m.cantidad, m.tamano, m.lluvia);
+      step(rainRate, m.cantidad, m.tamano, m.lluvia, flutter, swirl, wind);
       steps++;
     }
   }
 
   void render(const Frame& f, Canvas& c) const override {
-    auto m = modifiers(f);
     float amp = f.intensity;
     // Entre el paso anterior y el último: movimiento suave a cualquier FPS.
     float a = float(std::clamp(sim / kStep - double(steps), 0.0, 1.0));
-    std::array<Color, 6> cols;
-    if (m.colores == 0) {
-      cols = {Color{1.0f, 0.15f, 0.2f, 1.0f}, Color{1.0f, 0.55f, 0.0f, 1.0f}, Color{1.0f, 0.88f, 0.1f, 1.0f},
-              Color{0.2f, 0.85f, 0.3f, 1.0f}, Color{0.2f, 0.45f, 1.0f, 1.0f}, Color{1.0f, 0.3f, 0.75f, 1.0f}};
-    } else if (m.colores == 1) {
-      cols = {f.colors[1], f.colors[2], f.colors[3], Color{1, 1, 1, 1}, f.colors[1], f.colors[2]};
-    } else {
-      cols = {Color{1.0f, 0.82f, 0.3f, 1.0f}, Color{0.95f, 0.7f, 0.2f, 1.0f}, Color{1.0f, 0.93f, 0.6f, 1.0f},
-              Color{0.85f, 0.6f, 0.15f, 1.0f}, Color{1.0f, 1.0f, 0.95f, 1.0f}, Color{1.0f, 0.75f, 0.35f, 1.0f}};
-    }
+    // Arcoíris de la paleta: cada acento y, entre ellos, su tono intermedio.
+    const Color& c1 = f.colors[1];
+    const Color& c2 = f.colors[2];
+    const Color& c3 = f.colors[3];
+    const std::array<Color, 6> cols = {c1, between(c1, c2), c2, between(c2, c3), c3, between(c3, c1)};
     // Cara delantera y trasera de cada color.
     std::array<Path, 12> paths;
     for (const auto& p : pieces) {

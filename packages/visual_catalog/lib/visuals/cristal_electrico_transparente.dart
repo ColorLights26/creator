@@ -13,7 +13,9 @@ import 'package:scene_compositor/authoring.dart';
 const modifiers = [
   CreatorModifier.choice('origen', 'Origen', options: ['Centro', 'Abajo', 'Arriba y abajo']),
   CreatorModifier.slider('ramas', 'Ramificación', min: .4, max: 2, value: 1),
-  CreatorModifier.slider('velocidad', 'Velocidad', min: .4, max: 2.5, value: 1),
+  // MOVIMIENTO: de agujas de cristal casi rectas (mín.) a canales que se
+  // retuercen en zigzag (máx.). Conserva el id: las apariencias guardadas lo usan.
+  CreatorModifier.slider('velocidad', 'Serpenteo', min: .4, max: 2.5, value: 1),
   CreatorModifier.toggle('descargas', 'Descargas', value: true),
 ];
 
@@ -89,16 +91,16 @@ class Visual final : public Scene {
     }
   }
 
-  void grow(float branching) {
+  void grow(float branching, float wander) {
     steps++;
     born.clear();
     float len = cell * 1.5f;
     for (auto& t : tips) {
-      // Serpentea un poco, siempre empujado hacia fuera desde su origen.
+      // Serpentea según Serpenteo, siempre empujado hacia fuera desde su origen.
       float out = std::atan2(t.y - t.ry, t.x - t.rx);
       if (t.depth < 2) out = t.dir;
       float diff = std::remainder(out - t.dir, 6.2831853f);
-      float nd = t.dir + diff * 0.14f + (rng.unit() - 0.5f) * 0.6f;
+      float nd = t.dir + diff * 0.14f + (rng.unit() - 0.5f) * 0.6f * wander;
       float nx = t.x + std::cos(nd) * len, ny = t.y + std::sin(nd) * len;
       bool ok = freeAt(nx, ny, t.x, t.y);
       if (!ok) {
@@ -185,7 +187,7 @@ class Visual final : public Scene {
       steps = 0;
       lastAdd = 0;
     }
-    double scaled = f.delta * f.speed * m.velocidad * (1.0 + 1.2 * drive);
+    double scaled = f.delta * f.speed * (1.0 + 1.2 * drive);
     pulseAge += f.delta;
     autoPulse += f.delta;
     if (m.descargas && beat) {
@@ -202,7 +204,7 @@ class Visual final : public Scene {
       growth += scaled * kRate;
       int64_t target = int64_t(std::floor(growth + 1e-6));
       while (steps < target && !tips.empty()) {
-        grow(m.ramas);
+        grow(m.ramas, m.velocidad);
         // Sin sitio para crecer: la figura está completa.
         if (steps - lastAdd > 40) tips.clear();
       }

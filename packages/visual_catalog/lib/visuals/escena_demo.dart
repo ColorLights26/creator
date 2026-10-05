@@ -12,7 +12,10 @@ import 'package:scene_compositor/authoring.dart';
 const modifiers = [
   CreatorModifier.choice('escena', 'Efecto', options: ['Auto', 'Barras', 'Columna', 'Fuego', 'Rotozoom']),
   CreatorModifier.steps('pixel', 'Píxeles gordos', min: 1, max: 5, value: 3),
-  CreatorModifier.slider('velocidad', 'Velocidad', min: .4, max: 2.5, value: 1),
+  // MOVIMIENTO: cuánto ondula cada efecto, de rectos y calmos (mín.) a cintas
+  // y columnas que se retuercen (máx.). Conserva el id: las apariencias
+  // guardadas lo usan.
+  CreatorModifier.slider('velocidad', 'Ondulación', min: .4, max: 2.5, value: 1),
   CreatorModifier.toggle('crt', 'Líneas de monitor', value: true),
 ];
 
@@ -79,18 +82,20 @@ class Visual final : public Scene {
     }
     kick = std::max(kick * std::exp(-dt * 5.0f), hit);
     flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
-    clock += f.delta * f.speed * m.velocidad * (1.0 + 0.9 * drive);
+    clock += f.delta * f.speed * (1.0 + 0.9 * drive);
   }
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
     float amp = f.intensity;
     std::vector<float> u;
-    u.reserve(28);
+    u.reserve(29);
     u.insert(u.end(), {float(std::fmod(clock, 1000.0)), bass * amp, kick * amp, energy});
     u.insert(u.end(), {float(from), float(to), wipe, float(std::clamp(m.pixel, 1, 5))});
     u.insert(u.end(), {m.crt ? 1.0f : 0.0f, f.glow, flash * amp, spark * amp});
     for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});
+    // Ondulación se desliza al cambiarla y se ve también en pausa.
+    u.push_back(std::clamp(glide(f).velocidad, 0.4f, 2.5f));
     c.material("demo_effects", {0, 0, f.width, f.height}, u);
   }
 };
@@ -108,9 +113,15 @@ uniform vec3 uC0;
 uniform vec3 uC1;
 uniform vec3 uC2;
 uniform vec3 uC3;
+uniform float uWave;  // Ondulación: 1 = el efecto original
 out vec4 fragColor;
 
 const float PI = 3.14159265;
+
+// Ondulación por debajo de 1 calma las ondas propias de cada efecto; por
+// encima añade ondas nuevas (cintas, llamas que se doblan, suelo de agua).
+float calmWave() { return min(uWave, 1.0); }
+float wildWave() { return max(uWave - 1.0, 0.0); }
 
 float hash12(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
@@ -162,8 +173,10 @@ vec3 copper(vec2 p, float t, float halfH) {
   float hit = 0.0;
   for (int i = 0; i < 9; i++) {
     float fi = float(i);
-    float ph = t * 1.4 + fi * 0.62;
-    float y = sin(ph) * halfH * 0.7 + 0.12 * sin(t * 0.7 + fi);
+    // Calmas, las barras viajan juntas; onduladas, cada una es una cinta.
+    float ph = t * 1.4 + fi * 0.62 * calmWave();
+    float y = sin(ph) * halfH * 0.7 + 0.12 * sin(t * 0.7 + fi)
+            + wildWave() * 0.07 * sin(p.x * 9.0 + t * 2.0 + fi * 0.9);
     float depth = cos(ph);
     float h = (0.045 + 0.012 * depth) * (1.0 + 0.35 * uA.y);
     float d = abs(p.y - y) / h;
@@ -183,9 +196,9 @@ vec3 copper(vec2 p, float t, float halfH) {
 vec3 twister(vec2 p, float t, float halfH) {
   vec3 col = uC0 * 0.8 + stars(p * 0.7, t * 0.5) * 0.6;
   float y = p.y;
-  float a = t * 1.3 + sin(y * 2.4 + t * 0.9) * (1.7 + 0.6 * uA.y);
+  float a = t * 1.3 + sin(y * 2.4 + t * 0.9) * (1.7 + 0.6 * uA.y) * uWave;
   float R = 0.2 * (1.0 + 0.15 * uA.z + 0.1 * uA.y);
-  float cx = 0.1 * sin(y * 1.6 + t * 0.7);
+  float cx = 0.1 * sin(y * 1.6 + t * 0.7) * uWave;
   for (int k = 0; k < 4; k++) {
     float fk = float(k);
     float x0 = cx + R * sin(a + fk * PI * 0.5);
@@ -208,10 +221,10 @@ vec3 twister(vec2 p, float t, float halfH) {
 vec3 fire(vec2 p, float t, float halfH) {
   // Altura desde abajo (en pantalla la y crece hacia abajo).
   float h = (halfH - p.y) / (2.0 * halfH);
-  vec2 q = vec2(p.x * 4.0, h * 5.0);
+  vec2 q = vec2(p.x * 4.0 + wildWave() * 0.8 * sin(h * 6.0 - t * 1.7), h * 5.0);
   // El ruido sube con el tiempo: las llamas trepan.
   float n = noise(q - vec2(0.0, t * 2.6)) * 0.55 + noise(q * 2.1 + vec2(1.7, -t * 4.0)) * 0.3 + noise(q * 4.3 + vec2(5.0, -t * 6.0)) * 0.15;
-  float tongue = 0.5 + 0.5 * sin(p.x * 9.0 + t * 1.5 + n * 3.0);
+  float tongue = 0.5 + 0.5 * sin(p.x * 9.0 + t * 1.5 + n * 3.0 * uWave);
   float v = (n * 1.2 + tongue * 0.25) * (1.0 - h) * 1.4 - h * 0.45 + 0.25 * uA.y + 0.2 * uA.z - 0.2;
   return fireRamp(v) + uC0 * 0.6;
 }
@@ -219,10 +232,11 @@ vec3 fire(vec2 p, float t, float halfH) {
 // Rotozoom: suelo de baldosas que gira y se acerca.
 vec3 rotozoom(vec2 p, float t) {
   float ang = t * 0.35;
-  float zoom = 2.6 + 1.6 * sin(t * 0.27) - 0.6 * uA.z;
+  float zoom = 2.6 + 1.6 * sin(t * 0.27) * calmWave() - 0.6 * uA.z;
   float cs = cos(ang);
   float sn = sin(ang);
   vec2 q = vec2(cs * p.x - sn * p.y, sn * p.x + cs * p.y) * zoom + vec2(t * 0.6, t * 0.35);
+  q += wildWave() * 0.25 * sin(q.yx * 1.6 + t * 1.2);
   vec2 cell = floor(q);
   vec2 f = fract(q) - 0.5;
   float check = mod(cell.x + cell.y, 2.0);

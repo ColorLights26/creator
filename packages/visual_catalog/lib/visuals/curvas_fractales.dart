@@ -5,8 +5,10 @@
 // de serpiente y el copo de Koch. Un lápiz de luz traza la curva de principio
 // a fin con un degradado de color a lo largo; al terminar, la misma curva se
 // redibuja un nivel más fina, y al llegar al nivel máximo pasa a la
-// siguiente. La energía acelera el trazo, cada golpe manda un pulso de luz
-// por toda la línea y los graves la engordan.
+// siguiente. El nivel máximo elige qué tres niveles recorre: con 3, curvas
+// gruesas y geométricas; con 7, tramas finas que llenan la pantalla. La
+// energía acelera el trazo, cada golpe manda un pulso de luz por toda la
+// línea y los graves la engordan.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -24,7 +26,8 @@ class Visual final : public Scene {
   // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.
   double phaseTime = 0, pulseAge = 100;
   float pulsePower = 0;
-  int autoCurve = 0, level = 2, builtCurve = -1, builtLevel = -1;
+  // stage: posición dentro de la ventana de niveles que fija Nivel máximo.
+  int autoCurve = 0, stage = 0, builtCurve = -1, builtLevel = -1;
   bool holding = false;
   std::vector<Vec2> pts;
 
@@ -103,11 +106,21 @@ class Visual final : public Scene {
     koch(lv - 1, t, out);
   }
 
+  // Nivel más fino de cada curva para un Nivel máximo dado.
   static int maxLevel(int curve, int nivel) {
-    if (curve == 0) return std::clamp(nivel, 1, 7);
-    if (curve == 1) return std::clamp(nivel * 2, 2, 14);
+    if (curve == 0 || curve == 1) return std::clamp(nivel, 1, 7);
     if (curve == 2) return std::clamp(nivel - 2, 1, 4);
     return std::clamp(nivel - 1, 1, 6);
+  }
+  // Ventana que recorre: los tres niveles que terminan en el máximo. Así el
+  // ajuste se ve desde el primer trazo, no sólo al final de un ciclo largo.
+  static int firstLevel(int curve, int nivel) { return std::max(1, maxLevel(curve, nivel) - 2); }
+  static int stages(int curve, int nivel) { return maxLevel(curve, nivel) - firstLevel(curve, nivel) + 1; }
+  // El dragón dobla la tira dos veces por nivel.
+  static int order(int curve, int lv) { return curve == 1 ? std::max(2, lv * 2) : lv; }
+  void buildStage(int curve, int nivel) {
+    stage = std::clamp(stage, 0, stages(curve, nivel) - 1);
+    build(curve, order(curve, firstLevel(curve, nivel) + stage));
   }
 
   void build(int curve, int lv) {
@@ -154,7 +167,7 @@ class Visual final : public Scene {
     pulseAge = 100;
     pulsePower = 0;
     autoCurve = int(seed % 4u);
-    level = 1;
+    stage = 0;
     builtCurve = builtLevel = -1;
     holding = false;
     pts.reserve(20000);
@@ -186,9 +199,7 @@ class Visual final : public Scene {
     flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
 
     int curve = m.curva == 0 ? autoCurve : m.curva - 1;
-    int top = maxLevel(curve, m.nivel);
-    level = std::clamp(level, 1, top);
-    build(curve, curve == 1 ? std::max(2, level * 2) : level);
+    buildStage(curve, m.nivel);
     phaseTime += f.delta * f.speed * m.velocidad * (1.0 + 1.2 * drive);
     for (int guard = 0; guard < 4; guard++) {
       double length = holding ? 1.4 : drawTime();
@@ -199,15 +210,14 @@ class Visual final : public Scene {
         continue;
       }
       holding = false;
-      int topLevel = curve == 1 ? std::max(1, top / 2) : top;
-      if (level >= topLevel) {
-        level = 1;
+      if (stage + 1 >= stages(curve, m.nivel)) {
+        stage = 0;
         if (m.curva == 0) autoCurve = (autoCurve + 1) % 4;
       } else {
-        level++;
+        stage++;
       }
       curve = m.curva == 0 ? autoCurve : m.curva - 1;
-      build(curve, curve == 1 ? std::max(2, level * 2) : level);
+      buildStage(curve, m.nivel);
     }
   }
 

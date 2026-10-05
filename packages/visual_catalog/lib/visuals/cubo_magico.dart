@@ -4,14 +4,16 @@
 // giros lo desordenan y después los mismos giros al revés lo resuelven, con
 // un destello al quedar perfecto, y vuelta a empezar con otra mezcla. Cada
 // pieza es un cubito negro con pegatinas brillantes y sombreado según la
-// luz. La energía acelera los giros, los graves hacen latir el cubo y cada
-// golpe da un empujón al giro de la cámara.
+// luz. Las piezas pueden ir juntas, separadas o flotando sueltas. La energía
+// acelera los giros, los graves hacen latir el cubo y cada golpe da un
+// empujón al giro de la cámara (y abre las piezas sueltas).
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   CreatorModifier.slider('velocidad', 'Velocidad de giros', min: .3, max: 2.5, value: 1),
-  CreatorModifier.choice('estilo', 'Colores', options: ['Clásico', 'Fuego', 'Neón']),
+  // FORMA: cubo macizo, cubitos con huecos o cubitos sueltos que flotan.
+  CreatorModifier.choice('estilo', 'Piezas', options: ['Juntas', 'Separadas', 'Flotantes']),
   CreatorModifier.slider('giro', 'Giro de cámara', min: 0, max: 2, value: 1),
   CreatorModifier.toggle('brillo', 'Brillo de pegatinas', value: true),
 ];
@@ -98,12 +100,8 @@ class Visual final : public Scene {
     return false;
   }
 
-  static Color faceColor(int style, int axis, int sign, const Frame& f) {
+  static Color faceColor(int axis, int sign) {
     int k = axis * 2 + (sign > 0 ? 0 : 1);
-    if (style == 1) {
-      std::array<Color, 6> pal = {f.colors[1], f.colors[2], Color{1.0f, 0.95f, 0.75f, 1.0f}, f.colors[3], Color{0.7f, 0.04f, 0.08f, 1.0f}, Color{1.0f, 0.3f, 0.45f, 1.0f}};
-      return pal[size_t(k)];
-    }
     std::array<Color, 6> pal = {Color{0.92f, 0.08f, 0.1f, 1.0f}, Color{1.0f, 0.5f, 0.0f, 1.0f}, Color{0.96f, 0.96f, 0.93f, 1.0f},
                                 Color{1.0f, 0.86f, 0.0f, 1.0f},  Color{0.05f, 0.78f, 0.25f, 1.0f}, Color{0.1f, 0.32f, 1.0f, 1.0f}};
     return pal[size_t(k)];
@@ -156,13 +154,16 @@ class Visual final : public Scene {
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto g = glide(f);
     float amp = f.intensity;
     const Color& bg = f.colors[0];
     c.rect({0, 0, f.width, f.height}, Paint::radial({f.width * 0.5f, f.height * 0.45f}, std::max(f.width, f.height) * 0.7f,
                                                    {Color{std::min(1.0f, bg.r + 0.08f), std::min(1.0f, bg.g + 0.06f), std::min(1.0f, bg.b + 0.09f), 1.0f},
                                                     Color{bg.r, bg.g, bg.b, 1.0f}}));
     int s = int(applied % kSlots);
-    float prog = float(moveClock - std::floor(moveClock));
+    // Avance del giro actual medido desde el último giro aplicado en update:
+    // así un final justo en el borde de un giro es igual a 30 y a 60 FPS.
+    float prog = float(std::clamp(moveClock - double(applied), 0.0, 1.0));
     float anim = std::clamp(prog / 0.7f, 0.0f, 1.0f);
     anim = anim * anim * (3.0f - 2.0f * anim);
     Move mv{0, 9, 1};
@@ -179,7 +180,14 @@ class Visual final : public Scene {
     float pitch = -0.55f - 0.12f * float(std::sin(clock * 0.37));
     float cp = std::cos(pitch), sp = std::sin(pitch);
     float side = std::min(f.width, f.height);
-    float scale = side * 0.24f * (1.0f + 0.04f * bass * amp);
+    // Piezas: juntas (cubo macizo), separadas (huecos entre cubitos) o
+    // flotantes (cubitos sueltos que levitan). Los pesos funden el cambio.
+    const float wOpen = g.estilo.weight(1), wFloat = g.estilo.weight(2);
+    const float gap = wOpen * 0.32f + wFloat * 0.8f;
+    // Con piezas abiertas, los graves y cada golpe las empujan hacia fuera.
+    const float push = (wOpen + wFloat) * std::min((0.06f * bass + 0.12f * kick) * amp, 0.25f);
+    // El cubo abierto ocupa el mismo lugar que el macizo: las piezas se achican.
+    float scale = side * 0.24f * (1.0f + 0.04f * bass * amp) * (1.47f / (1.47f + gap));
     auto toCam = [&](float x, float y, float z, float& X, float& Y, float& Z) {
       float rx = x * cy + z * sy, rz = -x * sy + z * cy;
       X = rx;
@@ -197,6 +205,9 @@ class Visual final : public Scene {
     const float h = 0.47f;
     for (const auto& cu : cubes) {
       bool inLayer = moving && cu.p[mv.axis] == mv.layer;
+      // Cada pieza conserva su fase de flotación aunque cambie de sitio.
+      const float spread = 1.0f + gap + push;
+      const float lift = wFloat * 0.16f * float(std::sin(clock * 1.3 + 1.7 * cu.o[0] + 2.9 * cu.o[1] + 4.3 * cu.o[2]));
       for (int ax = 0; ax < 3; ax++) {
         for (int sg = -1; sg <= 1; sg += 2) {
           // Normal y esquinas en el espacio propio de la pieza.
@@ -225,10 +236,11 @@ class Visual final : public Scene {
               l[ax] = float(sg) * out;
               l[a1] = sx[k] * inset;
               l[a2] = sy2[k] * inset;
-              float wx = float(cu.r[0]) * l[0] + float(cu.r[1]) * l[1] + float(cu.r[2]) * l[2] + float(cu.p[0]);
-              float wy = float(cu.r[3]) * l[0] + float(cu.r[4]) * l[1] + float(cu.r[5]) * l[2] + float(cu.p[1]);
-              float wz = float(cu.r[6]) * l[0] + float(cu.r[7]) * l[1] + float(cu.r[8]) * l[2] + float(cu.p[2]);
+              float wx = float(cu.r[0]) * l[0] + float(cu.r[1]) * l[1] + float(cu.r[2]) * l[2] + float(cu.p[0]) * spread;
+              float wy = float(cu.r[3]) * l[0] + float(cu.r[4]) * l[1] + float(cu.r[5]) * l[2] + float(cu.p[1]) * spread;
+              float wz = float(cu.r[6]) * l[0] + float(cu.r[7]) * l[1] + float(cu.r[8]) * l[2] + float(cu.p[2]) * spread;
               if (inLayer) partial(wx, wy, wz);
+              wy += lift;
               float X, Y, Z;
               toCam(wx, wy, wz, X, Y, Z);
               corner[k] = {X, Y, Z};
@@ -244,7 +256,7 @@ class Visual final : public Scene {
             q.depth = zs * 0.25f - (sticker ? 0.001f : 0.0f);
             q.sticker = sticker;
             q.light = std::clamp(0.45f + 0.55f * (0.4f * nX + 0.75f * nY - 0.5f * nZ), 0.25f, 1.1f);
-            q.color = sticker ? faceColor(m.estilo, ax, sg, f) : Color{0.05f, 0.05f, 0.06f, 1.0f};
+            q.color = sticker ? faceColor(ax, sg) : Color{0.05f, 0.05f, 0.06f, 1.0f};
             quads.push_back(q);
           }
         }
@@ -252,20 +264,21 @@ class Visual final : public Scene {
     }
     std::sort(quads.begin(), quads.end(), [](const Quad& a, const Quad& b) { return a.depth > b.depth; });
     float lit = (0.9f + 0.2f * kick + 0.5f * celebrate) * amp;
-    bool neon = m.estilo == 2;
+    // Halo de las pegatinas: suave en reposo, se enciende con cada golpe y al resolverse.
+    const float halo = std::clamp((0.05f + 0.22f * kick * amp + 0.3f * celebrate) * f.glow, 0.0f, 0.45f);
     for (const auto& q : quads) {
       Path p;
       p.moveTo(q.v[0].x, q.v[0].y).lineTo(q.v[1].x, q.v[1].y).lineTo(q.v[2].x, q.v[2].y).lineTo(q.v[3].x, q.v[3].y).close();
       Paint paint;
-      float g = q.sticker ? (neon ? 1.0f : q.light) * lit : q.light * 0.8f;
-      paint.color = Color{std::min(1.0f, q.color.r * g), std::min(1.0f, q.color.g * g), std::min(1.0f, q.color.b * g), 1.0f};
+      float shade = q.sticker ? q.light * lit : q.light * 0.8f;
+      paint.color = Color{std::clamp(q.color.r * shade, 0.0f, 1.0f), std::clamp(q.color.g * shade, 0.0f, 1.0f), std::clamp(q.color.b * shade, 0.0f, 1.0f), 1.0f};
       c.path(p, paint);
-      if (q.sticker && neon) {
+      if (q.sticker && halo > 0.005f) {
         Paint glow;
         glow.blend = Blend::plus;
         glow.strokeWidth = 6.0f * side / 400.0f;
         glow.strokeJoin = 1;
-        glow.color = q.color.opacity(std::clamp(0.2f * f.glow * amp, 0.0f, 1.0f));
+        glow.color = q.color.opacity(halo);
         c.path(p, glow);
       }
       if (q.sticker && m.brillo) {

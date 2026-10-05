@@ -6,16 +6,25 @@
 // se encienden en blanco. Al terminar, un barrido de luz recorre el
 // resultado y se vuelve a barajar. Puede verse como barras, como una rueda de
 // color (ordenada es una rueda perfecta) o como nube de puntos (ordenada es
-// una diagonal). La energía acelera el algoritmo, los graves dan brillo y
-// cada golpe hace destellar las barras.
+// una diagonal). Algoritmo fija uno solo (cada uno deja su propio dibujo a
+// medio ordenar) o los recorre todos; Rastro deja una estela de luz por
+// donde pasó el algoritmo y alarga la cola del barrido final. El arcoíris
+// empieza en el tono del primer acento de la paleta. La energía acelera el
+// algoritmo, los graves dan brillo y cada golpe hace destellar las barras.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   CreatorModifier.steps('barras', 'Barras', min: 24, max: 128, value: 72),
   CreatorModifier.choice('vista', 'Vista', options: ['Barras', 'Rueda', 'Puntos']),
-  CreatorModifier.choice('paleta', 'Colores', options: ['Arcoíris', 'Fuego']),
-  CreatorModifier.slider('velocidad', 'Velocidad', min: .4, max: 2.5, value: 1),
+  // MOVIMIENTO: cómo viajan las barras (vecinas, saltos largos, montones…).
+  CreatorModifier.choice(
+    'algoritmo',
+    'Algoritmo',
+    options: ['Todos', 'Burbuja', 'Inserción', 'Selección', 'Shell', 'Rápido', 'Montículo', 'Mezcla'],
+  ),
+  // ATMÓSFERA: la luz que deja el algoritmo a su paso.
+  CreatorModifier.slider('rastro', 'Rastro', min: 0, max: 1, value: .3),
 ];
 
 const nativeSource = r'''
@@ -37,6 +46,16 @@ class Visual final : public Scene {
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
+  }
+
+  // Tono (0..1) de un color de la paleta: el arcoíris empieza en él.
+  static float hueOf(const Color& c) {
+    float hi = std::max(c.r, std::max(c.g, c.b)), lo = std::min(c.r, std::min(c.g, c.b));
+    float d = hi - lo;
+    if (d < 1e-4f) return 0.0f;
+    float h = hi == c.r ? (c.g - c.b) / d : (hi == c.g ? 2.0f + (c.b - c.r) / d : 4.0f + (c.r - c.g) / d);
+    h /= 6.0f;
+    return h - std::floor(h);
   }
 
   static Color hsv(float h, float s, float v) {
@@ -265,7 +284,18 @@ class Visual final : public Scene {
       phaseTime = 0;
       startPhase(kShuffle);
     }
-    phaseTime += f.delta * f.speed * m.velocidad * (1.0 + 1.3 * drive + 1.5 * kick);
+    // Algoritmo: uno fijo (o Todos, que los recorre). Si cambia a mitad de
+    // ordenar, el nuevo sigue desde el estado actual: ninguna barra salta.
+    constexpr int kChoice[8] = {-1, 0, 2, 3, 4, 6, 7, 8};
+    int pick = kChoice[std::clamp(m.algoritmo, 0, 7)];
+    if (pick >= 0 && pick != algorithm) {
+      algorithm = pick;
+      if (phase == kSort) {
+        phaseTime = 0;
+        startPhase(kSort);
+      }
+    }
+    phaseTime += f.delta * f.speed * (1.0 + 1.3 * drive + 1.5 * kick);
     for (int guard = 0; guard < 4; guard++) {
       double t = std::min(phaseTime / duration, 1.0);
       size_t target = std::min(ops.size(), size_t(std::floor(t * double(ops.size()) + 1e-6)));
@@ -278,7 +308,7 @@ class Visual final : public Scene {
         lastA = lastB = -1;
         startPhase(kSweep);
       } else {
-        algorithm = (algorithm + 1) % kAlgorithms;
+        if (pick < 0) algorithm = (algorithm + 1) % kAlgorithms;
         startPhase(kShuffle);
       }
     }
@@ -286,6 +316,7 @@ class Visual final : public Scene {
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto gl = glide(f);
     float amp = f.intensity;
     const Color& bg = f.colors[0];
     c.rect({0, 0, f.width, f.height}, Paint::radial({f.width * 0.5f, f.height * 0.5f}, std::max(f.width, f.height) * 0.75f,
@@ -295,25 +326,35 @@ class Visual final : public Scene {
     float side = std::min(f.width, f.height);
     float px = side / 400.0f;
     float sweep = phase == kSweep ? float(phaseTime / duration) * float(n + 6) : -10.0f;
+    // Rastro: los pasos recientes dejan luz en las barras que tocaron y se
+    // apaga con la edad del paso; también alarga la cola del barrido final.
+    const float rastro = std::clamp(gl.rastro, 0.0f, 1.0f);
+    const float tail = 2.0f + 20.0f * rastro;
+    std::array<float, kMax> trail{};
+    if (phase != kSweep && applied > 0 && rastro > 0.001f) {
+      // Los pasos de los últimos 0,8 s del algoritmo (en su propio reloj).
+      size_t reach = size_t(std::clamp(double(rastro) * double(ops.size()) / duration * 0.8, 0.0, 2000.0));
+      size_t first = applied > reach ? applied - reach : 0;
+      for (size_t j = first; j < applied; j++) {
+        float fresh = 1.0f - float(applied - 1 - j) / float(std::max<size_t>(reach, 1));
+        float w = fresh * fresh * 0.6f;
+        const Op& op = ops[j];
+        trail[size_t(op.a)] = std::max(trail[size_t(op.a)], w);
+        trail[size_t(op.b)] = std::max(trail[size_t(op.b)], w);
+      }
+    }
+    const float baseHue = hueOf(f.colors[1]);
     auto colorOf = [&](int value, int index) {
       float t = float(value) / float(n - 1);
-      Color col;
-      if (m.paleta == 1) {
-        const Color& a = f.colors[1];
-        const Color& b = f.colors[2];
-        const Color& d = f.colors[3];
-        col = t < 0.5f ? Color{a.r + (b.r - a.r) * t * 2.0f, a.g + (b.g - a.g) * t * 2.0f, a.b + (b.b - a.b) * t * 2.0f, 1.0f}
-                       : Color{b.r + (d.r - b.r) * (t - 0.5f) * 2.0f, b.g + (d.g - b.g) * (t - 0.5f) * 2.0f, b.b + (d.b - b.b) * (t - 0.5f) * 2.0f, 1.0f};
-      } else {
-        col = hsv(t * 0.83f, 0.95f, 1.0f);
-      }
+      Color col = hsv(baseHue + t * 0.83f, 0.95f, 1.0f);
       float lit = (0.8f + 0.25f * bass + 0.25f * kick) * amp;
       // Barrido final: las barras ya revisadas brillan hacia el blanco.
-      float s = std::clamp(sweep - float(index), 0.0f, 1.0f) * std::clamp(1.0f - (sweep - float(index)) / 8.0f, 0.0f, 1.0f);
+      float s = std::clamp(sweep - float(index), 0.0f, 1.0f) * std::clamp(1.0f - (sweep - float(index)) / tail, 0.0f, 1.0f);
       bool touched = index == lastA || index == lastB;
-      float w = touched ? 0.85f : s * 0.7f;
-      return Color{std::min(1.0f, (col.r * lit) * (1.0f - w) + w), std::min(1.0f, (col.g * lit) * (1.0f - w) + w),
-                   std::min(1.0f, (col.b * lit) * (1.0f - w) + w), 1.0f};
+      float trace = index >= 0 && index < kMax ? trail[size_t(index)] : 0.0f;
+      float w = touched ? 0.85f : std::max(s * 0.7f, trace);
+      return Color{std::clamp((col.r * lit) * (1.0f - w) + w, 0.0f, 1.0f), std::clamp((col.g * lit) * (1.0f - w) + w, 0.0f, 1.0f),
+                   std::clamp((col.b * lit) * (1.0f - w) + w, 0.0f, 1.0f), 1.0f};
     };
 
     if (m.vista == 0) {
@@ -376,6 +417,22 @@ class Visual final : public Scene {
         Paint dot;
         dot.color = col;
         c.points(groups[size_t(g)], 2.6f * px, dot);
+      }
+      // Rastro en la nube: un halo blanco que se apaga sobre los puntos tocados.
+      std::array<std::vector<Vec2>, 4> traced;
+      for (int i = 0; i < n; i++) {
+        float w = trail[size_t(i)];
+        if (w < 0.03f) continue;
+        float x = left + usable * (float(i) + 0.5f) / float(n);
+        float y = bottom - (bottom - top) * (float(values[size_t(i)]) + 0.5f) / float(n);
+        traced[size_t(std::min(3, int(w / 0.6f * 4.0f)))].push_back({x, y});
+      }
+      for (int k = 0; k < 4; k++) {
+        if (traced[size_t(k)].empty()) continue;
+        Paint tp;
+        tp.blend = Blend::plus;
+        tp.color = Color{1, 1, 1, std::clamp(0.12f * float(k + 1), 0.0f, 1.0f)};
+        c.points(traced[size_t(k)], 4.5f * px, tp);
       }
       if (lastA >= 0 && lastA < n) {
         Paint hl;
