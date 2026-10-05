@@ -4,15 +4,22 @@
 // (todos los colores juntos se ven blancos); al cabo de unos segundos el caos
 // amplifica esa diferencia y el grupo se abre en un abanico de arcoíris que
 // llena la pantalla. Cuando el caos es total, un golpe fuerte (o el tiempo,
-// sin música) los vuelve a juntar en una posición nueva. La física es real
-// (ecuaciones de Lagrange integradas con Runge-Kutta a 120 pasos por
-// segundo). Los graves engordan los brazos y cada golpe enciende las puntas.
+// sin música) los vuelve a juntar en una posición nueva. Cuanto más corto el
+// ciclo, antes se abre el abanico. La física es real (ecuaciones de Lagrange
+// integradas con Runge-Kutta a 120 pasos por segundo), con el brazo de abajo
+// más corto o más largo. Los graves engordan los brazos y cada golpe
+// enciende las puntas.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   CreatorModifier.steps('pendulos', 'Péndulos', min: 50, max: 400, value: 220),
-  CreatorModifier.slider('velocidad', 'Velocidad', min: .4, max: 2, value: 1),
+  // MOVIMIENTO y figura: brazo de abajo corto, latigazos cerrados que giran;
+  // largo, barridos amplios que cruzan la pantalla.
+  CreatorModifier.slider('brazo', 'Brazo inferior', min: .45, max: 2.2, value: 1),
+  // Duración de cada ronda. También fija cuánto difieren los péndulos al
+  // salir: con ciclos cortos el abanico se abre enseguida; con largos van
+  // juntos, como uno solo, mucho más tiempo.
   CreatorModifier.slider('ciclo', 'Segundos de caos', min: 10, max: 40, value: 20),
   CreatorModifier.toggle('estelas', 'Estelas', value: true),
 ];
@@ -39,40 +46,52 @@ class Visual final : public Scene {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
   }
 
-  // Ecuaciones del péndulo doble con masas y brazos iguales.
-  static void deriv(const State& s, double& d1, double& d2) {
+  // Ecuaciones del péndulo doble con masas iguales y brazos l1 y l2
+  // (l1 + l2 = 2: el alcance total no cambia).
+  static void deriv(const State& s, double l1, double l2, double& d1, double& d2) {
     const double g = 9.81;
     double delta = s.a1 - s.a2;
     double den = 3.0 - std::cos(2.0 * delta);
     d1 = (-3.0 * g * std::sin(s.a1) - g * std::sin(s.a1 - 2.0 * s.a2) -
-          2.0 * std::sin(delta) * (s.w2 * s.w2 + s.w1 * s.w1 * std::cos(delta))) / den;
-    d2 = (2.0 * std::sin(delta) * (2.0 * s.w1 * s.w1 + 2.0 * g * std::cos(s.a1) + s.w2 * s.w2 * std::cos(delta))) / den;
+          2.0 * std::sin(delta) * (s.w2 * s.w2 * l2 + s.w1 * s.w1 * l1 * std::cos(delta))) / (l1 * den);
+    d2 = (2.0 * std::sin(delta) * (2.0 * s.w1 * s.w1 * l1 + 2.0 * g * std::cos(s.a1) + s.w2 * s.w2 * l2 * std::cos(delta))) / (l2 * den);
   }
 
-  static State rk4(const State& s, double h) {
+  static State rk4(const State& s, double h, double l1, double l2) {
     double k1a, k1b, k2a, k2b, k3a, k3b, k4a, k4b;
-    deriv(s, k1a, k1b);
+    deriv(s, l1, l2, k1a, k1b);
     State s2{s.a1 + 0.5 * h * s.w1, s.a2 + 0.5 * h * s.w2, s.w1 + 0.5 * h * k1a, s.w2 + 0.5 * h * k1b};
-    deriv(s2, k2a, k2b);
+    deriv(s2, l1, l2, k2a, k2b);
     State s3{s.a1 + 0.5 * h * s2.w1, s.a2 + 0.5 * h * s2.w2, s.w1 + 0.5 * h * k2a, s.w2 + 0.5 * h * k2b};
-    deriv(s3, k3a, k3b);
+    deriv(s3, l1, l2, k3a, k3b);
     State s4{s.a1 + h * s3.w1, s.a2 + h * s3.w2, s.w1 + h * k3a, s.w2 + h * k3b};
-    deriv(s4, k4a, k4b);
+    deriv(s4, l1, l2, k4a, k4b);
     return {s.a1 + h / 6.0 * (s.w1 + 2.0 * s2.w1 + 2.0 * s3.w1 + s4.w1),
             s.a2 + h / 6.0 * (s.w2 + 2.0 * s2.w2 + 2.0 * s3.w2 + s4.w2),
             s.w1 + h / 6.0 * (k1a + 2.0 * k2a + 2.0 * k3a + k4a),
             s.w2 + h / 6.0 * (k1b + 2.0 * k2b + 2.0 * k3b + k4b)};
   }
 
-  void restart() {
+  // Brazos de un péndulo con el brazo de abajo [ratio] veces el de arriba.
+  static void armLengths(float ratio, double& l1, double& l2) {
+    const double r = std::clamp(double(ratio), 0.45, 2.2);
+    l1 = 2.0 / (1.0 + r);
+    l2 = 2.0 - l1;
+  }
+
+  void restart(double cycle) {
     double a = 3.14159265358979 * (0.62 + 0.3 * double(rng.unit()));
     double b = a + (double(rng.unit()) - 0.5) * 1.2;
     if (rng.unit() < 0.5f) {
       a = -a;
       b = -b;
     }
+    // El caos multiplica por 10 la diferencia inicial cada ~1,4 s: un ciclo
+    // corto parte de diferencias mayores y se abre antes. El abanico se abre
+    // hacia el 30% del ciclo (20 s: 1,5e-6 rad, como siempre).
+    const double spread = 1.5e-6 * std::exp(0.6 * (20.0 - std::clamp(cycle, 10.0, 40.0)));
     for (int i = 0; i < count; i++) {
-      double e = 1.5e-6 * double(i);
+      double e = spread * double(i);
       st[size_t(i)] = {a + e, b, 0.0, 0.0};
     }
     sinceReset = 0;
@@ -101,6 +120,7 @@ class Visual final : public Scene {
 
   void update(const Frame& f) override {
     auto m = modifiers(f);
+    auto gl = glide(f);
     float dt = float(f.delta);
     const Music& mu = f.music;
     bass = follow(bass, mu.bass, 22.0f, 4.5f, dt);
@@ -123,15 +143,17 @@ class Visual final : public Scene {
     int want = std::clamp(m.pendulos, 10, kMax);
     if (want != count) {
       count = want;
-      restart();
+      restart(double(m.ciclo));
     }
     // Con música, un golpe fuerte reúne a los péndulos cuando ya hay caos.
     if (beat && hit > 0.6f && sinceReset > double(m.ciclo) * 0.6) resetPending = true;
-    sim += f.delta * f.speed * m.velocidad;
+    double l1, l2;
+    armLengths(gl.brazo, l1, l2);
+    sim += f.delta * f.speed;
     int64_t target = int64_t(std::floor(sim / kStep + 1e-6));
     if (target - steps > 60) steps = target - 60;
     while (steps < target) {
-      for (int i = 0; i < count; i++) st[size_t(i)] = rk4(st[size_t(i)], kStep);
+      for (int i = 0; i < count; i++) st[size_t(i)] = rk4(st[size_t(i)], kStep, l1, l2);
       steps++;
       sinceReset += kStep;
       // Estela de la punta: una muestra cada 4 pasos.
@@ -140,11 +162,11 @@ class Visual final : public Scene {
         trailCount = std::min(trailCount + 1, kTrail);
         for (int i = 0; i < count; i++) {
           const State& s = st[size_t(i)];
-          trailX[size_t(i * kTrail + trailHead)] = float(std::sin(s.a1) + std::sin(s.a2));
-          trailY[size_t(i * kTrail + trailHead)] = float(std::cos(s.a1) + std::cos(s.a2));
+          trailX[size_t(i * kTrail + trailHead)] = float(l1 * std::sin(s.a1) + l2 * std::sin(s.a2));
+          trailY[size_t(i * kTrail + trailHead)] = float(l1 * std::cos(s.a1) + l2 * std::cos(s.a2));
         }
       }
-      if (resetPending || sinceReset > double(m.ciclo)) restart();
+      if (resetPending || sinceReset > double(m.ciclo)) restart(double(m.ciclo));
     }
   }
 
@@ -159,6 +181,9 @@ class Visual final : public Scene {
     float side = std::min(f.width, f.height);
     float px = side / 400.0f;
     float L = side * 0.3f;
+    double l1, l2;
+    armLengths(glide(f).brazo, l1, l2);
+    const float L1 = L * float(l1), L2 = L * float(l2);
     Vec2 pivot{f.width * 0.5f, f.height * 0.42f};
     const int groups = 12;
     // Colores del grupo: arcoíris entre los tres colores de la paleta.
@@ -180,8 +205,8 @@ class Visual final : public Scene {
     for (int i = 0; i < count; i++) {
       int g = std::min(groups - 1, i * groups / count);
       const State& s = st[size_t(i)];
-      float x1 = pivot.x + L * float(std::sin(s.a1)), y1 = pivot.y + L * float(std::cos(s.a1));
-      float x2 = x1 + L * float(std::sin(s.a2)), y2 = y1 + L * float(std::cos(s.a2));
+      float x1 = pivot.x + L1 * float(std::sin(s.a1)), y1 = pivot.y + L1 * float(std::cos(s.a1));
+      float x2 = x1 + L2 * float(std::sin(s.a2)), y2 = y1 + L2 * float(std::cos(s.a2));
       arms[size_t(g)].moveTo(pivot.x, pivot.y).lineTo(x1, y1).lineTo(x2, y2);
       tips[size_t(g)].push_back({x2, y2});
       if (m.estelas && trailHead >= 0) {

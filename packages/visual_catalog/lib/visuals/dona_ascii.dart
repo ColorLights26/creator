@@ -4,17 +4,18 @@
 // octaedro) y, según cuánta luz recibe ese punto, se escribe uno de los doce
 // caracteres de donut.c: . , - ~ : ; = ! * # $ @, del más tenue al más
 // brillante. Los caracteres son mapas de bits de 5×7 píxeles dibujados en el
-// shader. El ámbar del monitor tiene resplandor y líneas de barrido. La
-// energía acelera el giro, los graves la iluminan, cada golpe la hace latir,
-// los agudos hacen chispear celdas sueltas y en Auto la figura cambia cada
-// ocho golpes.
+// shader; en Caracteres, el mismo sombreado sale también en ceros y unos que
+// parpadean como datos o en bloques ░▒▓█ de terminal. El ámbar del monitor
+// tiene resplandor y líneas de barrido. La energía acelera el giro, los
+// graves la iluminan, cada golpe la hace latir, los agudos hacen chispear
+// celdas sueltas y en Auto la figura cambia cada ocho golpes.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   CreatorModifier.steps('columnas', 'Columnas de texto', min: 24, max: 80, value: 38),
   CreatorModifier.choice('figura', 'Figura', options: ['Auto', 'Dona', 'Esfera', 'Cubo', 'Octaedro']),
-  CreatorModifier.choice('color', 'Color', options: ['Ámbar', 'Fuego', 'Arcoíris']),
+  CreatorModifier.choice('caracteres', 'Caracteres', options: ['ASCII', 'Binario', 'Bloques']),
   CreatorModifier.slider('giro', 'Velocidad de giro', min: .2, max: 2.5, value: 1),
 ];
 
@@ -94,13 +95,16 @@ class Visual final : public Scene {
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto g = glide(f);
     float amp = f.intensity;
     std::vector<float> u;
     u.reserve(32);
     u.insert(u.end(), {float(std::fmod(angA, 6.2831853)), float(std::fmod(angB, 6.2831853)), float(std::fmod(clock, 1000.0)), morph});
-    u.insert(u.end(), {float(shapeFrom), float(shapeTo), float(m.columnas), float(m.color)});
+    u.insert(u.end(), {float(shapeFrom), float(shapeTo), float(m.columnas), 0.0f});
     u.insert(u.end(), {bass * amp, kick * amp, spark * amp, energy});
-    u.insert(u.end(), {f.glow, flash * amp, 0.0f, 0.0f});
+    // Caracteres: pesos de Binario y Bloques (ASCII es el resto); se funden al cambiar.
+    u.insert(u.end(), {f.glow, flash * amp, std::clamp(g.caracteres.weight(1), 0.0f, 1.0f),
+                       std::clamp(g.caracteres.weight(2), 0.0f, 1.0f)});
     // Giro y mezcla de figuras ya calculados: el rayo sólo suma.
     float ca = float(std::cos(angA)), sa = float(std::sin(angA)), cb = float(std::cos(angB)), sb = float(std::sin(angB));
     u.insert(u.end(), {ca, sa, cb, sb});
@@ -121,9 +125,9 @@ const shaderSources = <String, String>{
 #include <flutter/runtime_effect.glsl>
 uniform vec2 uSize;
 uniform vec4 uA;   // ángulo A, ángulo B, reloj, transformación
-uniform vec4 uB;   // figura anterior, figura nueva, columnas, color
+uniform vec4 uB;   // figura anterior, figura nueva, columnas
 uniform vec4 uM;   // graves, golpe, agudos, energía
-uniform vec4 uD;   // glow, destello
+uniform vec4 uD;   // glow, destello, peso de Binario, peso de Bloques
 uniform vec4 uR;   // giro: cos A, sen A, cos B, sen B
 uniform vec4 uW;   // peso de cada figura: dona, esfera, cubo, octaedro
 uniform vec3 uC0;
@@ -155,13 +159,51 @@ vec2 glyph(float i) {
   return vec2(476917.0, 24078.0);
 }
 
-float glyphBit(float i, vec2 uv) {
+float bitmapBit(vec2 code, vec2 uv) {
   vec2 g = floor(uv * vec2(6.0, 8.0));
   if (g.x > 4.5 || g.y > 6.5) return 0.0;
-  vec2 code = glyph(i);
   float val = g.y < 3.5 ? code.x : code.y;
   float shift = g.y < 3.5 ? (3.0 - g.y) * 5.0 + (4.0 - g.x) : (6.0 - g.y) * 5.0 + (4.0 - g.x);
   return mod(floor(val / exp2(shift)), 2.0);
+}
+
+float glyphBit(float i, vec2 uv) {
+  return bitmapBit(glyph(i), uv);
+}
+
+// Binario: un 0 o un 1 por celda que cambia de vez en cuando, como datos; la
+// luz la da el brillo de la tinta.
+float binaryBit(vec2 cell, vec2 uv) {
+  float flip = floor(uA.z * 1.5 + hash12(cell * 0.37) * 6.0);
+  vec2 code = hash12(cell + flip * 13.7) < 0.5 ? vec2(476789.0, 26158.0) : vec2(143492.0, 4238.0);
+  return bitmapBit(code, uv);
+}
+
+float bayer2(vec2 a) {
+  a = floor(a);
+  return fract(a.x * 0.5 + a.y * a.y * 0.75);
+}
+
+// Bloques: ░ ▒ ▓ █ de terminal, una trama ordenada que llena la celda según
+// la luz.
+float blockBit(float lum, vec2 uv) {
+  vec2 g = floor(uv * vec2(6.0, 8.0));
+  if (g.x > 4.5 || g.y > 6.5) return 0.0;
+  float level = (floor(lum * 3.99) + 1.0) * 0.25;
+  float threshold = bayer2(g * 0.5) * 0.25 + bayer2(g);
+  return step(threshold, level - 0.01);
+}
+
+// El carácter de la celda con la mezcla de juegos de caracteres elegida.
+float charBit(float idx, float lum, vec2 cell, vec2 uv) {
+  float wBin = uD.z;
+  float wBlk = uD.w;
+  float wAscii = max(0.0, 1.0 - wBin - wBlk);
+  float on = 0.0;
+  if (wAscii > 0.001) on += wAscii * glyphBit(idx, uv);
+  if (wBin > 0.001) on += wBin * binaryBit(cell, uv);
+  if (wBlk > 0.001) on += wBlk * blockBit(lum, uv);
+  return on;
 }
 
 vec3 rotate(vec3 p) {
@@ -218,25 +260,20 @@ void main() {
   float sparkle = step(0.994 - 0.02 * uM.z, hash12(cell + floor(uA.z * 12.0)));
   float idx = floor(lum * 11.99);
   float on = 0.0;
-  if (hit > 0.5) on = glyphBit(idx, cellUv);
-  float sp = sparkle * (1.0 - hit) * glyphBit(11.0, cellUv) * uM.z;
-  // Color del carácter según el modo.
-  vec3 ink = uC1;
-  if (uB.w > 0.5 && uB.w < 1.5) ink = mix(uC2, uC3, lum);
-  if (uB.w > 1.5) {
-    float h = lum * 0.8 + uA.z * 0.05;
-    ink = clamp(abs(fract(h + vec3(0.0, 0.667, 0.333)) * 6.0 - 3.0) - 1.0, 0.0, 1.0);
-  }
-  ink *= 0.45 + 0.75 * lum;
+  if (hit > 0.5) on = charBit(idx, lum, cell, cellUv);
+  float sp = sparkle * (1.0 - hit) * charBit(11.0, 1.0, cell, cellUv) * uM.z;
+  // Tinta ámbar del monitor: más clara donde llega más luz.
+  vec3 ink = uC1 * (0.45 + 0.75 * lum);
   col += ink * on * (1.0 + 0.4 * uM.y);
-  col += uC1 * sp * 0.8;
+  // Las chispas en el tono claro de la paleta y el destello en su naranja.
+  col += uC3 * sp * 0.8;
   // Resplandor del monitor detrás de cada carácter.
   col += ink * hit * lum * 0.12 * uD.x;
   // Líneas de barrido y viñeta de tubo.
   col *= 0.86 + 0.14 * sin(frag.y * 1.9);
   vec2 p0 = (frag - 0.5 * uSize) / scale;
   col *= 1.0 - 0.45 * smoothstep(0.5, 1.4, length(p0 * vec2(0.9, 0.6)));
-  col += uC1 * uD.y * 0.05;
+  col += uC2 * uD.y * 0.05;
   col += (hash12(frag) - 0.5) / 255.0;
   fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }

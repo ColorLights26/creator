@@ -1,19 +1,21 @@
 // Laberinto Vivo — un laberinto que se excava, se inunda y se resuelve.
 // Primero un excavador recorre la rejilla con el algoritmo de búsqueda en
 // profundidad: avanza a una celda sin visitar al azar y, si se queda sin
-// salida, retrocede; deja pasillos tenues y su rama actual brilla en naranja.
+// salida, retrocede; deja pasillos tenues y su rama actual brilla con los
+// mismos colores que tendrá la luz. Tramos rectos decide su carácter: en 0
+// gira siempre que puede (zigzag), en 1 sigue recto (pasillos largos).
 // Al terminar, la luz entra por la esquina de arriba y avanza por todos los
 // pasillos a la vez (búsqueda en anchura): cada pasillo toma el color de su
-// distancia a la entrada, en franjas de rojo a amarillo. Después se dibuja en
-// blanco el camino más corto a la salida, el laberinto se apaga y empieza
-// otro. La energía acelera todo, los graves hacen latir el neón y cada golpe
-// da un empujón a la luz.
+// distancia a la entrada, en franjas de rojo a amarillo (o en un degradado
+// continuo sin franjas). Después se dibuja en blanco el camino más corto a la
+// salida, el laberinto se apaga y empieza otro. La energía acelera todo, los
+// graves hacen latir el neón y cada golpe da un empujón a la luz.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   CreatorModifier.steps('celdas', 'Celdas a lo ancho', min: 8, max: 34, value: 16),
-  CreatorModifier.slider('velocidad', 'Velocidad', min: .4, max: 2.5, value: 1),
+  CreatorModifier.slider('tramos', 'Tramos rectos', min: 0, max: 1, value: .5),
   CreatorModifier.slider('grosor', 'Grosor de pasillos', min: .3, max: .8, value: .5),
   CreatorModifier.toggle('franjas', 'Franjas de color', value: true),
 ];
@@ -62,7 +64,8 @@ class Visual final : public Scene {
     return (carved[size_t(lo)] & 2) != 0;
   }
 
-  void genStep() {
+  // [straight]: 0 gira siempre que puede, 0.5 elige al azar, 1 sigue recto.
+  void genStep(float straight) {
     if (stack.empty()) return;
     int cur = stack.back();
     int x = cur % cols, y = cur / cols;
@@ -76,7 +79,20 @@ class Visual final : public Scene {
       stack.pop_back();
       return;
     }
-    int next = options[std::min(int(rng.unit() * float(count)), count - 1)];
+    int choice = std::min(int(rng.unit() * float(count)), count - 1);
+    if (stack.size() > 1 && straight != 0.5f) {
+      // La celda de enfrente sólo cuenta si es una opción (no cruza el borde).
+      const int ahead = 2 * cur - stack[stack.size() - 2];
+      int aheadAt = -1;
+      for (int k = 0; k < count; k++) if (options[k] == ahead) aheadAt = k;
+      // Recto nunca es del todo recto: así salen pasillos largos y no una espiral.
+      const float pull = straight > 0.5f ? (straight - 0.5f) * 1.7f : (0.5f - straight) * 2.0f;
+      if (aheadAt >= 0 && rng.unit() < pull) {
+        if (straight > 0.5f) choice = aheadAt;
+        else if (choice == aheadAt && count > 1) choice = (choice + 1) % count;
+      }
+    }
+    int next = options[choice];
     int lo = std::min(cur, next);
     carved[size_t(lo)] |= (std::abs(next - cur) == 1) ? 1 : 2;
     visited[size_t(next)] = 1;
@@ -165,14 +181,14 @@ class Visual final : public Scene {
     }
     ox = (f.width - float(cols) * cellPx) * 0.5f;
     oy = (f.height - float(rows) * cellPx) * 0.5f;
-    double rate = f.delta * f.speed * m.velocidad * (1.0 + 1.2 * drive + 1.5 * kick);
+    double rate = f.delta * f.speed * (1.0 + 1.2 * drive + 1.5 * kick);
     // Unos 7 segundos para excavar todo, sea cual sea el tamaño.
     double stepsPerSecond = double(2 * cols * rows) / 7.0;
     if (phase == kGen) {
       genSteps += rate * stepsPerSecond;
       int64_t target = int64_t(std::floor(genSteps + 1e-6));
       while (stepsDone < target && !stack.empty()) {
-        genStep();
+        genStep(std::clamp(m.tramos, 0.0f, 1.0f));
         stepsDone++;
       }
       if (!stack.empty()) return;
@@ -198,6 +214,10 @@ class Visual final : public Scene {
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto g = glide(f);
+    // Franjas de color: 1 = franjas que se repiten cada 24 celdas, 0 = un
+    // degradado continuo; al cambiar, cada pasillo se desliza entre ambos.
+    const float stripes = std::clamp(g.franjas, 0.0f, 1.0f);
     float amp = f.intensity;
     const Color& bg = f.colors[0];
     c.rect({0, 0, f.width, f.height}, Paint::radial({f.width * 0.5f, f.height * 0.5f}, std::max(f.width, f.height) * 0.75f,
@@ -230,7 +250,8 @@ class Visual final : public Scene {
         Vec2 b = center(other);
         int d = std::max(dist[size_t(cell)], dist[size_t(other)]);
         if (flood >= 0.0f && d >= 0 && float(d) <= flood) {
-          float t = m.franjas ? float(d % 24) / 23.0f : float(d) / float(maxDist);
+          const float smooth = float(d) / float(maxDist);
+          float t = smooth + (float(d % 24) / 23.0f - smooth) * stripes;
           lit[size_t(std::min(buckets - 1, int(t * float(buckets))))].moveTo(a.x, a.y).lineTo(b.x, b.y);
           if (float(d) > flood - 2.5f) {
             front.moveTo(a.x, a.y).lineTo(b.x, b.y);
@@ -271,19 +292,35 @@ class Visual final : public Scene {
       fp.color = Color{1.0f, 0.95f, 0.8f, std::clamp((0.45f + 0.5f * kick) * amp, 0.0f, 1.0f)};
       c.path(front, fp);
     }
-    // Rama actual del excavador.
+    // Rama actual del excavador, con los colores que tendrá la luz: por
+    // franjas de su profundidad o en degradado de la raíz a la punta.
     if (phase == kGen && stack.size() > 1) {
-      Path branch;
-      for (size_t i = 0; i < stack.size(); i++) {
+      std::array<Path, buckets> branch;
+      const float depthScale = float(std::max(1, cols * rows / 2));
+      int last = -1;
+      for (size_t i = 1; i < stack.size(); i++) {
+        const float smooth = std::min(1.0f, float(i) / depthScale);
+        const float t = smooth + (float(i % 24) / 23.0f - smooth) * stripes;
+        const int b = std::clamp(int(t * float(buckets)), 0, buckets - 1);
+        if (b != last) {
+          Vec2 a = center(stack[i - 1]);
+          branch[size_t(b)].moveTo(a.x, a.y);
+        }
         Vec2 p = center(stack[i]);
-        if (i == 0) branch.moveTo(p.x, p.y); else branch.lineTo(p.x, p.y);
+        branch[size_t(b)].lineTo(p.x, p.y);
+        last = b;
       }
-      Paint bp;
-      bp.strokeWidth = width * 0.8f;
-      bp.strokeCap = 1;
-      bp.strokeJoin = 1;
-      bp.color = orange.opacity(std::clamp(0.75f * amp, 0.0f, 1.0f));
-      c.path(branch, bp);
+      // Una sola opacidad para toda la rama: los tramos no se suman al unirse.
+      c.saveLayer(std::clamp(0.75f * amp, 0.0f, 1.0f));
+      for (int b = 0; b < buckets; b++) {
+        Paint bp;
+        bp.strokeWidth = width * 0.8f;
+        bp.strokeCap = 1;
+        bp.strokeJoin = 1;
+        bp.color = ramp((float(b) + 0.5f) / float(buckets));
+        c.path(branch[size_t(b)], bp);
+      }
+      c.restore();
       Vec2 head = center(stack.back());
       Paint hp = Paint::radial(head, cellPx * 1.6f, {yellow.opacity(std::clamp((0.8f + 0.2f * kick) * amp, 0.0f, 1.0f)), yellow.opacity(0.0f)});
       hp.blend = Blend::plus;

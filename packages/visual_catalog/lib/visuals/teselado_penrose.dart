@@ -3,15 +3,17 @@
 // sus subdivisiones (cada triángulo se parte en dos o tres más pequeños según
 // la proporción áurea) hasta dar con su pieza: así aparece el teselado de
 // rombos gruesos (ámbar) y finos (rojos) de Penrose, con su simetría de cinco
-// puntas, sin que el dibujo se repita nunca. Cada pieza tiene un tono propio
-// y juntas casi brillan. Cada golpe lanza desde el centro una onda con forma
-// de pentágono que enciende las piezas enteras a su paso; los graves avivan
-// los bordes y el mosaico gira despacio.
+// puntas, sin que el dibujo se repita nunca. En Piezas, otros cortes dan el
+// otro mosaico de Penrose: cometas (ámbar) y dardos (rojos). Detalle decide
+// cuántas veces se subdivide. Cada pieza tiene un tono propio y juntas casi
+// brillan. Cada golpe lanza desde el centro una onda con forma de pentágono
+// que enciende las piezas enteras a su paso; los graves avivan los bordes y
+// el mosaico gira despacio.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
-  CreatorModifier.steps('detalle', 'Detalle', min: 4, max: 8, value: 6),
+  CreatorModifier.choice('piezas', 'Piezas', options: ['Rombos', 'Cometas y dardos']),
   CreatorModifier.slider('giro', 'Giro', min: 0, max: 2, value: 1),
   CreatorModifier.toggle('ondas', 'Ondas de luz', value: true),
   CreatorModifier.toggle('bordes', 'Bordes brillantes', value: true),
@@ -85,11 +87,14 @@ class Visual final : public Scene {
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto g = glide(f);
     float amp = f.intensity;
+    // Detalle (0,25 a 2) da de 4 a 8 subdivisiones: 6 con el valor normal.
+    int levels = std::clamp(int(std::lround(4.0f + (f.detail - 0.25f) / 1.75f * 4.0f)), 4, 8);
     std::vector<float> u;
-    u.reserve(32);
+    u.reserve(33);
     u.insert(u.end(), {float(std::fmod(spin, 6.2831853)), bass * amp, kick * amp, energy});
-    u.insert(u.end(), {float(std::clamp(m.detalle, 3, 8)), m.bordes ? 1.0f : 0.0f, f.glow, flash * amp});
+    u.insert(u.end(), {float(levels), m.bordes ? 1.0f : 0.0f, f.glow, flash * amp});
     std::array<float, 4> radius{9, 9, 9, 9}, power{0, 0, 0, 0};
     for (int i = 0; i < kWaves; i++) {
       if (waveAge[size_t(i)] < 4.0) {
@@ -99,6 +104,8 @@ class Visual final : public Scene {
     }
     u.insert(u.end(), {radius[0], radius[1], radius[2], float(std::fmod(clock, 1000.0))});
     u.insert(u.end(), {power[0], power[1], power[2], spark * amp});
+    // Piezas: peso de cometas y dardos; al cambiar, un mosaico se funde en el otro.
+    u.push_back(std::clamp(g.piezas.weight(1), 0.0f, 1.0f));
     for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});
     c.material("penrose", {0, 0, f.width, f.height}, u);
   }
@@ -114,6 +121,7 @@ uniform vec4 uA;   // giro, graves, golpe, energía
 uniform vec4 uB;   // niveles, bordes, glow, destello
 uniform vec4 uW;   // radios de las ondas, reloj
 uniform vec4 uP;   // fuerza de las ondas, agudos
+uniform float uK;  // peso de cometas y dardos (0 = rombos)
 uniform vec3 uC0;
 uniform vec3 uC1;
 uniform vec3 uC2;
@@ -159,14 +167,11 @@ float pentaDist(vec2 p) {
   return max(d, dot(p, vec2(0.9510565, 0.3090170)));
 }
 
-void main() {
-  vec2 frag = FlutterFragCoord().xy;
-  float scale = min(uSize.x, uSize.y);
-  vec2 p = (frag - 0.5 * uSize) / scale;
-  float cs = cos(uA.x);
-  float sn = sin(uA.x);
-  vec2 q = vec2(cs * p.x - sn * p.y, sn * p.x + cs * p.y);
-  // Rueda inicial de diez triángulos rojos.
+// Color de la pieza bajo q en uno de los dos mosaicos de Penrose: rombos
+// (P3) o cometas y dardos (P2). Ambos parten de una rueda de diez triángulos
+// de Robinson y bajan por sus subdivisiones; cada pieza son dos triángulos
+// unidos por BC, así que sus bordes son AB y AC.
+vec3 tile(vec2 q, bool kites) {
   float R0 = 1.5;
   float ang = atan(q.y, q.x);
   float i = mod(floor((ang + PI / 10.0) / (PI / 5.0)), 10.0);
@@ -178,21 +183,48 @@ void main() {
     B = C;
     C = tmp;
   }
+  if (kites) {
+    // En cometas y dardos el vértice del ángulo agudo va en medio (B).
+    vec2 tmp = A;
+    A = B;
+    B = tmp;
+  }
   float kind = 0.0;
-  float id = i + 1.0;
   for (int level = 0; level < 8; level++) {
     if (float(level) >= uB.x) break;
-    if (kind < 0.5) {
+    if (kites) {
+      if (kind < 0.5) {
+        // Media cometa: se parte en dos medias cometas y un medio dardo.
+        vec2 Q = A + (B - A) / PHI;
+        vec2 Rr = B + (C - B) / PHI;
+        if (sameSide(q, B, Q, Rr)) {
+          vec2 nA = Rr; vec2 nB = Q; vec2 nC = B; A = nA; B = nB; C = nC;
+          kind = 1.0;
+        } else if (sameSide(q, C, A, Rr)) {
+          vec2 nA = C; vec2 nB = A; vec2 nC = Rr; A = nA; B = nB; C = nC;
+        } else {
+          vec2 nA = Q; vec2 nB = A; vec2 nC = Rr; A = nA; B = nB; C = nC;
+        }
+      } else {
+        // Medio dardo: se parte en un medio dardo y una media cometa.
+        vec2 P = C + (A - C) / PHI;
+        if (sameSide(q, A, B, P)) {
+          vec2 nA = B; vec2 nB = P; vec2 nC = A; A = nA; B = nB; C = nC;
+          kind = 1.0;
+        } else {
+          vec2 nA = P; vec2 nB = C; vec2 nC = B; A = nA; B = nB; C = nC;
+          kind = 0.0;
+        }
+      }
+    } else if (kind < 0.5) {
       // Triángulo fino: se parte en dos.
       vec2 P = A + (B - A) / PHI;
       if (sameSide(q, B, C, P)) {
         A = C; vec2 nB = P; vec2 nC = B; B = nB; C = nC;
         kind = 0.0;
-        id = id * 3.0 + 1.0;
       } else {
         vec2 nA = P; vec2 nB = C; vec2 nC = A; A = nA; B = nB; C = nC;
         kind = 1.0;
-        id = id * 3.0 + 2.0;
       }
     } else {
       // Triángulo grueso: se parte en tres.
@@ -201,23 +233,21 @@ void main() {
       if (sameSide(q, C, Rr, A)) {
         vec2 nA = Rr; vec2 nB = C; vec2 nC = A; A = nA; B = nB; C = nC;
         kind = 1.0;
-        id = id * 3.0 + 1.0;
       } else if (sameSide(q, B, Q, Rr)) {
         vec2 nA = Q; vec2 nB = Rr; vec2 nC = B; A = nA; B = nB; C = nC;
         kind = 1.0;
-        id = id * 3.0 + 2.0;
       } else {
         vec2 nA = Rr; vec2 nB = Q; vec2 nC = A; A = nA; B = nB; C = nC;
         kind = 0.0;
-        id = id * 3.0 + 3.0;
       }
     }
-    id = mod(id, 9973.0);
   }
-  // El rombo son dos triángulos unidos por BC; su centro es el de BC.
+  // La pieza son dos triángulos unidos por BC; su centro es el de BC.
   vec2 center = (B + C) * 0.5;
   float tileHash = hash11(floor(center.x * 97.0) + floor(center.y * 61.0) * 13.0);
-  vec3 col = kind > 0.5 ? uC1 : uC2;
+  // Ámbar para rombos gruesos y cometas; rojo para rombos finos y dardos.
+  bool amber = kites ? kind < 0.5 : kind > 0.5;
+  vec3 col = amber ? uC1 : uC2;
   col *= 0.62 + 0.38 * tileHash;
   col *= 0.85 + 0.25 * uA.y;
   // Ondas pentagonales que encienden piezas enteras.
@@ -227,7 +257,8 @@ void main() {
   light += uP.y * smoothstep(0.09, 0.0, abs(dc - uW.y));
   light += uP.z * smoothstep(0.09, 0.0, abs(dc - uW.z));
   col = mix(col, uC3, clamp(light, 0.0, 1.0) * 0.85);
-  // Bordes de los rombos (AB y AC; BC es la diagonal interior).
+  // Bordes de las piezas (AB y AC; BC es la línea interior).
+  float scale = min(uSize.x, uSize.y);
   float e = min(segDist(q, A, B), segDist(q, A, C));
   float px = 1.0 / scale;
   float edge = 1.0 - smoothstep(px * 0.8, px * 2.2, e);
@@ -241,6 +272,20 @@ void main() {
     float vtx2 = min(dot(da, da), min(dot(db, db), dot(dcv, dcv)));
     col += uC3 * (1.0 - smoothstep(px * px, 9.0 * px * px, vtx2)) * uP.w * 0.8;
   }
+  return col;
+}
+
+void main() {
+  vec2 frag = FlutterFragCoord().xy;
+  float scale = min(uSize.x, uSize.y);
+  vec2 p = (frag - 0.5 * uSize) / scale;
+  float cs = cos(uA.x);
+  float sn = sin(uA.x);
+  vec2 q = vec2(cs * p.x - sn * p.y, sn * p.x + cs * p.y);
+  // Piezas: un mosaico o el otro; sólo al cambiar se calculan los dos.
+  vec3 col = vec3(0.0);
+  if (uK < 0.999) col = tile(q, false);
+  if (uK > 0.001) col = mix(col, tile(q, true), uK);
   col *= mix(1.0, uB.z, 0.4);
   col += uC1 * uB.w * 0.05;
   col *= 1.0 - 0.3 * smoothstep(0.7, 1.5, length(p * vec2(0.9, 0.65)));

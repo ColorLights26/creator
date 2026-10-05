@@ -5,13 +5,15 @@
 // crema, como en los carteles de la Bauhaus. Con cada golpe algunas celdas
 // cambian: la figura gira un cuarto de vuelta con rebote, o se encoge y
 // vuelve convertida en otra forma de otro color. Sin música cambian solas a
-// ritmo tranquilo. Los graves hacen respirar todas las figuras.
+// ritmo tranquilo. Los graves hacen respirar todas las figuras. La agitación
+// decide cuántas celdas cambian: de un póster quieto en el que sólo una
+// figura se mueve a la vez, a uno que se baraja casi entero con cada golpe.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   CreatorModifier.steps('columnas', 'Columnas', min: 2, max: 6, value: 3),
-  CreatorModifier.slider('ritmo', 'Cambios sin música', min: .3, max: 2.5, value: 1),
+  CreatorModifier.slider('ritmo', 'Agitación', min: .3, max: 2.5, value: 1),
   CreatorModifier.toggle('lineas', 'Líneas negras', value: true),
   CreatorModifier.toggle('negro', 'Usar negro', value: true),
 ];
@@ -50,6 +52,16 @@ class Visual final : public Scene {
     c.turns = std::min(int(rng.unit() * 4.0f), 3);
     c.mode = 0;
     c.start = -10;
+  }
+
+  // Una celda al azar que no esté a medio cambio, para que ninguna salte.
+  int pickIdle(int count) {
+    int first = std::min(int(rng.unit() * float(count)), count - 1);
+    for (int k = 0; k < count; k++) {
+      int i = (first + k) % count;
+      if (cells[size_t(i)].mode == 0) return i;
+    }
+    return first;
   }
 
   // Cambio de una celda: girar, o encoger y volver con otra forma.
@@ -158,16 +170,18 @@ class Visual final : public Scene {
     }
     clock += f.delta * f.speed;
     int count = cols * rows;
+    // Agitación: cuántas celdas cambia cada golpe (con música) y cada cuánto
+    // cambia una sola (sin música).
     if (beat) {
-      int n = 1 + int(hit * 3.0f);
-      for (int k = 0; k < n; k++) change(std::min(int(rng.unit() * float(count)), count - 1), clock);
+      int n = std::clamp(int(std::lround(float(1 + int(hit * 3.0f)) * m.ritmo)), 1, count);
+      for (int k = 0; k < n; k++) change(pickIdle(count), clock);
     }
     // Sin música, un cambio a ritmo tranquilo, en su instante exacto.
     double period = 0.7 / double(m.ritmo);
     idle += f.delta * f.speed;
     while (idle >= period) {
       idle -= period;
-      if (!mu.active) change(std::min(int(rng.unit() * float(count)), count - 1), clock - idle);
+      if (!mu.active) change(pickIdle(count), clock - idle);
     }
     for (int i = 0; i < count; i++) {
       Cell& cell = cells[size_t(i)];

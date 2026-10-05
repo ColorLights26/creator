@@ -2,8 +2,10 @@
 // Versión overlay: mismo movimiento y reacción a la música sin fondo opaco.
 // Como en las series de Fourier: una cadena de círculos, cada uno girando a
 // una frecuencia entera distinta (1, −1, 2, −2, 3…) sobre el borde del
-// anterior. La punta del último lleva un lápiz de luz que traza una figura
-// cerrada; la estela va del naranja fuego al lima y lo recién dibujado brilla
+// anterior. Sentido de giro decide hacia dónde gira cada uno: alternos dan
+// figuras redondeadas, todos en el mismo sentido dan bucles hacia dentro y
+// todos contra el primero, lazos hacia fuera. La punta del último lleva un
+// lápiz de luz que traza una figura cerrada; la estela va del naranja fuego al lima y lo recién dibujado brilla
 // más. Cada círculo crece con su banda del espectro, así la figura se
 // deforma con la música, y se repite girada en varias copias como un
 // mandala; cada ocho golpes (o cada pocos segundos sin música)
@@ -13,7 +15,7 @@ import 'package:scene_compositor/authoring.dart';
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   CreatorModifier.steps('circulos', 'Círculos', min: 4, max: 16, value: 10),
-  CreatorModifier.slider('velocidad', 'Velocidad', min: .3, max: 2.5, value: 1),
+  CreatorModifier.choice('sentido', 'Sentido de giro', options: ['Alterno', 'Mismo sentido', 'Contrario']),
   CreatorModifier.slider('estela', 'Largo de la estela', min: .2, max: 1, value: .75),
   CreatorModifier.steps('copias', 'Copias en simetría', min: 1, max: 6, value: 3),
   CreatorModifier.toggle('mostrar', 'Mostrar los círculos', value: true),
@@ -36,8 +38,13 @@ class Visual final : public Scene {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
   }
 
-  // Frecuencias 1, −1, 2, −2, 3, −3…
-  static float freq(int k) { return float(k / 2 + 1) * (k % 2 == 0 ? 1.0f : -1.0f); }
+  // Frecuencia del círculo k según el sentido de giro: alterno 1, −1, 2, −2…;
+  // mismo sentido 1, 2, 3…; contrario 1, −1, −2, −3…
+  static float freq(int k, int mode) {
+    if (mode == 1) return float(k + 1);
+    if (mode == 2) return k == 0 ? 1.0f : -float(k);
+    return float(k / 2 + 1) * (k % 2 == 0 ? 1.0f : -1.0f);
+  }
 
   void newShape() {
     for (int k = 0; k < kMax; k++) {
@@ -73,7 +80,6 @@ class Visual final : public Scene {
   }
 
   void update(const Frame& f) override {
-    auto m = modifiers(f);
     float dt = float(f.delta);
     const Music& mu = f.music;
     bass = follow(bass, mu.bass, 22.0f, 4.5f, dt);
@@ -110,11 +116,12 @@ class Visual final : public Scene {
     kick = std::max(kick * std::exp(-dt * 5.0f), hit);
     flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
     morph = std::min(morph + f.delta / 1.6, 1.0);
-    angle += f.delta * f.speed * m.velocidad * (0.35 + 0.6 * drive + 1.2 * kick);
+    angle += f.delta * f.speed * (0.35 + 0.6 * drive + 1.2 * kick);
   }
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto g = glide(f);
     float amp = f.intensity;
     const Color& fire = f.colors[1];
     const Color& lime = f.colors[2];
@@ -128,6 +135,38 @@ class Visual final : public Scene {
       base[size_t(k)] = amplitude(k);
       radii[size_t(k)] = base[size_t(k)] * (1.0f + 1.6f * bands[size_t(k)] * amp);
     }
+    // Sentido de giro: las frecuencias de cada opción con su peso; al cambiar,
+    // la figura se transforma de una a otra.
+    struct Spin { float weight; std::array<float, kMax> fr; };
+    std::array<Spin, 3> spins{};
+    int spinCount = 0;
+    float spinTotal = 0;
+    for (int o = 0; o < 3; o++) {
+      float w = g.sentido.weight(o);
+      if (w < 1e-3f) continue;
+      Spin& s = spins[size_t(spinCount++)];
+      s.weight = w;
+      for (int k = 0; k < kMax; k++) s.fr[size_t(k)] = freq(k, o);
+      spinTotal += w;
+    }
+    if (spinCount == 0) {
+      spins[0].weight = 1;
+      for (int k = 0; k < kMax; k++) spins[0].fr[size_t(k)] = freq(k, 0);
+      spinCount = 1;
+      spinTotal = 1;
+    }
+    for (int i = 0; i < spinCount; i++) spins[size_t(i)].weight /= spinTotal;
+    // Dirección del círculo k en el ángulo a, mezclada entre sentidos.
+    auto arm = [&](double a, int k) {
+      Vec2 d{0, 0};
+      for (int i = 0; i < spinCount; i++) {
+        const Spin& s = spins[size_t(i)];
+        double th = a * double(s.fr[size_t(k)]) + double(phase[size_t(k)]);
+        d.x += s.weight * float(std::cos(th));
+        d.y += s.weight * float(std::sin(th));
+      }
+      return d;
+    };
     Vec2 center{f.width * 0.5f, f.height * 0.5f};
     int copies = std::clamp(m.copias, 1, 6);
     // Encaje: el tamaño sale de la figura real sin música (así la música la
@@ -137,9 +176,9 @@ class Visual final : public Scene {
       double a = 6.283185307179586 * double(i) / 96.0;
       float x = 0, y = 0;
       for (int k = 0; k < n; k++) {
-        double th = a * double(freq(k)) + double(phase[size_t(k)]);
-        x += base[size_t(k)] * float(std::cos(th));
-        y += base[size_t(k)] * float(std::sin(th));
+        Vec2 d = arm(a, k);
+        x += base[size_t(k)] * d.x;
+        y += base[size_t(k)] * d.y;
       }
       maxR = std::max(maxR, std::sqrt(x * x + y * y));
       maxX = std::max(maxX, std::fabs(x));
@@ -152,9 +191,9 @@ class Visual final : public Scene {
       Vec2 p = center;
       if (chain) (*chain)[0] = p;
       for (int k = 0; k < n; k++) {
-        double th = a * double(freq(k)) + double(phase[size_t(k)]);
-        p.x += radii[size_t(k)] * scale * float(std::cos(th));
-        p.y += radii[size_t(k)] * scale * float(std::sin(th));
+        Vec2 d = arm(a, k);
+        p.x += radii[size_t(k)] * scale * d.x;
+        p.y += radii[size_t(k)] * scale * d.y;
         if (chain) (*chain)[size_t(k + 1)] = p;
       }
       return p;

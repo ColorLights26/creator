@@ -22,6 +22,10 @@ class Visual final : public Scene {
   static constexpr int kCells = kGrid * kGrid * kGrid;
   static constexpr int kMaxSegments = 380;
   static constexpr int kMaxPipes = 6;
+  // Duración del fundido (segundos del reloj propio) y margen de redondeo del
+  // crecimiento: el tramo nuevo usa el mismo margen que decide cuántos hay.
+  static constexpr double kClear = 1.4;
+  static constexpr double kEps = 1e-6;
   struct Segment { int ax, ay, az, bx, by, bz, color; int64_t step; };
   struct Joint { int x, y, z, color; };
   struct Pipe { int x, y, z, dir, color; bool alive; };
@@ -150,22 +154,33 @@ class Visual final : public Scene {
     flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
     if (m.giro) yaw += f.delta * f.speed * (0.12 + 0.2 * drive);
 
+    // Segundos del reloj propio en este cuadro y tramos por segundo: el
+    // crecimiento y el fundido siguen el tiempo, no la cantidad de cuadros.
+    double run = f.delta * f.speed;
+    const double rate = double(m.velocidad) * (5.0 + 9.0 * drive);
     if (clearing >= 0.0) {
       // Todo se desvanece y la rejilla se vacía para empezar de nuevo.
-      clearing += f.delta;
-      if (clearing > 1.4) {
-        clearing = -1;
-        clearAll();
-        growth = std::floor(growth);
-        stepsDone = int64_t(growth);
-      }
-      return;
+      clearing += run;
+      if (clearing < kClear) return;
+      // El fundido termina dentro de este cuadro: lo que sobra ya hace crecer.
+      run = clearing - kClear;
+      clearing = -1;
+      clearAll();
+      growth = double(stepsDone);
     }
-    growth += f.delta * f.speed * m.velocidad * (5.0 + 9.0 * drive) + (beat ? 1.5 * hit : 0.0);
-    int64_t target = int64_t(std::floor(growth + 1e-6));
+    growth += run * rate + (beat ? 1.5 * hit : 0.0);
+    int64_t target = int64_t(std::floor(growth + kEps));
     if (target - stepsDone > 24) stepsDone = target - 24;
     int active = std::clamp(m.tubos, 1, kMaxPipes);
-    while (stepsDone < target && clearing < 0.0) step(active);
+    while (stepsDone < target) {
+      step(active);
+      if (clearing < 0.0) continue;
+      // La rejilla se llenó en el instante en que growth cruzó este tramo: el
+      // crecimiento que sobra en este cuadro ya cuenta como fundido.
+      clearing = rate > 1e-9 ? std::clamp((growth - double(stepsDone)) / rate, 0.0, run) : 0.0;
+      growth = double(stepsDone);
+      break;
+    }
   }
 
   void render(const Frame& f, Canvas& c) const override {
@@ -179,7 +194,7 @@ class Visual final : public Scene {
     std::array<Color, 4> pal = {f.colors[1], f.colors[2], f.colors[3],
                                 Color{(f.colors[1].r + f.colors[2].r) * 0.5f, (f.colors[1].g + f.colors[2].g) * 0.5f,
                                       (f.colors[1].b + f.colors[2].b) * 0.5f, 1.0f}};
-    float fade = clearing >= 0.0 ? float(std::max(0.0, 1.0 - clearing / 1.4)) : 1.0f;
+    float fade = clearing >= 0.0 ? float(std::clamp(1.0 - clearing / kClear, 0.0, 1.0)) : 1.0f;
     float side = std::min(f.width, f.height);
     float scale = side * 0.62f;
     float cyaw = float(std::cos(yaw)), syaw = float(std::sin(yaw));
@@ -200,7 +215,9 @@ class Visual final : public Scene {
       float s = 2.6f / (3.6f + zz);
       return Proj{f.width * 0.5f + x * s * scale, f.height * 0.5f - y * s * scale, zz, s};
     };
-    float frac = float(growth - std::floor(growth));
+    // Cuánto ha crecido el tramo nuevo, con el mismo margen que decidió crearlo:
+    // así un crecimiento de 49.9999999 o 50.0000001 dibuja lo mismo.
+    float frac = float(std::clamp(growth + kEps - double(stepsDone), 0.0, 1.0));
     float tube = 0.055f * m.grosor * (1.0f + 0.12f * bass * amp);
     float lit = (1.0f + 0.45f * kick * amp) * fade;
 

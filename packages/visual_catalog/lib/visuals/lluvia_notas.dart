@@ -5,8 +5,11 @@
 // mientras la nota dura y luego sube hasta perderse arriba, como en los
 // vídeos de piano con notas de colores. Cada octava tiene su color (rojo,
 // naranja, amarillo). Sólo las bandas que más destacan tocan a la vez, así
-// salen melodías y acordes en lugar de un muro de notas. Sin música el
-// teclado toca solo arpegios sobre cuatro acordes.
+// salen melodías y acordes en lugar de un muro de notas. Notas a la vez
+// decide cuántas: con 1 suena sólo la banda más fuerte (una melodía); cada
+// voz extra se conforma con un poco menos, así con 8 salen acordes amplios.
+// Sin música el teclado toca solo arpegios sobre cuatro acordes, y la mitad
+// de las voces sostiene el acorde de cada compás.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -49,7 +52,7 @@ class Visual final : public Scene {
   }
 
   // Melodía sin música: arpegios sobre I–V–vi–IV.
-  void schedule(double when) {
+  void schedule(double when, int voices) {
     static const int chords[4][3] = {{0, 4, 7}, {7, 11, 14}, {9, 12, 16}, {5, 9, 12}};
     int bar = (step / 8) % 4;
     int beat = step % 8;
@@ -60,10 +63,13 @@ class Visual final : public Scene {
     double len = 0.18 + 0.25 * double(rng.unit());
     if (note < keys) start(note, when, when + len);
     if (beat == 0) {
-      int bassKey = std::max(0, base - 12 + ch[0]);
-      if (bassKey < keys) start(bassKey, when, when + 1.6);
-      int high = base + 12 + ch[2];
-      if (high < keys) start(high, when + 0.02, when + 0.9);
+      // La mitad de las voces sostiene el acorde: grave, aguda y, con más
+      // voces, dos notas más arriba.
+      const int held[4] = {std::max(0, base - 12 + ch[0]), base + 12 + ch[2], base + 24 + ch[0], base + 24 + ch[1]};
+      const double from[4] = {0.0, 0.02, 0.04, 0.06};
+      const double to[4] = {1.6, 0.9, 0.9, 0.9};
+      for (int v = 0; v < std::min(4, voices / 2); v++)
+        if (held[v] < keys) start(held[v], when + from[v], when + to[v]);
     }
     step++;
   }
@@ -128,19 +134,27 @@ class Visual final : public Scene {
       std::array<int, kMaxKeys> order{};
       for (int i = 0; i < keys; i++) order[size_t(i)] = i;
       std::sort(order.begin(), order.begin() + keys, [&](int a, int b) { return level[size_t(a)] > level[size_t(b)]; });
-      // Sólo picos: una tecla suena si destaca sobre sus vecinas cercanas.
+      // Notas a la vez: de la más fuerte a la más débil, cada tecla separada
+      // de las elegidas toma una voz si supera su umbral. La primera necesita
+      // destacar de verdad; cada voz extra se conforma con un poco menos (sin
+      // bajar de la media). Una nota que ya suena sigue mientras no se apague.
       std::array<bool, kMaxKeys> allowed{};
       int voices = std::clamp(m.voces, 1, 8);
+      const float floorBar = std::max(0.12f, mean + 0.02f);
       int chosen = 0;
       for (int r = 0; r < keys && chosen < voices; r++) {
         int key = order[size_t(r)];
-        bool peak = true;
-        for (int d = -2; d <= 2 && peak; d++) {
+        const float need = activeNote[size_t(key)] >= 0
+            ? thr - 0.08f
+            : std::max(floorBar, thr + 0.03f - 0.025f * float(chosen));
+        if (level[size_t(key)] <= need) continue;
+        bool spaced = true;
+        for (int d = -2; d <= 2 && spaced; d++) {
           int nb = key + d;
           if (d == 0 || nb < 0 || nb >= keys) continue;
-          if (level[size_t(nb)] > level[size_t(key)] || allowed[size_t(nb)]) peak = false;
+          if (allowed[size_t(nb)]) spaced = false;
         }
-        if (peak) {
+        if (spaced) {
           allowed[size_t(key)] = true;
           chosen++;
         }
@@ -157,7 +171,7 @@ class Visual final : public Scene {
             activeNote[size_t(i)] = -1;
             lastEnd[size_t(i)] = clock;
           }
-        } else if (allowed[size_t(i)] && v > thr + 0.03f && clock - lastEnd[size_t(i)] > 0.1) {
+        } else if (allowed[size_t(i)] && clock - lastEnd[size_t(i)] > 0.1) {
           start(i, clock, -1.0);
         }
       }
@@ -176,7 +190,7 @@ class Visual final : public Scene {
         }
       }
       while (nextNote <= clock) {
-        schedule(nextNote);
+        schedule(nextNote, std::clamp(m.voces, 1, 8));
         nextNote += 0.25;
       }
     }

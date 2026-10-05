@@ -33,6 +33,11 @@ class Visual final : public Scene {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
   }
 
+  // Colores siempre dentro de 0..1, también con intensity 2 y golpes fuertes.
+  static Color rgba(float r, float g, float b, float a) {
+    return Color{std::clamp(r, 0.0f, 1.0f), std::clamp(g, 0.0f, 1.0f), std::clamp(b, 0.0f, 1.0f), std::clamp(a, 0.0f, 1.0f)};
+  }
+
  public:
   void reset(uint32_t seed) override {
     bass = body = spark = energy = slowBass = kick = flash = drive = 0;
@@ -109,8 +114,8 @@ class Visual final : public Scene {
     const Color& face = f.colors[3];
     // Panel de metal oscuro.
     c.rect({0, 0, f.width, f.height}, Paint::linear({0, 0}, {f.width, f.height},
-                                                   {Color{std::min(1.0f, bg.r + 0.05f), std::min(1.0f, bg.g + 0.045f), std::min(1.0f, bg.b + 0.04f), 1.0f},
-                                                    Color{bg.r, bg.g, bg.b, 1.0f}}));
+                                                   {rgba(bg.r + 0.05f, bg.g + 0.045f, bg.b + 0.04f, 1.0f),
+                                                    rgba(bg.r, bg.g, bg.b, 1.0f)}));
     int n = std::clamp(m.medidores, 1, kMax);
     int cols = n <= 3 ? 1 : 2;
     int rows = (n + cols - 1) / cols;
@@ -131,8 +136,8 @@ class Visual final : public Scene {
       c.rect({x - 4.0f * px, y - 4.0f * px, cellW + 8.0f * px, cellH + 8.0f * px}, frame);
       float glowAmt = (0.75f + 0.25f * body + 0.2f * kick) * amp;
       Paint glass = Paint::radial({x + cellW * 0.5f, y + cellH * 0.9f}, cellW * 0.85f,
-                                  {Color{std::min(1.0f, amber.r * glowAmt), std::min(1.0f, amber.g * glowAmt), std::min(1.0f, amber.b * glowAmt), 1.0f},
-                                   Color{amber.r * 0.45f * glowAmt, amber.g * 0.35f * glowAmt, amber.b * 0.25f * glowAmt, 1.0f}});
+                                  {rgba(amber.r * glowAmt, amber.g * glowAmt, amber.b * glowAmt, 1.0f),
+                                   rgba(amber.r * 0.45f * glowAmt, amber.g * 0.35f * glowAmt, amber.b * 0.25f * glowAmt, 1.0f)});
       c.rect({x, y, cellW, cellH}, glass);
       // Escala curva con marcas; la última parte en rojo.
       Vec2 pivot{x + cellW * 0.5f, y + cellH * 0.92f};
@@ -199,7 +204,7 @@ class Visual final : public Scene {
         ledGlow.blend = Blend::plus;
         c.circle(led, 14.0f * px, ledGlow);
         Paint ledDot;
-        ledDot.color = Color{0.25f + 0.75f * red.r * on, 0.04f + red.g * on, 0.03f + red.b * on, 1.0f};
+        ledDot.color = rgba(0.25f + 0.75f * red.r * on, 0.04f + red.g * on, 0.03f + red.b * on, 1.0f);
         c.circle(led, 3.5f * px, ledDot);
       }
     }

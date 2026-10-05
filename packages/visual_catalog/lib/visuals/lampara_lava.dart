@@ -4,14 +4,16 @@
 // hay un charco de cera sobre la bombilla y arriba se acumula un poco. La
 // cera tiene relieve: brillo especular, borde más oscuro y un núcleo que se
 // ve más caliente donde es más gruesa. El líquido violeta se ilumina desde
-// abajo. Los graves inflan y calientan las gotas, la energía acelera el
-// ciclo y cada golpe las hace temblar.
+// abajo. Con Calor de la cera, fría se queda abajo en gotas redondas que
+// apenas suben y caliente sube en columnas altas y se acumula arriba. Los
+// graves inflan y calientan las gotas, la energía acelera el ciclo y cada
+// golpe las hace temblar.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   CreatorModifier.steps('gotas', 'Gotas', min: 3, max: 7, value: 6),
-  CreatorModifier.slider('calor', 'Velocidad', min: .3, max: 2.5, value: 1),
+  CreatorModifier.slider('calor', 'Calor de la cera', min: 0, max: 1, value: .5),
   CreatorModifier.slider('tamano', 'Tamaño de gotas', min: .6, max: 1.5, value: 1),
   CreatorModifier.toggle('reflejos', 'Reflejos', value: true),
 ];
@@ -44,7 +46,6 @@ class Visual final : public Scene {
   }
 
   void update(const Frame& f) override {
-    auto m = modifiers(f);
     float dt = float(f.delta);
     const Music& mu = f.music;
     bass = follow(bass, mu.bass, 22.0f, 4.5f, dt);
@@ -62,29 +63,39 @@ class Visual final : public Scene {
     hit = std::min(std::max(hit, onset), 1.0f);
     kick = std::max(kick * std::exp(-dt * 5.0f), hit);
     flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
-    clock += f.delta * f.speed * m.calor * (1.0 + 1.5 * drive);
+    clock += f.delta * f.speed * (1.0 + 1.5 * drive);
     wobble += f.delta * (6.0 + 6.0 * energy);
   }
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto g = glide(f);
     float amp = f.intensity;
     float side = std::min(f.width, f.height);
     float halfH = 0.5f * f.height / side;
     int count = std::clamp(m.gotas, 3, kBlobs);
+    // Calor de la cera (0,5 es la lámpara de siempre): fría, las gotas son
+    // redondas y sólo suben un poco desde el charco; caliente, suben en
+    // columnas altas que se estiran, se mecen y se juntan arriba.
+    const float heat = std::clamp(g.calor, 0.0f, 1.0f);
+    const float cold = std::clamp(1.0f - heat * 2.0f, 0.0f, 1.0f);
+    const float hot = std::clamp(heat * 2.0f - 1.0f, 0.0f, 1.0f);
     std::vector<float> u;
-    u.reserve(48);
+    u.reserve(52);
     u.insert(u.end(), {float(std::fmod(wobble, 1000.0)), bass * amp, kick * amp, energy});
     u.insert(u.end(), {float(count), m.reflejos ? 1.0f : 0.0f, f.glow, flash * amp});
+    // Charco de abajo y de arriba: crece abajo con el frío y arriba con el calor.
+    u.insert(u.end(), {0.16f + 0.1f * cold - 0.03f * hot, 0.08f * (1.0f - cold) + 0.06f * hot});
     for (int i = 0; i < kBlobs; i++) {
       // Sube y baja: cerca de los extremos va más despacio, como la cera real.
       double w = 6.283185307179586 / double(period[size_t(i)]);
       double s = std::sin(clock * w + double(phase[size_t(i)]));
       double v = std::cos(clock * w + double(phase[size_t(i)]));
-      float y = float(s) * halfH * 0.78f;
-      float x = lane[size_t(i)] + 0.05f * float(std::sin(clock * 0.21 + double(i)));
-      float r = size[size_t(i)] * m.tamano * (1.0f + 0.22f * bass * amp);
-      float stretch = 1.0f + 0.55f * float(std::fabs(v));
+      float y = (float(s) * (0.78f - 0.42f * cold) - 0.44f * cold) * halfH;
+      float sway = 0.05f - 0.035f * cold + 0.05f * hot;
+      float x = lane[size_t(i)] + sway * float(std::sin(clock * 0.21 + double(i)));
+      float r = size[size_t(i)] * m.tamano * (1.0f + 0.22f * bass * amp) * (1.0f - 0.22f * hot);
+      float stretch = 1.0f + (0.55f - 0.45f * cold + 0.5f * hot) * float(std::fabs(v)) + 0.7f * hot;
       u.insert(u.end(), {x, y, i < count ? r : 0.0f, stretch});
     }
     for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});
@@ -100,6 +111,7 @@ const shaderSources = <String, String>{
 uniform vec2 uSize;
 uniform vec4 uA;   // temblor, graves, golpe, energía
 uniform vec4 uB;   // gotas, reflejos, glow, destello
+uniform vec2 uH;   // alto del charco de abajo y del de arriba (calor de la cera)
 uniform vec4 uG0;  // gota: x, y, radio, estiramiento vertical
 uniform vec4 uG1;
 uniform vec4 uG2;
@@ -153,16 +165,16 @@ void main() {
   blob(pw, uG6, F, grad);
   // Charco de cera abajo y un poco arriba, con el mismo tipo de campo.
   float bottom = pw.y + halfH;
-  if (bottom < 0.16) {
-    float k = 1.0 - bottom / 0.16;
+  if (bottom < uH.x) {
+    float k = 1.0 - bottom / uH.x;
     F += 0.9 * k * k * k;
-    grad += vec2(0.0, -0.9 * 3.0 * k * k / 0.16);
+    grad += vec2(0.0, -0.9 * 3.0 * k * k / uH.x);
   }
   float top = halfH - pw.y;
-  if (top < 0.08) {
-    float k = 1.0 - top / 0.08;
+  if (uH.y > 0.001 && top < uH.y) {
+    float k = 1.0 - top / uH.y;
     F += 0.7 * k * k * k;
-    grad += vec2(0.0, 0.7 * 3.0 * k * k / 0.08);
+    grad += vec2(0.0, 0.7 * 3.0 * k * k / uH.y);
   }
 
   // Líquido violeta iluminado desde abajo.
