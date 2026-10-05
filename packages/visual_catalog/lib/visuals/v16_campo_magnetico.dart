@@ -2,6 +2,51 @@
 // Acelerador electromagnético de alta energía: dipolo con tubos de flujo aurorales,
 // plasma de Lorentz en espirales ciclotrón, arcos eléctricos Tesla, ferrofluido reactivo
 // y ondas de choque de inducción expansivas.
+// La música ya aceleraba el plasma, encendía arcos e invertía el dipolo con
+// los graves fuertes; Pulso decide qué más se ve: con Golpes cada golpe
+// lanza un anillo de inducción desde cada polo, los polos estallan en un
+// resplandor y se encienden limaduras y filamentos; con Graves los tubos de
+// flujo se engrosan y los polos respiran con su halo; con Agudos los iones y
+// las limaduras chisporrotean y parpadean. Sin música se ve igual que
+// siempre.
+import 'package:scene_compositor/authoring.dart';
+
+// Ajustes propios de este visual. Studio los muestra en Ajustes.
+const modifiers = [
+  // FORMA: el dibujo de las limaduras (siguen el campo, lo cruzan o apuntan al polo).
+  CreatorModifier.choice(
+    'patron',
+    'Patrón',
+    options: ['Dipolo', 'Equipotencial', 'Radial'],
+  ),
+  // MOVIMIENTO: iones que resbalan por las líneas o giran en hélices anchas.
+  CreatorModifier.slider('ciclotron', 'Ciclotrón', min: 0, max: 4, value: 1),
+  // MÚSICA
+  CreatorModifier.choice(
+    'pulso',
+    'Pulso',
+    options: ['Golpes', 'Graves', 'Agudos'],
+  ),
+  // ATMÓSFERA: limaduras de hierro, de nada a agujas largas.
+  CreatorModifier.slider('limaduras', 'Limaduras', min: 0, max: 2.5, value: 1),
+];
+
+// Combinaciones con nombre que parecen otro visual.
+const variations = [
+  CreatorVariation('Laboratorio', {
+    'patron': 'Radial',
+    'ciclotron': 3,
+    'limaduras': .7,
+    'pulso': 'Golpes',
+  }),
+  CreatorVariation('Ferrofluido', {
+    'limaduras': 2.5,
+    'patron': 'Equipotencial',
+    'ciclotron': .4,
+    'pulso': 'Graves',
+  }),
+];
+
 const nativeSource = r'''
 class Visual final : public Scene {
   struct PlasmaIon {
@@ -44,6 +89,20 @@ class Visual final : public Scene {
   float shockRadius1 = 0.0f;
   float shockRadius2 = 0.0f;
 
+  // Música estándar: envolventes y golpe corto (valen 0 sin música).
+  float bass = 0, body = 0, spark = 0, energy = 0, drive = 0, slowBass = 0, kick = 0, flash = 0;
+  // Segundos reales para los anillos de los golpes y el chisporroteo.
+  double clock = 0;
+  // Golpes: anillo fijo de ondas de inducción {nacimiento, fuerza}.
+  static constexpr int kPulses = 4;
+  std::array<double, kPulses> pulseBirth{};
+  std::array<float, kPulses> pulsePower{};
+  int nextPulse = 0;
+
+  static float follow(float v, float target, float up, float down, float dt) {
+    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
+  }
+
   static Vec2 evalFieldDir(float x, float y, float mx, float my) {
     const float soft2 = 0.014f;
     float bx = 0.0f, by = 0.0f;
@@ -83,6 +142,11 @@ class Visual final : public Scene {
     lastInvertTime = -10.0f;
     shockRadius1 = 0.0f;
     shockRadius2 = 0.0f;
+    bass = body = spark = energy = drive = slowBass = kick = flash = 0;
+    clock = 0;
+    pulseBirth.fill(-100.0);
+    pulsePower.fill(0.0f);
+    nextPulse = 0;
 
     ions.clear();
     ions.reserve(kIonCount);
@@ -205,9 +269,44 @@ class Visual final : public Scene {
       while (deltaA < -3.14159265f) deltaA += 6.2831853f;
       fil.angle += deltaA * alignRate;
     }
+
+    // Música estándar: graves, cuerpo, agudos, energía y golpe corto.
+    const Music& mu = f.music;
+    bass = follow(bass, mu.bass, 22.0f, 4.5f, dt);
+    body = follow(body, mu.body, 12.0f, 3.0f, dt);
+    spark = follow(spark, mu.spark, 30.0f, 7.0f, dt);
+    energy = follow(energy, mu.energy, 6.0f, 1.8f, dt);
+    drive = follow(drive, mu.active ? std::pow(std::clamp(mu.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);
+    float hit = 0, fl = 0;
+    for (const auto& e : mu.events[0]) hit = std::max(hit, e.strength);
+    for (const auto& e : mu.events[2]) hit = std::max(hit, e.strength * 0.85f);
+    for (const auto& e : mu.events[3]) fl = std::max(fl, e.strength);
+    const float onset = std::clamp((mu.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);
+    slowBass = follow(slowBass, mu.bass, 3.0f, 3.0f, dt);
+    hit = std::min(std::max(hit, onset), 1.0f);
+    const bool fresh = hit > kick + 0.2f;
+    kick = std::max(kick * std::exp(-dt * 5.0f), hit);
+    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
+    clock += f.delta;
+    // Golpes: cada golpe nuevo lanza un anillo de inducción.
+    if (fresh) {
+      pulseBirth[size_t(nextPulse)] = clock;
+      pulsePower[size_t(nextPulse)] = hit;
+      nextPulse = (nextPulse + 1) % kPulses;
+    }
   }
 
   void render(const Frame& f, Canvas& c) const override {
+    auto g = glide(f);
+    const float level = f.intensity;
+    // Pulso: cada opción mueve algo distinto y sus pesos mezclan las opciones.
+    const float golpe = g.pulso.weight(0) * std::min(kick * level, 1.0f);
+    const float graves = g.pulso.weight(1) * std::min(bass * level, 1.0f);
+    const float agudos = g.pulso.weight(2) * std::min(spark * level, 1.0f);
+    const float tick = float(std::fmod(clock, 1000.0));
+    // Patrón: las limaduras siguen el campo (Dipolo, el original), lo cruzan
+    // en anillos (Equipotencial) o apuntan a su polo (Radial).
+    const float crossW = g.patron.weight(1), radialW = g.patron.weight(2);
     float w = f.width, h = f.height;
     float minDim = std::min(w, h);
     Vec2 center{w * 0.5f, h * 0.5f};
@@ -228,6 +327,21 @@ class Visual final : public Scene {
     chamberGlow.blend = Blend::plus;
     c.circle(center, minDim * 0.45f, chamberGlow);
 
+    // Golpes: cada polo estalla en un resplandor de su color; Graves los hace
+    // respirar más suave.
+    const float burst = std::min(1.0f, (0.6f * golpe + 0.25f * graves) * f.glow);
+    if (burst > 0.001f) {
+      for (int k = 0; k < 2; k++) {
+        const Vec2 pole{center.x + (k == 0 ? -0.28f : 0.28f) * minDim, center.y};
+        const Color tint = k == 0 ? Color{0.2f, 0.95f, 1.0f, 1.0f} : Color{0.8f, 0.45f, 1.0f, 1.0f};
+        const float reach = minDim * (0.42f + 0.08f * golpe);
+        Paint light = Paint::radial(pole, reach,
+          {{tint.r, tint.g, tint.b, burst}, {tint.r, tint.g, tint.b, burst * 0.35f}, {tint.r, tint.g, tint.b, 0}}, {0, 0.4f, 1.0f});
+        light.blend = Blend::plus;
+        c.circle(pole, reach, light);
+      }
+    }
+
     // Ondas de choque de inducción expansivas
     if (shockRadius1 > 0.0f) {
       float alpha = std::clamp((1.0f - shockRadius1 / 450.0f) * 0.40f * boost, 0.0f, 1.0f);
@@ -242,23 +356,58 @@ class Visual final : public Scene {
       c.circle({center.x + 0.28f * minDim, center.y}, shockRadius2, shk);
     }
 
-    // 2. Campo de limaduras de hierro orientadas (Ferrofluido que vibra con el audio)
-    Path filingsPath;
-    float filingLengthMult = 0.5f * (1.0f + smoothBass * 0.45f);
-
-    for (const auto& fil : filings) {
-      float sx = center.x + fil.x * minDim;
-      float sy = center.y + fil.y * minDim;
-      float flen = fil.len * minDim * filingLengthMult;
-      float dx = std::cos(fil.angle) * flen;
-      float dy = std::sin(fil.angle) * flen;
-      filingsPath.moveTo(sx - dx, sy - dy);
-      filingsPath.lineTo(sx + dx, sy + dy);
+    // Golpes: un anillo de inducción sale de cada polo y se apaga al crecer.
+    const float pulseWeight = g.pulso.weight(0);
+    if (pulseWeight > 0.001f) {
+      for (int k = 0; k < kPulses; k++) {
+        const float age = float(clock - pulseBirth[size_t(k)]);
+        if (age < 0.0f || age >= 0.9f) continue;
+        const float fade = 1.0f - age / 0.9f;
+        const float power = std::min(pulsePower[size_t(k)] * level, 1.0f) * pulseWeight * fade;
+        if (power <= 0.001f) continue;
+        const float radius = minDim * (0.05f + age * 0.55f);
+        Paint ring; ring.blend = Blend::plus; ring.strokeWidth = 3.0f + 5.0f * fade;
+        ring.color = {0.0f, 0.94f, 1.0f, std::min(1.0f, 0.85f * power * boost)};
+        c.circle({center.x - 0.28f * minDim, center.y}, radius, ring);
+        ring.color = {0.75f, 0.35f, 1.0f, std::min(1.0f, 0.85f * power * boost)};
+        c.circle({center.x + 0.28f * minDim, center.y}, radius, ring);
+      }
     }
-    Paint filPaint; filPaint.blend = Blend::plus;
-    filPaint.color = {0.45f, 0.65f, 0.95f, std::clamp(0.40f * boost, 0.0f, 1.0f)};
-    filPaint.strokeWidth = 1.1f;
-    c.path(filingsPath, filPaint);
+
+    // 2. Campo de limaduras de hierro orientadas (Ferrofluido que vibra con el audio)
+    // Limaduras: largo de las agujas (1 es el original; 0 las quita).
+    const float needle = g.limaduras;
+    if (needle > 0.01f) {
+      Path filingsPath;
+      float filingLengthMult = 0.5f * (1.0f + smoothBass * 0.45f);
+
+      for (const auto& fil : filings) {
+        float sx = center.x + fil.x * minDim;
+        float sy = center.y + fil.y * minDim;
+        float flen = fil.len * minDim * filingLengthMult * needle;
+        float angle = fil.angle;
+        if (crossW + radialW > 0.001f) {
+          // Las agujas no tienen sentido: se mezclan con el ángulo doble.
+          const float toPole = std::atan2(fil.y, fil.x - (fil.x < 0.0f ? -0.28f : 0.28f));
+          const float across = angle + float(pi) * 0.5f;
+          const float keep = 1.0f - crossW - radialW;
+          const float mx2 = keep * std::cos(2.0f * angle) + crossW * std::cos(2.0f * across) + radialW * std::cos(2.0f * toPole);
+          const float my2 = keep * std::sin(2.0f * angle) + crossW * std::sin(2.0f * across) + radialW * std::sin(2.0f * toPole);
+          angle = 0.5f * std::atan2(my2, mx2);
+        }
+        float dx = std::cos(angle) * flen;
+        float dy = std::sin(angle) * flen;
+        filingsPath.moveTo(sx - dx, sy - dy);
+        filingsPath.lineTo(sx + dx, sy + dy);
+      }
+      Paint filPaint; filPaint.blend = Blend::plus;
+      // Golpes enciende las limaduras (+80%); Graves las aviva; Agudos las
+      // hace chisporrotear.
+      filPaint.color = {0.45f, 0.65f, 0.95f, std::clamp(0.40f * boost * (1.0f + golpe * 0.8f + graves * 0.4f
+        + agudos * 0.6f * std::sin(tick * 29.0f)), 0.0f, 1.0f)};
+      filPaint.strokeWidth = 1.1f;
+      c.path(filingsPath, filPaint);
+    }
 
     // 3. Tubos de flujo magnético en arco (Cian -> Violeta -> Azul)
     Path linesCyan, linesViolet;
@@ -275,19 +424,21 @@ class Visual final : public Scene {
     }
 
     // Halo ancho de los tubos de flujo
+    // Graves: el halo de los tubos se engrosa y se aviva con los graves.
     Paint lpGlow; lpGlow.blend = Blend::plus;
-    lpGlow.strokeWidth = 3.5f;
-    lpGlow.color = {0.0f, 0.94f, 1.0f, std::clamp(0.22f * boost, 0.0f, 1.0f)};
+    lpGlow.strokeWidth = 3.5f * (1.0f + graves * 0.8f + golpe * 1.2f);
+    lpGlow.color = {0.0f, 0.94f, 1.0f, std::clamp(0.22f * boost * (1.0f + graves * 0.6f), 0.0f, 1.0f)};
     c.path(linesCyan, lpGlow);
-    lpGlow.color = {0.62f, 0.31f, 0.87f, std::clamp(0.22f * boost, 0.0f, 1.0f)};
+    lpGlow.color = {0.62f, 0.31f, 0.87f, std::clamp(0.22f * boost * (1.0f + graves * 0.6f), 0.0f, 1.0f)};
     c.path(linesViolet, lpGlow);
 
     // Filamentos brillantes de flujo
     Paint lpCore; lpCore.blend = Blend::plus;
     lpCore.strokeWidth = 1.3f;
-    lpCore.color = {0.50f, 0.95f, 1.0f, std::clamp(0.65f * boost, 0.0f, 1.0f)};
+    // Golpes: los filamentos se encienden en cada golpe.
+    lpCore.color = {0.50f, 0.95f, 1.0f, std::clamp(0.65f * boost * (1.0f + golpe * 0.6f), 0.0f, 1.0f)};
     c.path(linesCyan, lpCore);
-    lpCore.color = {0.85f, 0.50f, 1.0f, std::clamp(0.65f * boost, 0.0f, 1.0f)};
+    lpCore.color = {0.85f, 0.50f, 1.0f, std::clamp(0.65f * boost * (1.0f + golpe * 0.6f), 0.0f, 1.0f)};
     c.path(linesViolet, lpCore);
 
     // 4. Plasma de Lorentz: iones bioluminiscentes en espirales ciclotrón
@@ -312,14 +463,22 @@ class Visual final : public Scene {
 
       // Espiral de ciclotrón transversal a la línea de campo
       float helixAngle = ion.prog * 35.0f + ion.phase + simTime * 6.0f;
-      float helixRad = (1.5f + std::sin(ion.prog * 3.14159f) * 4.5f);
+      // Ciclotrón: radio de la hélice (0 resbalan por la línea, 1 es el original).
+      float helixRad = (1.5f + std::sin(ion.prog * 3.14159f) * 4.5f) * g.ciclotron;
       float ipx = basePx + std::cos(helixAngle) * helixRad;
       float ipy = basePy + std::sin(helixAngle) * helixRad;
+      // Agudos: los iones tiemblan y parpadean con los agudos.
+      float flick = 1.0f;
+      if (agudos > 0.001f) {
+        ipx += std::sin(tick * 61.0f + ion.phase * 7.0f) * 1.6f * agudos;
+        ipy += std::cos(tick * 53.0f + ion.phase * 5.0f) * 1.6f * agudos;
+        flick += agudos * 0.5f * (0.5f + 0.5f * std::sin(tick * 29.0f + ion.phase * 5.0f));
+      }
 
       Color ic = ionCols[ion.colIdx];
       Paint ionPaint; ionPaint.blend = Blend::plus;
       ionPaint.color = {ic.r, ic.g, ic.b, std::clamp(0.85f * boost, 0.0f, 1.0f)};
-      c.circle({ipx, ipy}, ion.size * (1.0f + smoothEnergy * 0.4f), ionPaint);
+      c.circle({ipx, ipy}, ion.size * (1.0f + smoothEnergy * 0.4f) * flick, ionPaint);
     }
 
     // 5. Arcos eléctricos Tesla de alta tensión ante transients y chispas
@@ -366,7 +525,8 @@ class Visual final : public Scene {
       Color poleTint = isNorth ? Color{0.0f, 0.94f, 1.0f, 1.0f} : Color{0.75f, 0.25f, 1.0f, 1.0f};
 
       // Resplandor de inducción del polo
-      float coreGlowR = cylW * (1.2f + smoothEnergy * 0.5f + smoothBass * 0.4f);
+      // Graves: el resplandor del polo crece con los graves.
+      float coreGlowR = cylW * (1.2f + smoothEnergy * 0.5f + smoothBass * 0.4f) * (1.0f + graves * 0.8f);
       Paint coreGlow = Paint::radial({px, py}, coreGlowR,
         {{1.0f, 1.0f, 1.0f, std::clamp(0.75f * boost, 0.0f, 1.0f)},
          {poleTint.r, poleTint.g, poleTint.b, std::clamp(0.40f * boost, 0.0f, 1.0f)},
@@ -407,7 +567,8 @@ class Visual final : public Scene {
       // Núcleo blanco del emisor de campo
       Paint emitterCore; emitterCore.blend = Blend::plus;
       emitterCore.color = {1.0f, 1.0f, 1.0f, std::clamp(0.92f * boost, 0.0f, 1.0f)};
-      c.circle({px, py}, cylW * 0.22f, emitterCore);
+      // Golpes: el núcleo del emisor late en cada golpe.
+      c.circle({px, py}, cylW * 0.22f * (1.0f + golpe * 0.6f), emitterCore);
     }
   }
 };

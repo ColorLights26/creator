@@ -4,8 +4,11 @@
 // figuras gigantes: olas, espirales, remolinos, rombos o rayos. Cada pocos
 // segundos la figura cambia y cada aguja da una vuelta completa para llegar
 // a la nueva, en un barrido que recorre la pared. Las agujas son de luz. Con
-// música, cada golpe manda una onda que sacude las agujas a su paso, los
-// graves abren las agujas como tijeras y los brillos encienden sus puntas.
+// Golpes, cada golpe manda una onda fuerte con un anillo de luz que sacude
+// las agujas a su paso, las agujas sacudidas se encienden, todas engordan y
+// brillan el doble y el centro de la pared resplandece; con Graves, las
+// agujas se abren como tijeras, se alargan, se engrosan y su halo crece; con
+// Brillos, los agudos encienden las puntas de la mayoría de las agujas.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -177,9 +180,11 @@ class Visual final : public Scene {
     const float R = cell * 0.46f;
     const float maxDist = std::sqrt(W * W + H * H) / side;
     const float wGolpes = g.pulso.weight(0), wGraves = g.pulso.weight(1), wBrillos = g.pulso.weight(2);
-    const float open = std::min(bass * amp, 1.2f) * 0.6f * wGraves;
+    const float open = std::min(bass * amp, 1.2f) * 0.85f * wGraves;
+    // Graves: las agujas se alargan, se engrosan y brillan más.
+    const float graves = std::min(bass * amp, 1.0f) * wGraves;
     // Agujas casi hasta el borde: entre relojes vecinos se ven líneas seguidas.
-    const float lenK = 0.97f * (1.0f + 0.08f * std::min(bass * amp, 1.0f) * wGraves);
+    const float lenK = 0.97f * (1.0f + 0.12f * graves);
     const float wDiag = g.barrido.weight(0), wCenter = g.barrido.weight(1);
     const int from = g.figura.from, to = g.figura.to;
     const float tf = std::clamp(g.figura.t, 0.0f, 1.0f);
@@ -190,6 +195,9 @@ class Visual final : public Scene {
 
     Path hands, facePath;
     std::array<Path, 3> trails;
+    // Golpes: las agujas que la onda sacude se encienden (suave y fuerte).
+    std::array<Path, 2> shaken;
+    std::array<bool, 2> anyShaken{false, false};
     std::vector<Vec2> hubs, tips;
     hubs.reserve(size_t(rows * cols));
     tips.reserve(size_t(rows * cols) * 2);
@@ -222,7 +230,8 @@ class Visual final : public Scene {
           const float front = (dist - age * 1.9f) / 0.25f;
           rip += ripplePower[size_t(i)] * std::exp(-age * 1.4f) * std::exp(-front * front);
         }
-        rip *= 1.4f * wGolpes * amp;
+        // El doble de fuerte que antes, con un tope para que no dé la vuelta entera.
+        rip = std::min(rip * 2.8f * wGolpes * amp, 2.6f);
         a1 += rip + open;
         a2 += rip - open;
         const float L = R * lenK;
@@ -230,12 +239,18 @@ class Visual final : public Scene {
         const Vec2 t2{cx + L * std::cos(a2), cy + L * std::sin(a2)};
         hands.moveTo(cx, cy).lineTo(t1.x, t1.y);
         hands.moveTo(cx, cy).lineTo(t2.x, t2.y);
+        if (rip > 0.12f) {
+          const size_t level = rip > 0.6f ? 1 : 0;
+          shaken[level].moveTo(cx, cy).lineTo(t1.x, t1.y);
+          shaken[level].moveTo(cx, cy).lineTo(t2.x, t2.y);
+          anyShaken[level] = true;
+        }
         if (faces > 0.01f) facePath.circle({cx, cy}, R);
         hubs.push_back({cx, cy});
         // Brillos: las puntas de algunas agujas se encienden con los agudos.
         if (wBrillos > 0.01f) {
           const uint32_t key = uint32_t(row * 131 + col * 7919) ^ uint32_t(sparkleSlot * 104729);
-          if (hashU(key) < spark * amp * wBrillos * 0.7f) {
+          if (hashU(key) < spark * amp * wBrillos * 2.4f) {
             tips.push_back(t1);
             tips.push_back(t2);
           }
@@ -271,14 +286,51 @@ class Visual final : public Scene {
         c.path(trails[size_t(k)], tp);
       }
     }
+    // Golpes: un resplandor local en el centro de la pared y un anillo de luz
+    // que viaja con cada onda (sólo existen mientras dura el golpe).
+    const float punch = std::min(kick * amp, 1.0f) * wGolpes;
+    if (punch > 0.01f) {
+      Paint bloom = Paint::radial({W * 0.5f, H * 0.5f}, side * 0.6f,
+                                  {pal[2].opacity(std::clamp(0.3f * punch * f.glow, 0.0f, 0.45f)), pal[2].opacity(0.0f)});
+      bloom.blend = Blend::plus;
+      c.circle({W * 0.5f, H * 0.5f}, side * 0.6f, bloom);
+    }
+    for (int i = 0; i < kRipples; i++) {
+      const float age = float(rippleAge[size_t(i)]);
+      if (age > 4.0f) continue;
+      const float strength = std::min(ripplePower[size_t(i)] * std::exp(-age * 1.4f) * wGolpes * amp, 1.0f);
+      if (strength < 0.01f) continue;
+      const float rr = age * 1.9f * side * 0.5f;
+      const float w = 0.25f * side * 0.5f;
+      const float outer = rr + w;
+      const float inner = std::max(0.0f, rr - w);
+      const Color clear = pal[3].opacity(0.0f);
+      Paint ring = Paint::radial({W * 0.5f, H * 0.5f}, outer,
+                                 {clear, clear, pal[3].opacity(std::clamp(0.34f * strength * f.glow, 0.0f, 0.5f)), clear},
+                                 {0.0f, inner / outer, rr / outer, 1.0f});
+      ring.blend = Blend::plus;
+      c.circle({W * 0.5f, H * 0.5f}, outer, ring);
+    }
     Paint halo;
     halo.blend = Blend::plus;
-    halo.strokeWidth = R * 0.42f;
+    // Golpes: el halo se ensancha ×1,8 y brilla el doble. Graves: +85 %.
+    halo.strokeWidth = R * 0.42f * (1.0f + 0.25f * graves) * (1.0f + 0.8f * punch);
     halo.strokeCap = 1;
-    halo.color = pal[2].opacity(std::clamp((0.26f + 0.14f * kick * amp * wGolpes) * f.glow, 0.0f, 1.0f));
+    halo.color = pal[2].opacity(std::clamp((0.26f + 0.3f * kick * amp * wGolpes + 0.22f * graves) * f.glow, 0.0f, 1.0f));
     c.path(hands, halo);
+    // Golpes: las agujas sacudidas brillan con un halo propio.
+    for (size_t k = 0; k < 2; k++) {
+      if (!anyShaken[k]) continue;
+      Paint sh;
+      sh.blend = Blend::plus;
+      sh.strokeWidth = R * (k == 0 ? 0.36f : 0.48f);
+      sh.strokeCap = 1;
+      sh.color = pal[3].opacity(std::clamp((k == 0 ? 0.35f : 0.6f) * f.glow, 0.0f, 0.75f));
+      c.path(shaken[k], sh);
+    }
     Paint core;
-    core.strokeWidth = R * 0.13f;
+    // Golpes: agujas ×1,8 más gruesas en el golpe. Graves: ×1,6.
+    core.strokeWidth = R * 0.13f * (1.0f + 0.6f * graves) * (1.0f + 0.8f * punch);
     core.strokeCap = 1;
     core.color = pal[3];
     c.path(hands, core);
@@ -286,10 +338,15 @@ class Visual final : public Scene {
     hub.color = pal[3];
     c.points(hubs, R * 0.08f, hub);
     if (!tips.empty()) {
+      // Brillos: las puntas encendidas llevan un halo.
+      Paint glowTip;
+      glowTip.blend = Blend::plus;
+      glowTip.color = pal[3].opacity(std::clamp(0.3f * f.glow, 0.0f, 0.6f));
+      c.points(tips, R * 0.36f, glowTip);
       Paint tp;
       tp.blend = Blend::plus;
       tp.color = pal[3].opacity(0.9f);
-      c.points(tips, R * 0.14f, tp);
+      c.points(tips, R * 0.17f, tp);
     }
   }
 };

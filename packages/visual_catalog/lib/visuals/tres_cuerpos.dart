@@ -7,7 +7,12 @@
 // fuego. La cámara sigue al grupo y se aleja si se separan; si una estrella
 // sale despedida o pasa un rato, empieza otra coreografía. La energía
 // acelera el tiempo, cada golpe hace estallar el brillo y los graves
-// engordan las estrellas.
+// engordan las estrellas. El Pulso elige qué se nota más: con Golpes cada
+// golpe hace destellar las estrellas con una cruz de luz, un resplandor y un
+// anillo que se expande, y las estelas se encienden y se ensanchan; con Graves
+// las estrellas y su halo respiran y las estelas se ensanchan y brillan; con
+// Agudos las estelas sueltan polvo de estrellas que centellea, los halos
+// parpadean y el cielo de fondo titila.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -15,6 +20,27 @@ const modifiers = [
   CreatorModifier.choice('baile', 'Coreografía', options: ['Auto', 'Ocho', 'Triángulo', 'Caos', 'Cinco']),
   CreatorModifier.slider('estela', 'Largo de la estela', min: .2, max: 1, value: .7),
   CreatorModifier.toggle('estrellas', 'Estrellas de fondo', value: true),
+  // MÚSICA: qué parte de las estrellas responde al ritmo.
+  CreatorModifier.choice(
+    'pulso',
+    'Pulso',
+    options: ['Golpes', 'Graves', 'Agudos'],
+  ),
+];
+
+// Combinaciones con nombre que parecen otro visual.
+const variations = [
+  CreatorVariation('Ocho Eterno', {
+    'baile': 'Ocho',
+    'pulso': 'Graves',
+    'estela': 1,
+  }),
+  CreatorVariation('Caos Estelar', {
+    'baile': 'Caos',
+    'pulso': 'Golpes',
+    'estela': .4,
+    'speed': 1.3,
+  }),
 ];
 
 const nativeSource = r'''
@@ -27,6 +53,9 @@ class Visual final : public Scene {
   float kick = 0, flash = 0, drive = 0;
   // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.
   double sim = 0, sceneTime = 0, camX = 0, camY = 0, camR = 1.2;
+  // Golpes: tiempo desde el último golpe y su fuerza (el anillo que se expande).
+  double beatAge = 100;
+  float beatPower = 0;
   int64_t steps = 0;
   int count = 3, scene = 0, autoScene = 0, trailHead = 0, trailCount = 0;
   Random rng{1};
@@ -35,6 +64,15 @@ class Visual final : public Scene {
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
+  }
+  // Azar fijo para los centelleos: fórmula de un número, sin Random.
+  static float sparkleOf(uint32_t x) {
+    x ^= x >> 16;
+    x *= 0x7feb352du;
+    x ^= x >> 15;
+    x *= 0x846ca68bu;
+    x ^= x >> 16;
+    return float(x & 0xffffu) / 65536.0f;
   }
 
   void start(int which) {
@@ -110,6 +148,8 @@ class Visual final : public Scene {
     bass = body = spark = energy = slowBass = kick = flash = drive = 0;
     sim = 0;
     steps = 0;
+    beatAge = 100;
+    beatPower = 0;
     autoScene = 0;
     camX = camY = 0;
     camR = 1.2;
@@ -133,6 +173,11 @@ class Visual final : public Scene {
     float onset = std::clamp((mu.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);
     slowBass = follow(slowBass, mu.bass, 3.0f, 3.0f, dt);
     hit = std::min(std::max(hit, onset), 1.0f);
+    beatAge += f.delta;
+    if (hit > kick + 0.2f) {
+      beatAge = 0;
+      beatPower = hit;
+    }
     kick = std::max(kick * std::exp(-dt * 5.0f), hit);
     flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
 
@@ -180,7 +225,13 @@ class Visual final : public Scene {
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto g = glide(f);
     float amp = f.intensity;
+    // Pulso: cada opción mueve una parte distinta (sin música, todo 0).
+    const float golpe = g.pulso.weight(0);
+    const float burst = std::min(kick * amp, 1.2f) * golpe;
+    const float thick = std::min(bass * amp, 1.2f) * g.pulso.weight(1);
+    const float glint = std::min(spark * amp, 1.2f) * g.pulso.weight(2);
     const Color& bg = f.colors[0];
     c.rect({0, 0, f.width, f.height}, Paint::radial({f.width * 0.5f, f.height * 0.5f}, std::max(f.width, f.height) * 0.7f,
                                                    {Color{std::min(1.0f, bg.r + 0.05f), std::min(1.0f, bg.g + 0.025f), std::min(1.0f, bg.b + 0.05f), 1.0f},
@@ -198,12 +249,42 @@ class Visual final : public Scene {
       Paint sp;
       sp.color = Color{0.9f, 0.85f, 0.8f, 0.35f};
       c.points(stars, 0.9f * px, sp);
+      // Agudos: el cielo de fondo titila.
+      if (glint > 0.01f) {
+        const uint32_t tick = uint32_t(int64_t(std::floor(sim * 8.0)) & 0xffffff);
+        std::vector<Vec2> twinkle;
+        twinkle.reserve(stars.size());
+        for (size_t i = 0; i < stars.size(); i++)
+          if (sparkleOf(uint32_t(i) * 747796405u + tick * 2891336453u) > 0.55f) twinkle.push_back(stars[i]);
+        Paint tw;
+        tw.blend = Blend::plus;
+        tw.color = Color{1.0f, 0.95f, 0.9f, std::clamp(0.7f * glint, 0.0f, 1.0f)};
+        c.points(twinkle, 2.0f * px, tw);
+      }
     }
     float scale = side * 0.62f / float(camR);
     auto toPx = [&](float x, float y) { return Vec2{f.width * 0.5f + (x - float(camX)) * scale, f.height * 0.5f + (y - float(camY)) * scale}; };
     std::array<Color, kMax> cols = {f.colors[1], f.colors[2], f.colors[3], Color{1.0f, 0.4f, 0.6f, 1.0f}, Color{1.0f, 0.6f, 0.2f, 1.0f}};
     int len = std::max(2, int(float(trailCount) * m.estela));
     const int chunks = 8;
+    if (burst + thick > 0.01f) {
+      Vec2 mid{0, 0};
+      for (int i = 0; i < count; i++) {
+        const Vec2 q = toPx(float(b[size_t(i)].x), float(b[size_t(i)].y));
+        mid.x += q.x / float(count);
+        mid.y += q.y / float(count);
+      }
+      float reach = side * 0.25f;
+      for (int i = 0; i < count; i++) {
+        const Vec2 q = toPx(float(b[size_t(i)].x), float(b[size_t(i)].y));
+        reach = std::max(reach, std::hypot(q.x - mid.x, q.y - mid.y) + 40.0f * px);
+      }
+      reach = std::min(reach, side * 0.7f);
+      Paint groupGlow = Paint::radial(mid, reach, {f.colors[2].opacity(std::clamp((0.22f * burst + 0.12f * thick) * f.glow, 0.0f, 1.0f)),
+                                                    f.colors[2].opacity(0.0f)});
+      groupGlow.blend = Blend::plus;
+      c.circle(mid, reach, groupGlow);
+    }
     for (int i = 0; i < count; i++) {
       const Color& col = cols[size_t(i)];
       for (int ch = 0; ch < chunks; ch++) {
@@ -219,29 +300,85 @@ class Visual final : public Scene {
         float t = float(ch + 1) / float(chunks);
         Paint glow;
         glow.blend = Blend::plus;
-        glow.strokeWidth = (7.0f + 9.0f * t) * px;
+        // Graves: las estelas se ensanchan y brillan con los graves.
+        glow.strokeWidth = (7.0f + 9.0f * t) * px * (1.0f + 0.6f * thick + 0.8f * burst);
         glow.strokeCap = 1;
         glow.strokeJoin = 1;
-        glow.color = col.opacity(std::clamp(0.14f * t * f.glow * amp, 0.0f, 1.0f));
+        glow.color = col.opacity(std::clamp(0.14f * t * f.glow * amp * (1.0f + 0.8f * thick + 1.2f * burst), 0.0f, 1.0f));
         c.path(p, glow);
         Paint line;
         line.blend = Blend::plus;
-        line.strokeWidth = (1.2f + 3.2f * t) * px;
+        line.strokeWidth = (1.2f + 3.2f * t) * px * (1.0f + 0.6f * thick + 0.8f * burst);
         line.strokeCap = 1;
         line.strokeJoin = 1;
-        line.color = col.opacity(std::clamp((0.15f + 0.75f * t) * amp, 0.0f, 1.0f));
+        line.color = col.opacity(std::clamp((0.15f + 0.75f * t) * amp * (1.0f + 0.7f * burst), 0.0f, 1.0f));
         c.path(p, line);
+      }
+    }
+    // Agudos: las estelas sueltan polvo de estrellas que centellea.
+    if (glint > 0.01f) {
+      const uint32_t tick = uint32_t(int64_t(std::floor(sim * 10.0)) & 0xffffff);
+      for (int i = 0; i < count; i++) {
+        std::vector<Vec2> dust;
+        dust.reserve(size_t(len / 2 + 1));
+        for (int k = 0; k < len; k += 2) {
+          int idx = ((trailHead - (len - 1 - k)) % kTrail + kTrail) % kTrail;
+          if (sparkleOf(uint32_t(idx + i * kTrail) * 2654435761u + tick * 40503u) < 0.5f) continue;
+          const Vec2& tp = trail[size_t(i)][size_t(idx)];
+          dust.push_back(toPx(tp.x, tp.y));
+        }
+        Paint dp;
+        dp.blend = Blend::plus;
+        const Color& col = cols[size_t(i)];
+        dp.color = Color{std::min(1.0f, col.r * 0.4f + 0.6f), std::min(1.0f, col.g * 0.4f + 0.6f), std::min(1.0f, col.b * 0.4f + 0.6f),
+                         std::clamp(0.85f * glint, 0.0f, 1.0f)};
+        c.points(dust, 2.2f * px, dp);
       }
     }
     for (int i = 0; i < count; i++) {
       Vec2 q = toPx(float(b[size_t(i)].x), float(b[size_t(i)].y));
       const Color& col = cols[size_t(i)];
       float r = (7.0f + 5.0f * bass * amp) * px;
-      Paint halo = Paint::radial(q, r * (4.0f + 3.0f * kick), {col.opacity(std::clamp((0.55f + 0.4f * kick) * f.glow * amp, 0.0f, 1.0f)), col.opacity(0.0f)});
+      // Graves: el halo crece un 60 % y brilla un 80 % más. Agudos: parpadea.
+      const float flick = glint > 0.01f ? glint * float(sparkleOf(uint32_t(i) * 374761393u + uint32_t(int64_t(std::floor(sim * 12.0)) & 0xffffff) * 668265263u) > 0.4f) : 0.0f;
+      const float haloR = r * (4.0f + 3.0f * kick) * (1.0f + 0.5f * thick);
+      Paint halo = Paint::radial(q, haloR, {col.opacity(std::clamp((0.55f + 0.4f * kick) * f.glow * amp * (1.0f + 0.8f * thick + 0.9f * flick), 0.0f, 1.0f)), col.opacity(0.0f)});
       halo.blend = Blend::plus;
-      c.circle(q, r * (4.0f + 3.0f * kick), halo);
-      Paint core = Paint::radial(q, r, {Color{1.0f, 1.0f, 0.95f, 1.0f}, col, col.opacity(0.0f)}, {0.0f, 0.55f, 1.0f});
-      c.circle(q, r, core);
+      c.circle(q, haloR, halo);
+      // Golpes: un resplandor amplio alrededor de cada estrella.
+      if (burst > 0.01f) {
+        Paint bloom = Paint::radial(q, r * 12.0f, {col.opacity(std::clamp(0.35f * burst * f.glow, 0.0f, 1.0f)), col.opacity(0.0f)});
+        bloom.blend = Blend::plus;
+        c.circle(q, r * 12.0f, bloom);
+      }
+      // Golpes: el núcleo da un salto (18 %). Graves: respira (14 %).
+      const float rc = r * (1.0f + 0.15f * burst + 0.12f * thick);
+      Paint core = Paint::radial(q, rc, {Color{1.0f, 1.0f, 0.95f, 1.0f}, col, col.opacity(0.0f)}, {0.0f, 0.55f, 1.0f});
+      c.circle(q, rc, core);
+      // Golpes: cada golpe hace destellar la estrella con una cruz de luz y
+      // un anillo que se expande y se apaga.
+      if (burst > 0.01f) {
+        const float arm = r * (3.0f + 9.0f * burst);
+        Path cross;
+        cross.moveTo(q.x - arm, q.y).lineTo(q.x + arm, q.y).moveTo(q.x, q.y - arm).lineTo(q.x, q.y + arm);
+        Paint ray = Paint::radial(q, arm, {Color{1.0f, 1.0f, 0.95f, std::clamp(1.2f * burst, 0.0f, 1.0f)},
+                                           col.opacity(std::clamp(0.7f * burst, 0.0f, 1.0f)), col.opacity(0.0f)},
+                                  {0.0f, 0.35f, 1.0f});
+        ray.blend = Blend::plus;
+        ray.strokeWidth = 2.4f * px;
+        ray.strokeCap = 1;
+        c.path(cross, ray);
+      }
+      if (golpe > 0.01f && beatAge < 0.7) {
+        const float ring = std::min(beatPower * amp, 1.2f) * golpe * float(1.0 - beatAge / 0.7);
+        if (ring > 0.01f) {
+          Paint rp;
+          rp.blend = Blend::plus;
+          rp.strokeWidth = 2.6f * px;
+          rp.color = col.opacity(std::clamp(0.95f * ring, 0.0f, 1.0f));
+          c.circle(q, r * (1.5f + 18.0f * float(beatAge)), rp);
+        }
+      }
     }
     if (flash > 0.01f) {
       Paint fl;

@@ -6,7 +6,12 @@
 // cada pista corren paquetes de datos en su propio sentido. En el centro hay
 // un procesador cuyo núcleo late con los graves; cada golpe dispara desde él
 // una onda de energía que avanza por la placa como por las pistas y enciende
-// todo a su paso.
+// todo a su paso. El Pulso elige qué se nota más de la música: con Golpes la
+// onda de cada golpe llega más ancha y brillante, con un anillo de luz que
+// recorre la placa y una estela detrás, y el procesador da un salto rodeado de
+// un resplandor; con Graves las pistas se engrosan y el cobre y el procesador
+// respiran encendidos; con Agudos los paquetes corren más rápido y centellean,
+// y pistas y pads chispean.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -15,6 +20,28 @@ const modifiers = [
   CreatorModifier.toggle('paquetes', 'Paquetes de datos', value: true),
   CreatorModifier.toggle('ondas', 'Ondas de energía', value: true),
   CreatorModifier.toggle('chips', 'Chips', value: true),
+  // MÚSICA: qué parte de la placa responde al ritmo.
+  CreatorModifier.choice(
+    'pulso',
+    'Pulso',
+    options: ['Golpes', 'Graves', 'Agudos'],
+  ),
+];
+
+// Combinaciones con nombre que parecen otro visual.
+const variations = [
+  CreatorVariation('Sobrecarga', {
+    'pulso': 'Golpes',
+    'celdas': 16,
+    'chips': false,
+    'speed': 1.3,
+  }),
+  CreatorVariation('Bus de Datos', {
+    'pulso': 'Agudos',
+    'celdas': 9,
+    'ondas': false,
+    'glow': 1.4,
+  }),
 ];
 
 const nativeSource = r'''
@@ -23,17 +50,22 @@ class Visual final : public Scene {
   float kick = 0, flash = 0, drive = 0;
   // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.
   double clock = 0, sinceIdle = 0;
+  // Ventaja de los paquetes con los agudos: sólo avanza con música.
+  double rush = 0;
   std::array<double, 2> waveAge{100, 100};
   std::array<float, 2> wavePower{0, 0};
+  // Fuerza del golpe que lanzó cada onda (0 en las ondas sin música).
+  std::array<float, 2> waveHit{0, 0};
   int nextWave = 0;
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
   }
 
-  void fire(float power) {
+  void fire(float power, float punch = 0.0f) {
     waveAge[size_t(nextWave)] = 0;
     wavePower[size_t(nextWave)] = power;
+    waveHit[size_t(nextWave)] = punch;
     nextWave = (nextWave + 1) % 2;
   }
 
@@ -43,12 +75,15 @@ class Visual final : public Scene {
     bass = body = spark = energy = slowBass = kick = flash = drive = 0;
     clock = rng.unit() * 30.0;
     sinceIdle = 0;
+    rush = 0;
     waveAge = {100, 100};
     wavePower = {0, 0};
+    waveHit = {0, 0};
     nextWave = 0;
   }
 
   void update(const Frame& f) override {
+    auto g = glide(f);
     float dt = float(f.delta);
     const Music& mu = f.music;
     bass = follow(bass, mu.bass, 22.0f, 4.5f, dt);
@@ -66,7 +101,7 @@ class Visual final : public Scene {
     hit = std::min(std::max(hit, onset), 1.0f);
     sinceIdle += f.delta;
     if (hit > kick + 0.2f) {
-      fire(0.6f + 0.5f * hit);
+      fire(0.6f + 0.5f * hit, hit);
       sinceIdle = 0;
     }
     if (!mu.active && sinceIdle > 3.0) {
@@ -77,18 +112,33 @@ class Visual final : public Scene {
     kick = std::max(kick * std::exp(-dt * 5.0f), hit);
     flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
     clock += f.delta * f.speed * (0.5 + 1.3 * drive);
+    // Agudos: los paquetes de datos aceleran con los agudos (sin música no
+    // avanza y la placa queda igual).
+    rush += f.delta * f.speed * double(1.6f * std::min(spark * f.intensity, 1.5f) * g.pulso.weight(2));
   }
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto g = glide(f);
     float amp = f.intensity;
     std::vector<float> u;
-    u.reserve(28);
+    u.reserve(33);
     u.insert(u.end(), {float(std::fmod(clock, 1000.0)), bass * amp, kick * amp, energy});
     u.insert(u.end(), {float(m.celdas), m.paquetes ? 1.0f : 0.0f, m.ondas ? 1.0f : 0.0f, m.chips ? 1.0f : 0.0f});
     u.insert(u.end(), {float(waveAge[0]) * 0.75f, waveAge[0] < 3.0 ? wavePower[0] * amp : 0.0f,
                        float(waveAge[1]) * 0.75f, waveAge[1] < 3.0 ? wavePower[1] * amp : 0.0f});
-    u.insert(u.end(), {f.glow, flash * amp, spark * amp, 0.0f});
+    u.insert(u.end(), {f.glow, flash * amp, spark * amp, float(std::fmod(clock + rush, 1000.0))});
+    // Pulso: Golpes ensancha la onda de cada golpe (se apaga al cruzar la
+    // placa), Graves engrosa y enciende el cobre, Agudos hace centellear.
+    auto punch = [&](int i) {
+      return waveAge[size_t(i)] < 3.0
+          ? std::min(waveHit[size_t(i)] * amp, 1.2f) * float(1.0 - waveAge[size_t(i)] / 3.0) * g.pulso.weight(0)
+          : 0.0f;
+    };
+    u.insert(u.end(), {punch(0), punch(1), std::min(bass * amp, 1.2f) * g.pulso.weight(1),
+                       std::min(spark * amp, 1.2f) * g.pulso.weight(2)});
+    // Golpes: el golpe que se apaga enseguida (resplandor y pop del procesador).
+    u.push_back(std::min(kick * amp, 1.2f) * g.pulso.weight(0));
     for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});
     c.material("pcb", {0, 0, f.width, f.height}, u);
   }
@@ -103,7 +153,9 @@ uniform vec2 uSize;
 uniform vec4 uA;   // reloj, graves, golpe, energía
 uniform vec4 uB;   // celdas, paquetes, ondas, chips
 uniform vec4 uW;   // onda 1: radio, fuerza; onda 2: radio, fuerza
-uniform vec4 uD;   // glow, destello, agudos
+uniform vec4 uD;   // glow, destello, agudos, reloj de los paquetes
+uniform vec4 uG;   // Pulso: golpe de la onda 1 y de la onda 2, graves, agudos
+uniform float uK;  // Pulso Golpes: golpe que se apaga enseguida
 uniform vec3 uC0;
 uniform vec3 uC1;
 uniform vec3 uC2;
@@ -163,7 +215,8 @@ void main() {
     if (u > 0.5) { float dd = segment(f, vec2(0.0), vec2(0.0, 0.5)); if (dd < dist) { dist = dd; along = g.y; } }
     if (d > 0.5) { float dd = segment(f, vec2(0.0), vec2(0.0, -0.5)); if (dd < dist) { dist = dd; along = g.y; } }
   }
-  float trackW = 0.07;
+  // Graves: las pistas se engrosan con los graves.
+  float trackW = 0.07 * (1.0 + 0.5 * uG.z);
   float track = 1.0 - smoothstep(trackW - pxg, trackW + pxg, dist);
   float halo = exp(-dist / 0.12);
   // Pads en los extremos y vías en los cruces.
@@ -179,27 +232,49 @@ void main() {
   // Ondas de energía desde el procesador, con distancia "de pista".
   float manhattan = abs(p.x) + abs(p.y);
   float wave = 0.0;
+  float ring = 0.0;
   if (uB.z > 0.5) {
     wave += uW.y * exp(-abs(manhattan - uW.x) * 14.0);
     wave += uW.w * exp(-abs(manhattan - uW.z) * 14.0);
+    // Golpes: la onda de un golpe llega más ancha y deja detrás una estela
+    // de luz que se apaga hacia el procesador.
+    if (uG.x + uG.y > 0.001) {
+      float d1 = manhattan - uW.x;
+      float d2 = manhattan - uW.z;
+      wave += uG.x * (1.2 * exp(-abs(d1) * 5.0) + 0.8 * exp(min(d1, 0.0) * 2.8) * step(d1, 0.0));
+      wave += uG.y * (1.2 * exp(-abs(d2) * 5.0) + 0.8 * exp(min(d2, 0.0) * 2.8) * step(d2, 0.0));
+      // Un anillo de luz recorre también la fibra entre pistas.
+      ring = uG.x * exp(-abs(d1) * 6.0) + uG.y * exp(-abs(d2) * 6.0);
+    }
   }
   // Paquetes de datos que corren por cada pista en su sentido.
   float packet = 0.0;
   if (uB.y > 0.5) {
     float h = hash12(id * 1.7 + 3.0);
     float dir = h > 0.5 ? 1.0 : -1.0;
-    float run = fract(along * 0.5 - t * (0.6 + 0.8 * h) * dir + h * 7.0);
+    float run = fract(along * 0.5 - uD.w * (0.6 + 0.8 * h) * dir + h * 7.0);
     packet = smoothstep(0.0, 0.05, run) * smoothstep(0.22, 0.05, run) * step(0.35, hash12(id + 11.0));
+    // Agudos: los paquetes centellean.
+    if (uG.w > 0.001) packet *= 1.0 + 1.4 * uG.w * step(0.5, hash12(id + floor(t * 14.0)));
   }
 
   // Placa: fibra de vidrio oscura con trama fina.
   vec3 col = uC0 + vec3(0.025, 0.018, 0.01) * (0.6 + 0.4 * sin(frag.x * 0.9) * sin(frag.y * 0.9));
   float energyLit = wave * 1.6 + packet * 1.4 + 0.25 * uA.y;
+  // Graves: el cobre se enciende con los graves. Agudos: los pads chispean.
+  if (uG.z + uG.w > 0.001) {
+    energyLit += 0.6 * uG.z + 2.2 * uG.w * pad * step(0.45, hash12(id * 1.3 + floor(t * 10.0)))
+               + 1.2 * uG.w * track * step(0.6, hash12(id * 0.7 + floor(t * 12.0)));
+  }
   vec3 copper = uC1 * (0.32 + 0.25 * uA.w);
   vec3 hot = mix(uC2, uC3, clamp(wave + packet * 0.6, 0.0, 1.0));
   col += uC1 * halo * (0.04 + 0.25 * wave + 0.1 * packet) * uD.x;
+  // Graves: un resplandor ancho del cobre sobre la placa.
+  if (uG.z > 0.001) col += uC1 * (exp(-dist / 0.3) * 0.18 + halo * 0.08) * uG.z * uD.x;
   col = mix(col, copper + hot * energyLit, max(track, pad));
   col = mix(col, uC0 * 0.6, hole);
+  // Golpes: el anillo de la onda enciende la placa a su paso.
+  if (ring > 0.001) col += mix(uC1, uC2, 0.5) * 0.3 * ring * uD.x;
 
   // Chips con patas.
   if (uB.w > 0.5) {
@@ -215,13 +290,15 @@ void main() {
     }
   }
   // Procesador central.
-  vec2 cq = abs(p) * cells;
+  vec2 cq = abs(p) * cells * (1.0 - 0.14 * uK - 0.1 * uG.z);
   float cpu = step(max(cq.x, cq.y), 1.1);
   float cpuPins = step(max(cq.x, cq.y), 1.35) * (1.0 - cpu) * step(0.5, fract(max(cq.x, cq.y) > cq.y + 0.001 ? cq.y * 5.0 : cq.x * 5.0));
   col = mix(col, uC1 * (0.6 + 1.5 * uA.z), cpuPins);
-  float core = exp(-length(cq) * 1.6) * (0.5 + 0.8 * uA.y + 1.2 * uA.z);
+  float core = exp(-length(cq) * 1.6) * (0.5 + 0.8 * uA.y + 1.2 * uA.z + 0.7 * uG.z);
   col = mix(col, vec3(0.04, 0.03, 0.02) + mix(uC2, uC3, 0.4) * core, cpu);
   col += uC2 * exp(-length(cq) * 0.7) * (0.06 + 0.2 * uA.z) * uD.x;
+  // Golpes / Graves: resplandor local alrededor del procesador.
+  if (uK + uG.z > 0.001) col += mix(uC2, uC3, 0.35) * exp(-length(p) / 0.2) * (0.4 * uK + 0.25 * uG.z) * uD.x;
 
   // El destello aviva la placa en lugar de cubrir la pantalla.
   col *= 1.0 + 0.4 * uD.y;

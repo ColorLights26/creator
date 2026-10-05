@@ -8,7 +8,11 @@
 // siguiente. El nivel máximo elige qué tres niveles recorre: con 3, curvas
 // gruesas y geométricas; con 7, tramas finas que llenan la pantalla. La
 // energía acelera el trazo, cada golpe manda un pulso de luz por toda la
-// línea y los graves la engordan.
+// línea y los graves la engordan. Pulso elige qué más hace la música: en
+// Golpes cada golpe enciende el trazo entero y su halo, el pulso de luz
+// corre más fuerte y ancho y el lápiz destella; en Graves la línea engorda,
+// se aviva y su halo respira con los graves; en Agudos la línea parpadea por
+// tramos y se llena de chispas sueltas a lo largo del dibujo.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -17,6 +21,24 @@ const modifiers = [
   CreatorModifier.steps('nivel', 'Nivel máximo', min: 3, max: 7, value: 6),
   CreatorModifier.slider('velocidad', 'Velocidad del trazo', min: .3, max: 2.5, value: 1),
   CreatorModifier.slider('grosor', 'Grosor', min: .5, max: 2, value: 1),
+  // MÚSICA: qué parte del trazo reacciona.
+  CreatorModifier.choice('pulso', 'Pulso', options: ['Golpes', 'Graves', 'Agudos']),
+];
+
+// Combinaciones con nombre que parecen otro visual.
+const variations = [
+  CreatorVariation('Dragón de Luz', {
+    'curva': 'Dragón',
+    'nivel': 5,
+    'grosor': 1.5,
+    'pulso': 'Golpes',
+  }),
+  CreatorVariation('Trama Fina', {
+    'curva': 'Hilbert',
+    'nivel': 7,
+    'grosor': .7,
+    'pulso': 'Agudos',
+  }),
 ];
 
 const nativeSource = r'''
@@ -26,6 +48,8 @@ class Visual final : public Scene {
   // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.
   double phaseTime = 0, pulseAge = 100;
   float pulsePower = 0;
+  // Reloj del parpadeo y las chispas de los agudos.
+  double shimmer = 0;
   // stage: posición dentro de la ventana de niveles que fija Nivel máximo.
   int autoCurve = 0, stage = 0, builtCurve = -1, builtLevel = -1;
   bool holding = false;
@@ -33,6 +57,11 @@ class Visual final : public Scene {
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
+  }
+
+  static float hashU(uint32_t x) {
+    x ^= x >> 16; x *= 0x7feb352dU; x ^= x >> 15; x *= 0x846ca68bU; x ^= x >> 16;
+    return float(x & 0xffffffu) / 16777216.0f;
   }
 
   static void hilbert(int order, std::vector<Vec2>& out) {
@@ -166,6 +195,7 @@ class Visual final : public Scene {
     phaseTime = 0;
     pulseAge = 100;
     pulsePower = 0;
+    shimmer = 0;
     autoCurve = int(seed % 4u);
     stage = 0;
     builtCurve = builtLevel = -1;
@@ -191,6 +221,7 @@ class Visual final : public Scene {
     slowBass = follow(slowBass, mu.bass, 3.0f, 3.0f, dt);
     hit = std::min(std::max(hit, onset), 1.0f);
     pulseAge += f.delta;
+    shimmer += f.delta;
     if (hit > kick + 0.2f) {
       pulseAge = 0;
       pulsePower = hit;
@@ -223,7 +254,14 @@ class Visual final : public Scene {
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto gl = glide(f);
     float amp = f.intensity;
+    // Pulso: cada opción mueve algo distinto; sin música todo vale cero.
+    const float wGolpes = gl.pulso.weight(0);
+    const float kickP = std::min(kick * amp, 1.0f) * wGolpes;
+    const float bassP = std::min(bass * amp, 1.0f) * gl.pulso.weight(1);
+    const float sparkP = std::min(spark * amp, 1.0f) * gl.pulso.weight(2);
+    const uint32_t tick = uint32_t(std::fmod(shimmer, 100000.0) * 14.0);
     const Color& bg = f.colors[0];
     c.rect({0, 0, f.width, f.height}, Paint::radial({f.width * 0.5f, f.height * 0.5f}, std::max(f.width, f.height) * 0.7f,
                                                    {Color{std::min(1.0f, bg.r + 0.05f), std::min(1.0f, bg.g + 0.02f), std::min(1.0f, bg.b + 0.06f), 1.0f},
@@ -238,7 +276,8 @@ class Visual final : public Scene {
     prog = prog * prog * (3.0f - 2.0f * prog);
     size_t shown = std::max<size_t>(2, size_t(prog * float(n)));
     float spacing = 2.0f * half / std::sqrt(float(n));
-    float width = std::clamp(spacing * 0.32f, 1.0f * px, 6.0f * px) * m.grosor * (1.0f + 0.3f * bass * amp);
+    // Graves: la línea engorda con los graves.
+    float width = std::clamp(spacing * 0.32f, 1.0f * px, 6.0f * px) * m.grosor * (1.0f + 0.3f * bass * amp) * (1.0f + 0.45f * bassP);
     const int chunks = 28;
     float wave = pulseAge < 2.5 ? float(pulseAge / 1.6) : 9.0f;
     for (int ch = 0; ch < chunks; ch++) {
@@ -255,14 +294,17 @@ class Visual final : public Scene {
       const Color& c2 = f.colors[3];
       Color col = t < 0.5f ? Color{c0.r + (c1.r - c0.r) * t * 2.0f, c0.g + (c1.g - c0.g) * t * 2.0f, c0.b + (c1.b - c0.b) * t * 2.0f, 1.0f}
                            : Color{c1.r + (c2.r - c1.r) * (t - 0.5f) * 2.0f, c1.g + (c2.g - c1.g) * (t - 0.5f) * 2.0f, c1.b + (c2.b - c1.b) * (t - 0.5f) * 2.0f, 1.0f};
-      float pulse = pulsePower * std::exp(-(t - wave) * (t - wave) * 60.0f);
-      float lit = (0.8f + 0.3f * body + 1.2f * pulse) * amp;
+      // Golpes: el pulso de luz corre más fuerte y más ancho (sin música no hay pulso).
+      float pulse = pulsePower * std::exp(-(t - wave) * (t - wave) * (60.0f - 30.0f * wGolpes)) * (1.0f + 0.4f * wGolpes);
+      // Golpes enciende el trazo entero; Graves lo aviva; Agudos lo hace parpadear por tramos.
+      const float flick = sparkP > 0.002f ? hashU(uint32_t(ch) * 2654435761u + tick * 40503u) : 0.0f;
+      float lit = (0.8f + 0.3f * body + 1.2f * pulse) * amp * (1.0f + 0.5f * kickP + 0.25f * bassP + 0.45f * sparkP * flick);
       Paint glow;
       glow.blend = Blend::plus;
       glow.strokeWidth = width * 3.0f + 2.0f * px;
       glow.strokeJoin = 1;
       glow.strokeCap = 1;
-      glow.color = col.opacity(std::clamp((0.1f + 0.3f * pulse) * f.glow * amp, 0.0f, 1.0f));
+      glow.color = col.opacity(std::clamp((0.1f + 0.3f * pulse) * f.glow * amp * (1.0f + 1.2f * kickP + 0.8f * bassP), 0.0f, 1.0f));
       c.path(p, glow);
       Paint line;
       line.strokeWidth = width;
@@ -271,13 +313,29 @@ class Visual final : public Scene {
       line.color = Color{std::min(1.0f, col.r * lit + pulse * 0.4f), std::min(1.0f, col.g * lit + pulse * 0.4f), std::min(1.0f, col.b * lit + pulse * 0.4f), 1.0f};
       c.path(p, line);
     }
-    // Lápiz de luz en la punta.
+    // Agudos: chispas sueltas a lo largo del dibujo, unas 160 a la vez.
+    if (sparkP > 0.002f) {
+      std::vector<Vec2> glints;
+      glints.reserve(512);
+      const float chance = std::min(0.5f, 160.0f * sparkP / float(shown));
+      for (size_t i = 0; i < shown && glints.size() < 512; i++) {
+        if (hashU(uint32_t(i) * 2654435761u + tick * 40503u) < chance) glints.push_back({center.x + pts[i].x * half, center.y + pts[i].y * half});
+      }
+      const Color& c3 = f.colors[3];
+      Paint gp;
+      gp.blend = Blend::plus;
+      gp.color = Color{std::min(1.0f, c3.r * 0.5f + 0.5f), std::min(1.0f, c3.g * 0.5f + 0.5f), std::min(1.0f, c3.b * 0.5f + 0.5f),
+                       std::clamp(0.85f * sparkP, 0.0f, 0.9f)};
+      c.points(glints, std::max(1.6f * px, width * 0.9f), gp);
+    }
+    // Lápiz de luz en la punta; Golpes lo hace destellar.
     if (!holding) {
       const Vec2& h = pts[shown - 1];
       Vec2 q{center.x + h.x * half, center.y + h.y * half};
-      Paint halo = Paint::radial(q, 16.0f * px, {f.colors[3].opacity(std::clamp(0.8f * amp, 0.0f, 1.0f)), f.colors[3].opacity(0.0f)});
+      const float tipR = 16.0f * px * (1.0f + 0.6f * kickP);
+      Paint halo = Paint::radial(q, tipR, {f.colors[3].opacity(std::clamp(0.8f * amp, 0.0f, 1.0f)), f.colors[3].opacity(0.0f)});
       halo.blend = Blend::plus;
-      c.circle(q, 16.0f * px, halo);
+      c.circle(q, tipR, halo);
       Paint dot;
       dot.color = Color{1.0f, 1.0f, 0.95f, 1.0f};
       c.circle(q, 2.4f * px, dot);

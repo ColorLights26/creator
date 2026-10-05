@@ -11,6 +11,12 @@
 // largos. Grano cambia la textura: de hilos de seda finísimos a un polvo de
 // granos gruesos y tenues, como pastel. El Brillo básico da la luz de los
 // puntos. Los graves empujan la forma y cada golpe la hace destellar.
+// Pulso elige qué más hace la música: en Golpes cada golpe hace saltar la
+// nube, la enciende con un resplandor y lanza desde el centro una onda de
+// choque que empuja los velos hacia fuera y los ilumina a su paso; en Graves
+// la nube respira, crece, sus hilos engordan y su resplandor late con los
+// graves; en Agudos los velos tiemblan y se llenan de destellos que
+// centellean con los agudos.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -20,6 +26,24 @@ const modifiers = [
   // ATMÓSFERA: textura de los velos, de seda fina a polvo grueso.
   CreatorModifier.slider('grano', 'Grano', min: 0, max: 1, value: 0),
   CreatorModifier.toggle('giro', 'Giro lento', value: true),
+  // MÚSICA: qué parte de la nube reacciona.
+  CreatorModifier.choice('pulso', 'Pulso', options: ['Golpes', 'Graves', 'Agudos']),
+];
+
+// Combinaciones con nombre que parecen otro visual.
+const variations = [
+  CreatorVariation('Polvo Estelar', {
+    'grano': .8,
+    'miles': 26,
+    'pulso': 'Agudos',
+    'giro': true,
+  }),
+  CreatorVariation('Seda que Respira', {
+    'miles': 12,
+    'cambio': .5,
+    'pulso': 'Graves',
+    'speed': .7,
+  }),
 ];
 
 const nativeSource = r'''
@@ -31,11 +55,19 @@ class Visual final : public Scene {
   double morph = 0, spin = 0, sinceShape = 0;
   float fade = 1;
   int beats = 0, from = 0, to = 0;
+  // Onda de choque del último golpe y reloj de los destellos de los agudos.
+  double ringAge = 100, shimmer = 0;
+  float ringPower = 0;
   mutable std::vector<float> raw;
   mutable std::array<std::vector<Vec2>, 3> groups;
+  mutable std::vector<Vec2> lit, glints;
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
+  }
+  static float hashU(uint32_t x) {
+    x ^= x >> 16; x *= 0x7feb352dU; x ^= x >> 15; x *= 0x846ca68bU; x ^= x >> 16;
+    return float(x & 0xffffffu) / 16777216.0f;
   }
 
   // Formas probadas y cuánto pueden variar sin caer en una órbita pobre
@@ -107,6 +139,11 @@ class Visual final : public Scene {
     from = to = int(seed % uint32_t(kPresets));
     raw.assign(30000 * 3, 0.0f);
     for (auto& g : groups) g.reserve(30000);
+    ringAge = 100;
+    ringPower = 0;
+    shimmer = 0;
+    lit.reserve(30000);
+    glints.reserve(30000);
   }
 
   void update(const Frame& f) override {
@@ -144,6 +181,13 @@ class Visual final : public Scene {
       fade = carry >= 0.0 ? std::min(1.0f, float(carry / 2.0)) : 0.0f;
       if (mu.active) sinceShape = 0;
     }
+    // Cada golpe lanza una onda de choque desde el centro de la nube.
+    ringAge += f.delta;
+    shimmer += f.delta;
+    if (hit > kick + 0.2f) {
+      ringAge = 0.0;
+      ringPower = hit;
+    }
     kick = std::max(kick * std::exp(-dt * 5.0f), hit);
     flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
     morph += f.delta * f.speed * m.cambio * (0.25 + 0.6 * drive);
@@ -154,6 +198,10 @@ class Visual final : public Scene {
     auto m = modifiers(f);
     auto gl = glide(f);
     float amp = f.intensity;
+    // Pulso: cada opción mueve algo distinto; sin música todo vale cero.
+    const float kickP = std::min(kick * amp, 1.0f) * gl.pulso.weight(0);
+    const float bassP = std::min(bass * amp, 1.0f) * gl.pulso.weight(1);
+    const float sparkP = std::min(spark * amp, 1.0f) * gl.pulso.weight(2);
     const Color& bg = f.colors[0];
     c.rect({0, 0, f.width, f.height}, Paint::radial({f.width * 0.5f, f.height * 0.5f}, std::max(f.width, f.height) * 0.7f,
                                                    {Color{std::min(1.0f, bg.r + f.colors[1].r * 0.05f), std::min(1.0f, bg.g + 0.01f), bg.b, 1.0f},
@@ -182,12 +230,41 @@ class Visual final : public Scene {
     float scale = m.giro ? std::min(f.width, f.height) * 0.47f / std::sqrt(hx * hx + hy * hy)
                          : std::min(f.width * 0.47f / hx, f.height * 0.47f / hy);
     scale *= 1.0f + 0.04f * kick * amp;
+    // Golpes: la nube da un salto; Graves: crece despacio con los graves.
+    scale *= 1.0f + 0.15f * kickP + 0.14f * bassP;
     float px = std::min(f.width, f.height) / 400.0f;
+    // Onda de choque de cada golpe: un anillo que sale del centro, empuja los
+    // velos hacia fuera y enciende los puntos por donde pasa.
+    const float maxR = std::min(f.width, f.height) * 0.5f;
+    const float ringR = float(std::min(ringAge, 10.0)) * 1.7f;
+    const float ring = ringAge < 1.6 ? std::min(ringPower * amp, 1.0f) * std::exp(-float(ringAge) * 2.2f) * gl.pulso.weight(0) : 0.0f;
+    // Agudos: temblor fino y destellos sueltos que cambian 14 veces por segundo.
+    const uint32_t tick = uint32_t(std::fmod(shimmer, 100000.0) * 14.0);
+    const bool react = ring > 0.002f || sparkP > 0.002f;
     for (auto& g : groups) g.clear();
+    lit.clear();
+    glints.clear();
     for (int i = 0; i < n; i++) {
       float x = raw[size_t(i) * 3] - cx, y = raw[size_t(i) * 3 + 1] - cy, jump = raw[size_t(i) * 3 + 2];
       float X = f.width * 0.5f + (x * cr - y * sr) * scale;
       float Y = f.height * 0.5f + (x * sr + y * cr) * scale;
+      if (react) {
+        if (ring > 0.002f) {
+          const float dx = X - f.width * 0.5f, dy = Y - f.height * 0.5f;
+          const float r = std::sqrt(dx * dx + dy * dy) + 1e-3f;
+          const float d = (r / maxR - ringR) / 0.09f;
+          const float band = std::exp(-d * d) * ring;
+          X += dx / r * band * 0.12f * maxR;
+          Y += dy / r * band * 0.12f * maxR;
+          if (band > 0.12f) lit.push_back({X, Y});
+        }
+        if (sparkP > 0.002f) {
+          const uint32_t h = uint32_t(i) * 2654435761u + tick * 40503u;
+          X += (hashU(h) - 0.5f) * 3.5f * px * sparkP;
+          Y += (hashU(h ^ 0x9e3779b9u) - 0.5f) * 3.5f * px * sparkP;
+          if (hashU(h + 7u) < 0.15f * sparkP) glints.push_back({X, Y});
+        }
+      }
       int g = jump < 1.1f ? 0 : (jump < 2.3f ? 1 : 2);
       groups[size_t(g)].push_back({X, Y});
     }
@@ -199,12 +276,39 @@ class Visual final : public Scene {
     float grain = 1.0f + 2.6f * std::clamp(gl.grano, 0.0f, 1.0f);
     float soften = 1.0f / (grain * std::sqrt(grain));
     float base = 0.11f * light * soften * density * (1.0f + 0.6f * kick + 0.3f * bass) * amp;
+    // Golpes destella la nube entera; Graves la aviva y engorda sus hilos;
+    // Agudos la hace chispear.
+    base *= 1.0f + 1.0f * kickP + 0.8f * bassP + 0.35f * sparkP;
+    // Resplandor local de la nube: Golpes lo enciende y Graves lo hace latir.
+    const float aura = std::clamp((0.32f * kickP + 0.2f * bassP) * f.glow, 0.0f, 0.6f);
+    if (aura > 0.002f) {
+      const Vec2 mid{f.width * 0.5f, f.height * 0.5f};
+      const float auraR = maxR * (1.05f + 0.1f * kickP);
+      Paint ap = Paint::radial(mid, auraR, {f.colors[2].opacity(aura), f.colors[1].opacity(aura * 0.4f), f.colors[1].opacity(0.0f)},
+                               {0.0f, 0.55f, 1.0f});
+      ap.blend = Blend::plus;
+      c.circle(mid, auraR, ap);
+    }
     for (int g = 0; g < 3; g++) {
       const Color& col = f.colors[size_t(1 + g)];
       Paint p;
       p.blend = Blend::plus;
       p.color = col.opacity(std::clamp(base * (g == 2 ? 1.3f : 1.0f), 0.0f, 1.0f));
-      c.points(groups[size_t(g)], (0.9f + 0.3f * spark) * px * grain, p);
+      c.points(groups[size_t(g)], (0.9f + 0.3f * spark) * px * grain * (1.0f + 0.6f * bassP + 0.3f * kickP), p);
+    }
+    // El frente de la onda de choque, en el tono más claro de la paleta.
+    if (!lit.empty()) {
+      Paint lp;
+      lp.blend = Blend::plus;
+      lp.color = f.colors[3].opacity(std::clamp(0.55f * ring * light, 0.0f, 0.8f));
+      c.points(lit, 1.5f * px * grain, lp);
+    }
+    // Destellos de los agudos.
+    if (!glints.empty()) {
+      Paint gp;
+      gp.blend = Blend::plus;
+      gp.color = f.colors[3].opacity(std::clamp(0.9f * sparkP, 0.0f, 0.95f));
+      c.points(glints, 2.2f * px * std::sqrt(grain), gp);
     }
     if (flash > 0.01f) {
       Paint fl;

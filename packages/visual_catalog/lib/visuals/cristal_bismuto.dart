@@ -3,8 +3,10 @@
 // hacia el centro, como pirámides invertidas, y una capa finísima de óxido
 // los tiñe de colores metálicos que cambian con su grosor. Aquí varios
 // cristales grandes llenan la pantalla con sus terrazas de oro, naranja y
-// rojo; la música corre olas de color por los escalones, los graves los
-// hacen crecer y los agudos encienden destellos en las aristas.
+// rojo. Con Golpes, cada golpe lanza desde el centro de cada cristal una ola
+// ancha de color que ilumina los escalones y enciende las aristas a su paso;
+// con Graves, los cristales crecen y sus terrazas brillan más; con Destellos,
+// los agudos encienden muchas chispas en las aristas y en las terrazas.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -101,16 +103,19 @@ class Visual final : public Scene {
     const float amp = f.intensity;
     const float t = float(std::fmod(clock, 10000.0));
     const float wQuieto = g.giro.weight(0), wRota = g.giro.weight(1), wFlota = g.giro.weight(2);
-    // Golpes: una ola de color sale del centro de cada cristal.
-    const float wave = g.pulso.weight(0) * ripplePower * amp * float(std::exp(-rippleAge * 1.6));
+    // Golpes: una ola de color ancha y luminosa sale del centro de cada cristal
+    // y se apaga despacio mientras lo cruza.
+    const float wave = g.pulso.weight(0) * ripplePower * amp * float(std::exp(-rippleAge * 1.1));
     const float waveR = float(std::min(rippleAge, 10.0)) * 1.4f;
-    const float grow = 1.0f + 0.1f * std::min(bass * amp, 1.0f) * g.pulso.weight(1);
+    // Graves: los cristales crecen y sus terrazas brillan más.
+    const float graves = std::min(bass * amp, 1.0f) * g.pulso.weight(1);
+    const float grow = 1.0f + 0.2f * graves;
     std::vector<float> u;
     u.reserve(48);
     u.insert(u.end(), {t, std::min(bass * amp, 1.5f), wave, std::min(spark * amp, 1.0f) * g.pulso.weight(2)});
     // Detalle: más finas las terrazas con más detalle.
     u.insert(u.end(), {g.escalones * (0.75f + 0.25f * f.detail), std::clamp(g.espiral, 0.0f, 1.0f), std::clamp(g.reflejo, 0.0f, 1.0f), f.glow});
-    u.insert(u.end(), {waveR, std::min(flash * amp, 1.0f), 0.0f, 0.0f});
+    u.insert(u.end(), {waveR, std::min(flash * amp, 1.0f), graves, 0.0f});
     for (int i = 0; i < kCrystals; i++) {
       const float fi = float(i);
       const float rot = cangle[size_t(i)] + float(clock) * 0.12f * cdir[size_t(i)];
@@ -133,7 +138,7 @@ const shaderSources = <String, String>{
 uniform vec2 uSize;
 uniform vec4 uA;   // tiempo, graves, ola de golpe, destellos
 uniform vec4 uB;   // escalones, espiral, reflejo, glow
-uniform vec4 uE;   // radio de la ola, destello
+uniform vec4 uE;   // radio de la ola, destello, graves
 uniform vec4 uK0;  // cristales: x, y, tamaño, ángulo
 uniform vec4 uK1;
 uniform vec4 uK2;
@@ -214,7 +219,9 @@ void main() {
     float u = fract(a.x);
     float dC = a.z;
     float tau = k * 0.13 + dC * 0.25 + idx * 0.31 + t * 0.03 + uA.y * 0.15;
-    tau += uA.z * exp(-sq((dC - uE.x) / 0.12)) * 0.35;
+    // Golpes: la ola es una banda ancha que cambia el color a su paso.
+    float band = exp(-sq((dC - uE.x) / 0.22));
+    tau += min(uA.z, 1.2) * band * 0.5;
     vec2 toLight = normalize(vec2(-0.6, -0.8));
     float lit = max(dot(inward, toLight), 0.0);
     // Reflejos metálicos que recorren las terrazas.
@@ -226,9 +233,16 @@ void main() {
     float edge = exp(-sq((u - 0.17) / 0.02));
     c += mix(uC3, vec3(1.0), 0.3) * edge * (0.25 + 0.5 * lit) * (0.6 + 0.4 * uB.w);
     c *= 1.0 - 0.6 * exp(-sq(u / 0.025));
-    // Destellos: las aristas centellean con los agudos.
-    float glint = step(0.86, hash12(floor(p * 90.0) + floor(t * 8.0)));
-    c += uC3 * edge * glint * uA.w * 1.2;
+    // Destellos: las aristas y las terrazas centellean con los agudos.
+    float glint = step(0.86 - 0.08 * uA.w, hash12(floor(p * 90.0) + floor(t * 8.0)));
+    c += uC3 * edge * glint * uA.w * 2.0;
+    float speck = step(0.95, hash12(floor(p * 140.0) + floor(t * 11.0) + 17.0));
+    c += uC3 * speck * uA.w * 0.45 * (1.0 - wall);
+    // Golpes: la ola ilumina los escalones y enciende las aristas a su paso.
+    float ring = min(uA.z, 1.0) * band;
+    c += uC3 * edge * ring * 0.8;
+    // Graves: las terrazas brillan más.
+    c *= 1.0 + 0.5 * ring + 0.22 * uE.z;
     // Borde exterior del cristal.
     c *= smoothstep(1.0, 0.985, dC) * 0.6 + 0.4;
     col = c;

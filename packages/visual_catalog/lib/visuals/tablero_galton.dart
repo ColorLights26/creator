@@ -7,7 +7,12 @@
 // así el montón queda en capas de colores. Con estela, cada bola deja su
 // camino de luz, como una foto de larga exposición. Cuando una casilla se
 // llena, el suelo se abre y todo cae. La energía hace caer más bolas, cada
-// golpe suelta una ráfaga y los graves hacen brillar los clavos.
+// golpe suelta una ráfaga y los graves hacen brillar los clavos. El Pulso
+// elige qué se nota más: con Golpes cada golpe suelta una ráfaga mucho mayor,
+// una ola de luz baja fila a fila por los clavos, el tablero y el montón se
+// iluminan y las bolas dan un salto; con Graves los clavos, las paredes y la
+// curva se engrosan y brillan y las bolas se hinchan; con Agudos centellean
+// las bolas en el aire, las del montón y la mitad de los clavos.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -18,6 +23,28 @@ const modifiers = [
   // deja encendido el zigzag que acaba de recorrer (1).
   CreatorModifier.slider('estela', 'Estela', min: 0, max: 1, value: .25),
   CreatorModifier.toggle('curva', 'Curva teórica', value: true),
+  // MÚSICA: qué parte del tablero responde al ritmo.
+  CreatorModifier.choice(
+    'pulso',
+    'Pulso',
+    options: ['Golpes', 'Graves', 'Agudos'],
+  ),
+];
+
+// Combinaciones con nombre que parecen otro visual.
+const variations = [
+  CreatorVariation('Lluvia de Bolas', {
+    'pulso': 'Golpes',
+    'caudal': 2.2,
+    'filas': 14,
+    'estela': .6,
+  }),
+  CreatorVariation('Clavos Vivos', {
+    'pulso': 'Graves',
+    'filas': 9,
+    'caudal': .6,
+    'curva': false,
+  }),
 ];
 
 const nativeSource = r'''
@@ -37,6 +64,9 @@ class Visual final : public Scene {
   int64_t ticks = 0;
   int colorTicks = 0;
   int rowsUsed = 0, layer = 0, burst = 0;
+  // Golpes: tiempo desde el último golpe y su fuerza (la ola de los clavos).
+  double beatAge = 100;
+  float beatPower = 0;
   uint32_t seedBase = 1, born = 0;
   std::vector<Ball> balls;
   std::array<int, kMaxBins> count{}, drainCount{};
@@ -68,6 +98,16 @@ class Visual final : public Scene {
     return x;
   }
 
+  // Azar fijo para los centelleos: fórmula de un número, sin Random.
+  static float sparkleOf(uint32_t x) {
+    x ^= x >> 15;
+    x *= 0x2c1b3c6du;
+    x ^= x >> 12;
+    x *= 0x297a2d39u;
+    x ^= x >> 15;
+    return float(x & 0xffffu) / 65536.0f;
+  }
+
  public:
   void reset(uint32_t seed) override {
     seedBase = seed ? seed : 1u;
@@ -81,6 +121,8 @@ class Visual final : public Scene {
     rowsUsed = 0;
     layer = 0;
     burst = 0;
+    beatAge = 100;
+    beatPower = 0;
     balls.clear();
     balls.reserve(kActive);
     count.fill(0);
@@ -89,6 +131,7 @@ class Visual final : public Scene {
 
   void update(const Frame& f) override {
     auto m = modifiers(f);
+    auto g = glide(f);
     float dt = float(f.delta);
     const Music& mu = f.music;
     bass = follow(bass, mu.bass, 22.0f, 4.5f, dt);
@@ -116,11 +159,16 @@ class Visual final : public Scene {
       drainCount.fill(0);
     }
     clock += f.delta * f.speed;
+    beatAge += f.delta;
     // Un golpe empieza una capa de color nueva y suelta una ráfaga.
     if (beat) {
       layer++;
       colorTicks = 0;
       burst += 6 + int(8.0f * hit);
+      // Golpes: la ráfaga es mucho mayor (sólo hay golpes con música).
+      burst += int(std::lround(14.0f * hit * std::min(f.intensity, 2.0f) * g.pulso.weight(0)));
+      beatAge = 0;
+      beatPower = hit;
     }
     const double rate = 16.0 * double(m.caudal) * (1.0 + 1.5 * double(drive));
     const double entry = kDrop + double(rows) * kHop;
@@ -173,8 +221,10 @@ class Visual final : public Scene {
                 balls.end());
     // Ráfaga del golpe: bolas que ya van en camino, en orden de salida.
     if (burst > 0) {
+      // Una ráfaga grande (Golpes) sale más apretada, sin aparecer a media altura.
+      const double gap = 0.02 * std::min(1.0, 14.0 / double(burst));
       while (burst > 0 && int(balls.size()) < kActive) {
-        balls.push_back({clock - 0.02 * double(burst), pathOf(born++), 0, 0, uint8_t(layer % 6), false});
+        balls.push_back({clock - gap * double(burst), pathOf(born++), 0, 0, uint8_t(layer % 6), false});
         burst--;
       }
       burst = 0;
@@ -242,6 +292,26 @@ class Visual final : public Scene {
       return p;
     };
 
+    // Pulso: cada opción mueve una parte distinta (sin música, todo 0).
+    const float golpe = g.pulso.weight(0), graves = g.pulso.weight(1), agudos = g.pulso.weight(2);
+    const float swell = std::min(bass * amp, 1.2f) * graves;
+    const float glint = std::min(spark * amp, 1.2f) * agudos;
+    const float punch = std::min(kick * amp, 1.2f) * golpe;
+    // Golpes / Graves: resplandor local sobre el tablero de clavos y sobre el montón.
+    if (punch + swell > 0.01f) {
+      const float pegsR = (pegBottom - pegTop) * 0.95f;
+      Paint boardGlow = Paint::radial({cx, (pegTop + pegBottom) * 0.5f}, pegsR,
+                                      {f.colors[2].opacity(std::clamp((0.35f * punch + 0.15f * swell) * f.glow, 0.0f, 1.0f)),
+                                       f.colors[2].opacity(0.0f)});
+      boardGlow.blend = Blend::plus;
+      c.circle({cx, (pegTop + pegBottom) * 0.5f}, pegsR, boardGlow);
+      const float pileR = float(bins) * binW * 0.5f;
+      Paint pileGlow = Paint::radial({cx, binBottom}, pileR,
+                                     {f.colors[1].opacity(std::clamp((0.3f * punch + 0.25f * swell) * f.glow, 0.0f, 1.0f)),
+                                      f.colors[1].opacity(0.0f)});
+      pileGlow.blend = Blend::plus;
+      c.circle({cx, binBottom}, pileR, pileGlow);
+    }
     // Casillas: paredes finas y suelo.
     Path walls;
     for (int b = 0; b <= bins; b++) {
@@ -250,8 +320,8 @@ class Visual final : public Scene {
     }
     walls.moveTo(cx - float(bins) * 0.5f * binW, binBottom).lineTo(cx + float(bins) * 0.5f * binW, binBottom);
     Paint wp;
-    wp.strokeWidth = 1.4f * px;
-    wp.color = Color{0.75f, 0.72f, 0.78f, 0.35f};
+    wp.strokeWidth = 1.4f * px * (1.0f + 0.5f * swell);
+    wp.color = Color{0.75f, 0.72f, 0.78f, std::min(1.0f, 0.35f * (1.0f + 0.8f * swell))};
     c.path(walls, wp);
     // Clavos.
     std::vector<Vec2> pegs;
@@ -261,11 +331,42 @@ class Visual final : public Scene {
     }
     Paint pegGlow;
     pegGlow.blend = Blend::plus;
-    pegGlow.color = f.colors[2].opacity(std::clamp((0.1f + 0.25f * bass + 0.2f * kick) * f.glow * amp, 0.0f, 1.0f));
-    c.points(pegs, 5.5f * px, pegGlow);
+    // Graves: los clavos brillan más y su halo crece con los graves.
+    pegGlow.color = f.colors[2].opacity(std::clamp((0.1f + 0.25f * bass + 0.2f * kick + 0.8f * bass * graves) * f.glow * amp, 0.0f, 1.0f));
+    c.points(pegs, 5.5f * px * (1.0f + 0.5f * swell), pegGlow);
     Paint pegDot;
     pegDot.color = Color{0.86f, 0.84f, 0.9f, 1.0f};
     c.points(pegs, 2.2f * px, pegDot);
+    // Golpes: una ola de luz baja fila a fila por los clavos con cada golpe.
+    const float ripple = std::min(beatPower * amp, 1.2f) * golpe;
+    if (ripple > 0.01f && beatAge < 1.2) {
+      Paint flashPeg;
+      flashPeg.blend = Blend::plus;
+      std::vector<Vec2> rowPegs;
+      rowPegs.reserve(size_t(rows));
+      for (int r = 0; r < rows; r++) {
+        const float local = float(beatAge) - 0.32f * float(r) / float(rows);
+        if (local < 0.0f) continue;
+        const float lightUp = std::exp(-local * 6.0f) * ripple;
+        if (lightUp < 0.01f) continue;
+        rowPegs.clear();
+        for (int k = 0; k <= r; k++) rowPegs.push_back({cx + (float(k) - float(r) * 0.5f) * binW, pegTop + float(r) * dy});
+        flashPeg.color = f.colors[3].opacity(std::clamp(1.1f * lightUp, 0.0f, 1.0f));
+        c.points(rowPegs, 5.0f * px * (1.0f + 0.5f * lightUp), flashPeg);
+      }
+    }
+    // Agudos: algunos clavos centellean.
+    if (glint > 0.01f) {
+      const uint32_t pegTick = uint32_t(int64_t(std::floor(clock * 9.0)) & 0xffffff);
+      std::vector<Vec2> twinkle;
+      twinkle.reserve(pegs.size());
+      for (size_t i = 0; i < pegs.size(); i++)
+        if (sparkleOf(uint32_t(i) * 747796405u + pegTick * 2891336453u) > 0.5f) twinkle.push_back(pegs[i]);
+      Paint tw;
+      tw.blend = Blend::plus;
+      tw.color = Color{1.0f, 0.97f, 0.9f, std::clamp(0.8f * glint, 0.0f, 1.0f)};
+      c.points(twinkle, 3.6f * px, tw);
+    }
 
     // Estela: el camino reciente de cada bola, en muestras fijas de su propio
     // recorrido (no tiemblan) y en tres tramos que se apagan hacia atrás.
@@ -355,12 +456,37 @@ class Visual final : public Scene {
       const Color& col = groupColor[size_t(i)];
       Paint p;
       p.color = Color{std::min(1.0f, col.r * lit), std::min(1.0f, col.g * lit), std::min(1.0f, col.b * lit), 1.0f};
-      c.points(groups[size_t(i)], ballR * 0.92f, p);
+      // Graves: las bolas se hinchan con los graves.
+      c.points(groups[size_t(i)], ballR * 0.92f * (1.0f + 0.12f * swell + 0.15f * punch), p);
     }
     Paint shine;
     shine.blend = Blend::plus;
-    shine.color = Color{1.0f, 0.95f, 0.85f, std::clamp(0.35f * amp, 0.0f, 1.0f)};
-    c.points(flying, ballR * 0.45f, shine);
+    shine.color = Color{1.0f, 0.95f, 0.85f, std::clamp(0.35f * amp + 0.5f * punch, 0.0f, 1.0f)};
+    c.points(flying, ballR * 0.45f * (1.0f + 0.4f * punch), shine);
+    // Agudos: las bolas en el aire centellean.
+    if (glint > 0.01f) {
+      const uint32_t tick = uint32_t(int64_t(std::floor(clock * 12.0)) & 0xffffff);
+      std::vector<Vec2> sparkles;
+      sparkles.reserve(flying.size());
+      size_t k = 0;
+      for (const auto& b : balls) {
+        if (b.landed && simNow - b.t0 > entry + kFall) continue;
+        if (sparkleOf(b.path ^ (tick * 2654435761u)) > 0.4f) sparkles.push_back(flying[k]);
+        k++;
+      }
+      std::vector<Vec2> pile;
+      for (int bi = 0; bi < bins; bi++)
+        for (int s = 0; s < count[size_t(bi)]; s++)
+          if (sparkleOf(uint32_t(bi * kSlots + s) * 2246822519u + tick * 3266489917u) > 0.8f) pile.push_back(slotPos(bi, s));
+      Paint pp;
+      pp.blend = Blend::plus;
+      pp.color = Color{1.0f, 1.0f, 0.95f, std::clamp(0.7f * glint, 0.0f, 1.0f)};
+      c.points(pile, ballR * 0.6f, pp);
+      Paint sp;
+      sp.blend = Blend::plus;
+      sp.color = Color{1.0f, 1.0f, 0.95f, std::clamp(0.9f * glint, 0.0f, 1.0f)};
+      c.points(sparkles, ballR * 0.75f, sp);
+    }
     // Curva teórica: la campana que el montón va dibujando.
     if (m.curva) {
       int total = 0;
@@ -378,7 +504,7 @@ class Visual final : public Scene {
         }
         Paint cp;
         cp.blend = Blend::plus;
-        cp.strokeWidth = 2.0f * px;
+        cp.strokeWidth = 2.0f * px * (1.0f + 0.5f * swell);
         cp.strokeJoin = 1;
         cp.color = Color{1.0f, 1.0f, 1.0f, std::clamp((0.35f + 0.3f * kick) * amp, 0.0f, 1.0f)};
         c.path(curve, cp);

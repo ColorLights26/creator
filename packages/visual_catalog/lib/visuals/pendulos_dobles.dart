@@ -8,7 +8,12 @@
 // ciclo, antes se abre el abanico. La física es real (ecuaciones de Lagrange
 // integradas con Runge-Kutta a 120 pasos por segundo), con el brazo de abajo
 // más corto o más largo. Los graves engordan los brazos y cada golpe
-// enciende las puntas.
+// enciende las puntas. Pulso elige qué más hace la música: en Golpes cada
+// golpe le da al conjunto un empujón visible (un lado y luego el otro) que
+// se balancea y se calma, los brazos crecen y engordan, y un resplandor
+// enciende el abanico; en Graves los brazos se alargan, engordan y brillan y
+// el resplandor late con los graves; en Agudos puntas y estelas centellean y
+// muchas puntas sueltas destellan con los agudos.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -22,6 +27,24 @@ const modifiers = [
   // juntos, como uno solo, mucho más tiempo.
   CreatorModifier.slider('ciclo', 'Segundos de caos', min: 10, max: 40, value: 20),
   CreatorModifier.toggle('estelas', 'Estelas', value: true),
+  // MÚSICA: qué parte de los péndulos reacciona.
+  CreatorModifier.choice('pulso', 'Pulso', options: ['Golpes', 'Graves', 'Agudos']),
+];
+
+// Combinaciones con nombre que parecen otro visual.
+const variations = [
+  CreatorVariation('Latigazos', {
+    'brazo': .5,
+    'ciclo': 12,
+    'pulso': 'Golpes',
+    'speed': 1.3,
+  }),
+  CreatorVariation('Abanico Lento', {
+    'brazo': 1.8,
+    'ciclo': 35,
+    'pendulos': 320,
+    'pulso': 'Graves',
+  }),
 ];
 
 const nativeSource = r'''
@@ -41,9 +64,17 @@ class Visual final : public Scene {
   std::vector<State> st;
   std::vector<float> trailX, trailY;
   int trailHead = 0, trailCount = 0;
+  // Empujón del último golpe (con su lado) y reloj del centelleo.
+  double swingAge = 100, shimmer = 0;
+  float swingPow = 0;
+  int swingSide = 0;
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
+  }
+  static float hashU(uint32_t x) {
+    x ^= x >> 16; x *= 0x7feb352dU; x ^= x >> 15; x *= 0x846ca68bU; x ^= x >> 16;
+    return float(x & 0xffffffu) / 16777216.0f;
   }
 
   // Ecuaciones del péndulo doble con masas iguales y brazos l1 y l2
@@ -116,6 +147,10 @@ class Visual final : public Scene {
     trailCount = 0;
     sinceReset = 0;
     resetPending = false;
+    swingAge = 100;
+    shimmer = 0;
+    swingPow = 0;
+    swingSide = 0;
   }
 
   void update(const Frame& f) override {
@@ -137,6 +172,13 @@ class Visual final : public Scene {
     slowBass = follow(slowBass, mu.bass, 3.0f, 3.0f, dt);
     hit = std::min(std::max(hit, onset), 1.0f);
     bool beat = hit > kick + 0.2f;
+    // Golpes: cada golpe empuja el conjunto, alternando el lado.
+    swingAge += f.delta;
+    shimmer += f.delta;
+    if (beat) {
+      swingAge = 0.0;
+      swingPow = hit * ((swingSide++ % 2) == 0 ? 1.0f : -1.0f);
+    }
     kick = std::max(kick * std::exp(-dt * 5.0f), hit);
     flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
 
@@ -172,7 +214,12 @@ class Visual final : public Scene {
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto gl = glide(f);
     float amp = f.intensity;
+    // Pulso: cada opción mueve algo distinto; sin música todo vale cero.
+    const float kickP = std::min(kick * amp, 1.0f) * gl.pulso.weight(0);
+    const float bassP = std::min(bass * amp, 1.0f) * gl.pulso.weight(1);
+    const float sparkP = std::min(spark * amp, 1.0f) * gl.pulso.weight(2);
     const Color& bg = f.colors[0];
     c.rect({0, 0, f.width, f.height}, Paint::radial({f.width * 0.5f, f.height * 0.42f}, std::max(f.width, f.height) * 0.7f,
                                                    {Color{std::min(1.0f, bg.r + 0.05f), std::min(1.0f, bg.g + 0.03f), std::min(1.0f, bg.b + 0.07f), 1.0f},
@@ -180,7 +227,8 @@ class Visual final : public Scene {
     if (count <= 0) return;
     float side = std::min(f.width, f.height);
     float px = side / 400.0f;
-    float L = side * 0.3f;
+    // Graves: los brazos se alargan con los graves; Golpes: crecen de golpe.
+    float L = side * 0.3f * (1.0f + 0.14f * bassP + 0.15f * kickP);
     double l1, l2;
     armLengths(glide(f).brazo, l1, l2);
     const float L1 = L * float(l1), L2 = L * float(l2);
@@ -202,6 +250,10 @@ class Visual final : public Scene {
     std::array<Path, groups> arms, trails;
     std::array<std::vector<Vec2>, groups> tips;
     for (auto& t : tips) t.reserve(size_t(count / groups + 2));
+    // Agudos: puntas sueltas que destellan, 14 veces por segundo.
+    std::vector<Vec2> glints;
+    if (sparkP > 0.002f) glints.reserve(size_t(count));
+    const uint32_t tick = uint32_t(std::fmod(shimmer, 100000.0) * 14.0);
     for (int i = 0; i < count; i++) {
       int g = std::min(groups - 1, i * groups / count);
       const State& s = st[size_t(i)];
@@ -209,6 +261,7 @@ class Visual final : public Scene {
       float x2 = x1 + L2 * float(std::sin(s.a2)), y2 = y1 + L2 * float(std::cos(s.a2));
       arms[size_t(g)].moveTo(pivot.x, pivot.y).lineTo(x1, y1).lineTo(x2, y2);
       tips[size_t(g)].push_back({x2, y2});
+      if (sparkP > 0.002f && hashU(uint32_t(i) * 2654435761u + tick * 40503u) < 0.35f * sparkP) glints.push_back({x2, y2});
       if (m.estelas && trailHead >= 0) {
         for (int k = 0; k < trailCount; k++) {
           int idx = ((trailHead - k) % kTrail + kTrail) % kTrail;
@@ -220,28 +273,60 @@ class Visual final : public Scene {
       }
     }
     float alpha = std::clamp(4.2f / std::sqrt(float(count)) * amp, 0.05f, 1.0f);
+    // Golpes: el empujón gira el conjunto alrededor del eje y se balancea
+    // hasta calmarse.
+    const float push = std::clamp(swingPow * amp, -1.0f, 1.0f) * gl.pulso.weight(0);
+    const float theta = swingAge < 3.0 ? 0.45f * push * std::exp(-float(swingAge) * 3.2f) * std::sin(float(swingAge) * 12.0f) : 0.0f;
+    const bool swing = std::fabs(theta) > 1e-4f;
+    // Resplandor local del abanico: Golpes lo enciende y Graves lo hace latir.
+    const float aura = std::clamp((0.3f * kickP + 0.2f * bassP) * f.glow, 0.0f, 0.6f);
+    if (aura > 0.002f) {
+      const float auraR = L * 2.1f;
+      Paint ap = Paint::radial(pivot, auraR, {f.colors[2].opacity(aura), f.colors[1].opacity(aura * 0.4f), f.colors[1].opacity(0.0f)},
+                               {0.0f, 0.5f, 1.0f});
+      ap.blend = Blend::plus;
+      c.circle(pivot, auraR, ap);
+    }
+    if (swing) {
+      c.save();
+      c.translate(pivot.x, pivot.y);
+      c.rotate(theta);
+      c.translate(-pivot.x, -pivot.y);
+    }
+    const float clock = float(std::fmod(shimmer, 1000.0));
     for (int g = 0; g < groups; g++) {
       Color col = groupColor(g);
+      // Agudos: cada grupo centellea a su ritmo.
+      const float tw = 0.5f + 0.5f * std::sin(clock * 19.0f + float(g) * 2.3f);
       if (m.estelas) {
         Paint tp;
         tp.blend = Blend::plus;
         tp.strokeWidth = 1.6f * px;
         tp.strokeJoin = 1;
-        tp.color = col.opacity(std::clamp(alpha * 0.7f * f.glow, 0.0f, 1.0f));
+        tp.color = col.opacity(std::clamp(alpha * 0.7f * f.glow * (1.0f + 1.6f * kickP + 0.8f * bassP + 1.6f * sparkP * tw), 0.0f, 1.0f));
         c.path(trails[size_t(g)], tp);
       }
       Paint arm;
       arm.blend = Blend::plus;
-      arm.strokeWidth = (1.7f + 1.4f * bass) * px;
+      arm.strokeWidth = (1.7f + 1.4f * bass + 2.2f * bassP) * px * (1.0f + 1.0f * kickP);
       arm.strokeJoin = 1;
       arm.strokeCap = 1;
-      arm.color = col.opacity(std::clamp(alpha * (0.8f + 0.4f * energy), 0.0f, 1.0f));
+      arm.color = col.opacity(std::clamp(alpha * (0.8f + 0.4f * energy) * (1.0f + 0.8f * bassP + 0.9f * kickP), 0.0f, 1.0f));
       c.path(arms[size_t(g)], arm);
       Paint tip;
       tip.blend = Blend::plus;
-      tip.color = col.opacity(std::clamp((0.35f + 0.5f * kick) * amp, 0.0f, 1.0f));
-      c.points(tips[size_t(g)], (2.6f + 2.5f * kick) * px, tip);
+      tip.color = col.opacity(std::clamp((0.35f + 0.5f * kick) * amp + 0.7f * kickP + 0.8f * sparkP * tw, 0.0f, 1.0f));
+      c.points(tips[size_t(g)], (2.6f + 2.5f * kick) * px * (1.0f + 1.0f * kickP + 0.5f * bassP + 1.8f * sparkP * tw), tip);
     }
+    if (!glints.empty()) {
+      const Color& c3 = f.colors[3];
+      Paint gp;
+      gp.blend = Blend::plus;
+      gp.color = Color{std::min(1.0f, c3.r * 0.5f + 0.5f), std::min(1.0f, c3.g * 0.5f + 0.5f), std::min(1.0f, c3.b * 0.5f + 0.5f),
+                       std::clamp(0.9f * sparkP, 0.0f, 0.95f)};
+      c.points(glints, 3.6f * px, gp);
+    }
+    if (swing) c.restore();
     Paint hub;
     hub.color = Color{1.0f, 0.97f, 0.9f, 1.0f};
     c.circle(pivot, 3.5f * px, hub);

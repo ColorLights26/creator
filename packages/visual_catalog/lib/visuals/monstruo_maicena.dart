@@ -4,7 +4,13 @@
 // retuercen, se sostienen un instante y se derrumban otra vez. Aquí la masa
 // brillante descansa sobre el cono del altavoz y le salen dedos, garras o
 // bulbos al ritmo de la música, con un brillo húmedo y la luz que se cuela
-// por los bordes. Sin música, el altavoz late solo y la masa no para.
+// por los bordes. Con Golpes, cada golpe hace brotar de una vez varios dedos
+// más altos (con dos huecos extra), la masa da un salto de tamaño, se
+// enciende y un resplandor la rodea; con Graves, los graves sostenidos sacan
+// dedos sin parar, la masa respira con un halo y el cono vibra y brilla; con
+// Temblor, los agudos rizan la superficie, retuercen los dedos y hacen
+// centellear chispas húmedas por toda la masa. Sin música, el altavoz late
+// solo y la masa no para.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -68,8 +74,9 @@ class Visual final : public Scene {
 
   static double lifeTime(float cons) { return double(kGrow + holdTime(cons) + collapseTime(cons)); }
   // Hace brotar un dedo en un hueco que estaba libre en el instante del brote;
-  // carry es el tiempo que ya pasó desde entonces.
-  void sprout(float strength, double carry, int limit, double life) {
+  // carry es el tiempo que ya pasó desde entonces. tall alarga los dedos de
+  // los golpes (1 = altura normal).
+  void sprout(float strength, double carry, int limit, double life, float tall = 1.0f) {
     for (int i = 0; i < limit; i++) {
       Finger& fg = fingers[size_t(i)];
       if (fg.age - carry < life) continue;
@@ -78,10 +85,14 @@ class Visual final : public Scene {
       fg.lean = (hashU(k * 2246822519u + 7u) - 0.5f) * 0.5f;
       fg.width = 0.03f + 0.025f * hashU(k * 3266489917u + 11u);
       fg.height = (0.3f + 0.36f * hashU(k * 668265263u + 13u)) * std::clamp(strength, 0.35f, 1.2f);
+      if (tall > 1.0f) fg.height = std::min(fg.height * tall, 0.85f);
       fg.age = carry;
       return;
     }
   }
+  // Los golpes pueden usar dos huecos más que el resto: sin golpes nunca se
+  // ocupan, así que sin música el dibujo no cambia.
+  static int burstCapacity(float detail) { return std::min(kFingers, capacity(detail) + 2); }
 
  public:
   void reset(uint32_t seed) override {
@@ -115,17 +126,20 @@ class Visual final : public Scene {
     for (auto& fg : fingers) fg.age = std::min(fg.age + step, 1000.0);
     const int limit = capacity(f.detail);
     const float amp = f.intensity;
-    // Golpes: cada golpe hace brotar dedos, más cuanto más fuerte.
+    // Golpes: cada golpe hace brotar de una vez varios dedos más altos, más
+    // cuanto más fuerte, y puede usar dos huecos extra.
     if (m.pulso == 0 && fresh) {
-      const int count = 1 + int(hit * amp * 2.5f);
-      for (int i = 0; i < count; i++) sprout(0.7f + 0.5f * hit * amp, 0.0, limit, life);
+      const int count = 1 + int(hit * amp * 3.5f);
+      const float tall = 1.0f + 0.25f * std::min(hit * amp, 1.0f);
+      const int burstLimit = burstCapacity(f.detail);
+      for (int i = 0; i < count; i++) sprout(0.7f + 0.5f * hit * amp, 0.0, burstLimit, life, tall);
     }
     // Graves: los graves sostenidos hacen brotar dedos sin parar.
     if (m.pulso == 1) {
-      bassCredit += bass * amp * float(step) * 5.0f;
+      bassCredit += bass * amp * float(step) * 7.0f;
       while (bassCredit >= 1.0f) {
         bassCredit -= 1.0f;
-        sprout(0.5f + 0.7f * std::min(bass * amp, 1.0f), 0.0, limit, life);
+        sprout(0.5f + 0.8f * std::min(bass * amp, 1.0f), 0.0, limit, life);
       }
     }
     // A su ritmo la masa sigue viva; con música, más despacio.
@@ -144,12 +158,16 @@ class Visual final : public Scene {
     const float amp = f.intensity;
     const float cons = std::clamp(g.consistencia, 0.0f, 1.0f);
     const float hold = holdTime(cons), fall = collapseTime(cons);
-    const float wobble = (1.2f - cons) * (1.0f + 1.5f * g.pulso.weight(2) * std::min((spark + energy) * amp, 1.0f));
-    const int limit = capacity(f.detail);
+    // Temblor: los agudos retuercen los dedos con más fuerza.
+    const float wobble = (1.2f - cons) * (1.0f + 2.6f * g.pulso.weight(2) * std::min((spark + energy) * amp, 1.0f));
+    // Los huecos extra sólo los ocupan los golpes; sin golpes siguen vacíos.
+    const int limit = burstCapacity(f.detail);
     std::vector<float> u;
     u.reserve(64);
     const float tremble = g.pulso.weight(2) * std::min((spark * 1.2f + energy * 0.5f) * amp, 1.2f);
-    u.insert(u.end(), {float(std::fmod(clock, 1000.0)), std::min(bass * amp, 1.5f), std::min(kick * amp, 1.0f), tremble});
+    // Golpes: la masa se enciende más con cada golpe.
+    const float punch = std::min(kick * amp, 1.0f) * (1.0f + 0.5f * g.pulso.weight(0));
+    u.insert(u.end(), {float(std::fmod(clock, 1000.0)), std::min(bass * amp, 1.5f), punch, tremble});
     u.insert(u.end(), {g.forma.weight(0), g.forma.weight(1), g.forma.weight(2), std::clamp(g.humedad, 0.0f, 1.0f)});
     u.insert(u.end(), {wobble, f.glow, std::min(flash * amp, 1.0f), std::min(bass * amp, 1.0f) * (0.4f + 0.6f * g.pulso.weight(1))});
     for (int i = 0; i < kFingers; i++) {
@@ -175,6 +193,9 @@ class Visual final : public Scene {
       u.insert(u.end(), {fg.x, std::max(h, 0.0f), lean, w});
     }
     for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[size_t(i)].r, f.colors[size_t(i)].g, f.colors[size_t(i)].b});
+    // Pulso para el material: golpe, graves y agudos de su propia opción.
+    u.insert(u.end(), {std::min(kick * amp, 1.0f) * g.pulso.weight(0), std::min(bass * amp, 1.0f) * g.pulso.weight(1),
+                       std::min(spark * amp, 1.0f) * g.pulso.weight(2), 0.0f});
     c.material("oobleck", {0, 0, f.width, f.height}, u);
   }
 };
@@ -200,6 +221,7 @@ uniform vec3 uC0;
 uniform vec3 uC1;
 uniform vec3 uC2;
 uniform vec3 uC3;
+uniform vec4 uP;   // pulso: golpe, graves, agudos (cero sin música)
 out vec4 fragColor;
 
 float sq(float x) {
@@ -241,8 +263,10 @@ float finger(vec2 p, vec4 F, float t) {
 float scene(vec2 p, float t) {
   // La masa sobre el cono: una elipse con la superficie que tiembla.
   vec2 q = p - vec2(0.0, -0.19);
-  q.y += uA.w * 0.012 * sin(q.x * 40.0 + t * 22.0) + 0.006 * uA.y * sin(q.x * 9.0 - t * 5.0);
+  q.y += uA.w * 0.02 * sin(q.x * 40.0 + t * 22.0) + 0.006 * uA.y * sin(q.x * 9.0 - t * 5.0);
   float puddle = (length(q / vec2(0.44, 0.075)) - 1.0) * 0.075;
+  // Golpes: la masa da un salto de tamaño (16 %). Graves: respira (12 %).
+  puddle -= 0.075 * (0.16 * uP.x + 0.12 * uP.y);
   float k = 0.05;
   float d = puddle;
   d = smin(d, finger(p, uF0, t), k);
@@ -265,12 +289,20 @@ void main() {
   // Fondo: oscuridad con un foco desde arriba y el cono del altavoz.
   vec3 col = uC0 + uC1 * 0.1 * exp(-length(p - vec2(0.0, 0.55)) * 1.6);
   vec2 cq = vec2(p.x, (p.y + 0.19) * 2.6);
-  float r = length(cq) + uE.w * 0.006 * sin(t * 60.0);
+  // Graves: el cono vibra y sus anillos brillan.
+  float r = length(cq) + uE.w * 0.01 * sin(t * 60.0);
   float cone = smoothstep(0.82, 0.78, r);
   vec3 coneCol = uC0 * 1.6 + uC1 * 0.05 * (1.0 - r);
   float rings = exp(-sq((r - 0.52) / 0.01)) + exp(-sq((r - 0.64) / 0.012)) + 0.6 * exp(-sq((r - 0.76) / 0.015));
-  coneCol += uC2 * rings * (0.12 + 0.3 * uE.w);
+  coneCol += uC2 * rings * (0.12 + 0.5 * uE.w);
   col = mix(col, coneCol, cone);
+  // Golpes: resplandor aditivo alrededor de la masa. Graves: un halo suave
+  // que respira con los graves.
+  float haloAmt = uP.x * 0.4 + uP.y * 0.24;
+  if (haloAmt > 0.0005) {
+    vec2 hq = (p - vec2(0.0, -0.08)) / vec2(0.55, 0.36);
+    col += mix(uC2, uC3, 0.35) * haloAmt * uE.y * exp(-dot(hq, hq) * 1.6);
+  }
   // La masa sólo se calcula donde puede estar.
   float top = BASE_Y + max(max(max(uF0.y, uF1.y), max(uF2.y, uF3.y)), max(max(uF4.y, uF5.y), max(uF6.y, uF7.y))) + 0.1;
   if (p.y < top && abs(p.x) < 0.66 && p.y > -0.32) {
@@ -296,6 +328,15 @@ void main() {
       // Sin humedad parece polvo mate.
       goo *= mix(0.88 + 0.12 * hash12(floor(frag * 0.7)), 1.0, wet);
       goo *= 1.0 + 0.25 * uA.z + 0.1 * uE.z;
+      // Música: todo esto vale cero sin música.
+      if (uP.x + uP.y + uP.z > 0.0005) {
+        // Golpes y graves: la luz de los bordes sube un 80 %.
+        goo += uC2 * rim * 0.28 * uE.y * (uP.x + uP.y);
+        // Golpes: la masa entera se enciende (+85 % con la subida de antes).
+        goo *= 1.0 + 0.35 * uP.x;
+        // Agudos: muchas chispas húmedas centellean por toda la masa.
+        goo += uC3 * uP.z * 0.75 * step(0.86, hash12(floor(frag * 0.3) + floor(t * 12.0)));
+      }
       col = mix(col, goo, inside);
     }
   }

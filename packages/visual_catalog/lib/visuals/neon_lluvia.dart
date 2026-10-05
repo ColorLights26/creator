@@ -2,6 +2,45 @@
 // Cuatro capas de skyline en perspectiva con ventanas encendidas, reflejo mojado
 // invertido, rótulos de neón con parpadeo y 380 gotas de lluvia. El skyline se
 // dibuja con vectores y puntos, sin imágenes horneadas.
+// Música: la energía y los graves animan la lluvia y la ciudad. Pulso elige
+// el resto: Golpes hace estallar los rótulos de neón, enciende las ventanas
+// y alarga las gotas en cada golpe; Graves levanta y espesa la niebla y
+// agranda las ventanas despacio; Agudos hace parpadear ventanas sueltas.
+// Además, cada opción de Pulso enciende un resplandor local sobre
+// la ciudad y sus rótulos, que late con la música (nunca un velo a pantalla completa).
+import 'package:scene_compositor/authoring.dart';
+
+// Ajustes propios de este visual. Studio los muestra en Ajustes.
+const modifiers = [
+  // FORMA: llovizna de puntos o largos hilos de agua.
+  CreatorModifier.slider('gotas', 'Largo de las gotas', min: .4, max: 3, value: 1),
+  // MOVIMIENTO: lluvia vertical o temporal que la inclina.
+  CreatorModifier.slider('viento', 'Viento', min: 0, max: 1, value: 0),
+  // MÚSICA
+  CreatorModifier.choice(
+    'pulso',
+    'Pulso',
+    options: ['Golpes', 'Graves', 'Agudos'],
+  ),
+  // ATMÓSFERA: la niebla que se posa sobre el horizonte.
+  CreatorModifier.slider('niebla', 'Niebla', min: 0, max: 2.5, value: 1),
+];
+
+// Combinaciones con nombre que parecen otro visual.
+const variations = [
+  CreatorVariation('Temporal', {
+    'viento': .8,
+    'gotas': 1.8,
+    'pulso': 'Golpes',
+    'speed': 1.3,
+  }),
+  CreatorVariation('Bruma Nocturna', {
+    'niebla': 2.2,
+    'gotas': .6,
+    'pulso': 'Graves',
+  }),
+];
+
 const nativeSource = r'''
 class Visual final : public Scene {
   struct Bld { float x, w, h; };
@@ -63,12 +102,23 @@ class Visual final : public Scene {
   float rainTime = 0.0f;
   float smoothEnergy = 0.0f;
   float smoothBass = 0.0f;
+  // Envolventes de la música para Pulso (cero en silencio).
+  float bass = 0, spark = 0, energy = 0, slowBass = 0;
+  float kick = 0, flash = 0;
+  static float follow(float v, float target, float up, float down, float dt) {
+    return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
+  }
+  static float hashU(uint32_t x) {
+    x ^= x >> 16; x *= 0x7feb352dU; x ^= x >> 15; x *= 0x846ca68bU; x ^= x >> 16;
+    return float(x & 0xffffffu) / 16777216.0f;
+  }
  public:
   void reset(uint32_t seed) override {
     (void)seed;
     layers.clear(); drops.clear();
     rainTime = 0.0f; smoothEnergy = 0.0f; smoothBass = 0.0f;
     lastw = 0; lasth = 0; lastDetail = -1.0f;
+    bass = spark = energy = slowBass = kick = flash = 0.0f;
   }
   void update(const Frame& f) override {
     float dt = float(f.delta);
@@ -86,12 +136,35 @@ class Visual final : public Scene {
       build(f.width, f.height, f.detail);
       lastw = f.width; lasth = f.height; lastDetail = f.detail;
     }
+
+    // Música para Pulso: envolventes y golpes (todo vale cero en silencio).
+    const Music& mu = f.music;
+    bass = follow(bass, mu.bass, 22.0f, 4.5f, dt);
+    spark = follow(spark, mu.spark, 30.0f, 7.0f, dt);
+    energy = follow(energy, mu.energy, 6.0f, 1.8f, dt);
+    float hit = 0, fl = 0;
+    for (const auto& e : mu.events[0]) hit = std::max(hit, e.strength);
+    for (const auto& e : mu.events[2]) hit = std::max(hit, e.strength * 0.85f);
+    for (const auto& e : mu.events[3]) fl = std::max(fl, e.strength);
+    const float onset = std::clamp((mu.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);
+    slowBass = follow(slowBass, mu.bass, 3.0f, 3.0f, dt);
+    hit = std::min(std::max(hit, onset), 1.0f);
+    kick = std::max(kick * std::exp(-dt * 5.0f), hit);
+    flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
   }
   void render(const Frame& f, Canvas& c) const override {
     float w = f.width, h = f.height;
     float t = rainTime;
     float horizon = h * 0.66f;
     float boost = std::clamp((0.85f + 0.35f * smoothEnergy) * f.intensity, 0.0f, 1.0f);
+    auto g = glide(f);
+    const float amp = f.intensity;
+    // Pulso: sus pesos reparten la reacción; todo vale cero sin música.
+    const float punch = std::min(kick * amp, 1.0f) * g.pulso.weight(0);
+    const float swell = std::min(bass * amp, 1.0f) * g.pulso.weight(1);
+    const float glint = std::min(spark * amp, 1.0f) * g.pulso.weight(2);
+    const uint32_t tick = uint32_t(std::floor(f.time * 10.0));
+    std::vector<Vec2> twinkle;
     Paint sky = Paint::linear({0, 0}, {0, h},
       {Color::argb(0xff05060c), Color::argb(0xff131a2c), Color::argb(0xff2a1c2c),
        Color::argb(0xff0a0c14), Color::argb(0xff04050a)}, {0, 0.42f, 0.63f, 0.67f, 1.0f});
@@ -106,12 +179,22 @@ class Visual final : public Scene {
       if (flick < 0.06f) flick = 0.06f;
       if (flick > 1.0f) flick = 1.0f;
       Color cc = Color::argb(neon[i % 4]);
-      add.color = {cc.r, cc.g, cc.b, flick * 0.85f * boost};
+      // Golpes: los rótulos estallan de luz con cada golpe.
+      add.color = {cc.r, cc.g, cc.b, std::min(1.0f, flick * 0.85f * boost + 0.4f * punch)};
       int sw = int(w) - 90; if (sw < 1) sw = 1;
       int shh = int(horizon * 0.5f); if (shh < 1) shh = 1;
       float x = float((i * 137) % sw) + 30.0f;
       float y = horizon - 40.0f - float((i * 211) % shh);
       c.rect({x, y, 8.0f + float((i * 7) % 26), 18.0f + float((i * 13) % 54)}, add);
+      if (punch > 0.0f) {
+        // Un halo de neón alrededor de cada rótulo.
+        const Vec2 signCenter{x + 4.0f + float((i * 7) % 26) * 0.5f, y + 9.0f + float((i * 13) % 54) * 0.5f};
+        const float flareR = 26.0f + float((i * 13) % 54);
+        Paint flare = Paint::radial(signCenter, flareR,
+          {{cc.r, cc.g, cc.b, std::clamp(0.45f * punch * f.glow, 0.0f, 1.0f)}, {cc.r, cc.g, cc.b, 0.0f}}, {0.0f, 1.0f});
+        flare.blend = Blend::plus;
+        c.circle(signCenter, flareR, flare);
+      }
     }
 
     // 1. Ciudad en capas (sin clip innecesario).
@@ -132,14 +215,50 @@ class Visual final : public Scene {
         if (!L.wins.empty()) {
           std::vector<Vec2> win;
           win.reserve(L.wins.size() * 2);
-          for (const auto& p : L.wins) {
+          for (size_t k = 0; k < L.wins.size(); k++) {
+            const auto& p = L.wins[k];
             win.push_back({dx + p.x, p.y});
             win.push_back({dx + p.x, p.y});
+            // Agudos: ventanas sueltas parpadean.
+            if (glint > 0.0f && hashU(uint32_t(k * 4 + li) * 2654435761u + tick * 40503u) < glint * 0.3f) {
+              twinkle.push_back({dx + p.x, p.y});
+            }
           }
           Paint wp; wp.blend = Blend::plus;
-          wp.color = {1, 0.851f, 0.627f, 0.5f * alpha * boost};
-          c.points(win, 1.7f, wp);
+          // Golpes: las ventanas se encienden; Graves: crecen despacio.
+          wp.color = {1, 0.851f, 0.627f, std::min(1.0f, 0.5f * alpha * boost + 0.6f * punch)};
+          c.points(win, 1.7f * (1.0f + 0.6f * swell + 0.5f * punch), wp);
         }
+      }
+    }
+    if (!twinkle.empty()) {
+      Paint tw; tw.blend = Blend::plus;
+      tw.color = {1.0f, 0.93f, 0.8f, std::clamp(0.9f * glint, 0.0f, 1.0f)};
+      c.points(twinkle, 2.4f, tw);
+    }
+
+    // Resplandor local de la música sobre la ciudad (nunca a pantalla
+    // completa): coral de neón en cada golpe y con los graves, azul que
+    // parpadea con los agudos.
+    if (punch > 0.0f || swell > 0.0f || glint > 0.0f) {
+      const Vec2 cityCenter{w * 0.5f, horizon * 0.62f};
+      const float auraR = std::max(w, horizon) * 0.62f * (1.0f + 0.1f * punch + 0.12f * swell);
+      const float flicker = 0.55f + 0.45f * std::sin(float(f.time) * 43.0f);
+      const float warm = (0.36f * punch + 0.28f * swell) * f.glow;
+      const float cool = 0.26f * glint * flicker * f.glow;
+      if (warm > 0.0f) {
+        Paint aura = Paint::radial(cityCenter, auraR,
+          {{1.0f, 0.42f, 0.33f, std::clamp(warm, 0.0f, 1.0f)},
+           {1.0f, 0.42f, 0.33f, std::clamp(warm * 0.4f, 0.0f, 1.0f)},
+           {1.0f, 0.42f, 0.33f, 0.0f}}, {0.0f, 0.5f, 1.0f});
+        aura.blend = Blend::plus;
+        c.circle(cityCenter, auraR, aura);
+      }
+      if (cool > 0.0f) {
+        Paint shimmer = Paint::radial(cityCenter, auraR,
+          {{0.35f, 0.78f, 0.95f, std::clamp(cool, 0.0f, 1.0f)}, {0.35f, 0.78f, 0.95f, 0.0f}}, {0.0f, 1.0f});
+        shimmer.blend = Blend::plus;
+        c.circle(cityCenter, auraR, shimmer);
       }
     }
 
@@ -180,24 +299,42 @@ class Visual final : public Scene {
     }
     c.restore();
 
-    // Niebla en el horizonte.
-    float fogTop = horizon - h * 0.18f;
-    Paint fog = Paint::linear({0, fogTop}, {0, fogTop + h * 0.22f},
-      {{0.47f, 0.314f, 0.408f, 0}, {0.588f, 0.373f, 0.471f, 0.6f * boost}});
-    c.rect({0, fogTop, w, h * 0.22f}, fog);
+    // Niebla en el horizonte (Niebla: 0 la quita; Graves la levanta y espesa).
+    const float mist = g.niebla;
+    if (mist > 0.001f || swell > 0.0f) {
+      const float fogK = (0.5f + 0.5f * mist) * (1.0f + 0.5f * swell);
+      float fogTop = horizon - h * 0.18f;
+      float fogH = h * 0.22f;
+      if (fogK != 1.0f) {
+        fogTop = horizon - h * 0.18f * fogK;
+        fogH = h * 0.22f * fogK;
+      }
+      Paint fog = Paint::linear({0, fogTop}, {0, fogTop + fogH},
+        {{0.47f, 0.314f, 0.408f, 0}, {0.588f, 0.373f, 0.471f, std::min(1.0f, 0.6f * boost * std::min(mist, 1.6f) + 0.2f * swell)}});
+      c.rect({0, fogTop, w, fogH}, fog);
+    }
 
     // Lluvia: un solo Path con un segmento por gota.
+    // Largo de las gotas (Golpes las estira) y Viento, que inclina la lluvia.
+    const float dropLen = g.gotas * (1.0f + 0.8f * punch);
+    const float slant = g.viento * 0.6f;
+    const bool plainRain = dropLen == 1.0f && slant <= 0.0f;
     Path rain;
     float wind = std::sin(t * 0.23f) * 40.0f;
     for (const auto& d : drops) {
       float y = std::fmod(d.y + t * d.v, h + 60.0f) - 20.0f;
-      float x = std::fmod(d.x + wind * (y / h), w);
+      float x = slant > 0.0f ? std::fmod(d.x + wind * (y / h) + slant * y, w) : std::fmod(d.x + wind * (y / h), w);
       if (x < 0) x += w;
       rain.moveTo(x, y);
-      rain.lineTo(x - wind * 0.02f, y + d.len);
+      if (plainRain) {
+        rain.lineTo(x - wind * 0.02f, y + d.len);
+      } else {
+        const float len = d.len * dropLen;
+        rain.lineTo(x - wind * 0.02f + slant * len, y + len);
+      }
     }
     Paint rp; rp.blend = Blend::plus;
-    rp.color = {0.745f, 0.843f, 1, 0.42f * boost};
+    rp.color = {0.745f, 0.843f, 1, std::min(1.0f, 0.42f * boost + 0.45f * punch)};
     rp.strokeWidth = 1.0f; rp.strokeCap = 1; rp.strokeJoin = 1;
     c.path(rain, rp);
   }

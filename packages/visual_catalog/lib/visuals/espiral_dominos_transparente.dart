@@ -11,7 +11,12 @@
 // apaga poco a poco las fichas que cayeron antes, como un cometa que recorre
 // el dibujo. El arcoíris empieza en el tono del primer acento de la paleta.
 // La energía acelera la ola, cada golpe le da un empujón y los graves avivan
-// los colores.
+// los colores. Pulso elige qué más hace la música: en Golpes cada golpe
+// empuja la ola muchas fichas de una vez, el dibujo da un salto, la cabeza
+// de la ola se enciende con un charco de luz, la cadena brilla y un
+// resplandor ilumina el dibujo; en Graves el dibujo y sus fichas crecen y
+// los colores y el resplandor respiran con los graves; en Agudos muchas
+// fichas sueltas destellan por todo el dibujo con los agudos.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -22,6 +27,24 @@ const modifiers = [
   // ATMÓSFERA: de todo el dibujo encendido a un cometa que lo recorre.
   CreatorModifier.slider('estela', 'Estela de luz', min: 0, max: 1, value: 0),
   CreatorModifier.toggle('sombra', 'Sombras', value: true),
+  // MÚSICA: qué parte de la cadena reacciona.
+  CreatorModifier.choice('pulso', 'Pulso', options: ['Golpes', 'Graves', 'Agudos']),
+];
+
+// Combinaciones con nombre que parecen otro visual.
+const variations = [
+  CreatorVariation('Cometa', {
+    'patron': 'Triple espiral',
+    'recorrido': 'Dos frentes',
+    'estela': .85,
+    'pulso': 'Golpes',
+  }),
+  CreatorVariation('Anillos Vivos', {
+    'patron': 'Anillos',
+    'sombra': false,
+    'pulso': 'Agudos',
+    'speed': 1.3,
+  }),
 ];
 
 const nativeSource = r'''
@@ -39,6 +62,8 @@ class Visual final : public Scene {
   float maxDelay = 0;
   int phase = kTopple, pattern = -1, autoPattern = 0;
   float aspect = 2.0f;
+  // Reloj de los destellos de los agudos.
+  double twinkle = 0;
   std::vector<Domino> dominoes;
   std::vector<Chain> chains;
 
@@ -47,6 +72,11 @@ class Visual final : public Scene {
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
+  }
+
+  static float hashU(uint32_t x) {
+    x ^= x >> 16; x *= 0x7feb352dU; x ^= x >> 15; x *= 0x846ca68bU; x ^= x >> 16;
+    return float(x & 0xffffffu) / 16777216.0f;
   }
 
   void addSpiral(float rOut, float rIn, float turns, float offset, float delay) {
@@ -125,6 +155,7 @@ class Visual final : public Scene {
     phase = kTopple;
     pattern = -1;
     autoPattern = int(seed % 3u);
+    twinkle = 0;
     dominoes.reserve(4000);
     chains.reserve(32);
   }
@@ -159,7 +190,10 @@ class Visual final : public Scene {
       phaseTime = 0;
     }
     total = totals[size_t(std::clamp(m.recorrido, 0, 2))];
-    double rate = f.delta * f.speed * (1.0 + 1.2 * drive) + (beat && phase == kTopple ? 0.08 * double(hit) : 0.0);
+    twinkle += f.delta;
+    // Golpes: cada golpe empuja la ola muchas fichas de una vez.
+    double rate = f.delta * f.speed * (1.0 + 1.2 * drive) + (beat && phase == kTopple ? 0.08 * double(hit) : 0.0) +
+                  (beat && phase == kTopple && m.pulso == 0 ? 0.22 * double(std::min(hit * f.intensity, 1.0f)) : 0.0);
     phaseTime += rate;
     for (int guard = 0; guard < 4; guard++) {
       if (phase == kTopple) {
@@ -194,10 +228,18 @@ class Visual final : public Scene {
     auto m = modifiers(f);
     auto gl = glide(f);
     float amp = f.intensity;
-    float side = std::min(f.width, f.height) * 1.0f;
+    // Pulso: cada opción mueve algo distinto; sin música todo vale cero.
+    const float kickP = std::min(kick * amp, 1.0f) * gl.pulso.weight(0);
+    const float bassP = std::min(bass * amp, 1.0f) * gl.pulso.weight(1);
+    const float sparkP = std::min(spark * amp, 1.0f) * gl.pulso.weight(2);
+    const uint32_t tick = uint32_t(std::fmod(twinkle, 100000.0) * 12.0);
+    // Golpes: el dibujo da un salto; Graves: respira con los graves.
+    float side = std::min(f.width, f.height) * 1.0f * (1.0f + 0.1f * kickP + 0.12f * bassP);
     float px = side / 400.0f;
     Vec2 center{f.width * 0.5f, f.height * 0.5f};
-    const float L = 0.024f, T = 0.006f, W = 0.02f;
+    // Graves: las fichas crecen con los graves.
+    const float grow = 1.0f + 0.12f * kickP + 0.15f * bassP;
+    const float L = 0.024f * grow, T = 0.006f * grow, W = 0.02f * grow;
     const int buckets = 12, levels = 5;
     std::array<Path, buckets * levels> fallen;
     std::array<Path, buckets> standing;
@@ -207,6 +249,8 @@ class Visual final : public Scene {
     // La ficha que está cayendo en cada frente lleva la luz: su color y lugar.
     std::vector<std::pair<Vec2, int>> heads;
     Path shadow;
+    // Agudos: fichas sueltas que destellan.
+    Path glint;
     // Recorrido: mientras uno se funde en otro, cada ficha sigue uno de los dos.
     const float wDirect = gl.recorrido.weight(0), wReverse = gl.recorrido.weight(1);
     const float estela = std::clamp(gl.estela, 0.0f, 1.0f);
@@ -235,8 +279,11 @@ class Visual final : public Scene {
       Path& dst = tilt > 0.5f ? fallen[size_t(b * levels + level)] : standing[size_t(b)];
       if (estela > 0.001f && tilt > 0.5f && level < haloLevels)
         halos[size_t(b * haloLevels + level)].push_back(P((bx + ex) * 0.5f, (by + ey) * 0.5f));
-      if (estela > 0.001f && tilt > 0.4f && tilt <= 0.8f && heads.size() < 64) heads.push_back({P(d.x, d.y), b});
+      if ((estela > 0.001f || kickP > 0.002f) && tilt > 0.4f && tilt <= 0.8f && heads.size() < 64) heads.push_back({P(d.x, d.y), b});
       dst.moveTo(p0.x, p0.y).lineTo(p1.x, p1.y).lineTo(p2.x, p2.y).lineTo(p3.x, p3.y).close();
+      if (sparkP > 0.002f &&
+          hashU(uint32_t(d.chain) * 2246822519u + uint32_t(d.index) * 2654435761u + tick * 40503u) < 0.3f * sparkP)
+        glint.moveTo(p0.x, p0.y).lineTo(p1.x, p1.y).lineTo(p2.x, p2.y).lineTo(p3.x, p3.y).close();
       if (m.sombra) {
         float o = (1.0f + 2.5f * (1.0f - s)) * px;
         shadow.moveTo(p0.x + o, p0.y + o * 1.4f).lineTo(p1.x + o, p1.y + o * 1.4f).lineTo(p2.x + o, p2.y + o * 1.4f).lineTo(p3.x + o, p3.y + o * 1.4f).close();
@@ -246,6 +293,14 @@ class Visual final : public Scene {
       Paint sp;
       sp.color = Color{0, 0, 0, 0.45f};
       c.path(shadow, sp);
+    }
+    // Resplandor local sobre el dibujo: Golpes lo enciende y Graves lo hace latir.
+    const float aura = std::clamp((0.3f * kickP + 0.2f * bassP) * f.glow, 0.0f, 0.6f);
+    if (aura > 0.002f) {
+      Paint ap = Paint::radial(center, side * 0.55f, {f.colors[2].opacity(aura), f.colors[1].opacity(aura * 0.4f), f.colors[1].opacity(0.0f)},
+                               {0.0f, 0.6f, 1.0f});
+      ap.blend = Blend::plus;
+      c.circle(center, side * 0.55f, ap);
     }
     // El arcoíris empieza en el tono del primer acento de la paleta.
     const Color& accent = f.colors[1];
@@ -287,9 +342,20 @@ class Visual final : public Scene {
         }
       }
     }
+    // Golpes: la cabeza de cada ola se enciende con un charco de luz.
+    if (kickP > 0.002f && !heads.empty()) {
+      const float share = std::min(1.0f, 4.0f / float(heads.size()));
+      for (const auto& [spot, b] : heads) {
+        Paint pool = Paint::radial(spot, side * 0.2f,
+                                   {hues[size_t(b)].opacity(std::clamp(0.7f * kickP * share, 0.0f, 1.0f)), hues[size_t(b)].opacity(0.0f)});
+        pool.blend = Blend::plus;
+        c.circle(spot, side * 0.2f, pool);
+      }
+    }
     for (int b = 0; b < buckets; b++) {
       const Color& col = hues[size_t(b)];
-      float lit = (0.85f + 0.25f * bass + 0.2f * kick) * amp;
+      // Golpes y Graves avivan la cadena caída.
+      float lit = (0.85f + 0.25f * bass + 0.2f * kick) * amp * (1.0f + 0.7f * kickP + 0.6f * bassP + 0.3f * sparkP);
       for (int level = 0; level < levels; level++) {
         const Path& path = fallen[size_t(b * levels + level)];
         if (path.data().empty()) continue;
@@ -299,11 +365,19 @@ class Visual final : public Scene {
         c.path(path, fp);
       }
       // Con Estela de luz la sala se oscurece: las fichas en pie se apagan un poco.
-      const float shade = 1.0f - 0.45f * estela;
+      const float shade = (1.0f - 0.45f * estela) * (1.0f + 0.5f * kickP + 0.3f * bassP);
       Paint sp;
       sp.color = Color{std::clamp((col.r * 0.6f + 0.35f) * shade, 0.0f, 1.0f), std::clamp((col.g * 0.6f + 0.35f) * shade, 0.0f, 1.0f),
                        std::clamp((col.b * 0.6f + 0.35f) * shade, 0.0f, 1.0f), 1.0f};
       c.path(standing[size_t(b)], sp);
+    }
+    if (sparkP > 0.002f && !glint.data().empty()) {
+      const Color& c3 = f.colors[3];
+      Paint gp;
+      gp.blend = Blend::plus;
+      gp.color = Color{std::min(1.0f, c3.r * 0.5f + 0.5f), std::min(1.0f, c3.g * 0.5f + 0.5f), std::min(1.0f, c3.b * 0.5f + 0.5f),
+                       std::clamp(0.95f * sparkP, 0.0f, 0.95f)};
+      c.path(glint, gp);
     }
     (void)aspect;
   }

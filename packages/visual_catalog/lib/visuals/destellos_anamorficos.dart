@@ -3,8 +3,12 @@
 // larga y azulada, con reflejos ovalados que cruzan la imagen: el sello de
 // la ciencia ficción en el cine. Este visual no tiene fondo: se pone encima
 // de cualquier otro y le añade luces que pasan con sus rayas, estrellas de
-// difracción o arcos. Cada golpe de la música hace estallar algunas luces,
-// los graves inflan la principal y los agudos las hacen centellear.
+// difracción o arcos. Con Golpes, cada golpe aviva todas las luces y hace
+// estallar dos de ellas, que crecen, alargan sus rayas, encienden un
+// resplandor a su alrededor y se apagan despacio; con Graves, la luz
+// principal se infla con un halo mayor y las rayas se engrosan; con Brillos,
+// los agudos hacen centellear las luces, chisporrotear las rayas y soltar un
+// polvo de chispas alrededor de cada luz.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -96,12 +100,16 @@ class Visual final : public Scene {
     const float onset = std::clamp((mu.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);
     slowBass = follow(slowBass, mu.bass, 3.0f, 3.0f, dt);
     hit = std::min(std::max(hit, onset), 1.0f);
-    for (auto& b : burst) b *= std::exp(-dt * 4.0f);
-    // Cada golpe hace estallar dos luces distintas.
+    // Los estallidos se apagan despacio: duran casi el doble.
+    for (auto& b : burst) b *= std::exp(-dt * 2.2f);
+    // Cada golpe hace estallar dos luces distintas, siempre entre las visibles.
     if (hit > kick + 0.2f) {
       const uint32_t k = beats++;
-      burst[size_t(k % kLights)] = std::max(burst[size_t(k % kLights)], hit);
-      burst[size_t((k * 7u + 3u) % kLights)] = std::max(burst[size_t((k * 7u + 3u) % kLights)], hit * 0.7f);
+      const uint32_t n = uint32_t(std::clamp(int(std::lround(2.0f + 2.0f * f.detail)), 1, kLights));
+      const uint32_t a = k % n;
+      const uint32_t b = (a + 1u + (k * 7u + 3u) % (n > 1u ? n - 1u : 1u)) % n;
+      burst[size_t(a)] = std::max(burst[size_t(a)], hit);
+      burst[size_t(b)] = std::max(burst[size_t(b)], hit * 0.85f);
     }
     kick = std::max(kick * std::exp(-dt * 5.0f), hit);
     flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
@@ -119,9 +127,14 @@ class Visual final : public Scene {
     // Detalle: cuántas luces hay.
     const int count = std::clamp(int(std::lround(2.0f + 2.0f * f.detail)), 1, kLights);
     std::vector<float> u;
-    u.reserve(48);
+    u.reserve(56);
     u.insert(u.end(), {t, f.glow, std::clamp(g.neblina, 0.0f, 1.0f), std::min(flash * amp, 1.0f)});
     u.insert(u.end(), {g.lente.weight(0), g.lente.weight(1), g.lente.weight(2), halfW});
+    // Golpes: todas las luces se avivan con el golpe y las que estallan
+    // encienden un resplandor alrededor (el material lo dibuja).
+    const float punch = std::min(kick * amp, 1.0f) * wGolpes;
+    const float gravesAll = std::min(bass * amp, 1.0f) * wGraves;
+    std::array<float, kLights> bloom{};
     for (int i = 0; i < kLights; i++) {
       const size_t s = size_t(i);
       const float dx = halfW * 0.8f * std::sin(t * 0.13f * fx[s] + phx[s]);
@@ -133,13 +146,29 @@ class Visual final : public Scene {
       const float x = wDeriva * dx + wBarrido * bx + wFijas * fxp;
       const float y = wDeriva * dy + wBarrido * rowY[s] * halfH + wFijas * fyp;
       float I = 0.5f + 0.2f * std::sin(t * 0.5f + float(i) * 1.7f);
-      I += wGolpes * burst[s] * amp * 1.2f;
+      // Golpes: la luz que estalla brilla mucho más y crece; el golpe aviva
+      // además todas las luces (+100 % en el golpe).
+      const float pop = std::min(burst[s] * amp, 1.0f) * wGolpes;
+      I += wGolpes * burst[s] * amp * 2.0f;
+      I += 0.55f * punch;
+      // Graves: la principal se infla y las demás respiran con los graves.
+      const float graves = std::min(bass * amp, 1.0f) * wGraves;
       if (i == 0) I *= 1.0f + wGraves * (std::min(bass * amp, 1.2f) * 1.1f - 0.2f);
-      I *= 1.0f + wBrillos * (std::min(spark * amp, 1.0f) * 1.2f * (0.5f + 0.5f * std::sin(t * 23.0f + float(i) * 3.1f)) - 0.3f);
+      else I *= 1.0f + 0.5f * graves;
+      // Brillos: centelleo fuerte con los agudos.
+      I *= 1.0f + wBrillos * (std::min(spark * amp, 1.0f) * 2.0f * (0.5f + 0.5f * std::sin(t * 23.0f + float(i) * 3.1f)) - 0.3f);
       if (i >= count) I = 0.0f;
-      u.insert(u.end(), {x, y, std::clamp(I, 0.0f, 2.0f), sizeK[s]});
+      // Pop de tamaño: 20 % en el golpe; la principal respira 15 % con graves.
+      const float grow = 1.0f + 0.2f * pop + (i == 0 ? 0.15f * graves : 0.0f);
+      u.insert(u.end(), {x, y, std::clamp(I, 0.0f, 2.0f), sizeK[s] * grow});
+      // Resplandor local: fuerte en la luz que estalla, suave en las demás,
+      // y la principal también con los graves.
+      bloom[s] = std::clamp(pop + 0.35f * punch + (i == 0 ? 0.6f * graves : 0.0f), 0.0f, 1.0f);
     }
     for (int i = 1; i < 4; i++) u.insert(u.end(), {f.colors[size_t(i)].r, f.colors[size_t(i)].g, f.colors[size_t(i)].b});
+    // Resplandor de cada luz, graves y agudos para el material.
+    u.insert(u.end(), {bloom[0], bloom[1], bloom[2], bloom[3]});
+    u.insert(u.end(), {bloom[4], bloom[5], gravesAll, std::min(spark * amp, 1.0f) * wBrillos});
     c.material("lens_flares", {0, 0, f.width, f.height}, u);
   }
 };
@@ -161,13 +190,21 @@ uniform vec4 uL5;
 uniform vec3 uC1;
 uniform vec3 uC2;
 uniform vec3 uC3;
+uniform vec4 uG0;  // resplandor de las luces 0..3 (golpes y graves)
+uniform vec4 uG1;  // resplandor de las luces 4 y 5, graves, agudos
 out vec4 fragColor;
 
 float sq(float x) {
   return x * x;
 }
 
-vec3 flare(vec2 p, vec4 L) {
+float hash12(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+
+vec3 flare(vec2 p, vec4 L, float bloom, float glit, float glitX) {
   float I = L.z;
   if (I < 0.002) return vec3(0.0);
   float s = L.w;
@@ -204,14 +241,47 @@ vec3 flare(vec2 p, vec4 L) {
     ghosts += I * (0.06 * exp(-r * r) + 0.05 * exp(-sq((r - 1.0) / 0.12)));
   }
   float haze = I * uA.z * 0.18 * exp(-sqrt(r2) / 0.08);
-  return uC3 * (core + glow * 0.6) + uC1 * (streak + haze) + uC2 * ghosts;
+  vec3 base = uC3 * (core + glow * 0.6) + uC1 * (streak + haze) + uC2 * ghosts;
+  // Música: todo esto vale cero sin música.
+  if (bloom + uG1.z + uG1.w < 0.0005) return base;
+  float Ic = min(I, 1.2);
+  // Golpes: rayas que se alargan con el estallido. Graves: rayas más gruesas.
+  float extraStreak = 0.0;
+  if (uB.x > 0.001) {
+    extraStreak += uB.x * (bloom * 0.7 * exp(-abs(d.y) / (0.005 * s)) * exp(-abs(d.x) / (1.1 * s)) +
+                           uG1.z * 0.6 * exp(-abs(d.y) / (0.0085 * s)) * exp(-abs(d.x) / (0.5 * s)));
+  }
+  if (uB.y > 0.001) {
+    extraStreak += uB.y * (bloom * 0.7 + uG1.z * 0.6) *
+                   (exp(-abs(d.y) / (0.006 * s)) * exp(-abs(d.x) / (0.4 * s)) +
+                    exp(-abs(d.x) / (0.006 * s)) * exp(-abs(d.y) / (0.4 * s)));
+  }
+  if (uB.z > 0.001) {
+    float lr = length(L.xy) + 0.001;
+    float da = abs(atan(p.y, p.x) - atan(L.y, L.x));
+    da = min(da, 6.2831853 - da);
+    extraStreak += uB.z * (bloom * 0.7 + uG1.z * 0.6) * exp(-abs(length(p) - lr) / (0.008 * s)) * exp(-da * lr / (0.6 * s));
+  }
+  vec3 extra = uC1 * Ic * extraStreak;
+  // Golpes: resplandor aditivo local alrededor de la luz que estalla.
+  extra += mix(uC1, uC3, 0.35) * bloom * 0.38 * uA.y * exp(-r2 / (0.05 * s * s));
+  // Graves: el halo crece un 80 %.
+  extra += uC3 * glow * 0.48 * uG1.z;
+  // Agudos: las rayas chisporrotean y un polvo de chispas rodea cada luz.
+  extra += uC1 * streak * uG1.w * 1.4 * glitX;
+  extra += uC3 * uG1.w * glit * min(I, 1.0) * 0.9 * exp(-sqrt(r2) / (0.12 * s));
+  return base + extra;
 }
 
 void main() {
   vec2 frag = FlutterFragCoord().xy;
   float scale = min(uSize.x, uSize.y);
   vec2 p = (frag - 0.5 * uSize) / scale;
-  vec3 col = flare(p, uL0) + flare(p, uL1) + flare(p, uL2) + flare(p, uL3) + flare(p, uL4) + flare(p, uL5);
+  // Chispas de los agudos: celdas diminutas que cambian 14 veces por segundo.
+  float glit = step(0.88, hash12(floor(frag * 0.34) + floor(uA.x * 14.0)));
+  float glitX = step(0.55, hash12(vec2(floor(p.x * 90.0), floor(uA.x * 14.0) + 3.0)));
+  vec3 col = flare(p, uL0, uG0.x, glit, glitX) + flare(p, uL1, uG0.y, glit, glitX) + flare(p, uL2, uG0.z, glit, glitX) +
+             flare(p, uL3, uG0.w, glit, glitX) + flare(p, uL4, uG1.x, glit, glitX) + flare(p, uL5, uG1.y, glit, glitX);
   col *= 1.0 + 0.2 * uA.w;
   // Sin fondo: la luz se mezcla con lo que hay debajo.
   col = col / (1.0 + max(col.r, max(col.g, col.b)) * 0.35);

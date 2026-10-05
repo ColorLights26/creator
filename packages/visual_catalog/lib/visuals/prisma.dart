@@ -6,7 +6,11 @@
 // luz; el haz late con los graves, el abanico se abre con la energía, cada
 // color se enciende y se alarga con su banda del espectro (de graves a
 // agudos) y cada golpe manda una onda de luz por el arcoíris y hace
-// destellar las aristas del cristal.
+// destellar las aristas del cristal. El Pulso elige qué se nota más: con
+// Golpes cada golpe hace saltar el prisma, abre el haz y el abanico, enciende
+// un resplandor alrededor del cristal y el arcoíris brilla con una onda ancha;
+// con Graves el conjunto respira, el haz engorda y el cristal se llena de luz;
+// con Agudos cada color parpadea y el arcoíris y las aristas centellean.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -15,6 +19,27 @@ const modifiers = [
   CreatorModifier.slider('grosor', 'Grosor del haz', min: .5, max: 2, value: 1),
   CreatorModifier.toggle('espectro', 'Colores con la música', value: true),
   CreatorModifier.toggle('giro', 'Giro lento', value: false),
+  // MÚSICA: qué parte de la luz responde al ritmo.
+  CreatorModifier.choice(
+    'pulso',
+    'Pulso',
+    options: ['Golpes', 'Graves', 'Agudos'],
+  ),
+];
+
+// Combinaciones con nombre que parecen otro visual.
+const variations = [
+  CreatorVariation('Abanico Abierto', {
+    'pulso': 'Golpes',
+    'apertura': 1.6,
+    'grosor': 1.6,
+  }),
+  CreatorVariation('Cristal Giratorio', {
+    'pulso': 'Agudos',
+    'giro': true,
+    'apertura': .75,
+    'speed': 1.3,
+  }),
 ];
 
 const nativeSource = r'''
@@ -77,16 +102,22 @@ class Visual final : public Scene {
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
+    auto g = glide(f);
     float amp = f.intensity;
     float on = m.espectro ? 1.0f : 0.0f;
     std::vector<float> u;
-    u.reserve(32);
+    u.reserve(36);
     u.insert(u.end(), {float(std::fmod(clock, 1000.0)), bass * amp, kick * amp, energy});
     u.insert(u.end(), {m.apertura, m.grosor, on, float(std::fmod(spin, 6.2831853))});
     u.insert(u.end(), {bands[0] * amp, bands[1] * amp, bands[2] * amp, bands[3] * amp});
     u.insert(u.end(), {bands[4] * amp, bands[5] * amp, f.glow, flash * amp});
     float wave = sinceKick < 2.5 ? float(sinceKick) * 1.4f : 10.0f;
     u.insert(u.end(), {drive, wave, kickPower * amp, spark * amp});
+    // Pulso: cada opción mueve una parte distinta (sin música, todo 0).
+    const float golpe = g.pulso.weight(0);
+    u.insert(u.end(), {std::min(kick * amp, 1.2f) * golpe, std::min(bass * amp, 1.2f) * g.pulso.weight(1),
+                       std::min(spark * amp, 1.2f) * g.pulso.weight(2),
+                       sinceKick < 2.5 ? std::min(kickPower * amp, 1.2f) * golpe : 0.0f});
     for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});
     c.material("prism_light", {0, 0, f.width, f.height}, u);
   }
@@ -103,6 +134,7 @@ uniform vec4 uB;   // apertura, grosor del haz, colores con la música, giro
 uniform vec4 uS0;  // bandas rojo, naranja, amarillo, verde
 uniform vec4 uS1;  // bandas azul, violeta, glow, destello
 uniform vec4 uE;   // música activa, onda del golpe, fuerza, agudos
+uniform vec4 uP;   // Pulso: golpe, graves, agudos, fuerza de la onda ancha
 uniform vec3 uC0;
 uniform vec3 uC1;
 uniform vec3 uC2;
@@ -160,6 +192,8 @@ void main() {
   float cs = cos(uB.w);
   float sn = sin(uB.w);
   q = vec2(cs * q.x - sn * q.y, sn * q.x + cs * q.y);
+  // Golpes: el prisma y su luz dan un salto con el golpe. Graves: respiran.
+  q *= 1.0 - 0.13 * uP.x - 0.1 * uP.y;
   float R = 0.3;
   vec2 A = vec2(0.0, -R);
   vec2 B = vec2(-R * 0.866, R * 0.5);
@@ -169,7 +203,8 @@ void main() {
   vec2 E = mix(A, B, 0.5);
   vec2 X = mix(A, C, 0.58);
   vec2 S = E + vec2(-2.0, -0.95);
-  float bassPulse = 1.0 + 0.6 * uA.y + 0.5 * uA.z;
+  // Golpes: el golpe abre el haz. Graves: el haz engorda con los graves.
+  float bassPulse = 1.0 + 0.6 * uA.y + 0.5 * uA.z + 1.5 * uP.x + 0.6 * uP.y;
   vec3 col = uC0;
 
   // Haz blanco que entra.
@@ -182,7 +217,8 @@ void main() {
   float dist = length(v);
   float a = atan(v.y, v.x);
   float a0 = 0.58;
-  float spread = 0.72 * uB.x * (1.0 + 0.2 * uA.w + 0.12 * uA.z);
+  // Golpes: el abanico se abre de golpe. Graves: respira con los graves.
+  float spread = 0.72 * uB.x * (1.0 + 0.2 * uA.w + 0.12 * uA.z + 0.17 * uP.x + 0.12 * uP.y);
   // Ángulo relativo al centro del abanico, sin el salto de atan detrás.
   float off = a - (a0 + 0.5 * spread);
   off = mod(off + 3.14159265, 6.2831853) - 3.14159265;
@@ -202,20 +238,32 @@ void main() {
     // Pulsos de luz que corren hacia fuera y la onda de cada golpe.
     float pulses = 0.85 + 0.15 * sin(dist * 22.0 - uA.x * 5.0 + float(band) * 0.7);
     float wave = exp(-abs(dist - uE.y) * 7.0) * uE.z;
-    float lit = inside * level * soft * pulses * fade * (1.0 + 2.5 * wave) * uS1.z;
+    // Golpes: el arcoíris se enciende y la onda del golpe llega más ancha.
+    float flare = 0.9 * uP.x + 1.8 * exp(-abs(dist - uE.y) * 2.5) * uP.w
+                + 0.8 * uP.z * step(0.5, hash12(vec2(float(band) * 3.7, floor(uA.x * 12.0))));
+    float lit = inside * level * soft * pulses * fade * (1.0 + 2.5 * wave + flare) * uS1.z;
     col += rainbow(band) * lit * smoothstep(0.0, 0.04, dist);
+    // Agudos: chispas de colores que centellean por todo el abanico.
+    if (uP.z > 0.001) {
+      float glint = step(0.975, hash12(floor(frag * 0.5) + floor(uA.x * 9.0) * 7.31));
+      col += mix(rainbow(band), vec3(1.0), 0.5) * glint * inside * fade * uP.z;
+    }
     // Halo suave alrededor del abanico.
     float out_ = max(-tf, tf - 1.0);
     float halo = exp(-out_ * 6.0) * (1.0 - inside) * fade;
     col += rainbow(tf < 0.5 ? 0 : 5) * halo * 0.18;
+    if (uP.x > 0.001) col += rainbow(tf < 0.5 ? 0 : 5) * halo * 0.35 * uP.x;
     // Luz difusa del arcoíris sobre todo el fondo.
     float aside = max(abs(off) - 0.5 * spread, 0.0);
-    col += mix(rainbow(2), rainbow(4), clamp(tf, 0.0, 1.0)) * 0.05 * exp(-dist * 0.8) * exp(-aside * 2.5) * (1.0 + uA.y);
+    col += mix(rainbow(2), rainbow(4), clamp(tf, 0.0, 1.0)) * 0.05 * exp(-dist * 0.8) * exp(-aside * 2.5) * (1.0 + uA.y + 1.5 * uP.y);
+    if (uP.x > 0.001) col += mix(rainbow(2), rainbow(4), clamp(tf, 0.0, 1.0)) * 0.22 * exp(-dist * 0.8) * exp(-aside * 2.5) * uP.x;
   }
 
   // Cristal del prisma: relleno tenue, haz interior y aristas que destellan.
   if (tri < 0.0) {
     col += uC2 * 0.06 + uC3 * 0.06 * smoothstep(-0.15, 0.0, tri);
+    // Graves: el cristal se llena de luz.
+    col += uC1 * 0.14 * uP.y * smoothstep(-0.2, 0.0, tri);
     float dInner = segment(q, E, X);
     vec3 inner = mix(uC1, vec3(0.9, 0.85, 1.0), 0.5);
     col += inner * exp(-dInner / (beamW * 2.5)) * 0.55;
@@ -223,7 +271,11 @@ void main() {
     col += rainbow(int(mod(floor((q.x + q.y) * 18.0 + uA.x * 0.5), 6.0))) * 0.035 * smoothstep(-0.1, 0.0, tri);
   }
   float edge = abs(tri);
-  col += uC2 * (exp(-edge / 0.003) * 0.85 + exp(-edge / 0.015) * 0.22) * (0.7 + 1.2 * uA.z + 0.5 * uS1.w);
+  // Agudos: las aristas del cristal tiemblan con brillos finos.
+  float shimmer = uP.z > 0.001 ? uP.z * step(0.55, hash12(floor(q * 90.0) + floor(uA.x * 12.0))) : 0.0;
+  col += uC2 * (exp(-edge / 0.003) * 0.85 + exp(-edge / 0.015) * 0.22) * (0.7 + 1.2 * uA.z + 0.5 * uS1.w + 0.9 * shimmer);
+  // Golpes / Graves: resplandor local alrededor del prisma.
+  if (uP.x + uP.y > 0.001) col += mix(uC1, uC2, 0.5) * exp(-length(q) / 0.3) * (0.35 * uP.x + 0.2 * uP.y) * uS1.z;
   // Brillos en los vértices.
   col += uC1 * exp(-dot(q - A, q - A) * 1500.0) * (0.5 + 0.9 * uA.z);
   col += uC1 * exp(-dot(q - X, q - X) * 900.0) * (0.3 + 0.6 * uA.y);

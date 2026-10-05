@@ -3,8 +3,14 @@
 // el sonido forma ondas dentro del tubo y la presión sube y baja por zonas,
 // así cada llama crece o se encoge según dónde cae la onda. Es un
 // ecualizador de fuego real. Aquí las llamas dibujan ondas estacionarias,
-// el espectro de la canción o una onda que viaja; cada golpe cambia el modo
-// de la onda y aviva todas las llamas, y el calor hace temblar el aire.
+// el espectro de la canción (amplificado, para que hasta las bandas suaves
+// levanten fuego) o una onda que viaja, y el calor hace temblar el aire.
+// Con Graves, las llamas suben, bajan y engordan con los graves y un halo
+// respira sobre el tubo; con Golpes, cada golpe cambia el modo de la onda,
+// dispara todas las llamas hacia arriba, casi dobla su brillo y enciende un
+// resplandor sobre la fila de fuego; con Tono, el número de ondas sigue lo
+// agudo o grave que suena la música, cada llama parpadea con los agudos y
+// saltan chispas sobre el fuego.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -47,7 +53,7 @@ const variations = [
 
 const nativeSource = r'''
 class Visual final : public Scene {
-  float bass = 0, energy = 0, slowBass = 0;
+  float bass = 0, energy = 0, slowBass = 0, spark = 0;
   float kick = 0, flash = 0, mode = 3.0f, modeTarget = 3.0f, centroid = 0.3f;
   // Reloj en doble precisión: sin música es idéntico a 30 y 60 FPS.
   double clock = 0;
@@ -64,7 +70,7 @@ class Visual final : public Scene {
 
  public:
   void reset(uint32_t seed) override {
-    bass = energy = slowBass = kick = flash = 0;
+    bass = energy = slowBass = kick = flash = spark = 0;
     mode = modeTarget = 3.0f;
     centroid = 0.3f;
     clock = 0;
@@ -78,6 +84,7 @@ class Visual final : public Scene {
     const Music& mu = f.music;
     bass = follow(bass, mu.bass, 22.0f, 4.5f, dt);
     energy = follow(energy, mu.energy, 6.0f, 1.8f, dt);
+    spark = follow(spark, mu.spark, 30.0f, 7.0f, dt);
     float hit = 0, fl = 0;
     for (const auto& e : mu.events[0]) hit = std::max(hit, e.strength);
     for (const auto& e : mu.events[2]) hit = std::max(hit, e.strength * 0.85f);
@@ -98,7 +105,7 @@ class Visual final : public Scene {
       weighted += mu.smoothSpectrum[size_t(i)] * float(i);
     }
     if (sum > 0.05f) centroid = follow(centroid, weighted / sum / 30.0f, 4.0f, 4.0f, dt);
-    if (m.pulso == 2 && mu.active) modeTarget = 1.5f + centroid * 9.0f;
+    if (m.pulso == 2 && mu.active) modeTarget = std::clamp(3.5f + (centroid - 0.3f) * 16.0f, 1.5f, 9.0f);
     mode = follow(mode, modeTarget, 6.0f, 6.0f, dt);
     clock += f.delta * f.speed;
   }
@@ -113,16 +120,24 @@ class Visual final : public Scene {
     const float idleMode = 3.5f + 1.5f * std::sin(t * 0.09f);
     const float m = live ? mode : idleMode;
     float A = 0.3f + 0.12f * std::min(energy * amp, 1.0f);
-    A *= 1.0f + g.pulso.weight(0) * (std::min(bass * amp, 1.2f) * 0.9f - 0.3f) * (live ? 1.0f : 0.0f);
+    A *= 1.0f + g.pulso.weight(0) * (std::min(bass * amp, 1.2f) * 1.05f - 0.3f) * (live ? 1.0f : 0.0f);
+    // Golpes: toda la onda de llamas pega un salto con cada golpe.
+    const float punch = std::min(kick * amp, 1.0f);
+    A *= 1.0f + 0.35f * g.pulso.weight(1) * punch;
     std::vector<float> u;
     u.reserve(80);
-    u.insert(u.end(), {t, 0.5f * f.height / side, std::min(kick * amp, 1.0f) * (0.4f + 0.6f * g.pulso.weight(1)), live ? 1.0f : 0.0f});
+    u.insert(u.end(), {t, 0.5f * f.height / side, punch * (0.4f + 0.6f * g.pulso.weight(1)), live ? 1.0f : 0.0f});
     // Detalle: cuántos agujeros tiene el tubo.
     u.insert(u.end(), {m, t * 0.3f, A, std::round(24.0f + 16.0f * f.detail)});
     u.insert(u.end(), {g.onda.weight(0), g.onda.weight(1), g.onda.weight(2), std::clamp(g.llama, 0.0f, 1.0f)});
     u.insert(u.end(), {std::clamp(g.calor, 0.0f, 1.0f), std::clamp(g.reflejo, 0.0f, 1.0f), f.glow, std::min(flash * amp, 1.0f)});
-    for (int i = 0; i < 32; i++) u.push_back(std::min(spec[size_t(i)] * amp, 1.2f));
+    // Espectro amplificado con una curva suave: las bandas flojas suben casi
+    // al doble y las fuertes se acercan al tope sin cortarse de golpe.
+    for (int i = 0; i < 32; i++) u.push_back(1.4f * (1.0f - std::exp(-std::max(spec[size_t(i)], 0.0f) * amp * 1.8f)));
     for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[size_t(i)].r, f.colors[size_t(i)].g, f.colors[size_t(i)].b});
+    // Pulso para el material: golpe, graves y agudos de su propia opción.
+    u.insert(u.end(), {punch * g.pulso.weight(1), std::min(bass * amp, 1.0f) * g.pulso.weight(0) * (live ? 1.0f : 0.0f),
+                       std::min(spark * amp, 1.0f) * g.pulso.weight(2), 0.0f});
     c.material("rubens_tube", {0, 0, f.width, f.height}, u);
   }
 };
@@ -149,6 +164,7 @@ uniform vec3 uC0;
 uniform vec3 uC1;
 uniform vec3 uC2;
 uniform vec3 uC3;
+uniform vec4 uP;   // pulso: golpe, graves, agudos (cero sin música)
 out vec4 fragColor;
 
 const float TUBE_Y = 0.22;
@@ -185,7 +201,8 @@ float flameHeight(float x, float t) {
   if (uW.x > 0.001) h += uW.x * pow(abs(sin(3.14159265 * uB.x * x + uB.y)), 1.3);
   if (uW.y > 0.001) h += uW.y * (specAt(x) * 1.4 + 0.08);
   if (uW.z > 0.001) h += uW.z * (0.5 + 0.5 * sin(6.2831853 * (2.5 * x - t * 0.8)));
-  return 0.025 + uB.z * h + uA.z * 0.08;
+  // Golpes: todas las llamas se disparan hacia arriba.
+  return 0.025 + uB.z * h + uA.z * 0.16;
 }
 
 // Las llamas de los agujeros cercanos a p.
@@ -197,7 +214,7 @@ vec3 flames(vec2 p, float t) {
   float yTop = TUBE_Y - TUBE_R;
   vec3 acc = vec3(0.0);
   // Por debajo del tubo o muy por encima de la llama más alta no hay fuego.
-  float maxH = 0.03 + uB.z * 1.5 + uA.z * 0.08;
+  float maxH = 0.03 + uB.z * 1.5 + uA.z * 0.16;
   if (p.y > yTop + 0.01 || yTop - p.y > maxH * 1.7 || p.x < LEFT - 0.05 || p.x > RIGHT + 0.05) return acc;
   for (int k = -1; k <= 1; k++) {
     float i = idx + float(k);
@@ -210,13 +227,21 @@ vec3 flames(vec2 p, float t) {
     float wob = uW.w * 0.022 * hN * sin(hN * 7.0 - t * 12.0 + i * 1.7) + 0.006 * hN * sin(t * 23.0 + i * 3.1);
     float dx = abs(p.x - xi - wob);
     float w0 = spacing * 1.05;
+    // Graves: las llamas engordan (×1,5).
+    w0 += w0 * 0.5 * uP.y;
     float wp = w0 * (0.45 + 1.6 * clamp(hN, 0.0, 1.0)) * pow(max(1.0 - hN, 0.0), 0.75) + 0.0015;
     float inside = smoothstep(wp, wp * 0.25, dx) * step(0.0, hN);
     float core = smoothstep(wp * 0.55, 0.0, dx) * clamp(1.0 - hN, 0.0, 1.0);
     vec3 c = mix(uC1, uC2, smoothstep(0.05, 0.3, hN));
     c = mix(c, uC3, core * 0.8);
-    acc += c * inside * (0.8 + 0.4 * core);
-    acc += uC2 * exp(-dx / (wp * 2.5 + 0.01)) * exp(-max(hN, 0.0) * 2.0) * 0.1 * uE.z * step(0.0, hN);
+    // Golpes: el fuego se aviva de brillo (+85 % con su opción). Agudos: cada
+    // llama parpadea por su cuenta.
+    acc += c * inside * (0.8 + 0.4 * core) *
+           (1.0 + 0.35 * uA.z + 0.5 * uP.x + uP.z * (0.8 * (0.5 + 0.5 * sin(t * 31.0 + i * 2.7)) - 0.15));
+    vec3 flameGlow = uC2 * exp(-dx / (wp * 2.5 + 0.01)) * exp(-max(hN, 0.0) * 2.0) * 0.1 * uE.z * step(0.0, hN);
+    acc += flameGlow;
+    // Golpes y graves: el halo de cada llama sube un 80 %.
+    acc += flameGlow * 0.8 * (uP.x + uP.y);
   }
   return acc;
 }
@@ -230,7 +255,20 @@ void main() {
   vec2 q = p;
   q.x += uE.x * 0.006 * sin(p.y * 55.0 + t * 7.0) * smoothstep(TUBE_Y, TUBE_Y - 0.5, p.y);
   vec3 col = uC0 + uC2 * 0.1 * exp(-abs(p.y - TUBE_Y + 0.2) * 3.0) * (0.5 + uE.x);
+  // Golpes y graves: resplandor aditivo local sobre la fila de llamas.
+  float haloAmt = 0.38 * uP.x + 0.24 * uP.y;
+  if (haloAmt > 0.0005) {
+    vec2 hq = (p - vec2(0.02, TUBE_Y - 0.16)) / vec2(0.62, 0.22);
+    col += uC2 * haloAmt * uE.z * exp(-dot(hq, hq) * 1.4);
+  }
   col += flames(q, t);
+  // Agudos: chispas que centellean sobre el fuego.
+  if (uP.z > 0.001) {
+    float above = (1.0 - smoothstep(TUBE_Y - 0.08, TUBE_Y - TUBE_R, p.y)) * exp(-max(TUBE_Y - p.y, 0.0) * 2.5) *
+                  step(LEFT - 0.03, p.x) * step(p.x, RIGHT + 0.03);
+    float glit = step(0.9, hash12(floor(frag * 0.3) + floor(t * 12.0)));
+    col += uC3 * uP.z * 0.8 * glit * above;
+  }
   // El tubo de metal, con la luz de las llamas encima.
   float v = (p.y - TUBE_Y) / TUBE_R;
   if (abs(v) < 1.0 && p.x > LEFT - 0.01 && p.x < RIGHT + 0.01) {

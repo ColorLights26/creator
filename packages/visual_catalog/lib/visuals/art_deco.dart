@@ -2,9 +2,12 @@
 // Líneas de oro sobre negro como en un cartel de Gatsby o la corona del
 // edificio Chrysler: un sol de rayos con arcos escalonados, un mosaico de
 // abanicos que se abren y se cierran, o una torre de arcos con ventanas en
-// forma de rayo. Todo dentro de un marco con esquinas escalonadas. Los
-// golpes disparan los rayos y abren los abanicos, los graves hacen respirar
-// el ornamento y los agudos hacen correr destellos por las líneas de oro.
+// forma de rayo. Todo dentro de un marco con esquinas escalonadas. Con
+// Golpes, cada golpe dispara los rayos casi al doble, el sol late con un halo,
+// los abanicos se abren de par en par con un filo de luz y la torre se
+// enciende entera; con Graves, el ornamento respira hondo y sus líneas de oro
+// se engrosan y brillan; con Destellos, los agudos hacen correr muchas chispas
+// por las líneas de oro y el resplandor de las líneas centellea.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -107,7 +110,11 @@ class Visual final : public Scene {
     const float at = float(g.ritmo.weight(0) * tt + g.ritmo.weight(1) * tq);
     const float wGolpes = g.pulso.weight(0), wGraves = g.pulso.weight(1), wDest = g.pulso.weight(2);
     const float punch = std::min(kick * amp, 1.0f) * wGolpes;
-    const float breath = 1.0f + 0.08f * std::min(bass * amp, 1.0f) * wGraves;
+    // Graves: el ornamento respira más hondo y sus líneas se engrosan y brillan.
+    const float graves = std::min(bass * amp, 1.0f) * wGraves;
+    const float breath = 1.0f + 0.16f * graves;
+    // Destellos: el resplandor de las líneas centellea con los agudos.
+    const float shimmer = std::min(spark * amp, 1.0f) * wDest * (0.55f + 0.45f * float(std::sin(clock * 17.0)));
     const float lujo = std::clamp(g.lujo, 0.0f, 1.0f);
     const float fill = std::clamp(g.relleno, 0.0f, 1.0f);
     const Color& bg = pal[0];
@@ -119,7 +126,7 @@ class Visual final : public Scene {
     auto gold = [&](float width) {
       Paint p = Paint::linear({-W * 0.3f + sweep, -H * 0.2f}, {W * 1.3f + sweep, H * 1.2f},
                               {pal[2], pal[3], pal[2], pal[3], pal[2], pal[3], pal[2]});
-      p.strokeWidth = width;
+      p.strokeWidth = width * (1.0f + 0.6f * graves);
       p.strokeJoin = 0;
       return p;
     };
@@ -128,7 +135,16 @@ class Visual final : public Scene {
       p.blend = Blend::plus;
       p.strokeWidth = width;
       p.strokeCap = 1;
-      p.color = pal[3].opacity(std::clamp((0.06f + 0.14f * lujo + 0.15f * punch) * f.glow, 0.0f, 1.0f));
+      p.color = pal[3].opacity(std::clamp((0.06f + 0.14f * lujo + 0.3f * punch + 0.14f * graves + 0.2f * shimmer) * f.glow, 0.0f, 0.8f));
+      return p;
+    };
+    // Golpes: un filo de luz que sólo existe mientras dura el golpe.
+    auto beatGlow = [&](float width) {
+      Paint p;
+      p.blend = Blend::plus;
+      p.strokeWidth = width;
+      p.strokeCap = 1;
+      p.color = pal[3].opacity(std::clamp(0.4f * punch * f.glow, 0.0f, 0.6f));
       return p;
     };
     std::vector<Vec2> sparkA, sparkB;
@@ -136,7 +152,7 @@ class Visual final : public Scene {
     auto sparkOn = [&](Vec2 a, Vec2 b, int id) {
       if (wDest < 0.01f) return;
       const float s = float(std::fmod(at * 0.5 + double(id) * 0.37, 1.0));
-      if (hashU(uint32_t(id) * 2654435761u + uint32_t(std::floor(at * 2.0f))) > spark * amp * wDest * 1.4f) return;
+      if (hashU(uint32_t(id) * 2654435761u + uint32_t(std::floor(at * 2.0f))) > spark * amp * wDest * 2.4f) return;
       sparkA.push_back({a.x + (b.x - a.x) * s, a.y + (b.y - a.y) * s});
     };
     const int rays = std::clamp(int(std::lround(16.0f + 12.0f * f.detail)), 16, 40);
@@ -162,7 +178,8 @@ class Visual final : public Scene {
       for (int i = 0; i < rays; i++) {
         const float a = -3.14159265f + 0.15f + (3.14159265f - 0.3f) * (float(i) + 0.5f) / float(rays);
         const float open = 0.85f + 0.15f * std::sin(at * 0.9f + float(i) * 0.25f);
-        const float L = side * (i % 2 == 0 ? 0.8f : 0.58f) * open * (1.0f + 0.4f * punch);
+        // Golpes: los rayos se disparan casi al doble de largo.
+        const float L = side * (i % 2 == 0 ? 0.8f : 0.58f) * open * (1.0f + 0.8f * punch);
         const Vec2 a0{O.x + r0 * std::cos(a), O.y + r0 * std::sin(a)};
         const Vec2 a1{O.x + L * std::cos(a), O.y + L * std::sin(a)};
         (i % 2 == 0 ? thick : thin).moveTo(a0.x, a0.y).lineTo(a1.x, a1.y);
@@ -178,6 +195,7 @@ class Visual final : public Scene {
         c.path(wedgeA, wp);
       }
       c.path(thick, glowPaint(6.0f * px));
+      if (punch > 0.01f) c.path(thin, beatGlow(4.0f * px));
       c.path(thick, gold(2.4f * px));
       c.path(thin, gold(1.1f * px));
       // Arcos escalonados como la puerta de un rascacielos.
@@ -191,8 +209,15 @@ class Visual final : public Scene {
       }
       c.path(arches, glowPaint(5.0f * px));
       c.path(arches, gold(1.6f * px));
+      // Golpes: el sol late, más grande y con un halo de luz alrededor.
+      if (punch > 0.01f) {
+        Paint halo = Paint::radial(O, r0 * (1.5f + 0.7f * punch),
+                                   {pal[3].opacity(std::clamp(0.45f * punch * f.glow, 0.0f, 0.6f)), pal[3].opacity(0.0f)});
+        halo.blend = Blend::plus;
+        c.circle(O, r0 * (1.5f + 0.7f * punch), halo);
+      }
       Paint sun = Paint::radial(O, r0, {pal[3], pal[2]});
-      c.circle(O, r0 * (0.92f + 0.2f * punch), sun);
+      c.circle(O, r0 * (0.92f + 0.36f * punch), sun);
       Path sunRings;
       sunRings.circle(O, r0 * 0.7f);
       sunRings.circle(O, r0 * 0.45f);
@@ -215,12 +240,14 @@ class Visual final : public Scene {
       const float fr = W / float(cols) * 0.5f;
       const int rows = int(H / (fr * 0.55f)) + 3;
       int id = 100;
+      // Golpes: los abanicos se abren de par en par y su borde se enciende.
+      Path fanBeat;
       for (int row = 0; row < rows; row++) {
         const float cy = -fr * 0.5f + float(row) * fr * 0.55f;
         const float shift = (row % 2 == 0) ? 0.0f : fr;
         for (int col = -1; col <= cols; col++) {
           const Vec2 O{float(col) * fr * 2.0f + fr + shift, cy + fr};
-          const float open = std::clamp(0.55f + 0.45f * std::sin(at * 1.2f - float(row) * 0.5f - float(col) * 0.3f) + 0.35f * punch, 0.2f, 1.0f);
+          const float open = std::clamp(0.55f + 0.45f * std::sin(at * 1.2f - float(row) * 0.5f - float(col) * 0.3f) + 0.7f * punch, 0.2f, 1.0f);
           const float span = 3.14159265f * open;
           const float a0 = -1.5707963f - span * 0.5f, a1 = -1.5707963f + span * 0.5f;
           Path fan;
@@ -240,9 +267,11 @@ class Visual final : public Scene {
           arc(lines, O, fr * 0.75f, a0, a1, 14, true);
           c.path(fan, gold(1.8f * px));
           c.path(lines, gold(0.9f * px));
+          if (punch > 0.01f) arc(fanBeat, O, fr, a0, a1, 20, true);
           sparkOn({O.x + fr * std::cos(a0), O.y + fr * std::sin(a0)}, {O.x + fr * std::cos(a1), O.y + fr * std::sin(a1)}, id++);
         }
       }
+      if (punch > 0.01f) c.path(fanBeat, beatGlow(5.0f * px));
       if (wFan < 0.99f) c.restore();
     }
 
@@ -282,7 +311,8 @@ class Visual final : public Scene {
         if (lightK > 0.05f) {
           Paint lit;
           lit.blend = Blend::plus;
-          lit.color = pal[3].opacity(std::clamp(0.12f * lightK * f.glow, 0.0f, 1.0f));
+          // Golpes: toda la corona se enciende de golpe.
+          lit.color = pal[3].opacity(std::clamp((0.12f * lightK + 0.16f * punch) * f.glow, 0.0f, 1.0f));
           Path glowArc;
           glowArc.moveTo(cx - r, by);
           arc(glowArc, {cx, by}, r, -3.14159265f, 0.0f, 30, false);
@@ -297,6 +327,7 @@ class Visual final : public Scene {
         c.path(windows, wp);
       }
       c.path(crown, glowPaint(5.0f * px));
+      if (punch > 0.01f) c.path(windows, beatGlow(3.0f * px));
       c.path(crown, gold(1.8f * px));
       c.path(windows, gold(1.0f * px));
       // La aguja de la cúspide con su rombo.
@@ -343,11 +374,11 @@ class Visual final : public Scene {
       Paint sp;
       sp.blend = Blend::plus;
       sp.color = pal[3].opacity(0.95f);
-      c.points(sparkA, 2.6f * px, sp);
+      c.points(sparkA, 3.2f * px, sp);
       Paint halo;
       halo.blend = Blend::plus;
-      halo.color = pal[3].opacity(std::clamp(0.25f * f.glow, 0.0f, 1.0f));
-      c.points(sparkA, 7.0f * px, halo);
+      halo.color = pal[3].opacity(std::clamp(0.32f * f.glow, 0.0f, 0.6f));
+      c.points(sparkA, 10.0f * px, halo);
     }
     if (flash > 0.01f) {
       Paint fl;

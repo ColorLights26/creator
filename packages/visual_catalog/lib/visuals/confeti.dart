@@ -9,6 +9,12 @@
 // transparente: sólo se ve el confeti. El vuelo cambia cómo cae: aleteando,
 // atrapado en un remolino en el centro o barrido por ráfagas de viento. Los
 // seis colores salen de la paleta: sus tres acentos y los tonos intermedios.
+// Pulso elige qué más hace la música: en Golpes cada golpe dispara una
+// ráfaga mucho más grande con un estallido extra en el centro, un fogonazo
+// de luz sale de cada cañón y de cada estallido, y los papelitos dan un
+// salto de tamaño y brillo; en Graves los graves soplan desde abajo con un
+// resplandor, el confeti flota y se hincha con ellos; en Agudos muchos
+// papelitos destellan como lentejuelas con los agudos.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -18,6 +24,24 @@ const modifiers = [
   // MOVIMIENTO: el carácter de la caída.
   CreatorModifier.choice('vuelo', 'Vuelo', options: ['Aleteo', 'Remolino', 'Viento']),
   CreatorModifier.toggle('lluvia', 'Lluvia desde arriba', value: true),
+  // MÚSICA: qué parte de la fiesta reacciona.
+  CreatorModifier.choice('pulso', 'Pulso', options: ['Golpes', 'Graves', 'Agudos']),
+];
+
+// Combinaciones con nombre que parecen otro visual.
+const variations = [
+  CreatorVariation('Gran Fiesta', {
+    'cantidad': 1.7,
+    'tamano': 1.2,
+    'vuelo': 'Viento',
+    'pulso': 'Golpes',
+  }),
+  CreatorVariation('Lentejuelas', {
+    'tamano': .7,
+    'vuelo': 'Remolino',
+    'lluvia': false,
+    'pulso': 'Agudos',
+  }),
 ];
 
 const nativeSource = r'''
@@ -32,12 +56,20 @@ class Visual final : public Scene {
   int64_t steps = 0;
   int idleCount = 0, side = 0;
   int pendingLeft = 0, pendingRight = 0, pendingCenter = 0;
+  // Fogonazos de Golpes: edad del último disparo de cada cañón y del último
+  // estallido, su fuerza y dónde estalló.
+  double leftAge = 100, rightAge = 100, popAge = 100;
+  float burstPow = 0, popX = 0, popY = 0;
   float width = 1, height = 1;
   Random rng{1};
   std::vector<Piece> pieces;
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
+  }
+  static float hashU(uint32_t x) {
+    x ^= x >> 16; x *= 0x7feb352dU; x ^= x >> 15; x *= 0x846ca68bU; x ^= x >> 16;
+    return float(x & 0xffffffu) / 16777216.0f;
   }
 
   // El tono intermedio de dos colores por el arco corto del círculo de tonos,
@@ -107,6 +139,8 @@ class Visual final : public Scene {
   void pop(int count, float sizeMul) {
     float s = std::min(width, height);
     float cx = width * (0.3f + 0.4f * rng.unit()), cy = height * (0.3f + 0.25f * rng.unit());
+    popX = cx;
+    popY = cy;
     for (int i = 0; i < count; i++) {
       float a = rng.unit() * 6.2831853f;
       float speed = s * (0.4f + 1.3f * rng.unit());
@@ -114,8 +148,9 @@ class Visual final : public Scene {
     }
   }
 
-  // [flutter], [swirl] y [wind] son los pesos de Vuelo (suman 1).
-  void step(float rainRate, float amount, float sizeMul, bool rain, float flutter, float swirl, float wind) {
+  // [flutter], [swirl] y [wind] son los pesos de Vuelo (suman 1); [lift], el
+  // soplo de los graves (cero sin música).
+  void step(float rainRate, float amount, float sizeMul, bool rain, float flutter, float swirl, float wind, float lift) {
     float s = std::min(width, height);
     float dt = float(kStep);
     double t = double(steps) * kStep;
@@ -153,6 +188,8 @@ class Visual final : public Scene {
       // Los papelitos planean: más freno cuanto más de cara caen.
       float face = std::fabs(std::cos(p.flip));
       p.vy += g * dt;
+      // Graves: un soplo desde abajo hace flotar el confeti.
+      if (lift > 0.0f) p.vy -= lift * dt;
       float kk = k * (1.0f - 0.02f * face);
       p.vx *= kk;
       p.vy *= kk;
@@ -194,6 +231,8 @@ class Visual final : public Scene {
     idleCount = 0;
     side = 0;
     pendingLeft = pendingRight = pendingCenter = 0;
+    leftAge = rightAge = popAge = 100;
+    burstPow = popX = popY = 0;
     pieces.clear();
     pieces.reserve(kMax + 64);
   }
@@ -220,16 +259,31 @@ class Visual final : public Scene {
     flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
     width = f.width;
     height = f.height;
+    leftAge += f.delta;
+    rightAge += f.delta;
+    popAge += f.delta;
     if (beat) {
       int n = int((14.0f + 30.0f * hit) * m.cantidad);
+      burstPow = hit;
+      // Golpes: ráfagas mucho más grandes y un estallido extra en el centro.
+      if (m.pulso == 0) {
+        n = int(float(n) * (1.0f + 0.8f * std::min(f.intensity, 2.0f)));
+        if (hit <= 0.75f) {
+          pendingCenter += n / 2;
+          popAge = 0.0;
+        }
+      }
       if (hit > 0.75f) {
         pendingLeft += n;
         pendingRight += n;
         pendingCenter += n;
+        leftAge = rightAge = popAge = 0.0;
       } else if ((side++ & 1) == 0) {
         pendingLeft += n;
+        leftAge = 0.0;
       } else {
         pendingRight += n;
+        rightAge = 0.0;
       }
     }
     if (fl > 0.5f) pendingCenter += int(30.0f * m.cantidad);
@@ -241,14 +295,53 @@ class Visual final : public Scene {
     float rainRate = (6.0f + 40.0f * energy) * m.cantidad;
     auto g = glide(f);
     const float flutter = g.vuelo.weight(0), swirl = g.vuelo.weight(1), wind = g.vuelo.weight(2);
+    const float lift = std::min(bass * f.intensity, 1.0f) * g.pulso.weight(1) * std::min(width, height) * 1.5f;
     while (steps < target) {
-      step(rainRate, m.cantidad, m.tamano, m.lluvia, flutter, swirl, wind);
+      step(rainRate, m.cantidad, m.tamano, m.lluvia, flutter, swirl, wind, lift);
       steps++;
     }
   }
 
   void render(const Frame& f, Canvas& c) const override {
+    auto m = modifiers(f);
+    auto gl = glide(f);
     float amp = f.intensity;
+    // Pulso: cada opción mueve algo distinto; sin música todo vale cero.
+    const float kickP = std::min(kick * amp, 1.0f) * gl.pulso.weight(0);
+    const float bassP = std::min(bass * amp, 1.0f) * gl.pulso.weight(1);
+    const float sparkP = std::min(spark * amp, 1.0f) * gl.pulso.weight(2);
+    // Golpes: salto de tamaño; Graves: el confeti se hincha con los graves.
+    const float grow = 1.0f + 0.2f * kickP + 0.15f * bassP;
+    // Agudos: las caras que miran de frente, y muchos papelitos sueltos,
+    // destellan como lentejuelas.
+    std::vector<Vec2> glints;
+    if (sparkP > 0.002f) glints.reserve(pieces.size());
+    const uint32_t tick = uint32_t(std::fmod(sim, 100000.0) * 14.0);
+    const float span = std::min(f.width, f.height);
+    // Golpes: un fogonazo de luz en la boca de cada cañón y en cada estallido.
+    const float burst = std::min(burstPow * amp, 1.0f) * gl.pulso.weight(0);
+    auto bloom = [&](Vec2 at, double age, float radius) {
+      if (age > 1.5) return;
+      const float o = std::clamp(0.4f * burst * std::exp(-float(age) * 5.0f) * f.glow, 0.0f, 0.6f);
+      if (o < 0.003f) return;
+      Paint bp = Paint::radial(at, radius, {f.colors[3].opacity(o), f.colors[2].opacity(o * 0.5f), f.colors[1].opacity(0.0f)},
+                               {0.0f, 0.4f, 1.0f});
+      bp.blend = Blend::plus;
+      c.circle(at, radius, bp);
+    };
+    if (burst > 0.002f) {
+      bloom({0.0f, f.height}, leftAge, span * 0.45f);
+      bloom({f.width, f.height}, rightAge, span * 0.45f);
+      bloom({popX, popY}, popAge, span * 0.32f);
+    }
+    // Graves: el soplo de abajo se ve como un resplandor que late.
+    const float updraft = std::clamp(0.28f * bassP * f.glow, 0.0f, 0.5f);
+    if (updraft > 0.003f) {
+      const Vec2 at{f.width * 0.5f, f.height * 1.05f};
+      Paint up = Paint::radial(at, span * 0.7f, {f.colors[2].opacity(updraft), f.colors[1].opacity(0.0f)});
+      up.blend = Blend::plus;
+      c.circle(at, span * 0.7f, up);
+    }
     // Entre el paso anterior y el último: movimiento suave a cualquier FPS.
     float a = float(std::clamp(sim / kStep - double(steps), 0.0, 1.0));
     // Arcoíris de la paleta: cada acento y, entre ellos, su tono intermedio.
@@ -263,6 +356,11 @@ class Visual final : public Scene {
       float cf = std::cos(p.flip);
       float hw = 0.5f * p.w * std::max(0.08f, std::fabs(cf));
       float hh = 0.5f * p.h;
+      hw *= grow;
+      hh *= grow;
+      if (sparkP > 0.002f &&
+          (std::fabs(cf) > 0.9f || hashU(uint32_t(&p - pieces.data()) * 2654435761u + tick * 40503u) < 0.2f * sparkP))
+        glints.push_back({x, y});
       float ca = std::cos(p.angle), sa = std::sin(p.angle);
       Path& path = paths[size_t(p.color * 2 + (cf < 0.0f ? 1 : 0))];
       path.moveTo(x + (-hw) * ca - (-hh) * sa, y + (-hw) * sa + (-hh) * ca)
@@ -271,13 +369,21 @@ class Visual final : public Scene {
           .lineTo(x + (-hw) * ca - hh * sa, y + (-hw) * sa + hh * ca)
           .close();
     }
-    float lit = (0.9f + 0.2f * kick) * amp;
+    float lit = (0.9f + 0.2f * kick) * amp * (1.0f + 0.8f * kickP + 0.3f * bassP);
     for (int k = 0; k < 12; k++) {
       const Color& col = cols[size_t(k / 2)];
       float shade = (k % 2 == 0 ? 1.0f : 0.62f) * lit;
       Paint p;
       p.color = Color{std::min(1.0f, col.r * shade), std::min(1.0f, col.g * shade), std::min(1.0f, col.b * shade), 1.0f};
       c.path(paths[size_t(k)], p);
+    }
+    if (!glints.empty()) {
+      const Color& c3 = f.colors[3];
+      Paint gp;
+      gp.blend = Blend::plus;
+      gp.color = Color{std::min(1.0f, c3.r * 0.4f + 0.6f), std::min(1.0f, c3.g * 0.4f + 0.6f), std::min(1.0f, c3.b * 0.4f + 0.6f),
+                       std::clamp(1.0f * sparkP, 0.0f, 0.95f)};
+      c.points(glints, std::min(f.width, f.height) * 0.009f * m.tamano, gp);
     }
     (void)flash;
   }

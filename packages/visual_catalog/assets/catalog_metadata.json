@@ -325,7 +325,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Polvo Estelar",
+          "values": {
+            "grano": 0.8,
+            "miles": 26,
+            "pulso": "Agudos",
+            "giro": true
+          }
+        },
+        {
+          "name": "Seda que Respira",
+          "values": {
+            "miles": 12,
+            "cambio": 0.5,
+            "pulso": "Graves",
+            "speed": 0.7
+          }
+        }
+      ]
     },
     {
       "id": "atractor_lorenz",
@@ -863,7 +883,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Tormenta Solar",
+          "values": {
+            "cintas": 6,
+            "oleaje": 2,
+            "rayos": 0.7,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Velo Sereno",
+          "values": {
+            "cintas": 2,
+            "oleaje": 0.4,
+            "rayos": 1,
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "caleidoscopio_infinito",
@@ -1453,7 +1493,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Gran Fiesta",
+          "values": {
+            "cantidad": 1.7,
+            "tamano": 1.2,
+            "vuelo": "Viento",
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Lentejuelas",
+          "values": {
+            "tamano": 0.7,
+            "vuelo": "Remolino",
+            "lluvia": false,
+            "pulso": "Agudos"
+          }
+        }
+      ]
     },
     {
       "id": "constelacion_viva",
@@ -1728,7 +1788,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Tormenta",
+          "values": {
+            "origen": "Arriba y abajo",
+            "ramas": 1.6,
+            "velocidad": 1.8,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Brasa Viva",
+          "values": {
+            "origen": "Abajo",
+            "ramas": 0.7,
+            "velocidad": 0.6,
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "cristal_electrico_transparente",
@@ -1760,7 +1840,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Tormenta",
+          "values": {
+            "origen": "Arriba y abajo",
+            "ramas": 1.6,
+            "velocidad": 1.8,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Brasa Viva",
+          "values": {
+            "origen": "Abajo",
+            "ramas": 0.7,
+            "velocidad": 0.6,
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "cristal_prismatico",
@@ -2012,7 +2112,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Dragón de Luz",
+          "values": {
+            "curva": "Dragón",
+            "nivel": 5,
+            "grosor": 1.5,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Trama Fina",
+          "values": {
+            "curva": "Hilbert",
+            "nivel": 7,
+            "grosor": 0.7,
+            "pulso": "Agudos"
+          }
+        }
+      ]
     },
     {
       "id": "deriva_julia",
@@ -2246,7 +2366,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Terminal Binaria",
+          "values": {
+            "caracteres": "Binario",
+            "figura": "Cubo",
+            "columnas": 64,
+            "pulso": "Agudos"
+          }
+        },
+        {
+          "name": "Latido Ámbar",
+          "values": {
+            "caracteres": "Bloques",
+            "figura": "Dona",
+            "columnas": 30,
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "eco_infinito",
@@ -2631,7 +2771,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Cometa",
+          "values": {
+            "patron": "Triple espiral",
+            "recorrido": "Dos frentes",
+            "estela": 0.85,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Anillos Vivos",
+          "values": {
+            "patron": "Anillos",
+            "sombra": false,
+            "pulso": "Agudos",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "espiral_dominos_transparente",
@@ -2663,7 +2823,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Cometa",
+          "values": {
+            "patron": "Triple espiral",
+            "recorrido": "Dos frentes",
+            "estela": 0.85,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Anillos Vivos",
+          "values": {
+            "patron": "Anillos",
+            "sombra": false,
+            "pulso": "Agudos",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "espiral_primos",
@@ -2986,7 +3166,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Lluvia de Oro",
+          "values": {
+            "carcasa": "Sauces",
+            "caida": 1.6,
+            "estela": 2.2,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Anillos Flotantes",
+          "values": {
+            "carcasa": "Anillos",
+            "caida": 0.4,
+            "estela": 0.6,
+            "pulso": "Agudos"
+          }
+        }
+      ]
     },
     {
       "id": "fuegos_artificiales_transparente",
@@ -3018,7 +3218,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Lluvia de Oro",
+          "values": {
+            "carcasa": "Sauces",
+            "caida": 1.6,
+            "estela": 2.2,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Anillos Flotantes",
+          "values": {
+            "carcasa": "Anillos",
+            "caida": 0.4,
+            "estela": 0.6,
+            "pulso": "Agudos"
+          }
+        }
+      ]
     },
     {
       "id": "furia_estelar",
@@ -3072,7 +3292,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Mariposa",
+          "values": {
+            "espejo": true,
+            "brazos": 2,
+            "nebulosa": 0.45,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Nebulosa Viva",
+          "values": {
+            "brazos": 6,
+            "nebulosa": 1,
+            "pulso": "Agudos",
+            "speed": 1.5
+          }
+        }
+      ]
     },
     {
       "id": "geometria_islamica",
@@ -3185,7 +3425,28 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Enjambre",
+          "values": {
+            "motas": 480,
+            "vaiven": 2.5,
+            "pulso": "Agudos",
+            "estela": 0.35
+          }
+        },
+        {
+          "name": "Cometas Lentos",
+          "values": {
+            "motas": 100,
+            "vaiven": 0.3,
+            "estela": 1,
+            "pulso": "Graves",
+            "speed": 0.6
+          }
+        }
+      ]
     },
     {
       "id": "goteo_pollock",
@@ -3404,7 +3665,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Hiperespacio",
+          "values": {
+            "apertura": 0.9,
+            "estela": 2.2,
+            "pulso": "Golpes",
+            "speed": 1.3
+          }
+        },
+        {
+          "name": "Torbellino",
+          "values": {
+            "apertura": 0.7,
+            "remolino": 1,
+            "estela": 0.6,
+            "pulso": "Agudos"
+          }
+        }
+      ]
     },
     {
       "id": "hipervelocidad_transparente",
@@ -3433,7 +3714,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Hiperespacio",
+          "values": {
+            "apertura": 0.9,
+            "estela": 2.2,
+            "pulso": "Golpes",
+            "speed": 1.3
+          }
+        },
+        {
+          "name": "Torbellino",
+          "values": {
+            "apertura": 0.7,
+            "remolino": 1,
+            "estela": 0.6,
+            "pulso": "Agudos"
+          }
+        }
+      ]
     },
     {
       "id": "horizonte_sucesos",
@@ -3462,7 +3763,26 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Filo del Disco",
+          "values": {
+            "inclinacion": 0.3,
+            "bruma": 1.8,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Remolino Cósmico",
+          "values": {
+            "caida": 1,
+            "inclinacion": 2.2,
+            "pulso": "Agudos",
+            "speed": 1.4
+          }
+        }
+      ]
     },
     {
       "id": "horizonte_synthwave",
@@ -3491,7 +3811,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Mar de Neón",
+          "values": {
+            "oleaje": 0.8,
+            "montanas": 0.4,
+            "bruma": 1.8,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Cordillera",
+          "values": {
+            "montanas": 1.7,
+            "bruma": 0.5,
+            "pulso": "Agudos",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "ilusion_optica",
@@ -4532,7 +4872,28 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Mar Picado",
+          "values": {
+            "fuentes": 4,
+            "agua": "Picada",
+            "espuma": 0.5,
+            "pulso": "Golpes",
+            "speed": 1.3
+          }
+        },
+        {
+          "name": "Remolinos",
+          "values": {
+            "fuentes": 3,
+            "agua": "Remolino",
+            "espuma": 1,
+            "pulso": "Agudos"
+          }
+        }
+      ]
     },
     {
       "id": "mancha_rorschach",
@@ -5210,7 +5571,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Nube Dorada",
+          "values": {
+            "bruma": 2.6,
+            "pliegues": 0.6,
+            "pulso": "Graves",
+            "speed": 0.7
+          }
+        },
+        {
+          "name": "Gemelas",
+          "values": {
+            "espejo": true,
+            "pliegues": 1.5,
+            "bruma": 0.4,
+            "pulso": "Golpes"
+          }
+        }
+      ]
     },
     {
       "id": "murmuracion_transparente",
@@ -5242,7 +5623,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Nube Dorada",
+          "values": {
+            "bruma": 2.6,
+            "pliegues": 0.6,
+            "pulso": "Graves",
+            "speed": 0.7
+          }
+        },
+        {
+          "name": "Gemelas",
+          "values": {
+            "espejo": true,
+            "pliegues": 1.5,
+            "bruma": 0.4,
+            "pulso": "Golpes"
+          }
+        }
+      ]
     },
     {
       "id": "muro_cinetico",
@@ -5431,7 +5832,26 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Temporal",
+          "values": {
+            "viento": 0.8,
+            "gotas": 1.8,
+            "pulso": "Golpes",
+            "speed": 1.3
+          }
+        },
+        {
+          "name": "Bruma Nocturna",
+          "values": {
+            "niebla": 2.2,
+            "gotas": 0.6,
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "nucleo_cristal",
@@ -5751,7 +6171,26 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Mandala",
+          "values": {
+            "copias": 5,
+            "giro": 0.5,
+            "fosforo": 3,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Fósforo Vivo",
+          "values": {
+            "fosforo": 5,
+            "pulso": "Agudos",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "osciloscopio_transparente",
@@ -5783,7 +6222,26 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Mandala",
+          "values": {
+            "copias": 5,
+            "giro": 0.5,
+            "fosforo": 3,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Fósforo Vivo",
+          "values": {
+            "fosforo": 5,
+            "pulso": "Agudos",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "panal_energia",
@@ -6103,7 +6561,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Latigazos",
+          "values": {
+            "brazo": 0.5,
+            "ciclo": 12,
+            "pulso": "Golpes",
+            "speed": 1.3
+          }
+        },
+        {
+          "name": "Abanico Lento",
+          "values": {
+            "brazo": 1.8,
+            "ciclo": 35,
+            "pendulos": 320,
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "pendulos_dobles_transparente",
@@ -6135,7 +6613,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Latigazos",
+          "values": {
+            "brazo": 0.5,
+            "ciclo": 12,
+            "pulso": "Golpes",
+            "speed": 1.3
+          }
+        },
+        {
+          "name": "Abanico Lento",
+          "values": {
+            "brazo": 1.8,
+            "ciclo": 35,
+            "pendulos": 320,
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "pixel_sorting",
@@ -6199,7 +6697,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Sobrecarga",
+          "values": {
+            "pulso": "Golpes",
+            "celdas": 16,
+            "chips": false,
+            "speed": 1.3
+          }
+        },
+        {
+          "name": "Bus de Datos",
+          "values": {
+            "pulso": "Agudos",
+            "celdas": 9,
+            "ondas": false,
+            "glow": 1.4
+          }
+        }
+      ]
     },
     {
       "id": "placa_circuitos_transparente",
@@ -6231,7 +6749,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Sobrecarga",
+          "values": {
+            "pulso": "Golpes",
+            "celdas": 16,
+            "chips": false,
+            "speed": 1.3
+          }
+        },
+        {
+          "name": "Bus de Datos",
+          "values": {
+            "pulso": "Agudos",
+            "celdas": 9,
+            "ondas": false,
+            "glow": 1.4
+          }
+        }
+      ]
     },
     {
       "id": "planeta_anillado",
@@ -6487,7 +7025,26 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Abanico Abierto",
+          "values": {
+            "pulso": "Golpes",
+            "apertura": 1.6,
+            "grosor": 1.6
+          }
+        },
+        {
+          "name": "Cristal Giratorio",
+          "values": {
+            "pulso": "Agudos",
+            "giro": true,
+            "apertura": 0.75,
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "prismatic_halo",
@@ -7619,7 +8176,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Sala Roja",
+          "values": {
+            "color": "Rojo",
+            "pulso": "Graves",
+            "densidad": 1.4,
+            "avance": 0.6
+          }
+        },
+        {
+          "name": "Arcoíris Veloz",
+          "values": {
+            "color": "Arcoíris",
+            "pulso": "Agudos",
+            "avance": 1.8,
+            "parpadeo": false
+          }
+        }
+      ]
     },
     {
       "id": "salto_hiperespacial",
@@ -7710,7 +8287,28 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Sauce",
+          "values": {
+            "apertura": 0.55,
+            "viento": 2.2,
+            "aura": 0.5,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Abanico Mágico",
+          "values": {
+            "apertura": 1.7,
+            "viento": 0.4,
+            "aura": 1,
+            "pulso": "Agudos",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "show_laser",
@@ -7791,7 +8389,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Carretera Infinita",
+          "values": {
+            "camino": "Curvas",
+            "franjas": 12,
+            "pulso": "Golpes",
+            "speed": 1.5
+          }
+        },
+        {
+          "name": "Mar de Neón",
+          "values": {
+            "camino": "Olas",
+            "franjas": 4,
+            "bruma": 0.8,
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "tablero_galton",
@@ -7823,7 +8441,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Lluvia de Bolas",
+          "values": {
+            "pulso": "Golpes",
+            "caudal": 2.2,
+            "filas": 14,
+            "estela": 0.6
+          }
+        },
+        {
+          "name": "Clavos Vivos",
+          "values": {
+            "pulso": "Graves",
+            "filas": 9,
+            "caudal": 0.6,
+            "curva": false
+          }
+        }
+      ]
     },
     {
       "id": "tablero_galton_transparente",
@@ -7855,7 +8493,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Lluvia de Bolas",
+          "values": {
+            "pulso": "Golpes",
+            "caudal": 2.2,
+            "filas": 14,
+            "estela": 0.6
+          }
+        },
+        {
+          "name": "Clavos Vivos",
+          "values": {
+            "pulso": "Graves",
+            "filas": 9,
+            "caudal": 0.6,
+            "curva": false
+          }
+        }
+      ]
     },
     {
       "id": "telar",
@@ -8180,7 +8838,26 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Ocho Eterno",
+          "values": {
+            "baile": "Ocho",
+            "pulso": "Graves",
+            "estela": 1
+          }
+        },
+        {
+          "name": "Caos Estelar",
+          "values": {
+            "baile": "Caos",
+            "pulso": "Golpes",
+            "estela": 0.4,
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "tuberias_3d",
@@ -8423,7 +9100,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Perfil Rasante",
+          "values": {
+            "inclinacion": 1.3,
+            "chorros": 0.4,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Cuásar Furioso",
+          "values": {
+            "inclinacion": 0.8,
+            "turbulencia": 0.8,
+            "chorros": 2,
+            "pulso": "Golpes",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "v02_red_neuronal",
@@ -8455,7 +9152,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Constelación",
+          "values": {
+            "alcance": 65,
+            "halo": 2.2,
+            "pulso": "Agudos"
+          }
+        },
+        {
+          "name": "Marea Neural",
+          "values": {
+            "alcance": 150,
+            "oleaje": 1,
+            "halo": 0.5,
+            "pulso": "Graves",
+            "speed": 0.8
+          }
+        }
+      ]
     },
     {
       "id": "v02_red_neuronal_transparente",
@@ -8484,7 +9201,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Constelación",
+          "values": {
+            "alcance": 65,
+            "halo": 2.2,
+            "pulso": "Agudos"
+          }
+        },
+        {
+          "name": "Marea Neural",
+          "values": {
+            "alcance": 150,
+            "oleaje": 1,
+            "halo": 0.5,
+            "pulso": "Graves",
+            "speed": 0.8
+          }
+        }
+      ]
     },
     {
       "id": "v03_matriz_oceanica",
@@ -8516,7 +9253,26 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Túnel Retro",
+          "values": {
+            "espejo": true,
+            "oleaje": 0.6,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Mar de Fondo",
+          "values": {
+            "oleaje": 1.5,
+            "cruce": 0.6,
+            "pulso": "Graves",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "v04_tunel_warp",
@@ -8548,7 +9304,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Vórtice",
+          "values": {
+            "torsion": 2.5,
+            "lados": 5,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Hiperespacio",
+          "values": {
+            "lados": 12,
+            "malla": true,
+            "torsion": 0,
+            "pulso": "Golpes",
+            "speed": 1.5
+          }
+        }
+      ]
     },
     {
       "id": "v04_tunel_warp_transparente",
@@ -8580,7 +9356,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Vórtice",
+          "values": {
+            "torsion": 2.5,
+            "lados": 5,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Hiperespacio",
+          "values": {
+            "lados": 12,
+            "malla": true,
+            "torsion": 0,
+            "pulso": "Golpes",
+            "speed": 1.5
+          }
+        }
+      ]
     },
     {
       "id": "v05_campo_curl",
@@ -8612,7 +9408,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Galaxia Líquida",
+          "values": {
+            "remolino": 1,
+            "escala": 1.4,
+            "estela": 18,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Turbulencia Fina",
+          "values": {
+            "escala": 4.6,
+            "estela": 4,
+            "pulso": "Agudos",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "v05_campo_curl_transparente",
@@ -8644,7 +9460,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Galaxia Líquida",
+          "values": {
+            "remolino": 1,
+            "escala": 1.4,
+            "estela": 18,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Turbulencia Fina",
+          "values": {
+            "escala": 4.6,
+            "estela": 4,
+            "pulso": "Agudos",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "v06_tesseract_4d",
@@ -8676,7 +9512,26 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Hipercubo Plano",
+          "values": {
+            "perspectiva": 4.6,
+            "estela": 0.8,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Abismo 4D",
+          "values": {
+            "perspectiva": 1.9,
+            "estela": 0.45,
+            "pulso": "Golpes",
+            "speed": 1.4
+          }
+        }
+      ]
     },
     {
       "id": "v06_tesseract_4d_transparente",
@@ -8705,7 +9560,26 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Hipercubo Plano",
+          "values": {
+            "perspectiva": 4.6,
+            "estela": 0.8,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Abismo 4D",
+          "values": {
+            "perspectiva": 1.9,
+            "estela": 0.45,
+            "pulso": "Golpes",
+            "speed": 1.4
+          }
+        }
+      ]
     },
     {
       "id": "v07_aurora_plasma",
@@ -8769,7 +9643,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "music"
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Mandala Sónico",
+          "values": {
+            "barras": 144,
+            "doble": true,
+            "onda": 0.5,
+            "pulso": "Agudos"
+          }
+        },
+        {
+          "name": "Flor Pulsar",
+          "values": {
+            "barras": 36,
+            "onda": 1,
+            "pulso": "Golpes",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "v08_espectro_cosmico_transparente",
@@ -8798,7 +9692,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Mandala Sónico",
+          "values": {
+            "barras": 144,
+            "doble": true,
+            "onda": 0.5,
+            "pulso": "Agudos"
+          }
+        },
+        {
+          "name": "Flor Pulsar",
+          "values": {
+            "barras": 36,
+            "onda": 1,
+            "pulso": "Golpes",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "v09_espiral_aurea",
@@ -8830,7 +9744,26 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Girasol",
+          "values": {
+            "espejo": true,
+            "torbellino": 0.3,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Galaxia Áurea",
+          "values": {
+            "torbellino": 1,
+            "divergencia": 2.43,
+            "pulso": "Golpes",
+            "speed": 1.4
+          }
+        }
+      ]
     },
     {
       "id": "v09_espiral_aurea_transparente",
@@ -8862,7 +9795,26 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Girasol",
+          "values": {
+            "espejo": true,
+            "torbellino": 0.3,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Galaxia Áurea",
+          "values": {
+            "torbellino": 1,
+            "divergencia": 2.43,
+            "pulso": "Golpes",
+            "speed": 1.4
+          }
+        }
+      ]
     },
     {
       "id": "v10_supernova",
@@ -8894,7 +9846,26 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Galaxia Viva",
+          "values": {
+            "remolino": 2,
+            "estela": 1.8,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Colapso",
+          "values": {
+            "remolino": 0.3,
+            "estela": 0.5,
+            "pulso": "Agudos",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "v10_supernova_transparente",
@@ -8926,7 +9897,26 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Galaxia Viva",
+          "values": {
+            "remolino": 2,
+            "estela": 1.8,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Colapso",
+          "values": {
+            "remolino": 0.3,
+            "estela": 0.5,
+            "pulso": "Agudos",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "v11_archivo_corrupto",
@@ -8959,7 +9949,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Señal Rota",
+          "values": {
+            "caracter": "Entrecortado",
+            "aberracion": 2.2,
+            "bloques": 0.7,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Losas VHS",
+          "values": {
+            "bloques": 2.2,
+            "aberracion": 0.4,
+            "pulso": "Graves",
+            "speed": 0.8
+          }
+        }
+      ]
     },
     {
       "id": "v11_archivo_corrupto_transparente",
@@ -8988,7 +9998,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Señal Rota",
+          "values": {
+            "caracter": "Entrecortado",
+            "aberracion": 2.2,
+            "bloques": 0.7,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Losas VHS",
+          "values": {
+            "bloques": 2.2,
+            "aberracion": 0.4,
+            "pulso": "Graves",
+            "speed": 0.8
+          }
+        }
+      ]
     },
     {
       "id": "v12_maquinaria_orbital",
@@ -9022,7 +10052,25 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Giroscopio",
+          "values": {
+            "precesion": 1,
+            "inclinacion": 2.6,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Astrolabio Plano",
+          "values": {
+            "inclinacion": 0,
+            "halo": 2.2,
+            "pulso": "Agudos"
+          }
+        }
+      ]
     },
     {
       "id": "v12_maquinaria_orbital_transparente",
@@ -9051,7 +10099,25 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Giroscopio",
+          "values": {
+            "precesion": 1,
+            "inclinacion": 2.6,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Astrolabio Plano",
+          "values": {
+            "inclinacion": 0,
+            "halo": 2.2,
+            "pulso": "Agudos"
+          }
+        }
+      ]
     },
     {
       "id": "v13_nubes_volumetricas",
@@ -9151,7 +10217,25 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Red Sísmica",
+          "values": {
+            "canales": 3,
+            "actividad": 0.5,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Fósforo Neón",
+          "values": {
+            "tinta": 2.6,
+            "actividad": 0.25,
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "v14_sismografo_transparente",
@@ -9180,7 +10264,25 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Red Sísmica",
+          "values": {
+            "canales": 3,
+            "actividad": 0.5,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Fósforo Neón",
+          "values": {
+            "tinta": 2.6,
+            "actividad": 0.25,
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "v15_lluvia_cristal",
@@ -9279,7 +10381,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Laboratorio",
+          "values": {
+            "patron": "Radial",
+            "ciclotron": 3,
+            "limaduras": 0.7,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Ferrofluido",
+          "values": {
+            "limaduras": 2.5,
+            "patron": "Equipotencial",
+            "ciclotron": 0.4,
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "v16_campo_magnetico_transparente",
@@ -9308,7 +10430,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Laboratorio",
+          "values": {
+            "patron": "Radial",
+            "ciclotron": 3,
+            "limaduras": 0.7,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Ferrofluido",
+          "values": {
+            "limaduras": 2.5,
+            "patron": "Equipotencial",
+            "ciclotron": 0.4,
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "vidrio_liquido",
@@ -9517,7 +10659,27 @@
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Mandala",
+          "values": {
+            "lados": 12,
+            "torsion": 0,
+            "halo": 0.6,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Espiral Triangular",
+          "values": {
+            "lados": 3,
+            "torsion": 2.5,
+            "pulso": "Golpes",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "vortice_hipnotico_transparente",
@@ -9546,7 +10708,27 @@
       },
       "publication": "draft",
       "role": "overlay",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Mandala",
+          "values": {
+            "lados": 12,
+            "torsion": 0,
+            "halo": 0.6,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Espiral Triangular",
+          "values": {
+            "lados": 3,
+            "torsion": 2.5,
+            "pulso": "Golpes",
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "zoom_infinito",

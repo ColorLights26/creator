@@ -5,6 +5,48 @@
 // estelas de chispas; el estallido ilumina el humo del cielo. En el drop
 // llega un gran final con cuatro carcasas a la vez; sin golpes, el
 // espectáculo sigue con lanzamientos regulares.
+// Pulso elige cómo se ve además el ritmo: Golpes lanza carcasas más grandes
+// y hace que todas las estrellas encendidas den un fogonazo blanco y alumbren
+// el humo en cada golpe; Graves agranda los halos y las estelas despacio y
+// enciende el humo; Agudos hace chisporrotear purpurina blanca en las estrellas.
+import 'package:scene_compositor/authoring.dart';
+
+// Ajustes propios de este visual. Studio los muestra en Ajustes.
+const modifiers = [
+  // FORMA: el tipo de carcasa (Variadas mezcla todas, como siempre).
+  CreatorModifier.choice(
+    'carcasa',
+    'Carcasas',
+    options: ['Variadas', 'Peonías', 'Crisantemos', 'Sauces', 'Anillos'],
+  ),
+  // MOVIMIENTO: estrellas que flotan o que caen como lluvia.
+  CreatorModifier.slider('caida', 'Caída', min: .3, max: 3, value: 1),
+  // MÚSICA
+  CreatorModifier.choice(
+    'pulso',
+    'Pulso',
+    options: ['Golpes', 'Graves', 'Agudos'],
+  ),
+  // ATMÓSFERA: estelas cortas o largos regueros de chispas.
+  CreatorModifier.slider('estela', 'Estela', min: .3, max: 2.5, value: 1),
+];
+
+// Combinaciones con nombre que parecen otro visual.
+const variations = [
+  CreatorVariation('Lluvia de Oro', {
+    'carcasa': 'Sauces',
+    'caida': 1.6,
+    'estela': 2.2,
+    'pulso': 'Graves',
+  }),
+  CreatorVariation('Anillos Flotantes', {
+    'carcasa': 'Anillos',
+    'caida': .4,
+    'estela': .6,
+    'pulso': 'Agudos',
+  }),
+];
+
 const nativeSource = r'''
 class Visual final : public Scene {
   static constexpr int kShells = 8, kStars = 130;
@@ -28,7 +70,8 @@ class Visual final : public Scene {
 
   static float lifeOf(int type) { return type == 2 ? 3.6f : (type == 1 ? 2.6f : 2.2f); }
 
-  void burst(double born, float power) {
+  // forced: 0 deja el azar de siempre; 1..4 fija peonía, crisantemo, sauce o anillo.
+  void burst(double born, float power, int forced) {
     Shell& s = shells[next];
     next = (next + 1) % kShells;
     s.x = 0.15f + 0.7f * rng.unit();
@@ -37,12 +80,13 @@ class Visual final : public Scene {
     s.seed = rng.unit() * 90.0f;
     float pick = rng.unit();
     s.type = pick < 0.4f ? 0 : (pick < 0.65f ? 1 : (pick < 0.85f ? 2 : 3));
+    if (forced > 0) s.type = forced - 1;
     s.color = s.type == 2 ? 0 : (turn++ % 3);
     s.born = born;
   }
 
   // Posición de una estrella con arrastre y gravedad, en píxeles.
-  void star(const Shell& sh, int i, float t, float w, float h, float s, float& x, float& y) const {
+  void star(const Shell& sh, int i, float t, float w, float h, float s, float fall, float& x, float& y) const {
     float a = hash(sh.seed + float(i) * 1.731f) * 6.2831853f;
     float e = hash(sh.seed * 3.1f + float(i) * 2.377f);
     // Peonía: proyección de una esfera; anillo: todas en el borde, inclinado.
@@ -50,6 +94,8 @@ class Visual final : public Scene {
     float speed = s * (0.62f + 0.1f * hash(sh.seed + float(i) * 5.3f)) * sh.power;
     float k = sh.type == 2 ? 1.1f : 1.8f;
     float g = s * (sh.type == 2 ? 0.17f : 0.11f);
+    // Caída: más o menos gravedad (1 = la original).
+    g *= fall;
     float vx = std::cos(a) * rf * speed;
     float vy = std::sin(a) * rf * speed * (sh.type == 3 ? 0.45f : 1.0f);
     float ek = (1.0f - std::exp(-k * t)) / k;
@@ -86,19 +132,22 @@ class Visual final : public Scene {
     hit = std::min(std::max(hit, onset), 1.0f);
     clock += f.delta * f.speed;
     sinceFinale += f.delta;
+    auto mods = modifiers(f);
+    // Golpes: las carcasas que lanza el ritmo estallan más grandes.
+    const float boom = mods.pulso == 0 ? 1.2f : 1.0f;
     if (hit > kick + 0.2f) {
       if (hit > 0.75f && drive > 0.4f && sinceFinale > 6.0) {
         // Gran final: cuatro carcasas a la vez.
-        for (int i = 0; i < 4; i++) burst(clock, 1.1f);
+        for (int i = 0; i < 4; i++) burst(clock, 1.1f * boom, mods.carcasa);
         sinceFinale = 0;
       } else {
-        burst(clock, 0.75f + 0.4f * hit);
+        burst(clock, (0.75f + 0.4f * hit) * boom, mods.carcasa);
       }
       nextAuto = clock + 1.4;
     }
     // Sin golpes: una carcasa cada 1,6 s, en horarios fijos.
     while (clock >= nextAuto) {
-      burst(nextAuto, 0.85f);
+      burst(nextAuto, 0.85f, mods.carcasa);
       nextAuto += 1.6;
     }
     kick = std::max(kick * std::exp(-dt * 5.0f), hit);
@@ -108,6 +157,13 @@ class Visual final : public Scene {
   void render(const Frame& f, Canvas& c) const override {
     float amp = f.intensity;
     float w = f.width, h = f.height, s = std::min(w, h);
+    auto g = glide(f);
+    // Pulso: sus pesos reparten la reacción; todo vale cero sin música.
+    const float punch = std::min(kick * amp, 1.0f) * g.pulso.weight(0);
+    const float swell = std::min(bass * amp, 1.0f) * g.pulso.weight(1);
+    const float glint = std::min(spark * amp, 1.0f) * g.pulso.weight(2);
+    const float fall = g.caida;
+    const float trailK = g.estela;
     std::vector<float> u;
     u.reserve(52);
     u.insert(u.end(), {float(std::fmod(clock, 1000.0)), bass * amp, kick * amp, energy});
@@ -116,7 +172,8 @@ class Visual final : public Scene {
       const Shell& sh = shells[k];
       float age = float(clock - sh.born);
       float glow = sh.born < -50 ? 0.0f : std::exp(-age * 2.5f) * sh.power * std::clamp(age / 0.04f, 0.0f, 1.0f);
-      u.insert(u.end(), {sh.x, sh.y, glow * amp, float(sh.color)});
+      // Golpes y Graves: el humo del cielo se ilumina más.
+      u.insert(u.end(), {sh.x, sh.y, glow * amp * (1.0f + 0.45f * punch + 0.35f * swell), float(sh.color)});
     }
     for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});
     c.material("night_sky", {0, 0, w, h}, u);
@@ -131,20 +188,26 @@ class Visual final : public Scene {
       float decay = sh.type == 2 ? std::exp(-age * 0.45f) : std::exp(-age * 0.85f);
       decay *= 1.0f - std::clamp((age - life * 0.8f) / (life * 0.2f), 0.0f, 1.0f);
       int trailN = sh.type == 2 ? 6 : 3;
+      // Estela: más o menos chispas detrás de cada estrella (1 = la original).
+      if (trailK != 1.0f) trailN = std::max(1, int(std::lround(float(trailN) * trailK)));
       float gap = sh.type == 2 ? 0.09f : 0.05f;
-      std::vector<Vec2> heads, trails;
+      std::vector<Vec2> heads, trails, glitter;
       heads.reserve(kStars);
       trails.reserve(size_t(kStars * trailN));
       for (int i = 0; i < kStars; i++) {
         // Crisantemo: las estrellas crepitan, se apagan y encienden.
         if (sh.type == 1 && age > 0.6f && hash(float(i) * 3.7f + std::floor(age * 18.0f) + sh.seed) < 0.35f) continue;
         float x, y;
-        star(sh, i, age, w, h, s, x, y);
+        star(sh, i, age, w, h, s, fall, x, y);
         heads.push_back({x, y});
+        // Agudos: purpurina blanca que chisporrotea entre las estrellas.
+        if (glint > 0.0f && hash(float(i) * 7.13f + std::floor(float(std::fmod(clock, 1000.0)) * 14.0f) + sh.seed * 1.7f) < glint * 0.35f) {
+          glitter.push_back({x, y});
+        }
         for (int j = 1; j <= trailN; j++) {
           float tj = age - gap * float(j);
           if (tj <= 0) break;
-          star(sh, i, tj, w, h, s, x, y);
+          star(sh, i, tj, w, h, s, fall, x, y);
           trails.push_back({x, y});
         }
       }
@@ -154,19 +217,29 @@ class Visual final : public Scene {
         Paint trail;
         trail.blend = Blend::plus;
         trail.color = {base.r, base.g, base.b, std::clamp(0.5f * gain, 0.0f, 1.0f)};
-        c.points(trails, (sh.type == 2 ? 1.8f : 1.5f) * px, trail);
+        // Graves: las estelas engordan despacio.
+        c.points(trails, (sh.type == 2 ? 1.8f : 1.5f) * px * (1.0f + 0.4f * swell), trail);
       }
       if (heads.empty()) continue;
       Paint halo;
       halo.blend = Blend::plus;
       halo.color = {base.r, base.g, base.b, std::clamp(0.16f * gain * f.glow, 0.0f, 1.0f)};
-      c.points(heads, 7.0f * px, halo);
+      // Graves: el halo crece; Golpes: se abre con cada golpe.
+      c.points(heads, 7.0f * px * (1.0f + 0.6f * swell + 0.3f * punch), halo);
       Paint head;
       head.blend = Blend::plus;
       float whiten = age < 0.25f ? 0.6f : 0.25f;
+      // Golpes: fogonazo blanco de todas las estrellas encendidas.
+      if (punch > 0.0f) whiten = std::min(1.0f, whiten + 0.25f * punch);
       head.color = {std::min(1.0f, base.r + (1.0f - base.r) * whiten), std::min(1.0f, base.g + (1.0f - base.g) * whiten),
                     std::min(1.0f, base.b + (1.0f - base.b) * whiten), std::clamp(0.95f * gain, 0.0f, 1.0f)};
-      c.points(heads, (2.3f + 0.8f * spark * amp) * px, head);
+      c.points(heads, (2.3f + 0.8f * spark * amp) * px * (1.0f + 0.35f * punch), head);
+      if (!glitter.empty()) {
+        Paint sparkle;
+        sparkle.blend = Blend::plus;
+        sparkle.color = {1.0f, 0.97f, 0.9f, std::clamp(0.95f * glint * decay, 0.0f, 1.0f)};
+        c.points(glitter, 3.2f * px, sparkle);
+      }
     }
   }
 };

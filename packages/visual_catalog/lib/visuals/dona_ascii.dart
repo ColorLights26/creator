@@ -9,6 +9,11 @@
 // tiene resplandor y líneas de barrido. La energía acelera el giro, los
 // graves la iluminan, cada golpe la hace latir, los agudos hacen chispear
 // celdas sueltas y en Auto la figura cambia cada ocho golpes.
+// Pulso elige qué más hace la música: en Golpes la figura da un salto hacia
+// arriba con cada golpe, crece un poco, sus caracteres brillan más densos y
+// un resplandor ámbar la rodea; en Graves la figura se hincha despacio y su
+// brillo y su resplandor respiran con los graves; en Agudos muchas celdas de
+// la figura destellan con @ y saltan más chispas alrededor.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -17,6 +22,24 @@ const modifiers = [
   CreatorModifier.choice('figura', 'Figura', options: ['Auto', 'Dona', 'Esfera', 'Cubo', 'Octaedro']),
   CreatorModifier.choice('caracteres', 'Caracteres', options: ['ASCII', 'Binario', 'Bloques']),
   CreatorModifier.slider('giro', 'Velocidad de giro', min: .2, max: 2.5, value: 1),
+  // MÚSICA: qué parte de la figura reacciona.
+  CreatorModifier.choice('pulso', 'Pulso', options: ['Golpes', 'Graves', 'Agudos']),
+];
+
+// Combinaciones con nombre que parecen otro visual.
+const variations = [
+  CreatorVariation('Terminal Binaria', {
+    'caracteres': 'Binario',
+    'figura': 'Cubo',
+    'columnas': 64,
+    'pulso': 'Agudos',
+  }),
+  CreatorVariation('Latido Ámbar', {
+    'caracteres': 'Bloques',
+    'figura': 'Dona',
+    'columnas': 30,
+    'pulso': 'Graves',
+  }),
 ];
 
 const nativeSource = r'''
@@ -27,6 +50,9 @@ class Visual final : public Scene {
   double angA = 0, angB = 0, clock = 0, sinceShape = 0;
   float morph = 1;
   int beats = 0, autoShape = 0, shapeFrom = 0, shapeTo = 0;
+  // Salto del último golpe.
+  double hopAge = 100;
+  float hopPow = 0;
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
@@ -43,6 +69,8 @@ class Visual final : public Scene {
     morph = 1;
     beats = 0;
     autoShape = shapeFrom = shapeTo = 0;
+    hopAge = 100;
+    hopPow = 0;
   }
 
   void update(const Frame& f) override {
@@ -63,8 +91,11 @@ class Visual final : public Scene {
     slowBass = follow(slowBass, mu.bass, 3.0f, 3.0f, dt);
     hit = std::min(std::max(hit, onset), 1.0f);
     sinceShape += f.delta;
+    hopAge += f.delta;
     if (hit > kick + 0.2f) {
       beats++;
+      hopAge = 0.0;
+      hopPow = hit;
       if (beats % 8 == 0) {
         autoShape = (autoShape + 1) % 4;
         sinceShape = 0;
@@ -113,6 +144,11 @@ class Visual final : public Scene {
     w[size_t(shapeFrom)] += 1.0f - e;
     w[size_t(shapeTo)] += e;
     u.insert(u.end(), {w[0], w[1], w[2], w[3]});
+    // Pulso: cada opción mueve algo distinto; sin música todo vale cero.
+    // Golpes: un salto que sube y baja en 0,42 s.
+    const float hopArc = hopAge < 0.42 ? std::sin(float(hopAge / 0.42) * 3.1415927f) : 0.0f;
+    u.insert(u.end(), {std::min(kick * amp, 1.0f) * g.pulso.weight(0), std::min(bass * amp, 1.0f) * g.pulso.weight(1),
+                       std::min(spark * amp, 1.0f) * g.pulso.weight(2), std::min(hopPow * amp, 1.0f) * hopArc * g.pulso.weight(0)});
     for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});
     c.material("ascii_donut", {0, 0, f.width, f.height}, u);
   }
@@ -130,6 +166,7 @@ uniform vec4 uM;   // graves, golpe, agudos, energía
 uniform vec4 uD;   // glow, destello, peso de Binario, peso de Bloques
 uniform vec4 uR;   // giro: cos A, sen A, cos B, sen B
 uniform vec4 uW;   // peso de cada figura: dona, esfera, cubo, octaedro
+uniform vec4 uP;   // pulso: golpe, graves, agudos, salto
 uniform vec3 uC0;
 uniform vec3 uC1;
 uniform vec3 uC2;
@@ -213,7 +250,7 @@ vec3 rotate(vec3 p) {
 
 // Las cuatro figuras mezcladas por peso (sin ramas: siempre el mismo coste).
 float scene(vec3 p) {
-  float k = 1.0 + 0.12 * uM.y;
+  float k = 1.0 + min(0.12 * uM.y + 0.14 * uP.y + 0.06 * uP.x, 0.25);
   vec3 q = rotate(p) / k;
   float torus = length(vec2(length(q.xz) - 1.0, q.y)) - 0.45;
   float sphere = length(q) - 1.15;
@@ -233,6 +270,8 @@ void main() {
   vec2 centerPx = (cell + 0.5) * cellSize;
   float scale = min(uSize.x, uSize.y);
   vec2 uv = (centerPx - 0.5 * uSize) / scale * 1.9;
+  // Golpes: la figura salta hacia arriba.
+  uv.y += uP.w * 0.22;
   // Un rayo por celda contra la figura.
   vec3 ro = vec3(0.0, 0.0, -4.2);
   vec3 rd = normalize(vec3(uv, 2.2));
@@ -254,21 +293,33 @@ void main() {
     vec2 e = vec2(0.003, -0.003);
     vec3 n = normalize(e.xyy * scene(p + e.xyy) + e.yyx * scene(p + e.yyx) + e.yxy * scene(p + e.yxy) + e.xxx * scene(p + e.xxx));
     lum = clamp(dot(n, normalize(vec3(0.35, -0.8, -0.6))), 0.0, 1.0);
-    lum = clamp(lum * (0.9 + 0.35 * uM.x) + 0.08, 0.0, 1.0);
+    lum = clamp(lum * (0.9 + 0.35 * uM.x) + 0.08 + 0.35 * uP.x, 0.0, 1.0);
   }
   // Chispas de los agudos: celdas sueltas que se encienden con @.
-  float sparkle = step(0.994 - 0.02 * uM.z, hash12(cell + floor(uA.z * 12.0)));
+  float sparkle = step(0.994 - 0.02 * uM.z - 0.08 * uP.z, hash12(cell + floor(uA.z * 12.0)));
   float idx = floor(lum * 11.99);
   float on = 0.0;
   if (hit > 0.5) on = charBit(idx, lum, cell, cellUv);
   float sp = sparkle * (1.0 - hit) * charBit(11.0, 1.0, cell, cellUv) * uM.z;
   // Tinta ámbar del monitor: más clara donde llega más luz.
   vec3 ink = uC1 * (0.45 + 0.75 * lum);
-  col += ink * on * (1.0 + 0.4 * uM.y);
+  col += ink * on * (1.0 + 0.4 * uM.y + 1.0 * uP.x + 0.4 * uP.y);
   // Las chispas en el tono claro de la paleta y el destello en su naranja.
   col += uC3 * sp * 0.8;
+  // Agudos: muchas celdas de la figura que destellan con @.
+  if (uP.z > 0.001) {
+    float glint = step(0.8 - 0.25 * uP.z, hash12(cell * 1.37 + floor(uA.z * 18.0) + 3.1)) * hit;
+    col += uC3 * glint * charBit(11.0, 1.0, cell, cellUv) * 0.9 * uP.z;
+  }
   // Resplandor del monitor detrás de cada carácter.
   col += ink * hit * lum * 0.12 * uD.x;
+  // Graves: el resplandor ámbar respira.
+  col += ink * hit * lum * 0.7 * uP.y;
+  // Resplandor alrededor de la figura (que sigue su salto): Golpes lo
+  // enciende y Graves lo hace latir.
+  vec2 q = (frag - 0.5 * uSize) / scale * 1.9;
+  q.y += uP.w * 0.22;
+  col += uC2 * exp(-dot(q, q) * 1.6) * (0.32 * uP.x + 0.2 * uP.y) * min(uD.x, 1.5);
   // Líneas de barrido y viñeta de tubo.
   col *= 0.86 + 0.14 * sin(frag.y * 1.9);
   vec2 p0 = (frag - 0.5 * uSize) / scale;
