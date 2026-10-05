@@ -13,7 +13,7 @@ const metadata = CreatorVisualMetadata(
   thumbnail: CreatorThumbnailSpec(timeSeconds: 5),
   role: CreatorRole.overlay,
   reactivity: CreatorReactivity.optional,
-  colors: [0x00000000, 0xff2a6bff, 0xffff7a1a, 0xffeaf2ff],
+  colors: [0x00000000, 0xff2a6bff, 0xffff7010, 0xffeaf2ff],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Las luces cruzan rápido: a 60 FPS es fluido.
   framesPerSecond: 60,

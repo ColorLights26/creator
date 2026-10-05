@@ -1,127 +1,184 @@
-// Rorschach Mercurio — la mancha hecha de metal líquido.
-// En vez de tinta, mercurio: la mancha brilla como cromo, abombada, y
-// refleja lo que la rodea (fuego, focos de estudio o un horizonte), con un
-// borde que se oscurece como el metal de verdad. Unas gotas sueltas orbitan
-// y se funden con ella. Cada golpe de la música manda una onda por la
-// superficie, los graves la hinchan y los agudos la hacen centellear.
+// Rorschach Mercurio — una mancha de metal líquido negro.
+// La tinta es mercurio oscuro: refleja un horizonte en llamas con el
+// contraste del cromo de verdad (cielo oscuro, línea de horizonte ardiendo,
+// suelo brillante) y en el borde le asoma un tornasol de aceite. Cambia de
+// forma con cada golpe y al hacerlo salpica gotas que salen disparadas y
+// vuelven a fundirse con ella; debajo, su reflejo en un charco. Pulso: Golpes
+// la salpica y la ondula; Graves la hincha y enciende el horizonte; Agudos
+// le saca destellos.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
-  CreatorModifier.steps('gotas', 'Gotas sueltas', min: 0, max: 8, value: 4),
-  CreatorModifier.slider('viscosidad', 'Viscosidad', min: 0, max: 1, value: .4),
+  CreatorModifier.choice('mutacion', 'Metamorfosis', options: ['Cada golpe', 'Cada compás', 'Lenta']),
   CreatorModifier.choice('pulso', 'Pulso', options: ['Golpes', 'Graves', 'Agudos']),
-  CreatorModifier.choice('entorno', 'Reflejos', options: ['Fuego', 'Estudio', 'Horizonte']),
-  CreatorModifier.toggle('cuatro', 'Cuatro espejos', value: false),
+  CreatorModifier.steps('gotas', 'Gotas', min: 0, max: 10, value: 6),
+  CreatorModifier.slider('viscosidad', 'Viscosidad', min: 0, max: 1, value: .4),
+  CreatorModifier.choice('reflejo', 'Reflejo', options: ['Llamas', 'Estudio', 'Aurora']),
 ];
 
 // Combinaciones con nombre que parecen otro visual.
 const variations = [
-  CreatorVariation('Mercurio Puro', {'entorno': 'Estudio', 'gotas': 6, 'viscosidad': .2}),
-  CreatorVariation('Metal Fundido', {'entorno': 'Fuego', 'viscosidad': .9, 'pulso': 'Graves', 'cuatro': true}),
+  CreatorVariation('Metal Fundido', {'reflejo': 'Llamas', 'gotas': 10, 'viscosidad': .1}),
+  CreatorVariation('Espejo Negro', {'reflejo': 'Estudio', 'viscosidad': .9, 'pulso': 'Graves'}),
 ];
 
 const nativeSource = r'''
 class Visual final : public Scene {
+  static constexpr int kLobes = 6;
+  static constexpr double kMorph = 0.6;
+  struct Lobe { float x, y, r, w; };
   float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;
   float kick = 0, flash = 0, drive = 0;
-  // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.
-  double morph = 0, clock = 0, aux = 0, sinceBeat = 100, sinceIdle = 0;
-  float spread = 0, spreadVel = 0, beatPower = 0;
-  int beats = 0;
-
+  // Relojes en doble precisión: sin música es idéntico a 30 y 60 FPS.
+  double clock = 0, flow = 0, aux = 0, shapeAt = -100, sinceBeat = 100, sinceIdle = 0;
+  float beatPower = 0, spread = 0, spreadVel = 0;
+  uint32_t shapes = 0, beats = 0;
+  std::array<Lobe, kLobes> from{}, to{};
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
   }
+  static float hashU(uint32_t x) {
+    x ^= x >> 16; x *= 0x7feb352dU; x ^= x >> 15; x *= 0x846ca68bU; x ^= x >> 16;
+    return float(x & 0xffffffu) / 16777216.0f;
+  }
+  // Rebote al llegar a la forma nueva: se pasa un poco y vuelve.
+  static float easeBack(float p) {
+    p = std::clamp(p, 0.0f, 1.0f);
+    const float e = p - 1.0f;
+    return 1.0f + 2.4f * e * e * e + 1.4f * e * e;
+  }
+  // Lóbulo i de la forma número k: el primero es siempre el cuerpo central;
+  // algunos son negativos y abren huecos de papel dentro de la tinta.
+  static Lobe pick(uint32_t k, int i) {
+    const uint32_t s = k * 2654435761u + uint32_t(i) * 2246822519u + 0x9e3779b9u;
+    const float a = hashU(s + 1u), b = hashU(s + 2u), c = hashU(s + 3u), d = hashU(s + 4u);
+    if (i == 0) return {0.02f + 0.05f * a, -0.15f + 0.3f * b, 0.17f + 0.06f * c, 1.0f};
+    Lobe L;
+    L.x = 0.04f + 0.38f * a * a;
+    L.y = -0.62f + 1.24f * b;
+    L.r = 0.07f + 0.13f * c;
+    L.w = d < 0.22f ? -0.45f - 0.4f * hashU(s + 5u) : 0.7f + 0.5f * hashU(s + 6u);
+    return L;
+  }
+  Lobe lobeAt(int i, double time) const {
+    const float e = easeBack(float((time - shapeAt) / kMorph));
+    const Lobe& a = from[size_t(i)];
+    const Lobe& b = to[size_t(i)];
+    return {a.x + (b.x - a.x) * e, a.y + (b.y - a.y) * e, std::max(0.03f, a.r + (b.r - a.r) * e), a.w + (b.w - a.w) * e};
+  }
+  // Forma nueva; carry es el tiempo que ya pasó desde el instante del cambio.
+  void newShape(double carry) {
+    const double at = clock - carry;
 
-  static float hashf(int n) {
-    uint32_t x = uint32_t(n) * 2654435761u;
-    x ^= x >> 15;
-    x *= 2246822519u;
-    x ^= x >> 13;
-    return float(x & 0xffffff) / 16777216.0f;
+    for (int i = 0; i < kLobes; i++) from[size_t(i)] = lobeAt(i, at);
+    shapes++;
+    for (int i = 0; i < kLobes; i++) to[size_t(i)] = pick(shapes, i);
+    shapeAt = at;
+
   }
 
  public:
   void reset(uint32_t seed) override {
-    Random rng(seed);
     bass = body = spark = energy = slowBass = kick = flash = drive = 0;
-    morph = rng.unit() * 40.0;
-    clock = 0;
-    aux = 0;
+    clock = flow = aux = 0;
+    shapeAt = -100;
     sinceBeat = 100;
     sinceIdle = 0;
-    spread = spreadVel = beatPower = 0;
+    beatPower = spread = spreadVel = 0;
+    shapes = seed % 977u;
     beats = 0;
+    for (int i = 0; i < kLobes; i++) from[size_t(i)] = to[size_t(i)] = pick(shapes, i);
 
   }
 
   void update(const Frame& f) override {
     auto m = modifiers(f);
-    float dt = float(f.delta);
+    const float dt = float(f.delta);
     const Music& mu = f.music;
     bass = follow(bass, mu.bass, 22.0f, 4.5f, dt);
     body = follow(body, mu.body, 12.0f, 3.0f, dt);
     spark = follow(spark, mu.spark, 30.0f, 7.0f, dt);
     energy = follow(energy, mu.energy, 6.0f, 1.8f, dt);
     drive = follow(drive, mu.active ? std::pow(std::clamp(mu.energy, 0.0f, 1.0f), 0.8f) : 0.0f, 3.0f, 0.7f, dt);
-
     float hit = 0, fl = 0;
     for (const auto& e : mu.events[0]) hit = std::max(hit, e.strength);
     for (const auto& e : mu.events[2]) hit = std::max(hit, e.strength * 0.85f);
     for (const auto& e : mu.events[3]) fl = std::max(fl, e.strength);
-    float onset = std::clamp((mu.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);
+    const float onset = std::clamp((mu.bass - slowBass - 0.15f) * 2.5f, 0.0f, 1.0f);
     slowBass = follow(slowBass, mu.bass, 3.0f, 3.0f, dt);
     hit = std::min(std::max(hit, onset), 1.0f);
+    const bool fresh = hit > kick + 0.2f;
     sinceBeat += f.delta;
-    sinceIdle += f.delta;
-    if (hit > kick + 0.2f) {
+    if (fresh) {
       spreadVel += 2.2f * hit;
       sinceBeat = 0;
       beatPower = hit;
-      beats++;
-      sinceIdle = 0;
-    }
-    // Sin música también hay un sobresalto cada pocos segundos.
-    if (!mu.active && sinceIdle > 2.2) {
-      sinceIdle -= 2.2;
-      sinceBeat = sinceIdle;
-      beatPower = 0.7f;
       beats++;
     }
     kick = std::max(kick * std::exp(-dt * 5.0f), hit);
     flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
     spreadVel += (-spread * 18.0f - spreadVel * 5.0f) * dt;
     spread += spreadVel * dt;
-    clock += f.delta * f.speed;
-    morph += f.delta * f.speed * (0.14 + 0.35 * drive) * 1.0;
+    const double step = f.delta * f.speed;
+    clock += step;
+    // La tinta fluye más deprisa con la energía y con cada golpe.
+    flow += step * (0.3 + 1.2 * double(drive) + 0.9 * double(kick)) * 0.9;
+    // Metamorfosis: la forma cambia con cada golpe, cada cuatro o despacio.
+    if (fresh && mu.active && m.mutacion != 2) {
+      const uint32_t every = m.mutacion == 0 ? 1u : 4u;
+      if (beats % every == 0u && clock - shapeAt > 0.4) newShape(0.0);
+    }
+    if (!mu.active || m.mutacion == 2) {
+      const double idle = m.mutacion == 2 ? 2.4 * 1.8 : 2.4;
+      sinceIdle += step;
+      while (sinceIdle >= idle) {
+        sinceIdle -= idle;
+        newShape(sinceIdle);
+        if (!mu.active) {
+          // Sin música, cada forma nueva llega con un sobresalto.
+          beatPower = 0.6f;
+          sinceBeat = sinceIdle;
+        }
+      }
+    }
 
   }
 
   void render(const Frame& f, Canvas& c) const override {
     auto m = modifiers(f);
     auto g = glide(f);
-    float amp = f.intensity;
-    float t = float(std::fmod(morph, 1000.0));
-    float pulse = sinceBeat < 2.0 ? beatPower * float(std::exp(-sinceBeat * 3.0)) : 0.0f;
+    (void)m;
+    const float amp = f.intensity;
+    const float pulse = sinceBeat < 2.0 ? beatPower * float(std::exp(-sinceBeat * 3.0)) : 0.0f;
+    // Pulso: cada opción mueve una parte distinta de la mancha.
+    const float golpe = std::min(pulse * amp, 1.2f) * g.pulso.weight(0);
+    const float graves = std::min(bass * amp, 1.2f) * g.pulso.weight(1);
+    const float agudos = std::min(spark * amp, 1.2f) * g.pulso.weight(2);
+    const float morphP = float(std::clamp((clock - shapeAt) / kMorph, 0.0, 1.0));
+    const float ft = float(std::fmod(flow, 1000.0));
+
     std::vector<float> u;
-    u.reserve(56);
-    u.insert(u.end(), {t, bass * amp, kick * amp, energy});
-    u.insert(u.end(), {g.gotas, std::clamp(g.viscosidad, 0.0f, 1.0f), std::clamp(g.cuatro, 0.0f, 1.0f), f.detail});
-    u.insert(u.end(), {f.glow, flash * amp, spark * amp, float(std::fmod(clock, 1000.0))});
-    // Lóbulos de la mancha: cinco manchas grandes que derivan despacio.
-    static const float lx[5] = {0.12f, 0.24f, 0.2f, 0.32f, 0.08f};
-    static const float ly[5] = {-0.32f, -0.12f, 0.1f, 0.3f, 0.5f};
-    static const float lr[5] = {0.15f, 0.16f, 0.15f, 0.13f, 0.11f};
-    for (int k = 0; k < 5; k++) {
-      float fk = float(k);
-      u.insert(u.end(), {lx[k] + 0.07f * std::sin(t * 0.7f + fk * 1.9f), ly[k] + 0.07f * std::cos(t * 0.5f + fk * 2.7f), lr[k], 0.0f});
+    u.reserve(64);
+    u.insert(u.end(), {ft, std::min(bass * amp, 1.5f), std::min(kick * amp, 1.0f), std::min(energy * amp, 1.0f)});
+    u.insert(u.end(), {g.gotas, g.viscosidad, f.detail, 0.0f});
+    u.insert(u.end(), {f.glow, std::min(flash * amp, 1.0f), std::min(spark * amp, 1.0f), float(std::fmod(clock, 1000.0))});
+    // Los lóbulos orbitan alrededor de su sitio; los graves los hinchan.
+    const float wob = 0.045f * (1.0f + 0.8f * graves);
+    for (int i = 0; i < kLobes; i++) {
+      Lobe L = lobeAt(i, clock);
+      const float fi = float(i);
+      L.x = std::max(0.0f, L.x + wob * std::sin(ft * 0.83f + fi * 1.7f));
+      L.y += wob * 1.3f * std::cos(ft * 0.61f + fi * 2.3f);
+      L.r *= 1.0f + 0.12f * graves + 0.06f * std::sin(ft * 1.1f + fi);
+      u.insert(u.end(), {L.x, L.y, L.r, L.w});
     }
-    u.insert(u.end(), {g.entorno.weight(0), g.entorno.weight(1), g.entorno.weight(2), sinceBeat < 3.0 ? float(sinceBeat) : 3.0f});
-    u.insert(u.end(), {g.pulso.weight(0), g.pulso.weight(1), g.pulso.weight(2), 0.0f});
-    u.insert(u.end(), {pulse, std::max(-0.2f, spread) * amp, 0.0f, 0.0f});
-    for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});
+    u.insert(u.end(), {g.reflejo.weight(0), g.reflejo.weight(1), g.reflejo.weight(2), 0.0f});
+    u.insert(u.end(), {golpe, graves, agudos, morphP});
+    u.insert(u.end(), {std::max(-0.2f, spread) * amp * g.pulso.weight(0), float(std::min(sinceBeat, 9.0)),
+                       std::min(pulse * amp, 1.2f), float(shapes % 997u)});
+    for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[size_t(i)].r, f.colors[size_t(i)].g, f.colors[size_t(i)].b});
     c.material("inkblot_mercury", {0, 0, f.width, f.height}, u);
   }
 };
@@ -132,17 +189,18 @@ const shaderSources = <String, String>{
 #version 460 core
 #include <flutter/runtime_effect.glsl>
 uniform vec2 uSize;
-uniform vec4 uA;   // cambio, graves, golpe, energía
+uniform vec4 uA;   // flujo de la tinta, graves, golpe, energía
 uniform vec4 uB;   // ajustes de la variante
-uniform vec4 uD;   // glow, destello, agudos, reloj real
-uniform vec4 uL0;  // lóbulos: x, y, radio
+uniform vec4 uD;   // glow, destello, agudos, reloj
+uniform vec4 uL0;  // lóbulos: x, y, radio, peso (negativo = hueco)
 uniform vec4 uL1;
 uniform vec4 uL2;
 uniform vec4 uL3;
 uniform vec4 uL4;
-uniform vec4 uX;   // datos propios de la variante
-uniform vec4 uY;   // más datos de la variante
-uniform vec4 uP;   // sobresalto, expansión
+uniform vec4 uL5;
+uniform vec4 uX;   // datos de la variante
+uniform vec4 uY;   // Pulso: golpe, graves, agudos; avance del cambio de forma
+uniform vec4 uP;   // expansión del golpe, edad del golpe, golpe, número de forma
 uniform vec3 uC0;
 uniform vec3 uC1;
 uniform vec3 uC2;
@@ -150,6 +208,10 @@ uniform vec3 uC3;
 out vec4 fragColor;
 
 const float TAU = 6.2831853;
+
+float sq(float x) {
+  return x * x;
+}
 
 float hash12(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
@@ -178,33 +240,98 @@ float fbm(vec2 p) {
 
 float lobe(vec2 q, vec4 L) {
   vec2 d = q - L.xy;
-  return exp(-dot(d, d) / (L.z * L.z));
+  return L.w * exp(-dot(d, d) / (L.z * L.z));
 }
 
-// Campo de tinta: positivo dentro de la mancha. q ya viene reflejado.
+// La silueta sin ruido: los seis lóbulos y el eje del pliegue.
+float envelope(vec2 q) {
+  float e = lobe(q, uL0) + lobe(q, uL1) + lobe(q, uL2) + lobe(q, uL3) + lobe(q, uL4) + lobe(q, uL5);
+  return e + 0.85 * exp(-q.x * q.x / 0.0035) * (1.0 - smoothstep(0.5, 0.92, abs(q.y)));
+}
+
+// Campo de tinta (positivo dentro). q ya viene reflejado. Los agudos agitan
+// los bordes.
 float blot(vec2 q, float t, float grow, out vec2 w, out float n) {
-  w = vec2(noise(q * 2.2 + vec2(t * 0.6, 0.0)), noise(q * 2.2 + vec2(4.3, -t * 0.5))) - 0.5;
-  n = fbm(q * 3.6 + w * 1.4 + vec2(0.0, t * 0.25));
-  vec2 qw = q + w * 0.08;
-  float env = lobe(qw, uL0) + lobe(qw, uL1) + lobe(qw, uL2) + lobe(qw, uL3) + lobe(qw, uL4);
-  env += 0.9 * exp(-q.x * q.x / 0.004) * (1.0 - smoothstep(0.55, 0.95, abs(q.y)));
-  return env * 0.8 + (n - 0.5) * 1.1 - 0.5 + grow;
+  w = vec2(noise(q * 1.9 + vec2(t * 0.42, 1.3)), noise(q * 1.9 + vec2(5.1, -t * 0.37))) - 0.5;
+  vec2 qq = q + w * (0.13 + 0.16 * uY.z);
+  n = fbm(qq * 3.3 + vec2(0.0, t * 0.5));
+  float fine = noise(qq * 11.0 + vec2(t * 0.3, 2.0)) - 0.5;
+  return envelope(qq) * 0.85 + (n - 0.5) * 1.15 + fine * 0.15 - 0.52 + grow;
+}
+
+// Los graves hinchan la mancha y el golpe la empuja hacia fuera.
+float growth() {
+  return 0.08 * uY.y + 0.22 * uP.x + 0.04 * uA.w;
 }
 
 vec3 paper(vec2 frag, vec2 p) {
   float fiber = hash12(floor(frag * vec2(0.5, 0.08))) * 0.6 + noise(frag * 0.05) * 0.4;
-  vec3 col = uC0 * (0.93 + 0.07 * fiber);
-  return col * (1.0 - 0.16 * smoothstep(0.6, 1.4, length(p * vec2(0.9, 0.65))));
+  vec3 col = uC0 * (0.92 + 0.08 * fiber);
+  return col * (1.0 - 0.18 * smoothstep(0.55, 1.4, length(p * vec2(0.9, 0.62))));
 }
 
-float sq(float x) {
-  return x * x;
+// Tinta de calidad: lavado más claro donde es fina, borde acumulado más
+// oscuro y grano de pigmento.
+vec3 inkShade(vec3 inkC, vec3 tint, float F, float n, vec2 frag) {
+  float grain = noise(frag * 0.9) * 0.5 + noise(frag * 0.23) * 0.5;
+  float thin = 1.0 - smoothstep(0.0, 0.35, F);
+  vec3 c = mix(inkC, tint, 0.1 + 0.32 * thin * (0.4 + 0.6 * n)) * (0.82 + 0.3 * grain);
+  float pool = smoothstep(0.07, 0.0, F) * smoothstep(-0.012, 0.012, F);
+  return mix(c, inkC * 0.35, pool * 0.85);
+}
+
+// Gotas que saltan alrededor del borde.
+float spatter(vec2 q, float F, float amount, float seed) {
+  if (F > 0.0 || F < -0.4) return 0.0;
+  vec2 g = q * 30.0;
+  vec2 cell = floor(g);
+  if (hash12(cell + seed) > amount) return 0.0;
+  vec2 off = vec2(hash12(cell + 3.1 + seed), hash12(cell + 7.7 + seed)) - 0.5;
+  float rad = 0.08 + 0.25 * hash12(cell + 11.3);
+  return 1.0 - smoothstep(rad - 0.05, rad, length(fract(g) - 0.5 - off * 0.45));
 }
 
 vec3 lobeG(vec2 q, vec4 L) {
   vec2 d = q - L.xy;
-  float e = exp(-dot(d, d) / (L.z * L.z));
+  float e = L.w * exp(-dot(d, d) / (L.z * L.z));
   return vec3(e, -2.0 * d / (L.z * L.z) * e);
+}
+
+vec3 field(vec2 q, float t) {
+  vec3 env = lobeG(q, uL0) + lobeG(q, uL1) + lobeG(q, uL2) + lobeG(q, uL3) + lobeG(q, uL4) + lobeG(q, uL5);
+  float axis = 0.85 * exp(-q.x * q.x / 0.0035) * (1.0 - smoothstep(0.5, 0.92, abs(q.y)));
+  env += vec3(axis, -2.0 * q.x / 0.0035 * axis, 0.0);
+  // Gotas: salen disparadas con cada forma nueva y vuelven a la mancha.
+  float age = uP.y;
+  for (int k = 0; k < 10; k++) {
+    float fk = float(k);
+    if (fk > uB.x - 0.5) break;
+    float h = hash12(vec2(fk, uP.w));
+    float a = (h - 0.5) * 2.6;
+    vec2 dir = vec2(abs(cos(a)) * 0.9 + 0.1, sin(a));
+    float flight = sin(clamp(age * 2.2, 0.0, 3.14159265)) * (0.18 + 0.28 * hash12(vec2(fk, uP.w + 2.0))) * (0.5 + 0.9 * uP.z + 0.5 * uY.x);
+    vec2 home = vec2(0.12 + 0.2 * hash12(vec2(fk, 5.0)), -0.4 + 0.8 * hash12(vec2(fk, 6.0)));
+    vec2 orbit = home + 0.06 * vec2(sin(t * 0.7 + fk), cos(t * 0.5 + fk * 1.3));
+    vec2 c = orbit + dir * flight + vec2(0.0, 0.25 * sq(clamp(age * 2.2 / 3.14159265, 0.0, 1.0)) * flight);
+    env += lobeG(q, vec4(c, 0.035 + 0.025 * hash12(vec2(fk, 9.0)), 0.95));
+  }
+  return env;
+}
+
+vec3 environment(vec3 r) {
+  // Llamas: cielo negro, horizonte ardiendo, suelo de brasas.
+  float hz = -r.y;
+  vec3 sky = mix(uC1 * 0.6, uC0, smoothstep(0.0, 0.7, hz));
+  vec3 fire = mix(sky, uC2 * (1.3 + 0.8 * uY.y), exp(-abs(hz) * 9.0));
+  fire += uC3 * exp(-abs(hz) * 40.0) * (1.0 + uY.y);
+  fire = hz < 0.0 ? mix(fire, uC2 * 0.35 + uC1 * 0.5, smoothstep(0.0, -0.6, hz)) : fire;
+  fire += uC2 * 0.3 * smoothstep(0.6, 0.95, noise(vec2(r.x * 4.0 + uA.x * 0.3, hz * 3.0))) * step(0.0, hz);
+  // Estudio: ventanas de luz sobre negro.
+  vec3 studio = uC0 + uC3 * (smoothstep(0.1, 0.0, abs(r.x - 0.35)) * step(abs(r.y + 0.2), 0.5)
+               + smoothstep(0.06, 0.0, abs(r.y + 0.55)) * 0.8 + smoothstep(0.08, 0.0, abs(r.x + 0.5)) * 0.4) * 1.2;
+  // Aurora: cintas de color que se mueven.
+  vec3 aurora = uC0 + mix(uC2, uC3, 0.5 + 0.5 * sin(r.x * 3.0 + uA.x)) * smoothstep(0.2, 0.0, abs(r.y + 0.35 + 0.15 * sin(r.x * 4.0 + uA.x * 0.8)));
+  return fire * uX.x + studio * uX.y + aurora * uX.z;
 }
 
 void main() {
@@ -212,56 +339,46 @@ void main() {
   float scale = min(uSize.x, uSize.y);
   vec2 p = (frag - 0.5 * uSize) / scale;
   float t = uA.x;
-  float clk = uD.w;
   vec2 q = vec2(abs(p.x), p.y);
-  q.y = mix(q.y, abs(q.y), step(0.5, uB.z));
-  // Campo suave con su gradiente exacto: la forma del metal.
-  vec2 w = vec2(noise(q * 2.2 + vec2(t * 0.6, 0.0)), noise(q * 2.2 + vec2(4.3, -t * 0.5))) - 0.5;
-  vec2 qw = q + w * 0.08 * (1.2 - uB.y);
-  vec3 env = lobeG(qw, uL0) + lobeG(qw, uL1) + lobeG(qw, uL2) + lobeG(qw, uL3) + lobeG(qw, uL4);
-  float axis = 0.9 * exp(-q.x * q.x / 0.004) * (1.0 - smoothstep(0.55, 0.95, abs(q.y)));
-  env += vec3(axis, -2.0 * q.x / 0.004 * axis, 0.0);
-  // Gotas sueltas que orbitan y se funden con la mancha.
-  for (int k = 0; k < 8; k++) {
-    float fk = float(k);
-    if (fk >= uB.x) break;
-    float a = clk * (0.25 + 0.05 * fk) + fk * 2.4;
-    vec2 c = vec2(0.18 + 0.2 * fract(fk * 0.37), 0.0) + vec2(0.12 * cos(a), 0.55 * sin(a * 0.7 + fk));
-    env += lobeG(q, vec4(c, 0.045 + 0.012 * fract(fk * 0.61), 0.0)) * 0.9;
-  }
-  float grow = 0.06 + 0.14 * uA.y * uY.y + 0.15 * uP.y;
-  float fine = (noise(q * 7.0 + w * 2.0 + vec2(0.0, t * 0.3)) - 0.5) * 0.12 * (1.0 - uB.y);
-  float F = env.x * 0.8 - 0.5 + grow + fine;
-  vec2 grad = env.yz * 0.8;
+  vec3 env = field(q, t);
+  float fine = (noise(q * 7.0 + vec2(0.0, t * 0.4)) - 0.5) * 0.14 * (1.0 - uB.y);
+  float F = env.x * 0.85 - 0.5 + growth() + fine;
+  vec2 grad = env.yz * 0.85;
   grad.x *= p.x < 0.0 ? -1.0 : 1.0;
-  float aa = 1.5 / scale * 4.0;
-  float mask = smoothstep(-aa * 0.25, aa * 0.25, F);
-  // Fondo oscuro con la sombra del metal.
-  vec3 col = uC0 * (1.0 + 0.5 * (1.0 - length(p * vec2(0.9, 0.6))));
-  col *= 1.0 - 0.6 * exp(-max(-F, 0.0) * 10.0);
+  float aa = 6.0 / scale;
+  float mask = smoothstep(-aa, aa, F);
+  // Fondo oscuro con el reflejo de la mancha en un charco.
+  vec3 col = uC0 + uC1 * 0.18 * (1.0 - smoothstep(0.0, 1.0, length(p - vec2(0.0, 0.2))));
+  col *= 1.0 - 0.6 * exp(-max(-F, 0.0) * 12.0) * (1.0 - mask);
   if (mask > 0.0) {
-  float depth = clamp(F / 0.25, 0.0, 1.0);
-  vec2 dir = grad / (length(grad) + 1e-4);
-  vec3 nrm = normalize(vec3(dir * (1.0 - depth) * 1.4 + grad * 0.04, 0.35 + depth));
-  // Golpes: una onda recorre la superficie.
-  float rr = length(p);
-  float ripple = sin(rr * 40.0 - uX.w * 12.0) * exp(-uX.w * 2.0) * uY.x * uP.x;
-  nrm = normalize(nrm + vec3(p / (rr + 1e-3) * ripple * 0.4, 0.0));
-  vec3 r = reflect(vec3(0.0, 0.0, -1.0), nrm);
-  vec3 fire = mix(uC1, uC3, smoothstep(-0.6, 0.8, -r.y)) + uC2 * smoothstep(0.8, 1.0, sin(r.x * 3.0 + clk * 0.5)) * 0.6;
-  vec3 studio = uC0 * 0.6 + uC3 * (smoothstep(0.12, 0.0, abs(r.x - 0.35)) + smoothstep(0.08, 0.0, abs(r.y + 0.5))) * 1.1 + uC2 * 0.15 * (0.5 + 0.5 * r.y);
-  vec3 horizon = r.y < 0.0 ? mix(uC2, uC3, smoothstep(0.0, -0.8, r.y)) : uC1 * 0.25 * (1.0 - r.y);
-  horizon += uC3 * exp(-abs(r.y) * 30.0);
-  vec3 metal = fire * uX.x + studio * uX.y + horizon * uX.z;
-  metal += uC3 * pow(max(1.0 - nrm.z, 0.0), 3.0) * 0.5;
-  // Agudos: destellos sobre el metal.
-  float glint = step(0.97, hash12(floor(p * 90.0) + floor(clk * 10.0))) * sq(max(r.z, 0.0));
-  metal += uC3 * glint * uD.z * uY.z * 1.5;
-  metal *= 1.0 + 0.15 * uA.z;
-  col = mix(col, metal, mask);
+    float depth = clamp(F / 0.25, 0.0, 1.0);
+    vec2 dir = grad / (length(grad) + 0.0001);
+    vec3 nrm = normalize(vec3(dir * (1.0 - depth) * 1.5 + grad * 0.035, 0.32 + depth));
+    // El golpe ondula la superficie desde el centro.
+    float rr = length(p) + 0.001;
+    float ripple = sin(rr * 42.0 - uP.y * 14.0) * exp(-uP.y * 2.2) * (0.6 * uY.x + 0.25 * uY.y);
+    nrm = normalize(nrm + vec3(p / rr * ripple * 0.45, 0.0));
+    vec3 r = reflect(vec3(0.0, 0.0, -1.0), nrm);
+    vec3 metal = environment(r) * 0.92;
+    // Tornasol de aceite en el borde.
+    float fres = pow(max(1.0 - nrm.z, 0.0), 2.0);
+    vec3 film = 0.5 + 0.5 * cos(TAU * (fres * 1.8 + vec3(0.0, 0.33, 0.67)) + t * 0.3);
+    metal += film * fres * 0.35;
+    metal += uC3 * pow(max(1.0 - nrm.z, 0.0), 4.0) * 0.4 * uD.x;
+    float glint = step(0.965, hash12(floor(p * 90.0) + floor(uD.w * 10.0))) * pow(max(r.z, 0.0), 2.0);
+    metal += uC3 * glint * (0.3 * uD.z + 1.4 * uY.z);
+    metal *= 1.0 + 0.25 * uY.x;
+    col = mix(col, metal, mask);
   }
-  col = mix(col, uC2, uD.y * 0.04);
-  float cover = mask;
+  // Charco: la mancha se refleja debajo, borrosa.
+  float floorY = 0.62;
+  if (p.y > floorY) {
+    vec2 rq = vec2(q.x, 2.0 * floorY - p.y);
+    float Fr = field(rq, t).x * 0.85 - 0.5 + growth();
+    col += uC2 * 0.18 * smoothstep(-0.1, 0.1, Fr) * exp(-(p.y - floorY) * 5.0) * (0.6 + uY.y);
+  }
+  col += uC2 * uD.y * 0.04 * (0.3 + mask);
+  col = col / (1.0 + max(col.r, max(col.g, col.b)) * 0.15);
   fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
 """,

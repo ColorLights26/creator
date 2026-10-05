@@ -1,19 +1,19 @@
 import 'package:scene_compositor/authoring.dart';
 
 const metadata = CreatorVisualMetadata(
-  id: 'rorschach_fractal',
-  name: 'Rorschach Fractal',
+  id: 'rorschach_plegado',
+  name: 'Rorschach Plegado',
   publication: CreatorPublication.draft,
   description:
-      'Una mancha de Rorschach con borde fractal infinito que nunca se repite: el fractal viaja entre familias de formas, se acerca y se aleja, gira y salta a otra forma con cada golpe, con bandas de fuego que corren por el borde.',
+      'Así se hace una lámina de Rorschach, en directo: caen gotas de tinta en media hoja, la hoja se dobla, se aprieta y al abrirse aparece la mancha simétrica en rojo, negro y oro; con cada golpe se hace una lámina nueva.',
   purposes: ['visualizer', 'party', 'focus'],
-  moods: ['mind-blowing', 'mathematical', 'hypnotic'],
-  concepts: ['rorschach', 'julia set', 'fractal', 'infinite edge'],
+  moods: ['artistic', 'hypnotic', 'surprising'],
+  concepts: ['rorschach', 'paper fold', 'ink', 'symmetry'],
   credits: CreatorCredits(author: 'Chic Apps', license: '', source: ''),
   thumbnail: CreatorThumbnailSpec(timeSeconds: 4),
   role: CreatorRole.background,
   reactivity: CreatorReactivity.optional,
-  colors: [0xfff0e8d8, 0xff0a0606, 0xffd0101e, 0xffffb21a],
+  colors: [0xfff3ead8, 0xff120608, 0xffd0141e, 0xffffb21a],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // La tinta cambia de forma sin parar: a 60 FPS es fluido.
   framesPerSecond: 60,
