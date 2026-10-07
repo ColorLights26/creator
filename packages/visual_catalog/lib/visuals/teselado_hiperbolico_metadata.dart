@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff000000, 0xffd8141e, 0xff160b08, 0xffffc046],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // El mosaico fluye sin parar: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30, // energía: 60 no cabe; ver energy/frame_rate_record.json
 );
