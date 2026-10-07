@@ -100,31 +100,115 @@ class Visual final : public Scene {
     return t * t * ((s + 1.0f) * t + s) + 1.0f;
   }
 
-  void shapePath(Path& p, int shape, float h) const {
-    auto arc = [&](float cx, float cy, float r, float a0, float a1, bool first) {
-      const int n = 24;
-      for (int k = 0; k <= n; k++) {
-        float a = a0 + (a1 - a0) * float(k) / float(n);
-        float x = cx + r * std::cos(a), y = cy + r * std::sin(a);
-        if (first && k == 0) p.moveTo(x, y); else p.lineTo(x, y);
+  // La figura se coloca (gira, escala) y se recorta a su celda aquí, en C++:
+  // así todas las celdas van en un único lote de trazos, sin save/clip/
+  // transform por celda (cada recorte costaba pasadas completas de GPU).
+  // Place: centro de la celda, giro·escala y los bordes de la celda.
+  struct Place { float cx, cy, ca, sa, x0, y0, x1, y1; };
+  // Recorte de un polígono convexo (Sutherland–Hodgman); memoria reservada en reset.
+  mutable std::vector<Vec2> work, next;
+
+  static Vec2 put(const Place& q, float x, float y) {
+    return {q.cx + q.ca * x - q.sa * y, q.cy + q.sa * x + q.ca * y};
+  }
+  static float inside(const Place& q, int side, Vec2 v) {
+    return side == 0 ? v.x - q.x0 : side == 1 ? q.x1 - v.x : side == 2 ? v.y - q.y0 : q.y1 - v.y;
+  }
+  bool fits(const Place& q) const {
+    for (const auto& v : work)
+      if (v.x < q.x0 || v.x > q.x1 || v.y < q.y0 || v.y > q.y1) return false;
+    return true;
+  }
+  // Emite `work` (ya en el lienzo) recortado a la celda.
+  void emitClipped(Path& p, const Place& q) const {
+    if (!fits(q)) {
+      for (int side = 0; side < 4 && work.size() >= 3; side++) {
+        next.clear();
+        size_t n = work.size();
+        for (size_t i = 0; i < n; i++) {
+          Vec2 a = work[i], b = work[(i + 1) % n];
+          float da = inside(q, side, a), db = inside(q, side, b);
+          if (da >= 0.0f) next.push_back(a);
+          if ((da >= 0.0f) != (db >= 0.0f)) {
+            float t = da / (da - db);
+            next.push_back({a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t});
+          }
+        }
+        work.swap(next);
+      }
+    }
+    if (work.size() < 3) return;
+    p.moveTo(work[0].x, work[0].y);
+    for (size_t i = 1; i < work.size(); i++) p.lineTo(work[i].x, work[i].y);
+    p.close();
+  }
+  // Círculo como Path::circle (cuatro cúbicas). Si cabe en la celda se emite
+  // exacto; si sale, se aplana finamente y se recorta.
+  void circleAt(Path& p, const Place& q, Vec2 c, float r) const {
+    constexpr float k = .552284749831f;
+    const Vec2 cp[13] = {{c.x + r, c.y}, {c.x + r, c.y + k * r}, {c.x + k * r, c.y + r}, {c.x, c.y + r},
+                         {c.x - k * r, c.y + r}, {c.x - r, c.y + k * r}, {c.x - r, c.y},
+                         {c.x - r, c.y - k * r}, {c.x - k * r, c.y - r}, {c.x, c.y - r},
+                         {c.x + k * r, c.y - r}, {c.x + r, c.y - k * r}, {c.x + r, c.y}};
+    Vec2 m[13];
+    for (int i = 0; i < 13; i++) m[i] = put(q, cp[i].x, cp[i].y);
+    work.clear();
+    for (int i = 0; i < 13; i++) work.push_back(m[i]);
+    if (fits(q)) {
+      p.moveTo(m[0].x, m[0].y);
+      for (int s = 0; s < 4; s++) p.cubicTo(m[s * 3 + 1].x, m[s * 3 + 1].y, m[s * 3 + 2].x, m[s * 3 + 2].y, m[s * 3 + 3].x, m[s * 3 + 3].y);
+      p.close();
+      return;
+    }
+    work.clear();
+    const int n = 24;
+    for (int s = 0; s < 4; s++) {
+      const Vec2 &a = m[s * 3], &b = m[s * 3 + 1], &d = m[s * 3 + 2], &e = m[s * 3 + 3];
+      for (int i = 0; i < n; i++) {
+        float t = float(i) / float(n), u = 1.0f - t;
+        float w0 = u * u * u, w1 = 3.0f * u * u * t, w2 = 3.0f * u * t * t, w3 = t * t * t;
+        work.push_back({w0 * a.x + w1 * b.x + w2 * d.x + w3 * e.x, w0 * a.y + w1 * b.y + w2 * d.y + w3 * e.y});
+      }
+    }
+    emitClipped(p, q);
+  }
+  void polyAt(Path& p, const Place& q, const Vec2* v, int n) const {
+    work.clear();
+    for (int i = 0; i < n; i++) work.push_back(put(q, v[i].x, v[i].y));
+    emitClipped(p, q);
+  }
+  void rectAt(Path& p, const Place& q, Rect r) const {
+    const Vec2 v[4] = {{r.x, r.y}, {r.x + r.width, r.y}, {r.x + r.width, r.y + r.height}, {r.x, r.y + r.height}};
+    polyAt(p, q, v, 4);
+  }
+
+  void shapePath(Path& p, int shape, float h, const Place& q) const {
+    Vec2 v[32];
+    int n = 0;
+    auto arc = [&](float cx, float cy, float r, float a0, float a1) {
+      const int steps = 24;
+      for (int k = 0; k <= steps; k++) {
+        float a = a0 + (a1 - a0) * float(k) / float(steps);
+        v[n++] = {cx + r * std::cos(a), cy + r * std::sin(a)};
       }
     };
     switch (shape) {
-      case 0: p.circle({0, 0}, h * 0.78f); break;
-      case 1: arc(0, h, h, 3.14159265f, 6.2831853f, true); p.close(); break;
-      case 2: p.moveTo(-h, h); arc(-h, h, h * 2.0f, -1.5707963f, 0.0f, false); p.close(); break;
-      case 3: p.rect({-h * 0.55f, -h * 0.55f, h * 1.1f, h * 1.1f}); break;
-      case 4: p.moveTo(-h, -h).lineTo(h, h).lineTo(-h, h).close(); break;
+      case 0: circleAt(p, q, {0, 0}, h * 0.78f); break;
+      case 1: arc(0, h, h, 3.14159265f, 6.2831853f); polyAt(p, q, v, n); break;
+      case 2: v[n++] = {-h, h}; arc(-h, h, h * 2.0f, -1.5707963f, 0.0f); polyAt(p, q, v, n); break;
+      case 3: rectAt(p, q, {-h * 0.55f, -h * 0.55f, h * 1.1f, h * 1.1f}); break;
+      case 4: v[0] = {-h, -h}; v[1] = {h, h}; v[2] = {-h, h}; polyAt(p, q, v, 3); break;
       case 5:
-        for (int k = 0; k < 3; k++) p.rect({-h, -h + float(k) * h * 0.7f + h * 0.1f, h * 2.0f, h * 0.38f});
+        for (int k = 0; k < 3; k++) rectAt(p, q, {-h, -h + float(k) * h * 0.7f + h * 0.1f, h * 2.0f, h * 0.38f});
         break;
       case 6:
+        // Anillo par-impar: recortar cada círculo por separado conserva el hueco.
         p.fillRule = FillRule::evenOdd;
-        p.circle({0, 0}, h * 0.8f);
-        p.circle({0, 0}, h * 0.42f);
+        circleAt(p, q, {0, 0}, h * 0.8f);
+        circleAt(p, q, {0, 0}, h * 0.42f);
         break;
       default:
-        for (int k = 0; k < 4; k++) p.circle({(k % 2 == 0 ? -0.45f : 0.45f) * h, (k < 2 ? -0.45f : 0.45f) * h}, h * 0.3f);
+        for (int k = 0; k < 4; k++) circleAt(p, q, {(k % 2 == 0 ? -0.45f : 0.45f) * h, (k < 2 ? -0.45f : 0.45f) * h}, h * 0.3f);
         break;
     }
   }
@@ -136,6 +220,9 @@ class Visual final : public Scene {
     clock = 0;
     idle = 0;
     cols = rows = 0;
+    // Círculo aplanado (96) más un vértice por cada borde recortado.
+    work.reserve(128);
+    next.reserve(128);
   }
 
   void update(const Frame& f) override {
@@ -221,20 +308,14 @@ class Visual final : public Scene {
       Paint bp;
       bp.color = colorOf(f, bg);
       c.rect({x, y, size + 0.5f, size + 0.5f}, bp);
-      c.save();
-      Path clip;
-      clip.rect({x, y, size, size});
-      c.clip(clip);
-      c.translate(x + h, y + h);
-      c.rotate(angle);
       float breathe = 1.0f + 0.05f * bass * amp;
-      c.scale(s * breathe, s * breathe);
+      float k = s * breathe;
+      Place q{x + h, y + h, std::cos(angle) * k, std::sin(angle) * k, x, y, x + size, y + size};
       Path p;
-      shapePath(p, shape, h);
+      shapePath(p, shape, h, q);
       Paint sp;
       sp.color = colorOf(f, color);
       c.path(p, sp);
-      c.restore();
     }
     if (m.lineas) {
       Path grid;
