@@ -220,7 +220,7 @@ existente; para crear Fuego, añade otra pareja. Puedes conservar los ejemplos.
 | Me indican que «figura como reactivo pero no cambia» | Si quieres reacción, adjunta el mensaje, la plantilla y tu código a la IA. Si el visual debe ser ambiental, elige `.none` en la metadata. |
 | Un error menciona `modifiers` o `variations` | Pega el error, la plantilla y tu archivo a la IA. Suele ser un nombre repetido, un valor fuera de su rango, un modificador que el código no usa o el `import` borrado. |
 | Dice «no cambia nada» o «entre 30 y 60 FPS» | Lo detecta la revisión del responsable. Pega la línea FAIL, la plantilla y tu archivo a la IA: el mensaje ya dice cómo arreglarlo. |
-| Dice «pasadas por cuadro» | El visual pinta demasiadas capas por imagen y en el teléfono se congelaría (máximo 28). Pega la línea FAIL, la plantilla y tu archivo a la IA: el mensaje dice de dónde salen y qué receta usar (agrupar por mezcla, un lote de puntos, transformar en C++, sin recorte por celda). |
+| Dice «pasadas por cuadro» | El visual pinta demasiadas capas por imagen y en el teléfono se congelaría (máximo 28 en el iPad y 35 en el iPhone). Pega la línea FAIL, la plantilla y tu archivo a la IA: el mensaje dice qué se pasó, de dónde salen y qué receta usar (agrupar por mezcla, un lote de puntos, transformar en C++, sin recorte por celda). Si es un aviso `WARN passes` con los ajustes al máximo o una variación, corrígelo igual con las mismas recetas. |
 | El código de la IA no compila | Copia el primer error completo, el contenido de tu visual y la plantilla a la IA. Usa el mensaje de abajo. |
 
 ```text
