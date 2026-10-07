@@ -35,6 +35,9 @@ class Visual final : public Scene {
   std::array<Cubie, 27> cubes{};
   std::array<Move, kMoves> scramble{};
   mutable std::vector<Quad> quads;
+  // Trazo de trabajo; copiar uno vacío conserva su memoria entre cuadros.
+  mutable Path run;
+  const Path blank;
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
@@ -117,6 +120,10 @@ class Visual final : public Scene {
     applied = 0;
     newCycle(0);
     quads.reserve(240);
+    // Memoria del trazo de trabajo para las 240 caras posibles.
+    Path most;
+    for (int i = 0; i < 240; i++) most.moveTo(0, 0).lineTo(0, 0).lineTo(0, 0).lineTo(0, 0).close();
+    run = most;
   }
 
   void update(const Frame& f) override {
@@ -266,40 +273,90 @@ class Visual final : public Scene {
     float lit = (0.9f + 0.2f * kick + 0.5f * celebrate) * amp;
     // Halo de las pegatinas: suave en reposo, se enciende con cada golpe y al resolverse.
     const float halo = std::clamp((0.05f + 0.22f * kick * amp + 0.3f * celebrate) * f.glow, 0.0f, 0.45f);
-    for (const auto& q : quads) {
-      Path p;
-      p.moveTo(q.v[0].x, q.v[0].y).lineTo(q.v[1].x, q.v[1].y).lineTo(q.v[2].x, q.v[2].y).lineTo(q.v[3].x, q.v[3].y).close();
-      Paint paint;
+    // Caras opacas seguidas del mismo color se unen en un solo trazo (todas
+    // con el mismo sentido de giro, así la unión no deja huecos): mismo
+    // resultado con menos órdenes de dibujo.
+    auto addQuad = [](Path& p, const Quad& q) {
+      float area = 0;
+      for (int k = 0; k < 4; k++) area += q.v[k].x * q.v[(k + 1) % 4].y - q.v[(k + 1) % 4].x * q.v[k].y;
+      if (area >= 0) p.moveTo(q.v[0].x, q.v[0].y).lineTo(q.v[1].x, q.v[1].y).lineTo(q.v[2].x, q.v[2].y).lineTo(q.v[3].x, q.v[3].y).close();
+      else p.moveTo(q.v[3].x, q.v[3].y).lineTo(q.v[2].x, q.v[2].y).lineTo(q.v[1].x, q.v[1].y).lineTo(q.v[0].x, q.v[0].y).close();
+    };
+    // Las caras opacas van todas en un lote, en orden de profundidad.
+    size_t firstLight = quads.size();
+    Paint paint;
+    bool open = false;
+    for (size_t i = 0; i < quads.size(); i++) {
+      const Quad& q = quads[i];
       float shade = q.sticker ? q.light * lit : q.light * 0.8f;
-      paint.color = Color{std::clamp(q.color.r * shade, 0.0f, 1.0f), std::clamp(q.color.g * shade, 0.0f, 1.0f), std::clamp(q.color.b * shade, 0.0f, 1.0f), 1.0f};
-      c.path(p, paint);
-      if (q.sticker && halo > 0.005f) {
-        Paint glow;
-        glow.blend = Blend::plus;
-        glow.strokeWidth = 6.0f * side / 400.0f;
-        glow.strokeJoin = 1;
-        glow.color = q.color.opacity(halo);
-        c.path(p, glow);
+      Color col{std::clamp(q.color.r * shade, 0.0f, 1.0f), std::clamp(q.color.g * shade, 0.0f, 1.0f), std::clamp(q.color.b * shade, 0.0f, 1.0f), 1.0f};
+      if (open && (col.r != paint.color.r || col.g != paint.color.g || col.b != paint.color.b)) {
+        c.path(run, paint);
+        open = false;
       }
-      if (q.sticker && m.brillo) {
-        // Reflejo en una esquina de la pegatina.
-        Vec2 a = q.v[0], b = q.v[1], d = q.v[3];
-        Path shine;
-        shine.moveTo(a.x + (b.x - a.x) * 0.12f + (d.x - a.x) * 0.12f, a.y + (b.y - a.y) * 0.12f + (d.y - a.y) * 0.12f)
-            .lineTo(a.x + (b.x - a.x) * 0.45f + (d.x - a.x) * 0.12f, a.y + (b.y - a.y) * 0.45f + (d.y - a.y) * 0.12f)
-            .lineTo(a.x + (b.x - a.x) * 0.12f + (d.x - a.x) * 0.45f, a.y + (b.y - a.y) * 0.12f + (d.y - a.y) * 0.45f)
-            .close();
-        Paint sp;
-        sp.blend = Blend::plus;
-        sp.color = Color{1.0f, 1.0f, 1.0f, std::clamp(0.18f * q.light * amp, 0.0f, 1.0f)};
-        c.path(shine, sp);
+      if (!open) {
+        run = blank;
+        paint.color = col;
+        open = true;
       }
+      addQuad(run, q);
+      if (q.sticker && (halo > 0.005f || m.brillo)) firstLight = std::min(firstLight, i);
+    }
+    if (open) c.path(run, paint);
+    // Halos y reflejos se suman a la luz. Van en una capa aditiva aparte con
+    // el mismo orden: cada cara posterior se repinta ahí en negro opaco, así
+    // sigue tapando el halo que tapaba, y la capa entera se suma al final.
+    // Dos pasadas en vez de dos por pegatina.
+    if (firstLight < quads.size()) {
+      c.saveLayer(1.0f, Blend::plus);
+      Paint hide;
+      hide.color = Color{0.0f, 0.0f, 0.0f, 1.0f};
+      run = blank;
+      bool pending = false;
+      for (size_t i = firstLight; i < quads.size(); i++) {
+        const Quad& q = quads[i];
+        addQuad(run, q);
+        pending = true;
+        if (!q.sticker) continue;
+        c.path(run, hide);
+        run = blank;
+        pending = false;
+        Path p;
+        p.moveTo(q.v[0].x, q.v[0].y).lineTo(q.v[1].x, q.v[1].y).lineTo(q.v[2].x, q.v[2].y).lineTo(q.v[3].x, q.v[3].y).close();
+        lights(c, q, p, m.brillo, halo, side, amp);
+      }
+      if (pending) c.path(run, hide);
+      c.restore();
     }
     if (celebrate > 0.01f || flash > 0.01f) {
       Paint fl;
       fl.blend = Blend::plus;
       fl.color = f.colors[3].opacity(std::clamp((celebrate * 0.12f + flash * 0.05f) * amp, 0.0f, 1.0f));
       c.rect({0, 0, f.width, f.height}, fl);
+    }
+  }
+
+  // Halo y reflejo de una pegatina, dentro de la capa aditiva.
+  static void lights(Canvas& c, const Quad& q, const Path& p, bool brillo, float halo, float side, float amp) {
+    if (!q.sticker) return;
+    if (halo > 0.005f) {
+      Paint glow;
+      glow.strokeWidth = 6.0f * side / 400.0f;
+      glow.strokeJoin = 1;
+      glow.color = q.color.opacity(halo);
+      c.path(p, glow);
+    }
+    if (brillo) {
+      // Reflejo en una esquina de la pegatina.
+      Vec2 a = q.v[0], b = q.v[1], d = q.v[3];
+      Path shine;
+      shine.moveTo(a.x + (b.x - a.x) * 0.12f + (d.x - a.x) * 0.12f, a.y + (b.y - a.y) * 0.12f + (d.y - a.y) * 0.12f)
+          .lineTo(a.x + (b.x - a.x) * 0.45f + (d.x - a.x) * 0.12f, a.y + (b.y - a.y) * 0.45f + (d.y - a.y) * 0.12f)
+          .lineTo(a.x + (b.x - a.x) * 0.12f + (d.x - a.x) * 0.45f, a.y + (b.y - a.y) * 0.12f + (d.y - a.y) * 0.45f)
+          .close();
+      Paint sp;
+      sp.color = Color{1.0f, 1.0f, 1.0f, std::clamp(0.18f * q.light * amp, 0.0f, 1.0f)};
+      c.path(shine, sp);
     }
   }
 };
