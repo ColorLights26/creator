@@ -12,6 +12,10 @@ import tempfile
 # that plays it 14 s at its fps on the iPhone and the iPad surfaces (~0.5 s).
 REPLAY_SECONDS = 2
 PASS_GATE_SECONDS = 3
+# Per swept program: the sweep, and the same 14 s on the iPad with every
+# setting at its maximum and with each variation (pass warnings).
+SWEEP_SECONDS = 30
+MAX_SETTINGS_SECONDS = 6
 
 def run(args, timeout=90):
     process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -68,7 +72,8 @@ def main():
         # The caps only catch a hung tool: they grow with the catalog (every
         # program is compiled, replayed under sanitizers and played 14 s on
         # two surfaces to count its passes; each one with modifiers or
-        # variations is also swept).
+        # variations is also swept and counts its passes at the maximum and
+        # in each variation).
         generated = Path(options.generated).resolve()
         programs = (generated / 'creator_programs.inc').read_text().count('namespace authored_')
         cases_file = generated / 'creator_probe_cases.inc'
@@ -81,7 +86,8 @@ def main():
         sweep = [options.signals] + (['--strict-modifiers'] if options.strict_modifiers else [])
         if options.pass_report:
             sweep += ['--pass-report', options.pass_report]
-        run([authored, *sweep], timeout=120 + (REPLAY_SECONDS + PASS_GATE_SECONDS) * programs + 30 * cases)
+        run([authored, *sweep], timeout=120 + (REPLAY_SECONDS + PASS_GATE_SECONDS) * programs
+                                       + (SWEEP_SECONDS + MAX_SETTINGS_SECONDS) * cases)
 
 if __name__ == '__main__':
     main()

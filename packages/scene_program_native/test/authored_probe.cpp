@@ -143,6 +143,10 @@ void checkProgram(const creator::Program& program) {
 }
 
 #ifdef CREATOR_PROBE_CASES
+struct Loud;
+void warnPasses(const creator::Program& program, const std::string& with, const std::array<float, 4>& basics,
+                const std::vector<float>& modifiers, const Loud& music);
+
 /// Three seconds at 30 FPS with loud music (none when [reactive] is false,
 /// as the app plays it). [switches] change the modifiers live at a frame,
 /// which exercises the engine's transitions.
@@ -165,8 +169,11 @@ Clip play(const creator::Program& program, bool reactive, const std::array<float
 }
 
 /// Every extreme, option and variation with loud music. Returns the
-/// modifiers that never change the drawing.
-std::vector<std::string> sweep(const creator::Program& program, const CreatorProbeCase& probe, const Music& music) {
+/// modifiers that never change the drawing. Every setting at its maximum
+/// and each variation also count their passes on the iPad, with the gate's
+/// music [gate].
+std::vector<std::string> sweep(const creator::Program& program, const CreatorProbeCase& probe, const Music& music,
+                               const Loud& gate) {
   const std::array<float, 4> loud = {2, 1, 2, 2};  // intensity, speed, detail, glow
   const bool reactive = probe.reactive;
   std::vector<float> initial;
@@ -198,6 +205,7 @@ std::vector<std::string> sweep(const creator::Program& program, const CreatorPro
   const auto low = all(false), high = all(true);
   try { play(program, reactive, loud, low, music); } catch (const Failure& e) { throw Failure(std::string("todos al mínimo: ") + e.what()); }
   try { play(program, reactive, loud, high, music); } catch (const Failure& e) { throw Failure(std::string("todos al máximo: ") + e.what()); }
+  warnPasses(program, "todos los ajustes al máximo", loud, high, gate);
   std::mt19937 random(7);
   for (int combo = 0; combo < 8; combo++) {
     std::vector<float> values;
@@ -210,8 +218,10 @@ std::vector<std::string> sweep(const creator::Program& program, const CreatorPro
     catch (const Failure& e) { throw Failure("combinación al azar " + std::to_string(combo) + ": " + e.what()); }
   }
   for (const auto& variation : probe.variations) {
-    try { play(program, reactive, variation.controls, variation.modifiers.empty() ? initial : variation.modifiers, music); }
+    const auto& values = variation.modifiers.empty() ? initial : variation.modifiers;
+    try { play(program, reactive, variation.controls, values, music); }
     catch (const Failure& e) { throw Failure(std::string("variación ") + variation.name + ": " + e.what()); }
+    warnPasses(program, std::string("la variación ") + variation.name, variation.controls, values, gate);
   }
   if (!probe.modifiers.empty()) {
     try { play(program, reactive, loud, initial, music, 30, 3, {{30, high}, {45, low}}); }
@@ -356,6 +366,7 @@ constexpr Surface surfaces[] = {{"iPhone", 664, 1440, 852, passLimitFor(664, 144
                                 {"iPad", 900, 1296, 1180, passLimitFor(900, 1296)}};
 // The template, README.md and MAINTAINER.md quote these two numbers.
 static_assert(surfaces[0].passLimit == 35 && surfaces[1].passLimit == 28, "update the template and the docs");
+constexpr const Surface& iPad = surfaces[1];
 
 /// The harness music: the loud synthetic signals (makeLoud) with the levels
 /// x1.35, played from where the music starts; the silence that follows ends
@@ -396,16 +407,20 @@ struct Loud {
 struct SurfacePasses { Passes most; uint64_t bytes = 0; double at = 0; };
 
 /// Plays [program] like the app (its fps, seed, controls, colors and
-/// reactivity) and keeps its most expensive frame.
+/// reactivity) and keeps its most expensive frame. [basics] and [modifiers]
+/// replace its initial controls and modifiers.
 SurfacePasses playPasses(const creator::Program& program, const CreatorPassCase& visual, const Surface& surface,
-                         const Loud& music, int frames, int silent) {
+                         const Loud& music, int frames, int silent, const std::array<float, 4>* basics = nullptr,
+                         const std::vector<float>* modifiers = nullptr) {
   Instance p(program, visual.seed);
   std::vector<float> values;
-  for (double control : visual.controls) values.push_back(float(control));
+  if (basics) values.assign(basics->begin(), basics->end());
+  else for (double control : visual.controls) values.push_back(float(control));
   for (uint32_t argb : visual.colors) {
     const auto color = creator::Color::argb(argb);
     values.insert(values.end(), {color.r, color.g, color.b, color.a});
   }
+  if (modifiers) values.insert(values.end(), modifiers->begin(), modifiers->end());
   p.configure(values, 0, visual.reactive);
   const double viewHeight = surface.logicalHeight;
   const double viewWidth = surface.logicalHeight * surface.width / surface.height;
@@ -426,6 +441,22 @@ const CreatorPassCase& passCase(const creator::Program& program) {
   for (const auto& visual : creatorPassCases())
     if (std::strcmp(visual.program, program.id) == 0) return visual;
   throw Failure("falta su caso de pasadas: vuelve a generar el catálogo.");
+}
+
+/// The gate plays the initial settings; the sweep asks for its other ones
+/// here (every setting at its maximum, each variation): the same 14 s on
+/// the iPad, a warning and never a failure.
+void warnPasses(const creator::Program& program, const std::string& with, const std::array<float, 4>& basics,
+                const std::vector<float>& modifiers, const Loud& music) {
+  try {
+    const auto& visual = passCase(program);
+    const auto run = playPasses(program, visual, iPad, music, 14 * visual.fps, 2 * visual.fps, &basics, &modifiers);
+    if (run.most.passes > iPad.passLimit)
+      std::cout << "WARN passes " << program.id << ": " << run.most.passes << " pasadas con " << with << " (máx "
+                << iPad.passLimit << " en iPad)\n";
+  } catch (const Failure& e) {
+    std::cout << "WARN passes " << program.id << ": no se pudieron contar con " << with << ": " << e.what() << "\n";
+  }
 }
 
 std::string decimal(double value, const char* format = "%.1f") {
@@ -550,7 +581,7 @@ int main(int argc, char** argv) {
       for (const auto& probe : creatorProbeCases()) {
         if (std::strcmp(probe.program, program.id) != 0) continue;
         if (music.bytes.empty()) throw Failure("faltan las señales de música para probar sus modificadores.");
-        const auto dead = sweep(program, probe, music);
+        const auto dead = sweep(program, probe, music, loud);
         for (const auto& id : dead) {
           std::cout << (strict ? "FAIL " : "WARN ") << visualName(program) << ": el modificador " << id
                     << " no cambia nada, ni en sus extremos ni con música.\n";

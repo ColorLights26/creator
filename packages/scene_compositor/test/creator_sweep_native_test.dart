@@ -10,7 +10,8 @@ import 'package:scene_compositor/native_compiler.dart';
 /// the response to music passes. Also the pass gate: 40 separate points()
 /// calls are 40 full-screen passes and fail on both surfaces, 30 fail only
 /// on the iPad (28; the iPhone takes 35) and the same points in one batch
-/// are one pass. Needs clang++.
+/// are one pass. Settings at their maximum or a variation over 28 passes on
+/// the iPad only warn, even when strict. Needs clang++.
 void main() {
   if (Process.runSync('which', ['clang++']).exitCode != 0) {
     stdout.writeln('scene_compositor: sweep checks skipped (no clang++).');
@@ -113,6 +114,28 @@ void main() {
       relaxed,
       'PASS passes creator_puntos_lote: iPhone 1 (máx 35), iPad 1 (máx 28)',
     );
+    // Over 28 only at the maximum or in a variation: a warning.
+    for (final output in [relaxed, strict]) {
+      expectLine(
+        output,
+        'WARN passes creator_capas: 40 pasadas con todos los ajustes al '
+        'máximo (máx 28 en iPad)',
+      );
+      expectLine(
+        output,
+        'WARN passes creator_capas: 30 pasadas con la variación Densa '
+        '(máx 28 en iPad)',
+      );
+      expectLine(
+        output,
+        'PASS passes creator_capas: iPhone 5 (máx 35), iPad 5 (máx 28)',
+      );
+      if (output.contains('FAIL capas') ||
+          output.contains('variación Ligera')) {
+        stderr.writeln(output);
+        throw StateError('Passes over 28 at the maximum must only warn');
+      }
+    }
     final missing = run(const [], 1);
     expectLine(missing, 'faltan las señales de música');
   } finally {
@@ -151,6 +174,29 @@ class Visual final : public Scene {
   }
 };
 ''',
+  ),
+  CreatorVisualDefinition(
+    id: 'capas',
+    name: 'Capas',
+    reactivity: CreatorReactivity.none,
+    nativeSource: r'''
+class Visual final : public Scene {
+ public:
+  void reset(uint32_t) override {} void update(const Frame&) override {}
+  void render(const Frame& f, Canvas& c) const override {
+    auto m = modifiers(f);
+    Paint p; p.color = f.colors[1];
+    for (int i = 0; i < m.capas; i++) c.points({Vec2{10.f + i * 8, 100}}, 2, p);
+  }
+};
+''',
+    modifiers: [
+      CreatorModifier.steps('capas', 'Capas', min: 1, max: 40, value: 5),
+    ],
+    variations: [
+      CreatorVariation('Densa', {'capas': 30}),
+      CreatorVariation('Ligera', {'capas': 2}),
+    ],
   ),
   CreatorVisualDefinition(
     id: 'puntos_lote',

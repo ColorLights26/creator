@@ -47,14 +47,17 @@
 // (framesPerSecond en la metadata). El dibujo debe ser el mismo a 30 y a 60.
 // Acota memoria y trabajo según tu escena. No existe un máximo artificial de 8 bucles.
 //
-// PASADAS (Creator las cuenta): el teléfono pinta cada cuadro en pasadas de
-// pantalla completa y cada una ocupa memoria hasta terminar el cuadro. Una
-// pasada es: cada points(); cada material; cada tramo seguido de figuras (path,
-// rect, circle) con la misma Blend; y, por cada clip activo, una más en cada
-// uno de ellos. save, restore, saveLayer, transform/translate/rotate/scale, clip
-// y cambiar de Blend cortan el tramo de figuras. Máximo 28 pasadas por cuadro,
-// medidas en la superficie del teléfono (664x1440 px) y del iPad con música
-// fuerte: con más, la imagen se congela. Apunta a menos de 10. Recetas:
+// PASADAS (Creator las cuenta): el teléfono pinta cada cuadro en pasadas y
+// cada una ocupa memoria hasta terminar el cuadro. Es una pasada de pantalla
+// completa: cada points(); cada tramo seguido de figuras (path, rect, circle)
+// con la misma Blend; y, por cada clip activo, una más en cada tramo, points(),
+// imagen o material. Cada material es una pasada del tamaño de su rectángulo.
+// save, restore, saveLayer, transform/translate/rotate/scale, clip y cambiar
+// de Blend cortan el tramo de figuras. Límite duro, con los ajustes iniciales y
+// música fuerte: 28 pasadas por cuadro en el iPad (900x1296 px) y 35 en el
+// iPhone (664x1440 px); con más, la imagen se congela y la revisión falla. Con
+// todos los ajustes al máximo o en una variación, más de 28 en el iPad es un
+// aviso: corrígelo también. Apunta a menos de 10. Recetas:
 // - agrupa por mezcla: todas las figuras sourceOver seguidas, luego las plus;
 // - un lote de puntos: todas las partículas de un color en un solo points();
 // - transforma en C++: calcula tú las coordenadas (rotar, escalar) en vez de
@@ -107,8 +110,9 @@
 // movimiento. Reserva el máximo en reset; nunca reserves memoria ni reinicies
 // al cambiar un ajuste. Para materiales, pasa los valores y pesos como floats.
 // Al fundir dos opciones, reparte los elementos entre ambas en vez de dibujar
-// dos pasadas completas. Límites por cuadro: 28 pasadas, 32768 puntos por
-// lote y 1 MiB de comandos; colores y opacidades entre 0 y 1 (usa std::clamp).
+// dos pasadas completas. Límites por cuadro: 28 pasadas (35 en el iPhone),
+// 32768 puntos por lote y 1 MiB de comandos; colores y opacidades entre 0 y 1
+// (usa std::clamp).
 // id: letras a-z sin acentos ni ñ, números y _; empieza por letra; hasta 24.
 //   Es el nombre en C++: no uses intensity, speed, detail, glow, colors,
 //   palette, music, time, delta, width, height, seed, modifiers, glide ni
@@ -128,8 +132,9 @@
 // ANTES DE ENTREGAR, comprueba: 3 a 5 ajustes de familias distintas y uno
 // musical (si reacciona); cada id se lee en el C++; ninguno repite un básico; extremos seguros
 // con detail 2; 2 o 3 variaciones; el movimiento es igual a 30 y 60 FPS;
-// 28 pasadas por cuadro como máximo, también con los ajustes al máximo (cuenta
-// points(), materiales, tramos de figuras por Blend y recortes); 60 FPS solo si
+// 28 pasadas por cuadro como máximo con los ajustes iniciales (límite duro) y
+// también con todos al máximo y en cada variación (si no, Creator avisa); cuenta
+// points(), materiales, tramos de figuras por Blend y recortes; 60 FPS solo si
 // cabe en 4 ms de GPU y 2 ms de CPU por cuadro.
 //
 // MATERIALES OPCIONALES: añade, después de nativeSource,
