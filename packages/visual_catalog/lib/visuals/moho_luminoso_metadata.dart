@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff050000, 0xffff2200, 0xffffae00, 0xfffff2b0],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // La red se mueve sin parar: a 60 FPS los filamentos fluyen.
-  framesPerSecond: 30, // energía: ver energy/frame_rate_record.json
+  framesPerSecond: 30, // energía: 60 no cabe; ver energy/frame_rate_record.json
 );

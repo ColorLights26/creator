@@ -197,6 +197,17 @@ void main() {
         '  framesPerSecond: 30, $frameRateMarker\n',
       ),
     );
+    // El comentario explica el 30 sin depender del comentario del autor y
+    // cabe en 80 columnas, así dart format no parte la línea.
+    final line = applied
+        .split('\n')
+        .singleWhere((text) => text.contains('framesPerSecond'));
+    expect(
+      line,
+      '  framesPerSecond: 30, '
+      '// energía: 60 no cabe; ver energy/frame_rate_record.json',
+    );
+    expect(line.length, lessThanOrEqualTo(80));
     for (final id in ['beta', 'gamma', 'delta']) {
       expect(read(id), original[id]);
     }
@@ -297,6 +308,20 @@ void main() {
     expect(run(['apply', '--all']), 1);
     expect('$err', contains('framesPerSecond aparece 2 veces'));
     expect(read('alpha'), ambiguous);
+
+    // El único valor aplicado por energía es 30: la marca no admite otro.
+    final original = read('beta');
+    record().writeAsStringSync(
+      jsonEncode({
+        'policy': frameRatePolicy,
+        'visuals': {
+          'beta': {'authored': 30, 'applied': 60},
+        },
+      }),
+    );
+    expect(run(['apply', '--ids', 'beta']), 1);
+    expect('$err', contains('beta.applied debe ser 30 o igual a authored'));
+    expect(read('beta'), original);
   });
 
   test('record refuses a measurement that no longer matches the metadata', () {

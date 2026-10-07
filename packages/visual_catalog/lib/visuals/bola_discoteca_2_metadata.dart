@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff070000, 0xffff1a1a, 0xffff4d1a, 0xffffb3b3],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Giro continuo y destellos: a 60 FPS la bola gira con fluidez.
-  framesPerSecond: 30, // energía: ver energy/frame_rate_record.json
+  framesPerSecond: 30, // energía: 60 no cabe; ver energy/frame_rate_record.json
 );

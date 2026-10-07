@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff030100, 0xffffb000, 0xffff5a00, 0xfffff0c0],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // La bandada vuela sin parar: a 60 FPS el movimiento es fluido.
-  framesPerSecond: 30, // energía: ver energy/frame_rate_record.json
+  framesPerSecond: 30, // energía: 60 no cabe; ver energy/frame_rate_record.json
 );

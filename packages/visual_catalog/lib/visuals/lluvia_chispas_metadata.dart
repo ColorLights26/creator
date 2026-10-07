@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff050302, 0xffd82a00, 0xffff8a00, 0xffffe066],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Las chispas se calculan a 120 pasos por segundo.
-  framesPerSecond: 30, // energía: ver energy/frame_rate_record.json
+  framesPerSecond: 30, // energía: 60 no cabe; ver energy/frame_rate_record.json
 );

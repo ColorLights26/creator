@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0x00000000, 0xff9b30ff, 0xffffb81c, 0xffff3d7f],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Los círculos se trazan de forma continua: a 60 FPS es fluido.
-  framesPerSecond: 30, // energía: ver energy/frame_rate_record.json
+  framesPerSecond: 30, // energía: 60 no cabe; ver energy/frame_rate_record.json
 );

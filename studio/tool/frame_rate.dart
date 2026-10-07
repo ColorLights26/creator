@@ -19,7 +19,13 @@ Opción común: --catalog <ruta de packages/visual_catalog>.
 ''';
 
 /// Comentario que deja `apply` en la línea cuando el valor difiere del autor.
-const frameRateMarker = '// energía: ver energy/frame_rate_record.json';
+/// Explica por sí solo el 30 para que nadie lo devuelva a 60 leyendo el
+/// comentario anterior del autor. Sólo hay un valor aplicado por energía (30
+/// sobre 60): `_Entry` rechaza cualquier otra combinación. Con la sangría de
+/// dos espacios la línea ocupa 80 columnas: más larga, dart format partiría
+/// `framesPerSecond:` en dos líneas y este comando dejaría de reconocerla.
+const frameRateMarker =
+    '// energía: 60 no cabe; ver energy/frame_rate_record.json';
 
 const frameRateReason =
     'R5: no cabe en el presupuesto de 60 fps (GPU <= 4 ms, CPU <= 2 ms); '
@@ -172,7 +178,14 @@ class _Entry {
       return value;
     }
 
-    return _Entry(json, fps('authored'), fps('applied'));
+    final authored = fps('authored');
+    final applied = fps('applied');
+    if (applied != authored && applied != _energyFps) {
+      throw _ToolError(
+        '$_recordPath: $id.applied debe ser $_energyFps o igual a authored.',
+      );
+    }
+    return _Entry(json, authored, applied);
   }
 
   final Map<String, Object?> json;
