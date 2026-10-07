@@ -82,6 +82,12 @@ class Visual final : public Scene {
   // Memoria de trabajo: posición y dirección de cada punto de cada rama.
   mutable std::vector<Vec2> pts;
   mutable std::vector<float> dirs;
+  // Memoria de trabajo de los puntos de luz (ver dots()) y listas de puntos
+  // de cada frame: se vacían y se reutilizan, sin pedir memoria nueva.
+  mutable std::vector<int> dotOrder;
+  mutable std::vector<char> dotAlone;
+  mutable float viewW = 1, viewH = 1;
+  mutable std::vector<Vec2> dotKeep, dotTips, tipsAt[3], hotAt, twinkleAt, beadsAt, litBeadsAt, fernTipsAt, motesAt[3][2], sparksAt, flyAt;
   // Música estándar: envolventes y golpe corto (valen 0 sin música).
   float bass = 0, body = 0, spark = 0, slowBass = 0, kick = 0, flash = 0;
   // Relojes en doble precisión: igual a 30 y 60 FPS.
@@ -103,6 +109,55 @@ class Visual final : public Scene {
     p.color = c.opacity(std::clamp(a, 0.0f, 1.0f));
     return p;
   }
+  // Un punto de luz de pocos píxeles: dos medias vueltas cúbicas (la
+  // diferencia con un círculo exacto es menor de una décima de píxel).
+  static void dot(Path& path, Vec2 c, float r) {
+    const float k = r * 1.3333333f;
+    path.moveTo(c.x + r, c.y);
+    path.cubicTo(c.x + r, c.y + k, c.x - r, c.y + k, c.x - r, c.y);
+    path.cubicTo(c.x - r, c.y - k, c.x + r, c.y - k, c.x + r, c.y);
+    path.close();
+  }
+  void dot(Canvas& c, Vec2 at, float r, const Paint& p) const {
+    Path one;
+    dot(one, at, r);
+    c.path(one, p);
+  }
+  // Puntos de luz (suma) como círculos dentro de la tanda de trazos: cada
+  // llamada a points() era una pasada entera de GPU. Los puntos que no
+  // tocan a otro van juntos en un solo trazo; los que se tocan van sueltos
+  // para que su luz se siga sumando como antes.
+  void dots(Canvas& c, const std::vector<Vec2>& all, float r, const Paint& p) const {
+    if (all.empty() || r <= 0.0f || p.color.a <= 0.0f) return;
+    // Sólo los que caen en pantalla: fuera no pintan ni un píxel.
+    dotKeep.clear();
+    for (const Vec2& q : all)
+      if (q.x > -r - 1.0f && q.x < viewW + r + 1.0f && q.y > -r - 1.0f && q.y < viewH + r + 1.0f) dotKeep.push_back(q);
+    const std::vector<Vec2>& at = dotKeep;
+    const size_t n = at.size();
+    if (n == 0) return;
+    dotOrder.resize(n);
+    for (size_t i = 0; i < n; i++) dotOrder[i] = int(i);
+    std::sort(dotOrder.begin(), dotOrder.end(), [&](int a, int b) { return at[size_t(a)].x < at[size_t(b)].x; });
+    dotAlone.assign(n, 1);
+    const float reach = 2.0f * r + 1.0f;
+    for (size_t i = 0; i < n; i++) {
+      const Vec2 a = at[size_t(dotOrder[i])];
+      for (size_t j = i + 1; j < n; j++) {
+        const Vec2 b = at[size_t(dotOrder[j])];
+        const float dx = b.x - a.x, dy = b.y - a.y;
+        if (dx >= reach) break;
+        if (dx * dx + dy * dy < reach * reach) dotAlone[size_t(dotOrder[i])] = dotAlone[size_t(dotOrder[j])] = 0;
+      }
+    }
+    Path group;
+    for (size_t i = 0; i < n; i++) {
+      if (dotAlone[i]) dot(group, at[i], r);
+      else dot(c, at[i], r, p);
+    }
+    if (!group.data().empty()) c.path(group, p);
+  }
+
   // Hoja (o pétalo) en coordenadas de pantalla: base, ángulo (y hacia arriba).
   static void leaf(Path& path, Vec2 b, float a, float len, float wid) {
     const float dx = std::cos(a), dy = -std::sin(a);
@@ -228,6 +283,11 @@ class Visual final : public Scene {
     Random rng(seed);
     limbs.clear(); trees.clear(); lianas.clear(); shrooms.clear(); fronds.clear(); motes.clear(); flies.clear();
     limbs.reserve(700);
+    dotOrder.reserve(2048); dotAlone.reserve(2048); dotKeep.reserve(256);
+    for (auto& v : tipsAt) v.reserve(256);
+    hotAt.reserve(256); twinkleAt.reserve(512); beadsAt.reserve(2048); litBeadsAt.reserve(2048);
+    dotTips.reserve(256); fernTipsAt.reserve(128); sparksAt.reserve(kMotes); flyAt.reserve(kFlies);
+    for (auto& row : motesAt) for (auto& v : row) v.reserve(kMotes);
     bass = body = spark = slowBass = kick = flash = 0;
     clock = 0; secs = 0;
     pulseAt.fill(-100.0); pulsePow.fill(0.0f); nextPulse = 0;
@@ -324,6 +384,20 @@ class Visual final : public Scene {
     const Color white{1, 1, 1, 1};
     const Color hues[3] = {mint, jade, emerald};
     auto S = [&](Vec2 p) { return Vec2{cx + p.x * s, h - p.y * s}; };
+    // Lo que queda entero fuera de la pantalla no se dibuja: no cambia ni un
+    // píxel y ahorra trazos.
+    viewW = w;
+    viewH = h;
+    auto onScreen = [&](Vec2 p, float m) { return p.x > -m && p.x < w + m && p.y > -m && p.y < h + m; };
+    auto limbOnScreen = [&](size_t i, float m) {
+      const Limb& L = limbs[i];
+      float x0 = 1e9f, x1 = -1e9f, y0 = 1e9f, y1 = -1e9f;
+      for (int k = 0; k <= L.segs; k++) {
+        const Vec2 p = S(pts[i * kPts + size_t(k)]);
+        x0 = std::min(x0, p.x); x1 = std::max(x1, p.x); y0 = std::min(y0, p.y); y1 = std::max(y1, p.y);
+      }
+      return x1 > -m && x0 < w + m && y1 > -m && y0 < h + m;
+    };
 
     // Pulsos: los de los golpes y uno suave cada 6,5 s (también en silencio).
     float front[kPulses + 1], power[kPulses + 1];
@@ -343,6 +417,7 @@ class Visual final : public Scene {
       for (int j = 0; j <= kPulses; j++) {
         if (power[j] < 0.003f) continue;
         const float off = (front[j] - d) / 0.16f;
+        if (off * off > 40.0f) continue;  // exp(-40): no cambia el resultado
         v += power[j] * std::exp(-off * off);
       }
       return std::min(v, 1.5f);
@@ -407,8 +482,8 @@ class Visual final : public Scene {
         for (int i = T.first; i < T.last; i++) {
           const size_t ii = size_t(i);
           const Limb& L = limbs[ii];
-          silhouette(wood, ii);
-          if (L.depth <= (hero ? 2 : 1) && !L.root) veins(vein, ii);
+          if (limbOnScreen(ii, 0.5f * std::max(L.w0, L.w1) * T.scale * s + 1.0f)) silhouette(wood, ii);
+          if (L.depth <= (hero ? 2 : 1) && !L.root && limbOnScreen(ii, sc * 2.0f + 1.0f)) veins(vein, ii);
           // Golpes: el pulso recorre las ramas desde las raíces.
           if (L.root) continue;
           const float step = L.len * T.scale / float(L.segs);
@@ -417,6 +492,8 @@ class Visual final : public Scene {
             if (pv < 0.05f) continue;
             const int b = pv > 0.6f ? 2 : (pv > 0.25f ? 1 : 0);
             const Vec2 p0 = S(pts[ii * kPts + size_t(k)]), p1 = S(pts[ii * kPts + size_t(k + 1)]);
+            const float m = sc * 3.5f + 1.0f;
+            if (std::max(p0.x, p1.x) < -m || std::min(p0.x, p1.x) > w + m || std::max(p0.y, p1.y) < -m || std::min(p0.y, p1.y) > h + m) continue;
             lit[b].moveTo(p0.x, p0.y);
             lit[b].lineTo(p1.x, p1.y);
           }
@@ -443,7 +520,10 @@ class Visual final : public Scene {
 
       // Flora: hojas, lianas o flores en las ramas finas.
       Path leaves[3], litLeaves, petals;
-      std::vector<Vec2> tips[3], hot;
+      std::vector<Vec2>* tips = tipsAt;
+      std::vector<Vec2>& hot = hotAt;
+      for (int k = 0; k < 3; k++) tips[k].clear();
+      hot.clear();
       const float leafLen = (hero ? 0.042f : 0.03f) * s * (1.0f + 0.2f * grave);
       for (const Tree& T : trees) {
         if (T.layer != layer || !visible(T)) continue;
@@ -456,20 +536,23 @@ class Visual final : public Scene {
           for (int k = std::max(1, L.segs - 2); k <= L.segs; k++) {
             const size_t q = ii * kPts + size_t(k);
             const Vec2 p = S(pts[q]);
+            const bool tip = k == L.segs && end;
+            const float lenK = leafLen * (0.75f + 0.25f * float(k) / float(L.segs));
+            const bool leafShown = leafAmount > 0.001f && onScreen(p, lenK + 1.0f);
+            if (!leafShown && !tip) continue;
             const float pv = pulse((L.dist * T.scale + step * float(k)) * (hero ? 1.0f : 1.15f));
-            if (leafAmount > 0.001f) {
+            if (leafShown) {
               const float flutter = 0.25f * wind * std::sin(t * 2.1f + L.phase + float(k));
-              const float lenK = leafLen * (0.75f + 0.25f * float(k) / float(L.segs));
               Path& dest = pv > 0.3f ? litLeaves : leaves[L.hue];
               leaf(dest, p, dirs[q] + 0.8f + flutter, lenK, lenK * 0.32f);
               leaf(dest, p, dirs[q] - 0.8f + flutter, lenK, lenK * 0.32f);
             }
-            if (k == L.segs && end) {
+            if (tip) {
               tips[L.hue].push_back(p);
               if (pv > 0.3f) hot.push_back(p);
               // Flores de cinco pétalos en las puntas.
-              if (wFlores > 0.001f) {
-                const float pl = leafLen * 0.9f * (1.0f + 0.25f * pv);
+              const float pl = leafLen * 0.9f * (1.0f + 0.25f * pv);
+              if (wFlores > 0.001f && onScreen(p, pl + 1.0f)) {
                 for (int k2 = 0; k2 < 5; k2++)
                   leaf(petals, p, L.phase + float(k2) * 1.2566371f + 0.2f * std::sin(t + L.phase), pl, pl * 0.42f);
               }
@@ -482,39 +565,76 @@ class Visual final : public Scene {
       for (int k = 0; k < 3; k++) c.path(leaves[k], light(hues[k], leafA * leafAmount));
       c.path(litLeaves, light(mixc(jade, white, 0.5f), std::min(1.0f, leafA * 1.6f) * leafAmount));
       c.path(petals, light(amber, (hero ? 0.75f : 0.45f) * wFlores * (1.0f + 0.4f * grave)));
-      // Halos suaves en las puntas (degradado radial: sin bordes).
+      // Halos suaves en las puntas (degradado radial: sin bordes). Primero
+      // todos los halos (normal) y después todos los puntos de luz (suma):
+      // alternarlos por tono costaba dos pasadas por tono. Un halo de un tono
+      // posterior velaba los puntos de los tonos anteriores; ese velo se
+      // aplica ahora al alfa de cada punto, así el píxel es el mismo.
       const float haloR = s * (hero ? 0.05f : 0.032f) * (1.0f + 0.3f * grave);
       const float haloA = (hero ? 0.22f : 0.12f) * glowK * (1.0f + 0.7f * grave) * (wHojas + wFlores);
+      const float haloK = std::clamp(haloA, 0.0f, 1.0f);
+      auto haloShown = [&](Vec2 p) { return !(p.x < -haloR || p.x > w + haloR || p.y < -haloR); };
       for (int k = 0; k < 3; k++) {
         const Color hc = mixc(hues[k], amber, wFlores);
+        // Un solo degradado por tono; sólo cambia su centro.
+        Paint hp = Paint::radial({0, 0}, haloR, {hc.opacity(haloK), hc.opacity(0.0f)}, {0.0f, 1.0f});
         for (const Vec2& p : tips[k]) {
-          if (p.x < -haloR || p.x > w + haloR || p.y < -haloR) continue;
-          c.circle(p, haloR, Paint::radial(p, haloR, {hc.opacity(std::clamp(haloA, 0.0f, 1.0f)), hc.opacity(0.0f)}, {0.0f, 1.0f}));
+          if (!haloShown(p)) continue;
+          hp.geometry[0] = p.x;
+          hp.geometry[1] = p.y;
+          c.circle(p, haloR, hp);
         }
-        Paint dot = light(mixc(hues[k], white, 0.55f), (hero ? 0.9f : 0.5f) * (wHojas + wFlores));
-        c.points(tips[k], sc * (hero ? 1.5f : 1.0f) * (1.0f + 0.6f * wFlores), dot);
+      }
+      for (int k = 0; k < 3; k++) {
+        const float dotR = sc * (hero ? 1.5f : 1.0f) * (1.0f + 0.6f * wFlores);
+        const Color dotC = mixc(hues[k], white, 0.55f);
+        const float dotA = (hero ? 0.9f : 0.5f) * (wHojas + wFlores);
+        if (dotA <= 0.0f) continue;
+        dotTips.clear();
+        for (const Vec2& p : tips[k]) {
+          float veil = 1.0f;
+          for (int m2 = k + 1; m2 < 3 && haloK > 0.0f; m2++) {
+            for (const Vec2& q : tips[m2]) {
+              const float dx = p.x - q.x;
+              if (dx >= haloR || dx <= -haloR) continue;
+              const float d2 = dx * dx + (p.y - q.y) * (p.y - q.y);
+              if (d2 >= haloR * haloR || !haloShown(q)) continue;
+              veil *= 1.0f - haloK * (1.0f - std::sqrt(d2) / haloR);
+            }
+          }
+          if (veil < 1.0f) {
+            if (onScreen(p, dotR + 1.0f)) dot(c, p, dotR, light(dotC, dotA * veil));
+          } else {
+            dotTips.push_back(p);
+          }
+        }
+        dots(c, dotTips, dotR, light(dotC, dotA));
       }
       // El pulso hace destellar las puntas al llegar.
       Paint hotDot = light(white, 0.9f);
-      c.points(hot, sc * (hero ? 2.6f : 1.8f), hotDot);
+      dots(c, hot, sc * (hero ? 2.6f : 1.8f), hotDot);
       // Agudos: las puntas centellean, cada una a su ritmo.
       if (agudo > 0.003f) {
-        std::vector<Vec2> twinkle;
+        std::vector<Vec2>& twinkle = twinkleAt;
+        twinkle.clear();
         int n = 0;
         for (int k = 0; k < 3; k++)
           for (const Vec2& p : tips[k])
             if (std::sin(rt * 19.0f + float(n++) * 2.39f) > 0.45f) twinkle.push_back(p);
-        c.points(twinkle, sc * (hero ? 4.0f : 2.6f), light(mixc(mint, white, 0.4f), 0.35f * agudo));
-        c.points(twinkle, sc * (hero ? 2.0f : 1.4f), light(white, std::min(1.0f, agudo)));
+        dots(c, twinkle, sc * (hero ? 4.0f : 2.6f), light(mixc(mint, white, 0.4f), 0.35f * agudo));
+        dots(c, twinkle, sc * (hero ? 2.0f : 1.4f), light(white, std::min(1.0f, agudo)));
       }
       if (wFlores > 0.001f) {
-        for (int k = 0; k < 3; k++) c.points(tips[k], sc * 1.8f, light(emerald, 0.9f * wFlores));
+        for (int k = 0; k < 3; k++) dots(c, tips[k], sc * 1.8f, light(emerald, 0.9f * wFlores));
       }
 
       // Lianas: hilos que cuelgan con cuentas de luz.
       if (wLianas > 0.001f) {
         Path strands;
-        std::vector<Vec2> beads, litBeads;
+        std::vector<Vec2>& beads = beadsAt;
+        std::vector<Vec2>& litBeads = litBeadsAt;
+        beads.clear();
+        litBeads.clear();
         for (const Liana& li : lianas) {
           const Limb& L = limbs[size_t(li.limb)];
           const Tree& T = trees[size_t(L.tree)];
@@ -541,8 +661,8 @@ class Visual final : public Scene {
         Paint sl = light(mint, (hero ? 0.55f : 0.3f) * wLianas * (1.0f + 0.4f * grave));
         sl.strokeWidth = sc * 1.0f;
         c.path(strands, sl);
-        c.points(beads, sc * (hero ? 1.8f : 1.3f), light(mixc(mint, white, 0.35f), (hero ? 0.85f : 0.5f) * wLianas));
-        c.points(litBeads, sc * (hero ? 2.8f : 2.0f), light(white, wLianas));
+        dots(c, beads, sc * (hero ? 1.8f : 1.3f), light(mixc(mint, white, 0.35f), (hero ? 0.85f : 0.5f) * wLianas));
+        dots(c, litBeads, sc * (hero ? 2.8f : 2.0f), light(white, wLianas));
       }
     }
 
@@ -567,7 +687,8 @@ class Visual final : public Scene {
     // Helechos: siluetas oscuras con el borde encendido.
     const float topY = h / s;
     Path fernBody, fernSpine;
-    std::vector<Vec2> fernTips;
+    std::vector<Vec2>& fernTips = fernTipsAt;
+    fernTips.clear();
     for (const Frond& fr : fronds) {
       if (std::abs(fr.x) - fr.len > view) continue;
       const float sway = (0.01f + 0.025f * wind) * std::sin(t * 0.7f + fr.phase);
@@ -589,8 +710,10 @@ class Visual final : public Scene {
         const float a = std::atan2(tg.y, tg.x);
         const float len = s * fr.len * 0.22f * (1.0f - 0.75f * v) * (0.4f + 0.6f * std::min(1.0f, v * 4.0f));
         const float flutter = 0.12f * wind * std::sin(t * 1.6f + fr.phase + v * 5.0f);
-        leaf(fernBody, sp, a + 1.15f + flutter, len, len * 0.22f);
-        leaf(fernBody, sp, a - 1.15f + flutter, len, len * 0.22f);
+        if (onScreen(sp, len + sc + 1.0f)) {
+          leaf(fernBody, sp, a + 1.15f + flutter, len, len * 0.22f);
+          leaf(fernBody, sp, a - 1.15f + flutter, len, len * 0.22f);
+        }
         if (k % 3 == 0) {
           fernTips.push_back({sp.x + std::cos(a + 1.15f) * len, sp.y - std::sin(a + 1.15f) * len});
           fernTips.push_back({sp.x + std::cos(a - 1.15f) * len, sp.y - std::sin(a - 1.15f) * len});
@@ -607,42 +730,84 @@ class Visual final : public Scene {
     Paint spineGlow = light(emerald, 0.35f * (1.0f + 0.5f * grave));
     spineGlow.strokeWidth = sc * 0.9f;
     c.path(fernSpine, spineGlow);
-    c.points(fernTips, sc * 1.3f, light(mixc(emerald, white, 0.3f), 0.7f * (1.0f + agudo * 0.4f)));
+    dots(c, fernTips, sc * 1.3f, light(mixc(emerald, white, 0.3f), 0.7f * (1.0f + agudo * 0.4f)));
 
     // Setas: el golpe las enciende primero (el pulso nace en el suelo).
+    // Cada seta pinta tallo (suma), resplandor (normal) y sombrero (suma);
+    // seta a seta eran dos pasadas por seta. Se reparten en capas: una seta
+    // sube de capa sólo si toca a una anterior, y en cada capa van primero
+    // los resplandores y después tallos y sombreros. El tallo lleva en su
+    // degradado el velo de su propio resplandor, que antes caía encima.
     const float shroomPulse = pulse(0.05f);
+    constexpr int kShroomMax = 12, kShroomLevels = 5;
+    struct ShroomDraw { Vec2 b, top; float size, stem, glowR; int level; Color capC; };
+    std::array<ShroomDraw, kShroomMax> sd;
+    int shroomCount = 0, shroomLevels = 0;
     for (const Shroom& sh : shrooms) {
-      if (std::abs(sh.x) > view) continue;
-      const Color capC = sh.hue == 0 ? amber : mint;
-      const float size = sh.size * s * (1.0f + 0.12f * grave + 0.1f * shroomPulse);
-      const Vec2 b = S({sh.x, 0.035f});
-      const float stem = size * 1.3f;
-      const Vec2 top{b.x + sh.lean * stem, b.y - stem};
-      Path st;
-      st.moveTo(b.x - size * 0.2f, b.y);
-      st.lineTo(top.x - size * 0.13f, top.y);
-      st.lineTo(top.x + size * 0.13f, top.y);
-      st.lineTo(b.x + size * 0.2f, b.y);
-      st.close();
-      c.path(st, light(mixc(capC, white, 0.6f), 0.4f + 0.2f * shroomPulse));
-      const float glowA = (0.2f + 0.22f * grave + 0.3f * shroomPulse) * std::min(glowK, 1.3f);
-      const float glowR = size * (2.4f + 0.4f * shroomPulse);
-      c.circle(top, glowR, Paint::radial(top, glowR, {capC.opacity(std::clamp(glowA, 0.0f, 1.0f)), capC.opacity(0.0f)}, {0.0f, 1.0f}));
-      Path cap;
-      cap.moveTo(top.x - size, top.y);
-      cap.cubicTo(top.x - size, top.y - size * 1.25f, top.x + size, top.y - size * 1.25f, top.x + size, top.y);
-      cap.quadraticTo(top.x, top.y - size * 0.3f, top.x - size, top.y);
-      cap.close();
-      Paint capPaint = Paint::radial({top.x, top.y - size * 0.7f}, size * 1.2f,
-        {mixc(capC, white, 0.55f).opacity(0.95f), capC.opacity(0.9f), capC.opacity(0.55f)}, {0.0f, 0.5f, 1.0f});
-      capPaint.blend = Blend::plus;
-      c.path(cap, capPaint);
+      if (std::abs(sh.x) > view || shroomCount == kShroomMax) continue;
+      ShroomDraw& d = sd[size_t(shroomCount)];
+      d.capC = sh.hue == 0 ? amber : mint;
+      d.size = sh.size * s * (1.0f + 0.12f * grave + 0.1f * shroomPulse);
+      d.b = S({sh.x, 0.035f});
+      d.stem = d.size * 1.3f;
+      d.top = {d.b.x + sh.lean * d.stem, d.b.y - d.stem};
+      d.glowR = d.size * (2.4f + 0.4f * shroomPulse);
+      // Una seta posterior va en una capa mayor si su resplandor toca el
+      // cuerpo de una anterior; en la misma o mayor si sólo se tocan los
+      // resplandores (el orden normal dentro de la capa se conserva).
+      d.level = 0;
+      for (int j = 0; j < shroomCount; j++) {
+        const ShroomDraw& e = sd[size_t(j)];
+        const float dx = d.top.x - e.top.x, dy = d.top.y - e.top.y, d2 = dx * dx + dy * dy;
+        const float body = d.glowR + 1.4f * e.size + 1.0f, glows = d.glowR + e.glowR + 1.0f;
+        if (d2 < body * body) d.level = std::max(d.level, e.level + 1);
+        else if (d2 < glows * glows) d.level = std::max(d.level, e.level);
+      }
+      d.level = std::min(d.level, kShroomLevels - 1);
+      shroomLevels = std::max(shroomLevels, d.level + 1);
+      shroomCount++;
+    }
+    const float glowA = std::clamp((0.2f + 0.22f * grave + 0.3f * shroomPulse) * std::min(glowK, 1.3f), 0.0f, 1.0f);
+    for (int lv = 0; lv < shroomLevels; lv++) {
+      for (int i = 0; i < shroomCount; i++) {
+        const ShroomDraw& d = sd[size_t(i)];
+        if (d.level != lv) continue;
+        c.circle(d.top, d.glowR, Paint::radial(d.top, d.glowR, {d.capC.opacity(glowA), d.capC.opacity(0.0f)}, {0.0f, 1.0f}));
+      }
+      for (int i = 0; i < shroomCount; i++) {
+        const ShroomDraw& d = sd[size_t(i)];
+        if (d.level != lv) continue;
+        const Vec2 b = d.b, top = d.top;
+        const float size = d.size;
+        Path st;
+        st.moveTo(b.x - size * 0.2f, b.y);
+        st.lineTo(top.x - size * 0.13f, top.y);
+        st.lineTo(top.x + size * 0.13f, top.y);
+        st.lineTo(b.x + size * 0.2f, b.y);
+        st.close();
+        const Color stemC = mixc(d.capC, white, 0.6f);
+        const float stemA = std::clamp(0.4f + 0.2f * shroomPulse, 0.0f, 1.0f);
+        Paint stemPaint = Paint::radial(top, d.glowR, {stemC.opacity(stemA * (1.0f - glowA)), stemC.opacity(stemA)}, {0.0f, 1.0f});
+        stemPaint.blend = Blend::plus;
+        c.path(st, stemPaint);
+        Path cap;
+        cap.moveTo(top.x - size, top.y);
+        cap.cubicTo(top.x - size, top.y - size * 1.25f, top.x + size, top.y - size * 1.25f, top.x + size, top.y);
+        cap.quadraticTo(top.x, top.y - size * 0.3f, top.x - size, top.y);
+        cap.close();
+        Paint capPaint = Paint::radial({top.x, top.y - size * 0.7f}, size * 1.2f,
+          {mixc(d.capC, white, 0.55f).opacity(0.95f), d.capC.opacity(0.9f), d.capC.opacity(0.55f)}, {0.0f, 0.5f, 1.0f});
+        capPaint.blend = Blend::plus;
+        c.path(cap, capPaint);
+      }
     }
 
     // 4. Esporas que suben y luciérnagas.
     const int moteCount = std::clamp(int(50.0f + 55.0f * f.detail), 0, kMotes);
-    std::vector<Vec2> motesBy[3][2];
-    std::vector<Vec2> sparks;
+    auto& motesBy = motesAt;
+    for (auto& row : motesBy) for (auto& v : row) v.clear();
+    std::vector<Vec2>& sparks = sparksAt;
+    sparks.clear();
     for (int i = 0; i < moteCount; i++) {
       const Mote& mo = motes[size_t(i)];
       const float x = mo.x + mo.drift * std::sin(t * 0.4f + mo.phase);
@@ -656,12 +821,16 @@ class Visual final : public Scene {
     }
     for (int k = 0; k < 3; k++) {
       const float a = 0.25f + 0.3f * float(k);
-      c.points(motesBy[k][0], sc * (0.9f + 0.4f * float(k)), light(mint, a));
-      c.points(motesBy[k][1], sc * (0.9f + 0.4f * float(k)), light(emerald, a));
+      dots(c, motesBy[k][0], sc * (0.9f + 0.4f * float(k)), light(mint, a));
+      dots(c, motesBy[k][1], sc * (0.9f + 0.4f * float(k)), light(emerald, a));
     }
-    c.points(sparks, sc * 2.2f, light(mixc(mint, white, 0.6f), std::min(1.0f, agudo)));
+    dots(c, sparks, sc * 2.2f, light(mixc(mint, white, 0.6f), std::min(1.0f, agudo)));
     const int flyCount = std::clamp(int(12.0f + 10.0f * f.detail), 0, kFlies);
-    std::vector<Vec2> flyCores;
+    std::vector<Vec2>& flyCores = flyAt;
+    flyCores.clear();
+    // Un solo degradado para todas: cambian su centro y su alfa.
+    const float flyR = s * 0.035f * (1.0f + 0.3f * grave);
+    Paint flyGlow = Paint::radial({0, 0}, flyR, {emerald.opacity(0.0f), emerald.opacity(0.0f)}, {0.0f, 1.0f});
     for (int i = 0; i < flyCount; i++) {
       const Fly& fl = flies[size_t(i)];
       const float x = fl.cx + fl.ax * std::sin(t * fl.fx * 0.35f + fl.phase);
@@ -671,8 +840,10 @@ class Visual final : public Scene {
       blink = std::clamp(blink + agudo * 0.6f * std::max(std::sin(rt * 23.0f + fl.phase * 5.0f), 0.0f), 0.0f, 1.0f);
       if (blink < 0.03f || std::abs(x) > view) continue;
       const Vec2 p = S({x, y});
-      const float r = s * 0.035f * (1.0f + 0.3f * grave);
-      c.circle(p, r, Paint::radial(p, r, {emerald.opacity(std::clamp(0.45f * blink * glowK, 0.0f, 1.0f)), emerald.opacity(0.0f)}, {0.0f, 1.0f}));
+      flyGlow.geometry[0] = p.x;
+      flyGlow.geometry[1] = p.y;
+      flyGlow.colors[0].a = std::clamp(0.45f * blink * glowK, 0.0f, 1.0f);
+      c.circle(p, flyR, flyGlow);
       flyCores.push_back(p);
     }
     c.points(flyCores, sc * 1.6f, light(mixc(emerald, white, 0.5f), 0.95f));

@@ -109,35 +109,66 @@ class Visual final : public Scene {
     return {std::min(1.0f, r * light), std::min(1.0f, gg * light), std::min(1.0f, b * light), 1.0f};
   }
 
-  void drawCell(const Frame& f, Canvas& c, const Cell& cell, float light, float alpha, Vec2 lamp, bool edge) const {
+  // Giro, escala y desplazamiento de un vidrio alrededor de su centro,
+  // aplicados a los puntos aquí en vez de con save/transform/restore: así
+  // todo el vitral (y cada fragmento) cabe en una sola pasada.
+  struct Move {
+    Vec2 to;
+    float cs = 1, sn = 0, scale = 1;
+    bool still = true;
+  };
+  static Vec2 moved(const Move& m, const Cell& cell, Vec2 p) {
+    if (m.still) return p;
+    const float x = (p.x - cell.c.x) * m.scale, y = (p.y - cell.c.y) * m.scale;
+    return {m.to.x + x * m.cs - y * m.sn, m.to.y + x * m.sn + y * m.cs};
+  }
+
+  void drawCell(const Frame& f, Canvas& c, const Cell& cell, float light, float alpha, Vec2 lamp, bool edge, const Move& m) const {
     float s = std::min(f.width, f.height);
     Path path;
-    path.moveTo(cell.poly[0].x, cell.poly[0].y);
-    for (size_t i = 1; i < cell.poly.size(); i++) path.lineTo(cell.poly[i].x, cell.poly[i].y);
+    const Vec2 p0 = moved(m, cell, cell.poly[0]);
+    path.moveTo(p0.x, p0.y);
+    for (size_t i = 1; i < cell.poly.size(); i++) {
+      const Vec2 p = moved(m, cell, cell.poly[i]);
+      path.lineTo(p.x, p.y);
+    }
     path.close();
     // Gradiente radial desplazado hacia la luz: el vidrio brilla por el lado
     // que mira a la lámpara y se oscurece hacia el plomo.
-    Vec2 hot{cell.c.x + (lamp.x - cell.c.x) * 0.18f, cell.c.y + (lamp.y - cell.c.y) * 0.18f};
+    Vec2 hot = moved(m, cell, {cell.c.x + (lamp.x - cell.c.x) * 0.18f, cell.c.y + (lamp.y - cell.c.y) * 0.18f});
     Color bright = glassColor(f, cell, light * 1.35f);
     Color dark = glassColor(f, cell, light * 0.42f);
     bright.r = std::min(1.0f, bright.r + 0.08f * light);
     bright.g = std::min(1.0f, bright.g + 0.08f * light);
     bright.b = std::min(1.0f, bright.b + 0.08f * light);
     bright.a = dark.a = alpha;
-    Paint fill = Paint::radial(hot, cell.radius * 1.25f, {bright, dark});
+    Paint fill = Paint::radial(hot, cell.radius * 1.25f * m.scale, {bright, dark});
     c.path(path, fill);
     Paint lead;
-    lead.strokeWidth = s * 0.011f;
+    lead.strokeWidth = s * 0.011f * m.scale;
     lead.strokeJoin = 1;
-    lead.color = {f.colors[0].r, f.colors[0].g, f.colors[0].b, alpha};
+    const Color& ld = f.colors[0];
+    lead.color = {ld.r, ld.g, ld.b, alpha};
     c.path(path, lead);
     if (edge) {
-      Paint rim;
-      rim.blend = Blend::plus;
-      rim.strokeWidth = s * 0.003f;
-      rim.strokeJoin = 1;
-      rim.color = {1.0f, 0.95f, 0.85f, 0.55f * alpha};
-      c.path(path, rim);
+      // Filo de luz sobre el plomo: era una suma (plus) de 0,55 de luz
+      // cálida sobre el plomo recién pintado. Pintado normal con el color
+      // plomo + luz da el mismo píxel (exacto con el fragmento opaco) y no
+      // corta la pasada del vitral.
+      const float k = 0.55f * alpha;
+      const float warm[3] = {1.0f, 0.95f, 0.85f}, base[3] = {ld.r, ld.g, ld.b};
+      float a = 0.0f;
+      for (int ch = 0; ch < 3; ch++) a = std::max(a, k * warm[ch] / std::max(1e-4f, 1.0f - alpha * base[ch]));
+      a = std::min(a, 1.0f);
+      if (a > 1e-4f) {
+        float rgb[3];
+        for (int ch = 0; ch < 3; ch++) rgb[ch] = std::clamp(k * warm[ch] / a + alpha * base[ch], 0.0f, 1.0f);
+        Paint rim;
+        rim.strokeWidth = s * 0.003f * m.scale;
+        rim.strokeJoin = 1;
+        rim.color = {rgb[0], rgb[1], rgb[2], a};
+        c.path(path, rim);
+      }
     }
   }
 
@@ -233,16 +264,13 @@ class Visual final : public Scene {
         grow = 0.75f + 0.25f * a * a * (3.0f - 2.0f * a);
       }
       float light = lightAt(f, cell.c, lamp) * amp;
+      Move m;
       if (grow < 0.999f) {
-        c.save();
-        c.translate(cell.c.x, cell.c.y);
-        c.scale(grow, grow);
-        c.translate(-cell.c.x, -cell.c.y);
-        drawCell(f, c, cell, light, alpha, lamp, false);
-        c.restore();
-      } else {
-        drawCell(f, c, cell, light, alpha, lamp, false);
+        m.still = false;
+        m.to = cell.c;
+        m.scale = grow;
       }
+      drawCell(f, c, cell, light, alpha, lamp, false, m);
     }
 
     // Fragmentos que vuelan hacia la cámara girando.
@@ -252,14 +280,13 @@ class Visual final : public Scene {
       float alpha = 1.0f - std::clamp((tau - 0.55f) / 0.6f, 0.0f, 1.0f);
       if (alpha <= 0) continue;
       float ox = sh.vx * tau, oy = sh.vy * tau + 0.5f * s * 1.4f * tau * tau;
-      float sc = 1.0f + sh.zoom * tau;
-      c.save();
-      c.translate(sh.c.x + ox, sh.c.y + oy);
-      c.rotate(sh.spin * tau);
-      c.scale(sc, sc);
-      c.translate(-sh.c.x, -sh.c.y);
-      drawCell(f, c, sh, (1.1f + 0.8f * blast) * amp, alpha, lamp, true);
-      c.restore();
+      Move m;
+      m.still = false;
+      m.to = {sh.c.x + ox, sh.c.y + oy};
+      m.cs = std::cos(sh.spin * tau);
+      m.sn = std::sin(sh.spin * tau);
+      m.scale = 1.0f + sh.zoom * tau;
+      drawCell(f, c, sh, (1.1f + 0.8f * blast) * amp, alpha, lamp, true, m);
     }
 
     // Brillo del vidrio: ondulaciones y destellos con los agudos.
