@@ -74,6 +74,7 @@ Map<String, Object> prepareCreatorNative({
   );
   final entries = <String>[];
   final probeCases = <String>[];
+  final passCases = <String>[];
   for (final visual in visuals) {
     final manifest = visual.toManifest();
     if (!visual.isNative) {
@@ -154,6 +155,7 @@ Map<String, Object> prepareCreatorNative({
     if (visual.modifiers.isNotEmpty || visual.variations.isNotEmpty) {
       probeCases.add(_probeCase(visual));
     }
+    passCases.add(_passCase(visual));
     entries.add(
       '{${jsonEncode(visual.programId)}, ${jsonEncode(hash)}, &authored_${visual.id}::make, {${materials.map(jsonEncode).join(',')}}, {${images.map(jsonEncode).join(',')}}, {${visual.modifiers.map((m) => _floatLiteral(m.value.toDouble())).join(',')}}}',
     );
@@ -170,12 +172,16 @@ Map<String, Object> prepareCreatorNative({
     File('${output.path}/creator_probe_cases.inc'),
     utf8.encode(
       '// Generated for the native checks only; never compiled into an app.\n'
-      '#include <array>\n#include <vector>\n'
+      '#include <array>\n#include <cstdint>\n#include <vector>\n'
       'struct CreatorProbeModifier { const char* id; int kind; float lower, upper, value; };\n'
       'struct CreatorProbeVariation { const char* name; std::array<float, 4> controls; std::vector<float> modifiers; };\n'
       'struct CreatorProbeCase { const char* program; bool reactive; std::vector<CreatorProbeModifier> modifiers; std::vector<CreatorProbeVariation> variations; };\n'
       'inline const std::vector<CreatorProbeCase>& creatorProbeCases() {\n'
       '  static const std::vector<CreatorProbeCase> cases = {${probeCases.join(',\n')}};\n'
+      '  return cases;\n}\n'
+      'struct CreatorPassCase { const char* program; int fps; bool reactive; uint32_t seed; std::array<double, 4> controls; std::array<uint32_t, 4> colors; };\n'
+      'inline const std::vector<CreatorPassCase>& creatorPassCases() {\n'
+      '  static const std::vector<CreatorPassCase> cases = {${passCases.join(',\n')}};\n'
       '  return cases;\n}\n',
     ),
   );
@@ -231,6 +237,20 @@ String _probeCase(CreatorVisualDefinition visual) {
   final reactive = visual.reactivity != CreatorReactivity.none;
   return '{${jsonEncode(visual.programId)}, $reactive, {${modifiers.join(', ')}}, '
       '{${variations.join(', ')}}}';
+}
+
+/// Every native program as the app first plays it, for the pass gate: frame
+/// rate, whether it hears music, seed, initial controls and ARGB colors (the
+/// probe converts them like the iOS catalog does).
+String _passCase(CreatorVisualDefinition visual) {
+  final controls = visual.controls.toMap().values.map((value) {
+    final text = value.toDouble().toString();
+    return text.contains('.') || text.contains('e') ? text : '$text.0';
+  });
+  final colors = visual.colors.map((color) => '${color}u');
+  return '{${jsonEncode(visual.programId)}, ${visual.framesPerSecond}, '
+      '${visual.reactivity != CreatorReactivity.none}, ${visual.seed}u, '
+      '{${controls.join(', ')}}, {${colors.join(', ')}}}';
 }
 
 /// Bump when the generated reader or transition code changes behavior, so a

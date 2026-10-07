@@ -7,7 +7,9 @@ import 'package:scene_compositor/native_compiler.dart';
 /// Runs the real authored probe (ASan/UBSan) over visuals made to pass or
 /// fail the modifier sweep: a dead modifier warns (fails when strict), one
 /// that breaks the budget at its maximum fails, and one that only changes
-/// the response to music passes. Needs clang++.
+/// the response to music passes. Also the pass gate: 40 separate points()
+/// calls are 40 full-screen passes and fail; the same points in one batch
+/// are one pass. Needs clang++.
 void main() {
   if (Process.runSync('which', ['clang++']).exitCode != 0) {
     stdout.writeln('scene_compositor: sweep checks skipped (no clang++).');
@@ -91,6 +93,17 @@ void main() {
     expectLine(relaxed, 'Copia cada línea FAIL');
     final strict = run([signals.path, '--strict-modifiers'], 1);
     expectLine(strict, 'FAIL muerto: el modificador nada no cambia nada');
+    // The pass gate, with the recipe in the message.
+    expectLine(
+      relaxed,
+      'FAIL puntos_sueltos: 40 pasadas por cuadro en el iPhone',
+    );
+    expectLine(relaxed, 'points() 40');
+    expectLine(relaxed, 'un lote de puntos');
+    expectLine(
+      relaxed,
+      'PASS passes creator_puntos_lote: iPhone 1, iPad 1 (máx 28)',
+    );
     final missing = run(const [], 1);
     expectLine(missing, 'faltan las señales de música');
   } finally {
@@ -100,6 +113,41 @@ void main() {
 }
 
 const _fixtures = [
+  CreatorVisualDefinition(
+    id: 'puntos_sueltos',
+    name: 'Puntos sueltos',
+    reactivity: CreatorReactivity.none,
+    nativeSource: r'''
+class Visual final : public Scene {
+ public:
+  void reset(uint32_t) override {} void update(const Frame&) override {}
+  void render(const Frame& f, Canvas& c) const override {
+    Paint p; p.color = f.colors[1];
+    for (int i = 0; i < 40; i++) c.points({Vec2{10.f + i * 8, 100}}, 2, p);
+  }
+};
+''',
+  ),
+  CreatorVisualDefinition(
+    id: 'puntos_lote',
+    name: 'Puntos en lote',
+    reactivity: CreatorReactivity.none,
+    nativeSource: r'''
+class Visual final : public Scene {
+  std::vector<Vec2> points;
+ public:
+  void reset(uint32_t) override {
+    points.clear();
+    for (int i = 0; i < 40; i++) points.push_back({10.f + i * 8, 100});
+  }
+  void update(const Frame&) override {}
+  void render(const Frame& f, Canvas& c) const override {
+    Paint p; p.color = f.colors[1];
+    c.points(points, 2, p);
+  }
+};
+''',
+  ),
   CreatorVisualDefinition(
     id: 'golpe',
     name: 'Golpe',
