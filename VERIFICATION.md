@@ -12,6 +12,7 @@ ejemplos nuevos se aprobó para la app principal.
 | Android | APK debug compilado, también desde un kit independiente sin cachés. No hubo Android físico conectado. |
 | Crear sin registros manuales | En la copia independiente se copiaron las dos plantillas como una pareja nueva; el build descubrió el noveno visual automáticamente. |
 | Programas C++ | ASan/UBSan y timeout; los cuatro ejemplos pasan repetición determinista, dos instancias intercaladas, pausa/reset y coherencia ambiental a 30/60 FPS. |
+| Pasadas por cuadro (6 de octubre de 2026) | El contador de `authored_probe.cpp` coincide con el harness de Metal en los 277 visuales nativos: máximo de pasadas y de bytes idénticos en iPhone e iPad, 0 diferencias. Con el catálogo de ese día el gate falla en 16: los 15 que congelan la imagen y `cristal_electrico` (29 pasadas en el iPhone a los 11 s y 28 en el iPad: falla porque el gate exige 28 también en el iPhone; en los 4 a 8 s del harness llegaba a 28). La plantilla queda en 5 pasadas y pasa el barrido estricto. El conteo suma cerca de la mitad del tiempo de la revisión nativa: unos 2,5 min estimados en CI, sin cambiar la salida del barrido. |
 | Música | Contrato de 520 bytes, eventos deduplicados y conservación de historia al apagar reacción. |
 | Continuidad nativa | Mismo identificador de instancia y contador de actualización después de cambiar controles, tamaño y reacción; rollback probado y nueva semilla exige reset. |
 | Metal y Flutter Canvas | Los cuatro ejemplos dibujan contenido; los fondos son opacos y las partículas conservan alpha. |
