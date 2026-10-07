@@ -87,12 +87,13 @@ jobs:
           cp studio/test/fixtures/template_example/*.dart packages/visual_catalog/lib/visuals/
           (cd studio && dart run tool/compile_creator.dart)
           dart studio/tool/generate_template.dart --check
-          # Drafts may still carry a modifier that changes nothing (a warning
-          # here, an error at app approval); the template and the test
+          # Drafts may still carry a modifier that changes nothing, or go over
+          # 28 passes per frame on the iPad with every setting at its maximum
+          # or in a variation (warnings here); the template and the test
           # visuals never may.
           set -o pipefail
           python3 packages/scene_program_native/test/check_native.py --generated studio/build/creator_native | tee /tmp/native-check.log
-          if grep -E '^WARN (template_example|modifier_probe):' /tmp/native-check.log; then exit 1; fi
+          if grep -E '^WARN (passes creator_)?(template_example|modifier_probe):' /tmp/native-check.log; then exit 1; fi
           clang++ -std=c++17 -O2 -shared -fPIC packages/scene_program_native/src/creator_scene.cpp packages/scene_program_native/src/creator_registry.cpp -Istudio/build/creator_native -o /tmp/libcreator_test.so
       - name: Native scenes through Flutter Canvas
         working-directory: studio

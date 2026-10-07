@@ -224,6 +224,121 @@ superficie: al cambiar de visual, pista o tamaño, la ventana se descarta.
 - Pendiente de decisión: separar CPU y GPU por cuadro en iOS requiere tocar el
   runtime Swift que también usa Color Lights.
 
+## Presupuesto de energía
+
+Todos los visuales cumplen las mismas cinco reglas:
+
+| Regla | Límite |
+| --- | --- |
+| Pasadas por cuadro | Con los ajustes iniciales, hasta 28 en el iPad (objetivo: 26) y 35 en el iPhone; nunca más de 128 MiB. Con todos los ajustes al máximo o en una variación, más de 28 en el iPad es un aviso. |
+| GPU por cuadro (iPhone, estimada) | 4 ms a 60 FPS; 8 ms a 30. |
+| CPU por cuadro | 2 ms a 60 FPS; 4 ms a 30. |
+| Memoria | No crece por cuadro: todo se reserva en `reset`. |
+| Cadencia | Simulación de paso fijo y el mismo dibujo a 30 y a 60 FPS (regla de la plantilla). 60 FPS solo si cabe en los presupuestos de 60; si no, 30. |
+
+**Por qué.** La app dibuja en una superficie de 664×1440 px en el iPhone
+(393×852 lógicos) y de 900×1296 px en el iPad (820×1180). Cada pasada de
+pantalla completa es una textura del tamaño de la superficie (ancho × alto × 4
+bytes: 3,65 MiB en el iPhone y 4,45 MiB en el iPad) que Core Image conserva
+hasta terminar el cuadro.
+El renderer (`SceneCatalogCreatorScene.swift`, función `render`) no publica un
+cuadro con más de 192 pasadas o más de 128 MiB: la imagen se queda congelada.
+28 pasadas de pantalla completa en el iPad ocupan 124,6 MiB y 35 en el iPhone,
+127,7 MiB; una más congela la imagen.
+
+Crea una pasada de pantalla completa: cada `points()` con puntos; cada tramo
+seguido de figuras (`path`, `rect`, `circle`) con la misma `Blend`, que se corta
+al cambiar de mezcla y con cada `save`, `restore`, `saveLayer`, transformación
+o `clip`; y, por cada recorte activo, una más en cada tramo, lote, imagen o
+material. Un material cuesta una pasada del tamaño de su rectángulo
+transformado, no de la pantalla. Las recetas, también en la plantilla:
+**agrupar por mezcla**, **un lote de puntos** por color, **transformar en C++**
+en vez de `save`/`rotate`/`restore` por figura y **sin recorte por celda**. Las
+pasadas no son bucles: sigue sin haber límites artificiales de bucles y dentro
+de un tramo o de un lote se dibuja todo lo que la escena necesite.
+
+**El gate de CI.** `check_native.py` (paso «Native ABI, sanitizers and copyable
+template» de CI y aprobación en Color Lights) ejecuta `authored_probe.cpp`, que
+cuenta las pasadas de cada cuadro con las reglas del renderer iOS sobre los
+comandos ya validados, sin GPU. Reproduce cada visual con sus FPS, semilla,
+controles, colores y modificadores iniciales (`creatorPassCases()` en
+`creator_probe_cases.inc`, que genera `native_compiler.dart` sin tocar los
+hashes): 12 s de la música sintética fuerte del barrido, con los niveles ×1,35,
+y 2 s de silencio, en el iPhone y en el iPad. Cada superficie tiene su máximo:
+las pasadas de pantalla completa que caben en 128 MiB, 35 en el iPhone y 28 en
+el iPad (el tope de 192 del renderer nunca llega antes). Falla si algún cuadro
+pasa de ese máximo o de 128 MiB, y dice qué superó cada superficie:
+
+```text
+FAIL neon_lluvia: 29 pasadas por cuadro en el iPad (máx 28) y 129,0 MiB (máx 128). La app no publica un cuadro de más de 128 MiB: la imagen se queda congelada. En el iPad cada pasada de pantalla completa ocupa 4,45 MiB: 28 ya llenan 124,6 MiB. El iPhone cumple: 29 de 35. En el cuadro más caro (iPad, 0,0 s): lotes de figuras 13 (1 cortados por save/restore/transform/clip, 3 por cambiar de mezcla), points() 8, materiales 0, recortes activos 8. Cada lote de figuras, points() y recorte activo es una pasada de pantalla completa; cada material, una pasada del tamaño de su rectángulo. Bájalas así: agrupa por mezcla (dibuja seguidas todas las figuras con la misma Blend), un lote de puntos (todas las partículas de un color en un solo points()), transforma en C++ (calcula tú las coordenadas en vez de save/translate/rotate/restore por figura) y sin recorte por celda (nada de clip dentro de un bucle).
+```
+
+Se lee de izquierda a derecha: qué superó cada superficie (pasadas y MiB, con
+su máximo), de dónde sale ese máximo, la superficie que cumple, el instante del
+cuadro más caro y de dónde salen sus pasadas. El origen más grande indica la
+receta: muchos lotes cortados por `save`/`transform` piden transformar en C++,
+los cortes por mezcla piden agrupar por mezcla, muchos `points()` piden un solo
+lote y los recortes activos piden quitar el `clip` del bucle. El visual que
+cumple imprime `PASS passes creator_<id>: iPhone n (máx 35), iPad m (máx 28)`.
+
+El gate cuenta los ajustes iniciales. El barrido de modificadores (solo los
+visuales con modificadores o variaciones) repite esos 14 s en el iPad con todos
+los ajustes al máximo (intensidad, detalle y brillo en 2 y cada modificador en
+su máximo) y con cada variación. Si pasa de 28 avisa, sin fallar:
+
+```text
+WARN passes creator_kandinsky: 35 pasadas con la variación Varios Círculos (máx 28 en iPad)
+```
+
+En CI ese aviso solo falla para `template_example` y `modifier_probe`. Para ver
+solo los números con el calendario del harness (240 cuadros a sus FPS, los
+últimos 60 en silencio), sin el resto de comprobaciones:
+
+```sh
+python3 packages/scene_program_native/test/check_native.py --generated studio/build/creator_native --pass-report harness
+```
+
+Ese informe coincide con el harness en los 277 visuales nativos del catálogo:
+máximo de pasadas y de bytes, en el iPhone y en el iPad. El gate no mide los ms
+de GPU ni de CPU: esos se miden con el harness o en el teléfono.
+
+**Harness de medición.** Vive fuera del repositorio, en la Mac del responsable;
+aquí aparece como `<carpeta del harness>`. Compila el SDK C++ real, el registro
+generado de un checkout y el runtime Swift de producción, y mide pasadas,
+bytes, CPU y GPU por cuadro con Metal:
+
+```sh
+H='<carpeta del harness>'
+# Antes, en el checkout: cd studio && dart run tool/compile_visuals.dart
+CE_EXPORT=<checkout> CE_BUILD=<build> python3 $H/build.py
+CE_EXPORT=<checkout> CE_BUILD=<build> CE_OUT=<carpeta>/out python3 $H/run_all.py \
+  --round <nombre> --label iphone --px 664x1440 --logical 393x852 --ids a,b --dry
+cd <carpeta> && python3 $H/passes_table.py <nombre> iphone   # lee out/<nombre>/iphone
+```
+
+Para el iPad: `--label ipad --px 900x1296 --logical 820x1180`. Sin `--dry`
+también mide CPU y GPU (con la Mac libre: `--gate --repeats N`). Para comparar el
+aspecto antes y después de un cambio: `CE_LIFT_GUARD=1` al compilar y al
+ejecutar (los cuadros congelados se dibujan igual), `--frames`, `--silent`,
+`--capture-times 1.0,2.5,... --capture-dir <carpeta>` y después
+`python3 $H/parity.py --before <antes> --after <después> --ids a,b --out informe.json --sheet <carpeta>`.
+
+**FPS.** La herramienta de cadencia decide qué visuales piden 60 FPS y guarda
+cada cambio en `packages/visual_catalog/energy/frame_rate_record.json`:
+
+```sh
+cd studio && dart run tool/frame_rate.dart status
+cd studio && dart run tool/frame_rate.dart record --from-csv <medición.csv> --base-commit <commit medido>
+cd studio && dart run tool/frame_rate.dart apply --ids a,b   # o --all
+cd studio && dart run tool/frame_rate.dart revert --ids a,b  # o --all
+cd studio && dart run tool/frame_rate.dart check
+```
+
+`status` muestra la cadencia de cada visual; `record` lee el CSV de una
+medición del harness y anota en el registro qué visuales piden 30, con la
+medición y el commit medido; `apply` y `revert` aplican o deshacen los cambios
+del registro y `check` comprueba que la metadata coincida con él.
+
 ## Votación del equipo
 
 Las notas del 1 al 10 viven en Chic Team (proyecto `chic-ads`), no en el repo.
