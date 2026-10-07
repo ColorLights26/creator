@@ -107,6 +107,81 @@ void main() {
     expect(record().readAsStringSync(), first);
   });
 
+  // aggregate.py sólo pone R5 en filas a 60 fps: medido ya a 30, R5 vale 0.
+  int recordAfterApply(String alphaRow) {
+    expect(recordCsv(), 0, reason: '$err');
+    expect(run(['apply', '--all']), 0, reason: '$err');
+    writeCsv(
+      '$header$alphaRow\n'
+      'delta,30,0.3,1.0,0,0,0,"g3.0:gpu=0.1/cpu=0.3"\n',
+    );
+    return run([
+      'record',
+      '--from-csv',
+      '${catalog.path}/energy.csv',
+      '--base-commit',
+      '8284fae',
+      '--date',
+      '2026-10-07',
+    ]);
+  }
+
+  test('record after apply keeps entries that still need 30 fps', () {
+    expect(
+      recordAfterApply('alpha,30,2.4,4.3,0,0,0,"g3.0:gpu=0.151/cpu=2.4"'),
+      0,
+      reason: '$err',
+    );
+    final json =
+        jsonDecode(record().readAsStringSync()) as Map<String, Object?>;
+    expect(json['visuals'], {
+      'alpha': {
+        'authored': 60,
+        'applied': 30,
+        'reason': frameRateReason,
+        'gpuIphoneEstMs': 4.3,
+        'cpuMs': 2.4,
+        'K': 28.47,
+        'round': 'g3',
+        'baseCommit': '8284fae',
+        'date': '2026-10-07',
+      },
+    });
+    expect('$out', contains('(0 nuevos, 1 actualizados, 0 quitados)'));
+    expect(read('alpha'), contains('framesPerSecond: 30, $frameRateMarker'));
+    expect(run(['check']), 0, reason: '$out');
+  });
+
+  test('record after apply reports a visual that now fits 60 fps', () {
+    expect(recordCsv(), 0);
+    final before = record().readAsStringSync();
+    expect(
+      recordAfterApply('alpha,30,1.5,3.2,0,0,0,"g3.0:gpu=0.112/cpu=1.5"'),
+      0,
+      reason: '$err',
+    );
+    // El registro y el metadata no cambian: revertir lo decide una persona.
+    expect(record().readAsStringSync(), before);
+    expect(read('alpha'), contains('framesPerSecond: 30, $frameRateMarker'));
+    expect('$out', contains('Ya caben en 60 fps y siguen aplicados'));
+    expect(
+      '$out',
+      contains('dart run tool/frame_rate.dart revert --ids alpha'),
+    );
+    expect(run(['check']), 0, reason: '$out');
+  });
+
+  test('record after apply refuses an applied visual over the 30 budget', () {
+    expect(recordCsv(), 0);
+    final before = record().readAsStringSync();
+    expect(
+      recordAfterApply('alpha,30,2.4,8.6,0,0,0,"g3.0:gpu=0.302/cpu=2.4"'),
+      1,
+    );
+    expect('$err', contains('alpha: ya no cumple la regla y está aplicado'));
+    expect(record().readAsStringSync(), before);
+  });
+
   test('apply and revert touch one line and are idempotent', () {
     final original = {
       for (final id in ['alpha', 'beta', 'gamma', 'delta']) id: read(id),

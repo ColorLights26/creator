@@ -459,6 +459,7 @@ class _FrameRateTool {
     final entries = SplayTreeMap.of(record.entries);
     final errors = <String>[];
     final excluded = <String>[];
+    final candidates = <String>[];
     var added = 0;
     var updated = 0;
     var removed = 0;
@@ -473,20 +474,42 @@ class _FrameRateTool {
       }
       String value(String name) => row[column[name]!].trim();
       final id = value('id');
-      final r5 = value('R5_should_be_30fps') == '1';
       final passes =
           value('R3_passes_violation_iphone') == '0' &&
           value('R3_passes_violation_ipad') == '0';
       final existing = entries[id];
+      final measured = int.tryParse(value('fps'));
+      final gpu = double.tryParse(value('gpu_ms_iphone_est'));
+      final cpu = double.tryParse(value('cpu_ms_p50'));
+      // El harness sólo marca R5 en filas medidas a 60 fps. Una medición hecha
+      // con el valor ya aplicado se decide con las cifras por cuadro.
+      final atApplied =
+          existing != null &&
+          existing.applied != existing.authored &&
+          measured == existing.applied;
+      if (atApplied && (gpu == null || cpu == null)) {
+        errors.add('$id: gpu_ms_iphone_est o cpu_ms_p50 no válidos.');
+        continue;
+      }
+      final fits60 = atApplied && _fitsBudget(60, gpu!, cpu!);
+      final r5 =
+          atApplied
+              ? !fits60 && _fitsBudget(30, gpu!, cpu!)
+              : value('R5_should_be_30fps') == '1';
       if (!(r5 && passes)) {
         if (r5) excluded.add(id);
         if (existing == null) continue;
         try {
           if (_state(existing, _readMetadata(id)) == 'aplicado') {
-            errors.add(
-              '$id: ya no cumple la regla y está aplicado; '
-              'primero: dart run tool/frame_rate.dart revert --ids $id',
-            );
+            if (fits60) {
+              // No se revierte solo: lo decide una persona con `revert`.
+              candidates.add(id);
+            } else {
+              errors.add(
+                '$id: ya no cumple la regla y está aplicado; '
+                'primero: dart run tool/frame_rate.dart revert --ids $id',
+              );
+            }
             continue;
           }
         } on _ToolError catch (error) {
@@ -497,9 +520,6 @@ class _FrameRateTool {
         removed++;
         continue;
       }
-      final measured = int.tryParse(value('fps'));
-      final gpu = double.tryParse(value('gpu_ms_iphone_est'));
-      final cpu = double.tryParse(value('cpu_ms_p50'));
       final rounds = RegExp(r'(g\d+)(?:\.\d+)?:').allMatches(value('rounds'));
       if ((measured != 30 && measured != 60) ||
           gpu == null ||
@@ -563,6 +583,18 @@ class _FrameRateTool {
     if (excluded.isNotEmpty) {
       out.writeln('Excluidos por pases (R3): ${(excluded..sort()).join(', ')}');
     }
+    if (candidates.isNotEmpty) {
+      final ids = (candidates..sort()).join(',');
+      out
+        ..writeln(
+          'Ya caben en 60 fps y siguen aplicados (no se revierten solos): '
+          '${candidates.join(', ')}',
+        )
+        ..writeln(
+          'Para devolver el valor del autor: '
+          'dart run tool/frame_rate.dart revert --ids $ids',
+        );
+    }
     out.writeln(
       'Para escribir el valor: dart run tool/frame_rate.dart apply --all',
     );
@@ -575,6 +607,11 @@ class _FrameRateTool {
     return '${now.year}-${two(now.month)}-${two(now.day)}';
   }
 }
+
+/// Presupuesto por cuadro del harness de energía (aggregate.py): a 60 fps,
+/// GPU <= 4 ms y CPU <= 2 ms; a 30 fps, GPU <= 8 ms y CPU <= 4 ms.
+bool _fitsBudget(int fps, double gpuMs, double cpuMs) =>
+    fps == 60 ? gpuMs <= 4 && cpuMs <= 2 : gpuMs <= 8 && cpuMs <= 4;
 
 /// CSV con comillas dobles (RFC 4180): comas y saltos dentro de comillas.
 List<List<String>> _parseCsv(String text) {
