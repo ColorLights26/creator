@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xfff0e6d0, 0xffd7261e, 0xfff2b705, 0xff1d4e9e],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Las formas aparecen con rebote: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30, // energía: ver energy/frame_rate_record.json
 );

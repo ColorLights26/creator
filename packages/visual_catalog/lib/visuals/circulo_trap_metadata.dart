@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff0a0306, 0xffff1a3c, 0xffff8a00, 0xffffe14a],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // El círculo late con cada fotograma de la música: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30, // energía: ver energy/frame_rate_record.json
 );

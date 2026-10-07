@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff020403, 0xffb8ff1a, 0xffffc21a, 0xffff5a14],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Los destellos son rápidos: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30, // energía: ver energy/frame_rate_record.json
 );

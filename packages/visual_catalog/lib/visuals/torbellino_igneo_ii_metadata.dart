@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff050200, 0xffc8280a, 0xffff6a00, 0xffffa22a],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Giro continuo del fuego: a 60 FPS el remolino es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30, // energía: ver energy/frame_rate_record.json
 );
