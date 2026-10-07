@@ -127,9 +127,16 @@ class Visual final : public Scene {
     float totalH = cellH * float(rows) + margin * float(rows - 1);
     float startY = (f.height - totalH) * 0.5f;
     float startX = (f.width - cellW * float(cols) - margin * float(cols - 1)) * 0.5f;
+    auto cellAt = [&](int i) { return Vec2{startX + float(i % cols) * (cellW + margin), startY + float(i / cols) * (cellH + margin)}; };
+    const float a0 = -2.35f, a1 = -0.79f;
+    float R = std::min(cellH * 0.72f, cellW * 0.62f);
+    // Los medidores no se tocan: el margen entre ellos es mayor que el halo
+    // del piloto y que lo que la aguja sobresale del cristal. Por eso se
+    // pintan por capas para todos a la vez (marcos y escalas, agujas,
+    // reflejos, halos, pilotos) y cada uno se ve igual que pintado entero.
     for (int i = 0; i < n; i++) {
-      int cx = i % cols, cy = i / cols;
-      float x = startX + float(cx) * (cellW + margin), y = startY + float(cy) * (cellH + margin);
+      Vec2 cell = cellAt(i);
+      float x = cell.x, y = cell.y;
       // Marco y cristal iluminado.
       Paint frame;
       frame.color = Color{0.13f, 0.12f, 0.11f, 1.0f};
@@ -141,8 +148,6 @@ class Visual final : public Scene {
       c.rect({x, y, cellW, cellH}, glass);
       // Escala curva con marcas; la última parte en rojo.
       Vec2 pivot{x + cellW * 0.5f, y + cellH * 0.92f};
-      float R = std::min(cellH * 0.72f, cellW * 0.62f);
-      const float a0 = -2.35f, a1 = -0.79f;
       Path arc, arcRed, ticks, ticksRed;
       for (int k = 0; k <= 40; k++) {
         float t = float(k) / 40.0f;
@@ -169,40 +174,57 @@ class Visual final : public Scene {
       c.path(arcRed, redInk);
       redInk.strokeWidth = 1.8f * px;
       c.path(ticksRed, redInk);
-      // Aguja.
+    }
+    // Agujas con su sombra, recortadas al cristal: un solo recorte para todas.
+    Path glassClip;
+    for (int i = 0; i < n; i++) {
+      Vec2 cell = cellAt(i);
+      glassClip.rect({cell.x, cell.y, cellW, cellH});
+    }
+    Paint shadow;
+    shadow.strokeWidth = 2.6f * px;
+    shadow.strokeCap = 1;
+    shadow.color = Color{0, 0, 0, 0.25f};
+    Paint np;
+    np.strokeWidth = 2.0f * px;
+    np.strokeCap = 1;
+    np.color = Color{0.06f, 0.05f, 0.05f, 1.0f};
+    float drop = 3.0f * px;
+    c.save();
+    c.clip(glassClip);
+    for (int i = 0; i < n; i++) {
+      Vec2 cell = cellAt(i);
+      Vec2 pivot{cell.x + cellW * 0.5f, cell.y + cellH * 0.92f};
       float v = float(std::clamp(angle[size_t(i)], -0.02, 1.1));
       float a = a0 + (a1 - a0) * v;
-      Path needle;
-      needle.moveTo(pivot.x, pivot.y).lineTo(pivot.x + R * 1.04f * std::cos(a), pivot.y + R * 1.04f * std::sin(a));
-      Paint shadow;
-      shadow.strokeWidth = 2.6f * px;
-      shadow.strokeCap = 1;
-      shadow.color = Color{0, 0, 0, 0.25f};
-      c.save();
-      Path clip;
-      clip.rect({x, y, cellW, cellH});
-      c.clip(clip);
-      c.translate(3.0f * px, 3.0f * px);
-      c.path(needle, shadow);
-      c.restore();
-      c.save();
-      c.clip(clip);
-      Paint np;
-      np.strokeWidth = 2.0f * px;
-      np.strokeCap = 1;
-      np.color = Color{0.06f, 0.05f, 0.05f, 1.0f};
+      Vec2 tip{pivot.x + R * 1.04f * std::cos(a), pivot.y + R * 1.04f * std::sin(a)};
+      Path shade, needle;
+      shade.moveTo(pivot.x + drop, pivot.y + drop).lineTo(tip.x + drop, tip.y + drop);
+      c.path(shade, shadow);
+      needle.moveTo(pivot.x, pivot.y).lineTo(tip.x, tip.y);
       c.path(needle, np);
-      c.restore();
-      // Reflejo del cristal.
-      Paint shine = Paint::linear({x, y}, {x, y + cellH * 0.4f}, {Color{1, 1, 1, 0.14f}, Color{1, 1, 1, 0.0f}});
-      c.rect({x, y, cellW, cellH * 0.4f}, shine);
-      // Piloto rojo.
-      if (m.pilotos) {
-        Vec2 led{x + cellW * 0.9f, y + cellH * 0.15f};
+    }
+    c.restore();
+    // Reflejo del cristal.
+    for (int i = 0; i < n; i++) {
+      Vec2 cell = cellAt(i);
+      Paint shine = Paint::linear({cell.x, cell.y}, {cell.x, cell.y + cellH * 0.4f}, {Color{1, 1, 1, 0.14f}, Color{1, 1, 1, 0.0f}});
+      c.rect({cell.x, cell.y, cellW, cellH * 0.4f}, shine);
+    }
+    // Piloto rojo: primero todos los halos, después todos los puntos.
+    if (m.pilotos) {
+      for (int i = 0; i < n; i++) {
+        Vec2 cell = cellAt(i);
+        Vec2 led{cell.x + cellW * 0.9f, cell.y + cellH * 0.15f};
         float on = peak[size_t(i)] * amp;
         Paint ledGlow = Paint::radial(led, 14.0f * px, {red.opacity(std::clamp(on * f.glow, 0.0f, 1.0f)), red.opacity(0.0f)});
         ledGlow.blend = Blend::plus;
         c.circle(led, 14.0f * px, ledGlow);
+      }
+      for (int i = 0; i < n; i++) {
+        Vec2 cell = cellAt(i);
+        Vec2 led{cell.x + cellW * 0.9f, cell.y + cellH * 0.15f};
+        float on = peak[size_t(i)] * amp;
         Paint ledDot;
         ledDot.color = rgba(0.25f + 0.75f * red.r * on, 0.04f + red.g * on, 0.03f + red.b * on, 1.0f);
         c.circle(led, 3.5f * px, ledDot);

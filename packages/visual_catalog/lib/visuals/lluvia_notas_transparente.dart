@@ -37,6 +37,30 @@ class Visual final : public Scene {
   std::array<float, kMaxKeys> level{};
   std::array<double, kMaxKeys> lastEnd{};
 
+  // Rectángulo por esquinas: las piezas recortadas comparten bordes exactos
+  // con las barras que las tapan.
+  struct Box { float x0, y0, x1, y1; };
+  static constexpr int kPieces = 128;
+  static Box corners(const Rect& r) { return {r.x, r.y, r.x + r.width, r.y + r.height}; }
+  static bool touches(const Box& a, const Box& b) { return a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1; }
+  // Copia en out las partes de las piezas que quedan fuera de cut.
+  static int carve(const Box* in, int n, const Box& cut, Box* out) {
+    int k = 0;
+    for (int i = 0; i < n; i++) {
+      const Box& b = in[i];
+      if (!touches(b, cut)) {
+        if (k < kPieces) out[k++] = b;
+        continue;
+      }
+      float y0 = std::max(b.y0, cut.y0), y1 = std::min(b.y1, cut.y1);
+      if (b.y0 < y0 && k < kPieces) out[k++] = {b.x0, b.y0, b.x1, y0};
+      if (y1 < b.y1 && k < kPieces) out[k++] = {b.x0, y1, b.x1, b.y1};
+      if (b.x0 < cut.x0 && k < kPieces) out[k++] = {b.x0, y0, cut.x0, y1};
+      if (cut.x1 < b.x1 && k < kPieces) out[k++] = {cut.x1, y0, b.x1, y1};
+    }
+    return k;
+  }
+
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
   }
@@ -217,16 +241,20 @@ class Visual final : public Scene {
     float keyH = f.height * 0.13f;
     float keyTop = f.height - keyH;
     float speed = f.height * 0.62f * m.subida;
-    // Posición horizontal de cada tecla.
-    auto keyX = [&](int key, float& w) {
-      int wIndex = 0;
-      for (int i = 0; i < key; i++) if (!isBlack(i)) wIndex++;
-      if (isBlack(key)) {
-        w = ww * 0.6f;
-        return float(wIndex) * ww - w * 0.5f;
+    // Posición horizontal de cada tecla, calculada una vez por cuadro.
+    std::array<float, kMaxKeys> keyLeft{}, keyWidth{};
+    for (int i = 0, wIndex = 0; i < keys; i++) {
+      if (isBlack(i)) {
+        keyWidth[size_t(i)] = ww * 0.6f;
+        keyLeft[size_t(i)] = float(wIndex) * ww - keyWidth[size_t(i)] * 0.5f;
+      } else {
+        keyWidth[size_t(i)] = ww;
+        keyLeft[size_t(i)] = float(wIndex++) * ww;
       }
-      w = ww;
-      return float(wIndex) * ww;
+    }
+    auto keyX = [&](int key, float& w) {
+      w = keyWidth[size_t(key)];
+      return keyLeft[size_t(key)];
     };
     auto noteColor = [&](int key) {
       int oct = key / 12 % 3;
@@ -243,51 +271,88 @@ class Visual final : public Scene {
     gp.strokeWidth = 1.0f * px;
     gp.color = Color{1, 1, 1, 0.06f};
     c.path(guides, gp);
-    // Notas: barras redondeadas por color.
+    // Notas: barras redondeadas por color. Primero todas las barras opacas,
+    // en su orden; después, en un solo lote, la luz que suman los halos y
+    // los bordes, recortada a lo que no tapa una barra posterior (el halo,
+    // tampoco bajo su propia barra). Se ve igual que nota a nota y los
+    // pases ya no crecen con el número de notas.
     std::array<bool, kMaxKeys> pressed{};
+    std::array<Rect, kMaxNotes> bars;
+    std::array<int, kMaxNotes> barKey;
+    int barCount = 0;
     for (const auto& n : notes) {
       float w;
       float x = keyX(n.key, w);
       float yTop = keyTop - float(clock - n.start) * speed;
       float yBottom = n.end < 0.0 ? keyTop : keyTop - float(clock - n.end) * speed;
       if (n.end < 0.0 || clock - n.end < 0.05) pressed[size_t(n.key)] = true;
-      if (yBottom < 0.0f) continue;
-      Color col = noteColor(n.key);
-      float lit = (0.85f + 0.3f * bass + 0.2f * kick) * amp;
-      Rect r{x + w * 0.1f, std::max(yTop, -10.0f), w * 0.8f, std::max(yBottom - std::max(yTop, -10.0f), 2.0f)};
-      if (m.brillo) {
-        Paint halo;
-        halo.blend = Blend::plus;
-        halo.color = col.opacity(std::clamp(0.18f * f.glow * amp, 0.0f, 1.0f));
-        c.rect({r.x - 4.0f * px, r.y - 4.0f * px, r.width + 8.0f * px, r.height + 8.0f * px}, halo);
-      }
-      Paint body;
+      if (yBottom < 0.0f || barCount >= kMaxNotes) continue;
+      bars[size_t(barCount)] = {x + w * 0.1f, std::max(yTop, -10.0f), w * 0.8f, std::max(yBottom - std::max(yTop, -10.0f), 2.0f)};
+      barKey[size_t(barCount++)] = n.key;
+    }
+    float lit = (0.85f + 0.3f * bass + 0.2f * kick) * amp;
+    Paint body;
+    for (int i = 0; i < barCount; i++) {
+      Color col = noteColor(barKey[size_t(i)]);
       body.color = Color{std::min(1.0f, col.r * lit), std::min(1.0f, col.g * lit), std::min(1.0f, col.b * lit), 1.0f};
-      c.rect(r, body);
-      Paint edge;
-      edge.blend = Blend::plus;
-      edge.color = Color{1.0f, 0.95f, 0.85f, std::clamp(0.45f * amp, 0.0f, 1.0f)};
-      c.rect({r.x, r.y, r.width, 2.0f * px}, edge);
+      c.rect(bars[size_t(i)], body);
+    }
+    Paint halo, edge;
+    halo.blend = Blend::plus;
+    edge.blend = Blend::plus;
+    edge.color = Color{1.0f, 0.95f, 0.85f, std::clamp(0.45f * amp, 0.0f, 1.0f)};
+    std::array<Box, kPieces> bufA, bufB;
+    // Piezas visibles de area: sin las barras desde la nota first en adelante.
+    auto visible = [&](const Rect& area, int first, Path& out) {
+      Box whole = corners(area), *cur = bufA.data(), *tmp = bufB.data();
+      cur[0] = whole;
+      int count = 1;
+      for (int l = first; l < barCount && count > 0; l++) {
+        Box cut = corners(bars[size_t(l)]);
+        if (!touches(whole, cut)) continue;
+        count = carve(cur, count, cut, tmp);
+        std::swap(cur, tmp);
+      }
+      for (int i = 0; i < count; i++)
+        out.moveTo(cur[i].x0, cur[i].y0).lineTo(cur[i].x1, cur[i].y0).lineTo(cur[i].x1, cur[i].y1).lineTo(cur[i].x0, cur[i].y1).close();
+      return count;
+    };
+    for (int j = 0; j < barCount; j++) {
+      const Rect& r = bars[size_t(j)];
+      if (m.brillo) {
+        Path glowPath;
+        if (visible({r.x - 4.0f * px, r.y - 4.0f * px, r.width + 8.0f * px, r.height + 8.0f * px}, j, glowPath) > 0) {
+          halo.color = noteColor(barKey[size_t(j)]).opacity(std::clamp(0.18f * f.glow * amp, 0.0f, 1.0f));
+          c.path(glowPath, halo);
+        }
+      }
+      Path edgePath;
+      if (visible({r.x, r.y, r.width, 2.0f * px}, j + 1, edgePath) > 0) c.path(edgePath, edge);
     }
     // Línea de luz sobre el teclado.
     Paint bar = Paint::linear({0, keyTop - 10.0f * px}, {0, keyTop}, {f.colors[2].opacity(0.0f), f.colors[2].opacity(std::clamp((0.35f + 0.4f * kick) * amp, 0.0f, 1.0f))});
     c.rect({0, keyTop - 10.0f * px, f.width, 10.0f * px}, bar);
-    // Teclado: blancas y luego negras.
+    // Teclado: blancas y luego negras. Las teclas de un mismo tipo no se
+    // tocan, así las que están en reposo van juntas en un solo trazado.
     for (int pass = 0; pass < 2; pass++) {
+      Path rest;
+      Paint kp;
       for (int i = 0; i < keys; i++) {
         if (isBlack(i) != (pass == 1)) continue;
         float w;
         float x = keyX(i, w);
         float h = isBlack(i) ? keyH * 0.62f : keyH;
-        Paint kp;
-        if (pressed[size_t(i)]) {
-          Color col = noteColor(i);
-          kp.color = Color{std::min(1.0f, col.r * 1.1f), std::min(1.0f, col.g * 1.1f), std::min(1.0f, col.b * 1.1f), 1.0f};
-        } else {
-          kp.color = isBlack(i) ? Color{0.06f, 0.05f, 0.07f, 1.0f} : Color{0.93f, 0.91f, 0.88f, 1.0f};
+        Rect key{x + 0.8f * px, keyTop, w - 1.6f * px, h};
+        if (!pressed[size_t(i)]) {
+          rest.rect(key);
+          continue;
         }
-        c.rect({x + 0.8f * px, keyTop, w - 1.6f * px, h}, kp);
+        Color col = noteColor(i);
+        kp.color = Color{std::min(1.0f, col.r * 1.1f), std::min(1.0f, col.g * 1.1f), std::min(1.0f, col.b * 1.1f), 1.0f};
+        c.rect(key, kp);
       }
+      kp.color = pass == 1 ? Color{0.06f, 0.05f, 0.07f, 1.0f} : Color{0.93f, 0.91f, 0.88f, 1.0f};
+      if (!rest.data().empty()) c.path(rest, kp);
     }
   }
 };
