@@ -8,7 +8,8 @@ import 'package:scene_compositor/native_compiler.dart';
 /// fail the modifier sweep: a dead modifier warns (fails when strict), one
 /// that breaks the budget at its maximum fails, and one that only changes
 /// the response to music passes. Also the pass gate: 40 separate points()
-/// calls are 40 full-screen passes and fail; the same points in one batch
+/// calls are 40 full-screen passes and fail on both surfaces, 30 fail only
+/// on the iPad (28; the iPhone takes 35) and the same points in one batch
 /// are one pass. Needs clang++.
 void main() {
   if (Process.runSync('which', ['clang++']).exitCode != 0) {
@@ -93,16 +94,24 @@ void main() {
     expectLine(relaxed, 'Copia cada línea FAIL');
     final strict = run([signals.path, '--strict-modifiers'], 1);
     expectLine(strict, 'FAIL muerto: el modificador nada no cambia nada');
-    // The pass gate, with the recipe in the message.
+    // The pass gate: what each surface exceeded and the recipes.
     expectLine(
       relaxed,
-      'FAIL puntos_sueltos: 40 pasadas por cuadro en el iPhone',
+      'FAIL puntos_sueltos: 40 pasadas por cuadro en el iPhone (máx 35) y '
+      '145,9 MiB (máx 128); 40 pasadas por cuadro en el iPad (máx 28)',
     );
     expectLine(relaxed, 'points() 40');
+    expectLine(relaxed, 'una pasada del tamaño de su rectángulo');
     expectLine(relaxed, 'un lote de puntos');
     expectLine(
       relaxed,
-      'PASS passes creator_puntos_lote: iPhone 1, iPad 1 (máx 28)',
+      'FAIL puntos_ipad: 30 pasadas por cuadro en el iPad (máx 28) y '
+      '133,5 MiB (máx 128).',
+    );
+    expectLine(relaxed, 'El iPhone cumple: 30 de 35.');
+    expectLine(
+      relaxed,
+      'PASS passes creator_puntos_lote: iPhone 1 (máx 35), iPad 1 (máx 28)',
     );
     final missing = run(const [], 1);
     expectLine(missing, 'faltan las señales de música');
@@ -124,6 +133,21 @@ class Visual final : public Scene {
   void render(const Frame& f, Canvas& c) const override {
     Paint p; p.color = f.colors[1];
     for (int i = 0; i < 40; i++) c.points({Vec2{10.f + i * 8, 100}}, 2, p);
+  }
+};
+''',
+  ),
+  CreatorVisualDefinition(
+    id: 'puntos_ipad',
+    name: 'Puntos en iPad',
+    reactivity: CreatorReactivity.none,
+    nativeSource: r'''
+class Visual final : public Scene {
+ public:
+  void reset(uint32_t) override {} void update(const Frame&) override {}
+  void render(const Frame& f, Canvas& c) const override {
+    Paint p; p.color = f.colors[1];
+    for (int i = 0; i < 30; i++) c.points({Vec2{10.f + i * 8, 100}}, 2, p);
   }
 };
 ''',

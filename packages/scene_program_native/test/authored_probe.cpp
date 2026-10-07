@@ -335,13 +335,27 @@ Passes countPasses(const float* c, size_t length, double viewWidth, double viewH
   return s;
 }
 
+/// The renderer's guard: past 192 passes or 128 MiB it drops the frame.
+constexpr int rendererPasses = 192;
+constexpr uint64_t byteLimit = 128ull * 1024 * 1024;
+
+/// Bytes of one full-screen pass on a [width] x [height] surface.
+constexpr uint64_t fullScreen(int width, int height) { return uint64_t(width) * uint64_t(height) * 4; }
+
+/// The most full-screen passes that fit in the guard on that surface.
+constexpr int passLimitFor(int width, int height) {
+  return int(std::min<uint64_t>(rendererPasses, byteLimit / fullScreen(width, height)));
+}
+
 /// The two surfaces of the app: the iPhone (664x1440 px, 852 logical points
 /// high) and the iPad (900x1296 px, 1180 high). The viewport keeps the
 /// logical height and takes the width from the pixel aspect, as iOS does.
-struct Surface { const char* name; int width, height; double logicalHeight; };
-constexpr Surface surfaces[] = {{"iPhone", 664, 1440, 852}, {"iPad", 900, 1296, 1180}};
-constexpr int passLimit = 28;
-constexpr uint64_t byteLimit = 128ull * 1024 * 1024;
+/// Each one fails past the full-screen passes that fit in 128 MiB.
+struct Surface { const char* name; int width, height; double logicalHeight; int passLimit; };
+constexpr Surface surfaces[] = {{"iPhone", 664, 1440, 852, passLimitFor(664, 1440)},
+                                {"iPad", 900, 1296, 1180, passLimitFor(900, 1296)}};
+// The template, README.md and MAINTAINER.md quote these two numbers.
+static_assert(surfaces[0].passLimit == 35 && surfaces[1].passLimit == 28, "update the template and the docs");
 
 /// The harness music: the loud synthetic signals (makeLoud) with the levels
 /// x1.35, played from where the music starts; the silence that follows ends
@@ -434,33 +448,56 @@ void reportPasses(const creator::Program& program, const Loud& music) {
 }
 
 /// The gate: 12 s of loud music and 2 s of silence at the visual's fps.
-/// More than 28 passes or 128 MiB in any frame, on either surface, fails.
+/// A frame over its surface's limit (35 passes on the iPhone, 28 on the
+/// iPad) or over 128 MiB fails; the message says what each surface exceeded.
 void checkPasses(const creator::Program& program, const Loud& music) {
   const auto& visual = passCase(program);
   if (music.empty() && visual.reactive) throw Failure("faltan las señales de música para contar sus pasadas.");
   SurfacePasses runs[2];
-  bool over = false;
+  bool overPasses[2], overBytes[2];
   for (int k = 0; k < 2; k++) {
     try { runs[k] = playPasses(program, visual, surfaces[k], music, 14 * visual.fps, 2 * visual.fps); }
     catch (const Failure& e) { throw Failure(std::string("al contar sus pasadas: ") + e.what()); }
-    over |= runs[k].most.passes > passLimit || runs[k].bytes > byteLimit;
+    overPasses[k] = runs[k].most.passes > surfaces[k].passLimit;
+    overBytes[k] = runs[k].bytes > byteLimit;
   }
-  if (!over) {
-    std::cout << "PASS passes " << program.id << ": iPhone " << runs[0].most.passes << ", iPad "
-              << runs[1].most.passes << " (máx " << passLimit << ")\n";
+  auto counted = [&](int k) {
+    return std::to_string(runs[k].most.passes) + " (máx " + std::to_string(surfaces[k].passLimit) + ")";
+  };
+  if (!overPasses[0] && !overBytes[0] && !overPasses[1] && !overBytes[1]) {
+    std::cout << "PASS passes " << program.id << ": iPhone " << counted(0) << ", iPad " << counted(1) << "\n";
     return;
   }
-  const int k = runs[0].most.passes >= runs[1].most.passes ? 0 : 1;
+  auto mib = [](uint64_t bytes, const char* format) { return decimal(double(bytes) / 1048576, format) + " MiB"; };
+  // Only what was exceeded, per surface, and where each limit comes from.
+  std::string exceeded, limits, fine;
+  int k = -1;  // the failing surface whose most expensive frame is broken down
+  for (int s = 0; s < 2; s++) {
+    const auto& surface = surfaces[s];
+    const std::string passes = std::to_string(runs[s].most.passes), limit = std::to_string(surface.passLimit);
+    if (!overPasses[s] && !overBytes[s]) {
+      fine = std::string(" El ") + surface.name + " cumple: " + passes + " de " + limit + ".";
+      continue;
+    }
+    if (k < 0 || runs[s].most.passes > runs[k].most.passes) k = s;
+    if (!exceeded.empty()) exceeded += "; ";
+    exceeded += passes + " pasadas por cuadro en el " + surface.name;
+    if (overPasses[s]) exceeded += " (máx " + limit + ")";
+    if (overBytes[s]) exceeded += " y " + mib(runs[s].bytes, "%.1f") + " (máx 128)";
+    if (overPasses[s])
+      limits += std::string(" En el ") + surface.name + " cada pasada de pantalla completa ocupa " +
+                mib(fullScreen(surface.width, surface.height), "%.2f") + ": " + limit + " ya llenan " +
+                mib(surface.passLimit * fullScreen(surface.width, surface.height), "%.1f") + ".";
+  }
   const auto& at = runs[k].most;
-  auto mib = [](uint64_t bytes) { return decimal(double(bytes) / 1048576, "%.0f") + " MiB"; };
-  throw Failure(std::to_string(runs[0].most.passes) + " pasadas por cuadro en el iPhone (" + mib(runs[0].bytes) +
-    ") y " + std::to_string(runs[1].most.passes) + " en el iPad (" + mib(runs[1].bytes) + "); el máximo es " +
-    std::to_string(passLimit) + " por cuadro: con 29 el iPad ya pasa de 128 MiB y congela la imagen. "
-    "En el cuadro más caro (" + surfaces[k].name + ", " + decimal(runs[k].at) + " s): lotes de figuras " +
-    std::to_string(at.batches) + " (" + std::to_string(at.stateBreaks) + " cortados por save/restore/transform/clip, " +
-    std::to_string(at.blendBreaks) + " por cambiar de mezcla), points() " + std::to_string(at.points) +
-    ", materiales " + std::to_string(at.materials) + ", recortes activos " + std::to_string(at.clipped) +
-    ". Cada lote de figuras, points(), material y recorte es una pasada de pantalla completa. Bájalas así: "
+  throw Failure(exceeded + ". La app no publica un cuadro de más de 128 MiB: la imagen se queda congelada." +
+    limits + fine + " En el cuadro más caro (" + surfaces[k].name + ", " + decimal(runs[k].at) +
+    " s): lotes de figuras " + std::to_string(at.batches) + " (" + std::to_string(at.stateBreaks) +
+    " cortados por save/restore/transform/clip, " + std::to_string(at.blendBreaks) +
+    " por cambiar de mezcla), points() " + std::to_string(at.points) + ", materiales " +
+    std::to_string(at.materials) + ", recortes activos " + std::to_string(at.clipped) +
+    ". Cada lote de figuras, points() y recorte activo es una pasada de pantalla completa; cada material, "
+    "una pasada del tamaño de su rectángulo. Bájalas así: "
     "agrupa por mezcla (dibuja seguidas todas las figuras con la misma Blend), un lote de puntos (todas las "
     "partículas de un color en un solo points()), transforma en C++ (calcula tú las coordenadas en vez de "
     "save/translate/rotate/restore por figura) y sin recorte por celda (nada de clip dentro de un bucle).");
