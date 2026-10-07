@@ -32,6 +32,40 @@ class Visual final : public Scene {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
   }
 
+  // Arco de circunferencia con cúbicas de hasta 90°.
+  static void arc(Path& p, Vec2 c, float r, float start, float sweep, bool first) {
+    const int n = std::max(1, int(std::ceil(std::abs(sweep) / 1.5707964f - 1e-4f)));
+    const float step = sweep / float(n), k = 4.0f / 3.0f * std::tan(step * 0.25f);
+    float a0 = start;
+    Vec2 p0{c.x + r * std::cos(a0), c.y + r * std::sin(a0)};
+    if (first) p.moveTo(p0.x, p0.y); else p.lineTo(p0.x, p0.y);
+    for (int i = 0; i < n; i++) {
+      const float a1 = a0 + step;
+      const Vec2 p1{c.x + r * std::cos(a1), c.y + r * std::sin(a1)};
+      p.cubicTo(p0.x - k * r * std::sin(a0), p0.y + k * r * std::cos(a0),
+                p1.x + k * r * std::sin(a1), p1.y - k * r * std::cos(a1), p1.x, p1.y);
+      a0 = a1;
+      p0 = p1;
+    }
+  }
+
+  // Parte visible del núcleo a (radio ra) cuando el núcleo b, dibujado
+  // encima, lo pisa: el disco a menos el disco b.
+  static void visiblePart(Path& p, Vec2 a, float ra, Vec2 b, float rb) {
+    const float dx = b.x - a.x, dy = b.y - a.y, d = std::sqrt(dx * dx + dy * dy);
+    if (d <= std::abs(ra - rb)) {
+      // Un disco dentro del otro: anillo (o nada si a queda tapado entero).
+      if (ra > rb) { p.fillRule = FillRule::evenOdd; p.circle(a, ra).circle(b, rb); }
+      return;
+    }
+    const float x0 = (d * d + ra * ra - rb * rb) / (2.0f * d);
+    const float h = std::sqrt(std::max(0.0f, ra * ra - x0 * x0));
+    const float base = std::atan2(dy, dx), ha = std::atan2(h, x0), hb = std::atan2(h, d - x0);
+    arc(p, a, ra, base + ha, 6.2831853f - 2.0f * ha, true);
+    arc(p, b, rb, base + 3.1415927f + hb, -2.0f * hb, false);
+    p.close();
+  }
+
   static Color mix3(const Color& a, const Color& b, const Color& c, float t) {
     t = std::clamp(t, 0.0f, 1.0f);
     if (t < 0.5f) {
@@ -98,6 +132,10 @@ class Visual final : public Scene {
     };
     auto rowY = [&](int k) { return top + (bottom - top) * (float(k) + 0.5f) / float(n); };
 
+    // Posición de cada bola en este instante (se usa en hilos, curva y bolas).
+    std::array<float, kMax> xs;
+    for (int k = 0; k < n; k++) xs[size_t(k)] = bobX(k, tau);
+
     // Guías de cada fila y eje central.
     Path guides;
     for (int k = 0; k < n; k++) {
@@ -119,7 +157,7 @@ class Visual final : public Scene {
     Path threads;
     for (int k = 0; k < n; k++) {
       float y = rowY(k);
-      threads.moveTo(cx, y).lineTo(bobX(k, tau), y);
+      threads.moveTo(cx, y).lineTo(xs[size_t(k)], y);
     }
     Paint thread;
     thread.strokeWidth = 1.4f * px;
@@ -131,7 +169,7 @@ class Visual final : public Scene {
     if (m.curva) {
       Path curve;
       for (int k = 0; k < n; k++) {
-        float x = bobX(k, tau), y = rowY(k);
+        float x = xs[size_t(k)], y = rowY(k);
         if (k == 0) curve.moveTo(x, y); else curve.lineTo(x, y);
       }
       Paint glowLine;
@@ -153,9 +191,10 @@ class Visual final : public Scene {
     // Estelas: posiciones de las bolas un poco antes en el tiempo.
     float radius = std::min(9.0f * px, (bottom - top) / float(n) * 0.36f) * (1.0f + 0.25f * bass * amp);
     if (m.estelas) {
+      std::vector<Vec2> pts;
+      pts.reserve(size_t(n));
       for (int j = kTrail; j >= 1; j--) {
-        std::vector<Vec2> pts;
-        pts.reserve(size_t(n));
+        pts.clear();
         double t = tau - double(j) * 0.018 * (1.0 + drive);
         for (int k = 0; k < n; k++) pts.push_back({bobX(k, t), rowY(k)});
         float fade = 1.0f - float(j) / float(kTrail + 1);
@@ -167,19 +206,72 @@ class Visual final : public Scene {
     }
 
     // Bolas: color por fila del rojo al amarillo, halo y núcleo.
+    // Se pintan en tres tandas en vez de alternar halo (suma) y núcleo
+    // (normal) bola a bola, que costaba dos pasadas por bola: todos los
+    // halos, todos los núcleos (opacos, tapan los halos anteriores) y, sobre
+    // la parte visible de cada núcleo, la luz de los halos de las filas
+    // siguientes, que antes caía encima. El píxel final es el mismo.
+    std::array<Vec2, kMax> at;
+    std::array<float, kMax> rad, glowA;
+    std::array<Color, kMax> tone;
+    // Un degradado de halo y uno de núcleo; cada bola sólo cambia sus valores.
+    Paint halo = Paint::radial({0, 0}, 1.0f, {c1, c1});
+    halo.blend = Blend::plus;
+    Paint core = Paint::radial({0, 0}, 1.0f, {c1, c1, c1}, {0.0f, 0.45f, 1.0f});
+    core.colors[0] = Color{1.0f, 0.97f, 0.9f, 1.0f};
+    auto haloOf = [&](int k) -> const Paint& {
+      const Vec2 p = at[size_t(k)];
+      halo.geometry = {p.x, p.y, rad[size_t(k)] * 3.2f, 0.0f};
+      halo.colors[0] = tone[size_t(k)].opacity(glowA[size_t(k)]);
+      halo.colors[1] = tone[size_t(k)].opacity(0.0f);
+      return halo;
+    };
     for (int k = 0; k < n; k++) {
       float t = float(k) / float(n - 1);
       Color col = mix3(c1, c2, c3, t);
-      float x = bobX(k, tau), y = rowY(k);
+      float x = xs[size_t(k)], y = rowY(k);
       float d = (sweep - float(k) / float(n) * 1.2f);
       float lit = sinceHit < 2.0 ? hitPower * std::exp(-d * d * 30.0f) : 0.0f;
       float r = radius * (1.0f + 0.6f * lit);
-      Paint halo = Paint::radial({x, y}, r * 3.2f, {col.opacity(std::clamp((0.35f + 0.5f * lit) * f.glow * amp, 0.0f, 1.0f)), col.opacity(0.0f)});
-      halo.blend = Blend::plus;
-      c.circle({x, y}, r * 3.2f, halo);
-      Paint core = Paint::radial({x - r * 0.3f, y - r * 0.3f}, r * 1.3f,
-                                 {Color{1.0f, 0.97f, 0.9f, 1.0f}, col, Color{col.r * 0.5f, col.g * 0.5f, col.b * 0.5f, 1.0f}}, {0.0f, 0.45f, 1.0f});
-      c.circle({x, y}, r, core);
+      at[size_t(k)] = {x, y};
+      rad[size_t(k)] = r;
+      tone[size_t(k)] = col;
+      glowA[size_t(k)] = std::clamp((0.35f + 0.5f * lit) * f.glow * amp, 0.0f, 1.0f);
+      c.circle({x, y}, r * 3.2f, haloOf(k));
+    }
+    for (int k = 0; k < n; k++) {
+      const Vec2 p = at[size_t(k)];
+      const float r = rad[size_t(k)];
+      const Color& col = tone[size_t(k)];
+      core.geometry = {p.x - r * 0.3f, p.y - r * 0.3f, r * 1.3f, 0.0f};
+      core.colors[1] = col;
+      core.colors[2] = Color{col.r * 0.5f, col.g * 0.5f, col.b * 0.5f, 1.0f};
+      c.circle(p, r, core);
+    }
+    for (int k = 0; k < n; k++) {
+      const Vec2 a = at[size_t(k)];
+      const float ra = rad[size_t(k)];
+      // Sólo el núcleo siguiente puede pisar a éste (las filas están a más
+      // de dos radios); lo que pisa queda bajo su propia luz.
+      bool covered = false;
+      if (k + 1 < n) {
+        const Vec2 b = at[size_t(k + 1)];
+        const float reach = ra + rad[size_t(k + 1)];
+        covered = (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y) < reach * reach;
+      }
+      Path part;
+      bool built = false;
+      for (int j = k + 1; j < n; j++) {
+        const Vec2 b = at[size_t(j)];
+        const float reach = ra + rad[size_t(j)] * 3.2f;
+        if ((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y) >= reach * reach) continue;
+        if (!built) {
+          if (covered) visiblePart(part, a, ra, at[size_t(k + 1)], rad[size_t(k + 1)]);
+          else part.circle(a, ra);
+          built = true;
+        }
+        if (!part.data().empty()) c.path(part, haloOf(j));
+      }
     }
   }
 };
