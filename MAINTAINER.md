@@ -290,7 +290,7 @@ su máximo) y con cada variación. Si pasa de 28 avisa, sin fallar:
 WARN passes creator_kandinsky: 35 pasadas con la variación Varios Círculos (máx 28 en iPad)
 ```
 
-En CI ese aviso solo falla para `template_example` y `modifier_probe`. Para ver
+Un aviso de más de 28 en el iPad significa que, con ese ajuste o esa variación, la imagen se congela en el iPad; con los ajustes iniciales el visual cumple. En CI ese aviso solo falla para `template_example` y `modifier_probe`. Para ver
 solo los números con el calendario del harness (240 cuadros a sus FPS, los
 últimos 60 en silencio), sin el resto de comprobaciones:
 
