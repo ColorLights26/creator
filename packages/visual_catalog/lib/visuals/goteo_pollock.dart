@@ -21,13 +21,18 @@ const modifiers = [
 const nativeSource = r'''
 class Visual final : public Scene {
   static constexpr int kMax = 150;
+  static constexpr int kPoints = 64;   // puntos del contorno de un latigazo o chorro
+  static constexpr int kDrops = 40;    // gotas de un salpicón
+  // Pool fijo: los kMax trazos se reservan en reset y se reutilizan, así la
+  // memoria no crece mientras el cuadro se pinta.
   struct Stroke {
-    double start;
-    std::vector<Vec2> left, right;   // contorno del trazo, en unidades del lado corto
-    std::vector<Vec2> drops;
-    std::vector<float> dropSize;
-    uint8_t color;
-    float duration;
+    double start = 0;
+    std::array<Vec2, kPoints> left{}, right{};   // contorno del trazo, en unidades del lado corto
+    std::array<Vec2, kDrops> drops{};
+    std::array<uint8_t, kDrops> dropBin{};       // tamaño de cada gota: 0, 1 o 2
+    int leftCount = 0, rightCount = 0, dropCount = 0;
+    uint8_t color = 0;
+    float duration = 0;
   };
   float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;
   float kick = 0, flash = 0, drive = 0;
@@ -36,6 +41,7 @@ class Visual final : public Scene {
   float halfH = 1;
   Random rng{1};
   std::vector<Stroke> strokes;
+  int count = 0;
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
@@ -43,9 +49,20 @@ class Visual final : public Scene {
 
   float range(float a, float b) { return a + (b - a) * rng.unit(); }
 
+  // Gota redonda con dos semicírculos cúbicos: la mitad de comandos que
+  // Path::circle y la misma forma a este tamaño (desvío menor al 2 % del radio).
+  static void addDrop(Path& path, Vec2 c, float r) {
+    float k = r * 4.0f / 3.0f;
+    path.moveTo(c.x + r, c.y)
+        .cubicTo(c.x + r, c.y + k, c.x - r, c.y + k, c.x - r, c.y)
+        .cubicTo(c.x - r, c.y - k, c.x + r, c.y - k, c.x + r, c.y)
+        .close();
+  }
+
   void spawn(double when, int kind, float thick) {
-    if (int(strokes.size()) >= kMax || clearStart >= 0.0) return;
-    Stroke s;
+    if (count >= kMax || clearStart >= 0.0) return;
+    Stroke& s = strokes[size_t(count)];
+    s.leftCount = s.rightCount = s.dropCount = 0;
     s.start = when;
     s.color = uint8_t(std::min(int(rng.unit() * 5.0f), 4));
     // Latigazo largo, chorro grueso que serpentea o salpicón.
@@ -56,8 +73,8 @@ class Visual final : public Scene {
     float base = (kind == 0 ? range(0.004f, 0.014f) : (kind == 1 ? range(0.018f, 0.04f) : range(0.045f, 0.09f))) * thick;
     float bend = range(-3.0f, 3.0f), wiggle = range(1.0f, 4.0f), ph = range(0.0f, 6.28f);
     float step = length / float(points - 1);
-    std::vector<Vec2> center(static_cast<size_t>(points));
-    std::vector<float> width(static_cast<size_t>(points));
+    std::array<Vec2, kPoints> center{};
+    std::array<float, kPoints> width{};
     float wp1 = range(0.0f, 6.28f), wp2 = range(0.0f, 6.28f);
     for (int i = 0; i < points; i++) {
       float u = float(i) / float(points - 1);
@@ -78,11 +95,11 @@ class Visual final : public Scene {
       if (kind == 2) {
         float ang = 6.2831853f * float(i) / float(points);
         float r = width[size_t(i)] * range(0.8f, 1.25f);
-        s.left.push_back({center[0].x + std::cos(ang) * r, center[0].y + std::sin(ang) * r});
+        s.left[size_t(s.leftCount++)] = {center[0].x + std::cos(ang) * r, center[0].y + std::sin(ang) * r};
         continue;
       }
-      s.left.push_back({center[size_t(i)].x + nx * width[size_t(i)] * 0.5f, center[size_t(i)].y + ny * width[size_t(i)] * 0.5f});
-      s.right.push_back({center[size_t(i)].x - nx * width[size_t(i)] * 0.5f, center[size_t(i)].y - ny * width[size_t(i)] * 0.5f});
+      s.left[size_t(s.leftCount++)] = {center[size_t(i)].x + nx * width[size_t(i)] * 0.5f, center[size_t(i)].y + ny * width[size_t(i)] * 0.5f};
+      s.right[size_t(s.rightCount++)] = {center[size_t(i)].x - nx * width[size_t(i)] * 0.5f, center[size_t(i)].y - ny * width[size_t(i)] * 0.5f};
     }
     // Gotas alrededor: muchas en un salpicón, unas pocas en un latigazo.
     int drops = kind == 2 ? 40 : int(range(4.0f, 18.0f));
@@ -90,11 +107,13 @@ class Visual final : public Scene {
       Vec2 c0 = center[size_t(std::min(int(rng.unit() * float(points)), points - 1))];
       float ang = range(0.0f, 6.2831853f);
       float dist = kind == 2 ? base * range(1.0f, 4.5f) : range(0.005f, 0.06f);
-      s.drops.push_back({c0.x + std::cos(ang) * dist, c0.y + std::sin(ang) * dist});
-      s.dropSize.push_back(range(0.0015f, kind == 2 ? 0.012f : 0.006f) * thick);
+      float size = range(0.0015f, kind == 2 ? 0.012f : 0.006f) * thick;
+      s.drops[size_t(s.dropCount)] = {c0.x + std::cos(ang) * dist, c0.y + std::sin(ang) * dist};
+      s.dropBin[size_t(s.dropCount)] = uint8_t(size < 0.003f ? 0 : (size < 0.006f ? 1 : 2));
+      s.dropCount++;
     }
     s.duration = kind == 0 ? 0.45f : (kind == 1 ? 0.35f : 0.12f);
-    strokes.push_back(std::move(s));
+    count++;
   }
 
   // Qué trazo cae según el gesto: 0 latigazo, 1 chorro, 2 salpicón.
@@ -113,8 +132,8 @@ class Visual final : public Scene {
     spawnAcc = 0.6;
     clearStart = -1;
     halfH = 1;
-    strokes.clear();
-    strokes.reserve(kMax + 4);
+    strokes.assign(size_t(kMax), Stroke{});
+    count = 0;
   }
 
   void update(const Frame& f) override {
@@ -156,9 +175,9 @@ class Visual final : public Scene {
     }
     (void)before;
     // Lienzo lleno: se cubre durante 1,4 s y se empieza otro.
-    if (clearStart < 0.0 && int(strokes.size()) >= kMax) clearStart = clock;
+    if (clearStart < 0.0 && count >= kMax) clearStart = clock;
     if (clearStart >= 0.0 && clock - clearStart > 1.4) {
-      strokes.clear();
+      count = 0;
       clearStart = -1;
     }
   }
@@ -181,48 +200,51 @@ class Visual final : public Scene {
     auto toPx = [&](Vec2 p) { return Vec2{cx + p.x * side, cy + p.y * side}; };
     float cover = clearStart >= 0.0 ? float(std::clamp((clock - clearStart) / 1.4, 0.0, 1.0)) : 0.0f;
     float lit = (0.92f + 0.15f * kick) * amp;
-    for (const auto& s : strokes) {
+    static const float radii[3] = {0.0016f, 0.0038f, 0.0075f};
+    // Dos trazados reutilizados por todos los trazos: copiar uno vacío los
+    // vacía sin soltar su memoria.
+    const Path empty;
+    Path path, drops;
+    for (int si = 0; si < count; si++) {
+      const Stroke& s = strokes[size_t(si)];
       float prog = float(std::clamp((clock - s.start) / double(s.duration), 0.0, 1.0));
       if (prog <= 0.0f) continue;
       const Color& base = pal[size_t(s.color)];
       Paint p;
       p.color = Color{std::min(1.0f, base.r * lit), std::min(1.0f, base.g * lit), std::min(1.0f, base.b * lit), 1.0f};
-      Path path;
-      if (s.right.empty()) {
+      path = empty;
+      if (s.rightCount == 0) {
         // Salpicón: crece desde el centro.
         Vec2 c0{0, 0};
-        for (const auto& q : s.left) { c0.x += q.x; c0.y += q.y; }
-        c0.x /= float(s.left.size());
-        c0.y /= float(s.left.size());
-        for (size_t i = 0; i < s.left.size(); i++) {
+        for (int i = 0; i < s.leftCount; i++) { c0.x += s.left[size_t(i)].x; c0.y += s.left[size_t(i)].y; }
+        c0.x /= float(s.leftCount);
+        c0.y /= float(s.leftCount);
+        for (size_t i = 0; i < size_t(s.leftCount); i++) {
           Vec2 q{c0.x + (s.left[i].x - c0.x) * prog, c0.y + (s.left[i].y - c0.y) * prog};
           Vec2 px = toPx(q);
           if (i == 0) path.moveTo(px.x, px.y); else path.lineTo(px.x, px.y);
         }
       } else {
-        size_t count = std::max<size_t>(2, size_t(prog * float(s.left.size())));
-        for (size_t i = 0; i < count; i++) {
+        size_t drawn = std::max<size_t>(2, size_t(prog * float(s.leftCount)));
+        for (size_t i = 0; i < drawn; i++) {
           Vec2 px = toPx(s.left[i]);
           if (i == 0) path.moveTo(px.x, px.y); else path.lineTo(px.x, px.y);
         }
-        for (size_t i = count; i-- > 0;) {
+        for (size_t i = drawn; i-- > 0;) {
           Vec2 px = toPx(s.right[i]);
           path.lineTo(px.x, px.y);
         }
       }
       path.close();
       c.path(path, p);
-      if (prog >= 0.6f && !s.drops.empty()) {
-        // Gotas en tres tamaños.
-        std::array<std::vector<Vec2>, 3> sized;
-        for (size_t k = 0; k < s.drops.size(); k++) {
-          int b = s.dropSize[k] < 0.003f ? 0 : (s.dropSize[k] < 0.006f ? 1 : 2);
-          sized[size_t(b)].push_back(toPx(s.drops[k]));
-        }
-        static const float radii[3] = {0.0016f, 0.0038f, 0.0075f};
-        for (int b = 0; b < 3; b++) {
-          if (!sized[size_t(b)].empty()) c.points(sized[size_t(b)], radii[b] * side * m.grosor, p);
-        }
+      if (prog >= 0.6f && s.dropCount > 0) {
+        // Gotas en tres tamaños, como círculos en el mismo lote que los
+        // trazos: trazos y gotas se pintan en un solo pase y cada trazo
+        // posterior sigue tapando las gotas anteriores.
+        drops = empty;
+        for (int k = 0; k < s.dropCount; k++)
+          addDrop(drops, toPx(s.drops[size_t(k)]), radii[s.dropBin[size_t(k)]] * side * m.grosor);
+        c.path(drops, p);
       }
     }
     if (cover > 0.0f) {
