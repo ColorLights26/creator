@@ -26,6 +26,9 @@ class Visual final : public Scene {
   double clock = 0, yaw = 0, sinceAnim = 0, sinceHit = 100;
   float hitPower = 0;
   int beats = 0, autoAnim = 0;
+  // Grupos por brillo (4 niveles) y tono (5); memoria reservada en reset.
+  mutable std::array<std::vector<Vec2>, 20> lit;
+  mutable std::vector<Vec2> off, merged;
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
@@ -49,6 +52,10 @@ class Visual final : public Scene {
     hitPower = 0;
     beats = 0;
     autoAnim = 0;
+    const size_t most = size_t(kMax * kMax * kMax);
+    for (auto& g : lit) g.reserve(most);
+    off.reserve(most);
+    merged.reserve(most * 2);
   }
 
   void update(const Frame& f) override {
@@ -106,9 +113,14 @@ class Visual final : public Scene {
     auto m = modifiers(f);
     float amp = f.intensity;
     const Color& bg = f.colors[0];
+    // El destello es una suma uniforme sobre todo el cuadro: se suma al fondo
+    // (y a los LED apagados, que se pintan encima) en vez de otra pasada.
+    float fa = flash > 0.01f ? std::clamp(flash * 0.05f * amp, 0.0f, 1.0f) : 0.0f;
+    Color fl{f.colors[2].r * fa, f.colors[2].g * fa, f.colors[2].b * fa, 1.0f};
     c.rect({0, 0, f.width, f.height}, Paint::radial({f.width * 0.5f, f.height * 0.5f}, std::max(f.width, f.height) * 0.7f,
-                                                   {Color{std::min(1.0f, bg.r + 0.06f), std::min(1.0f, bg.g + 0.03f), std::min(1.0f, bg.b + 0.05f), 1.0f},
-                                                    Color{bg.r, bg.g, bg.b, 1.0f}}));
+                                                   {Color{std::min(1.0f, std::min(1.0f, bg.r + 0.06f) + fl.r), std::min(1.0f, std::min(1.0f, bg.g + 0.03f) + fl.g),
+                                                          std::min(1.0f, std::min(1.0f, bg.b + 0.05f) + fl.b), 1.0f},
+                                                    Color{std::min(1.0f, bg.r + fl.r), std::min(1.0f, bg.g + fl.g), std::min(1.0f, bg.b + fl.b), 1.0f}}));
     int n = std::clamp(m.tamano, 4, kMax);
     int mode = m.animacion == 0 ? autoAnim : m.animacion - 1;
     float t = float(std::fmod(clock, 1000.0));
@@ -121,10 +133,8 @@ class Visual final : public Scene {
     float boom = sinceHit < 2.0 ? float(sinceHit) * 1.9f : 9.0f;
     float boomPower = sinceHit < 2.0 ? hitPower * float(1.0 - sinceHit / 2.0) : 0.0f;
     // Grupos por brillo (4 niveles) y color (5 tonos).
-    std::array<std::vector<Vec2>, 20> lit;
-    std::vector<Vec2> off;
-    off.reserve(size_t(n * n * n));
-    for (auto& g : lit) g.reserve(size_t(n * n * n / 4));
+    off.clear();
+    for (auto& g : lit) g.clear();
     for (int ix = 0; ix < n; ix++) {
       for (int iy = 0; iy < n; iy++) {
         for (int iz = 0; iz < n; iz++) {
@@ -186,35 +196,37 @@ class Visual final : public Scene {
     }
     float cell = scale * 2.0f / float(n - 1);
     if (m.apagados) {
+      // Encima del fondo con destello: se le suma el destello que taparía.
       Paint dim;
-      dim.color = Color{0.35f, 0.3f, 0.32f, 0.35f};
+      dim.color = Color{0.35f + fl.r, 0.3f + fl.g, 0.32f + fl.b, 0.35f};
       c.points(off, std::max(0.8f, cell * 0.06f), dim);
     }
-    std::array<Color, 5> tones = {f.colors[1],
-                                  Color{(f.colors[1].r + f.colors[2].r) * 0.5f, (f.colors[1].g + f.colors[2].g) * 0.5f, (f.colors[1].b + f.colors[2].b) * 0.5f, 1.0f},
-                                  f.colors[2],
-                                  Color{(f.colors[2].r + f.colors[3].r) * 0.5f, (f.colors[2].g + f.colors[3].g) * 0.5f, (f.colors[2].b + f.colors[3].b) * 0.5f, 1.0f},
-                                  f.colors[3]};
+    // Los LED encendidos se suman (plus), así que el orden no importa. Los
+    // tonos 1 y 3 son la media de dos colores de la paleta: cada uno se reparte
+    // en los lotes de esos dos colores a media opacidad, y los tonos puros van
+    // dos veces en el suyo. La misma suma con 3 lotes por tamaño en vez de 5.
     for (int level = 0; level < 4; level++) {
       float b = (0.35f + 0.22f * float(level)) * amp;
-      for (int k = 0; k < 5; k++) {
-        const auto& pts = lit[size_t(level * 5 + k)];
-        if (pts.empty()) continue;
+      float haloA = std::clamp(b * 0.28f * f.glow, 0.0f, 1.0f) * 0.5f;
+      float coreA = std::clamp(b * 1.1f, 0.0f, 1.0f) * 0.5f;
+      for (int k = 0; k < 3; k++) {
+        merged.clear();
+        const auto& pure = lit[size_t(level * 5 + k * 2)];
+        merged.insert(merged.end(), pure.begin(), pure.end());
+        merged.insert(merged.end(), pure.begin(), pure.end());
+        if (k > 0) merged.insert(merged.end(), lit[size_t(level * 5 + k * 2 - 1)].begin(), lit[size_t(level * 5 + k * 2 - 1)].end());
+        if (k < 2) merged.insert(merged.end(), lit[size_t(level * 5 + k * 2 + 1)].begin(), lit[size_t(level * 5 + k * 2 + 1)].end());
+        if (merged.empty()) continue;
+        const Color& tone = f.colors[size_t(k + 1)];
         Paint halo;
         halo.blend = Blend::plus;
-        halo.color = tones[size_t(k)].opacity(std::clamp(b * 0.28f * f.glow, 0.0f, 1.0f));
-        c.points(pts, cell * (0.32f + 0.08f * float(level)), halo);
+        halo.color = tone.opacity(haloA);
+        c.points(merged, cell * (0.32f + 0.08f * float(level)), halo);
         Paint core;
         core.blend = Blend::plus;
-        core.color = tones[size_t(k)].opacity(std::clamp(b * 1.1f, 0.0f, 1.0f));
-        c.points(pts, std::max(1.2f * px, cell * (0.1f + 0.025f * float(level))), core);
+        core.color = tone.opacity(coreA);
+        c.points(merged, std::max(1.2f * px, cell * (0.1f + 0.025f * float(level))), core);
       }
-    }
-    if (flash > 0.01f) {
-      Paint fl;
-      fl.blend = Blend::plus;
-      fl.color = f.colors[2].opacity(std::clamp(flash * 0.05f * amp, 0.0f, 1.0f));
-      c.rect({0, 0, f.width, f.height}, fl);
     }
   }
 

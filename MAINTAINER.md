@@ -224,7 +224,190 @@ superficie: al cambiar de visual, pista o tamaño, la ventana se descarta.
 - Pendiente de decisión: separar CPU y GPU por cuadro en iOS requiere tocar el
   runtime Swift que también usa Color Lights.
 
+## Presupuesto de energía
+
+Todos los visuales cumplen las mismas cinco reglas:
+
+| Regla | Límite |
+| --- | --- |
+| Pasadas por cuadro | Con los ajustes iniciales, hasta 28 en el iPad (objetivo: 26) y 35 en el iPhone; nunca más de 128 MiB. Con todos los ajustes al máximo o en una variación, más de 28 en el iPad es un aviso. |
+| GPU por cuadro (iPhone, estimada) | 4 ms a 60 FPS; 8 ms a 30. |
+| CPU por cuadro | 2 ms a 60 FPS; 4 ms a 30. |
+| Memoria | No crece por cuadro: todo se reserva en `reset`. |
+| Cadencia | Simulación de paso fijo y el mismo dibujo a 30 y a 60 FPS (regla de la plantilla). 60 FPS solo si cabe en los presupuestos de 60; si no, 30. |
+
+**Por qué.** La app dibuja en una superficie de 664×1440 px en el iPhone
+(393×852 lógicos) y de 900×1296 px en el iPad (820×1180). Cada pasada de
+pantalla completa es una textura del tamaño de la superficie (ancho × alto × 4
+bytes: 3,65 MiB en el iPhone y 4,45 MiB en el iPad) que Core Image conserva
+hasta terminar el cuadro.
+El renderer (`SceneCatalogCreatorScene.swift`, función `render`) no publica un
+cuadro con más de 192 pasadas o más de 128 MiB: la imagen se queda congelada.
+28 pasadas de pantalla completa en el iPad ocupan 124,6 MiB y 35 en el iPhone,
+127,7 MiB; una más congela la imagen.
+
+El renderer conserva el orden original de composición. Usa un pool de ocho
+texturas fuente BGRA8; al llenarlo, resuelve la composición a un checkpoint
+RGBA16 y reutiliza el pool. Así conserva RGB por encima de 1 en plus/screen
+hasta la salida final, sin recortar el brillo. Cada checkpoint cuesta dos
+unidades BGRA8; los padres de saveLayer se protegen hasta restore. Máscaras y
+materiales se cuentan aparte. Los 28/35 son unidades de memoria, no llamadas
+de dibujo ni pasadas de GPU. Las figuras y los puntos siguen teniendo un coste
+de trabajo: agrupa puntos por color y evita recortes por celda.
+
+El pool permanece en el dueño del renderer entre cuadros y se descarta al
+cambiar las dimensiones. `SceneCatalogFrameCommand.swift` agrupa el dibujo,
+los materiales y Core Image en una orden, y espera su terminación antes de
+publicar o reutilizar recursos. Cuenta también los buffers y los scratch que
+la GPU mantiene vivos después de ser reemplazados; exceder 128 MiB cancela
+el cuadro. Los targets MSAA/stencil descartables usan memoria de tile cuando
+el dispositivo lo admite. La secuencia artística de composición no cambia.
+
+La triangulación comparte el buffer de salida entre cuadros y enumera cada
+CGPath con un estado prestado sólo durante su visita síncrona. La subdivisión
+de curvas sigue siendo exacta: no baja detalle, tolerancia ni cadencia para
+pasar el presupuesto. Las pruebas comparan los bits de los vértices y los
+contornos densos; la ficha física decide si ese trabajo cabe en el dispositivo.
+
+Los contornos de trazos repetidos se reutilizan sólo dentro de un cuadro,
+con un máximo de 256 geometrías y comparación completa del path, ancho,
+cap y join; compartir bounds nunca basta. Los colores sólidos conservan los
+buffers de degradado ya enlazados porque no los consultan, y el fragmento
+directo evita muestrear una máscara que no usa. Degradados, clip, blur y
+composición mantienen sus datos y su orden.
+
+El reloj de capas mantiene la fase nominal sin descartar plazos futuros al
+completar un tick retrasado. Sólo avanza sobre plazos realmente vencidos y
+no consume dos veces el mismo tiempo. El margen del timer queda por debajo
+de la tolerancia del reloj; las capas de menor frecuencia siguen reteniendo
+su estado. La prueba nativa `minibase/tool/check_scene_surface_cadence.rb`
+ejecuta el reloj de producción con 4.004 combinaciones de fase y jitter,
+capas de 1/24/30/60 FPS, callbacks retrasados y llamadas duplicadas. Esto
+conserva la cadencia de los visuales; no reduce sus FPS ni relaja las fichas.
+
+En el dibujo directo, el stencil empieza en cero y la pasada que pinta la
+cobertura consume sus muestras no nulas, dejándolas en cero para el siguiente
+contorno. El rectángulo conservador incluye toda la geometría y su borde
+MSAA. Así se elimina el dibujo separado de limpieza; las máscaras del atlas
+mantienen su estado propio. La comparación del catálogo conserva los píxeles.
+
+La regla la comparten el renderer, `authored_probe.cpp` y `dry()` del harness.
+Una discrepancia `dry_mismatch` invalida el informe. Memoria dentro del límite
+no demuestra bajo consumo: la ficha física mide GPU, CPU, cadencia y térmica.
+
+**El gate de CI.** `check_native.py` (paso «Native ABI, sanitizers and copyable
+template» de CI y aprobación en Color Lights) ejecuta `authored_probe.cpp`, que
+cuenta las pasadas de cada cuadro con las reglas del renderer iOS sobre los
+comandos ya validados, sin GPU. Reproduce cada visual con sus FPS, semilla,
+controles, colores y modificadores iniciales (`creatorPassCases()` en
+`creator_probe_cases.inc`, que genera `native_compiler.dart` sin tocar los
+hashes): 12 s de la música sintética fuerte del barrido, con los niveles ×1,35,
+y 2 s de silencio, en el iPhone y en el iPad. Cada superficie tiene su máximo:
+las pasadas de pantalla completa que caben en 128 MiB, 35 en el iPhone y 28 en
+el iPad (el tope de 192 del renderer nunca llega antes). Falla si algún cuadro
+pasa de ese máximo o de 128 MiB, y dice qué superó cada superficie:
+
+El mensaje indica la superficie que excedió su memoria, la que cumple y
+los tramos vectoriales, llamadas points, checkpoints, materiales, máscaras y
+capas del cuadro más caro. No equipares llamadas points con texturas retenidas:
+el pool las reutiliza. Un exceso de máscaras pide reducir los recortes del
+bucle; un exceso de materiales o capas requiere reducir esos recursos.
+
+El gate cuenta los ajustes iniciales. El barrido de modificadores (solo los
+visuales con modificadores o variaciones) repite esos 14 s en el iPad con todos
+los ajustes al máximo (intensidad, detalle y brillo en 2 y cada modificador en
+su máximo) y con cada variación. Si pasa de 28 avisa, sin fallar:
+
+```text
+WARN passes creator_capas: 30 pasadas con la variación Densa (máx 28 en iPad)
+```
+
+Un aviso de más de 28 en el iPad significa que, con ese ajuste o esa variación, la imagen se congela en el iPad; con los ajustes iniciales el visual cumple. En CI ese aviso solo falla para `template_example` y `modifier_probe`. Para ver
+solo los números con el calendario del harness (240 cuadros a sus FPS, los
+últimos 60 en silencio), sin el resto de comprobaciones:
+
+```sh
+python3 packages/scene_program_native/test/check_native.py --generated studio/build/creator_native --pass-report harness
+```
+
+Ese informe coincide con el harness en los 277 visuales nativos del catálogo:
+máximo de pasadas y de bytes, en el iPhone y en el iPad. El gate no mide los ms
+de GPU ni de CPU: esos se miden con el harness o en el teléfono.
+
+**Harness de medición.** Vive fuera del repositorio, en la Mac del responsable;
+aquí aparece como `<carpeta del harness>`. Compila el SDK C++ real, el registro
+generado de un checkout y el runtime Swift de producción, y mide pasadas,
+bytes, CPU y GPU por cuadro con Metal:
+
+```sh
+H='<carpeta del harness>'
+# Antes, en el checkout: cd studio && dart run tool/compile_visuals.dart
+CE_EXPORT=<checkout> CE_BUILD=<build> python3 $H/build.py
+CE_EXPORT=<checkout> CE_BUILD=<build> CE_OUT=<carpeta>/out python3 $H/run_all.py \
+  --round <nombre> --label iphone --px 664x1440 --logical 393x852 --ids a,b --dry
+cd <carpeta> && python3 $H/passes_table.py <nombre> iphone   # lee out/<nombre>/iphone
+```
+
+Para el iPad: `--label ipad --px 900x1296 --logical 820x1180`. Sin `--dry`
+también mide CPU y GPU (con la Mac libre: `--gate --repeats N`). Para comparar el
+aspecto antes y después de un cambio: `CE_LIFT_GUARD=1` al compilar y al
+ejecutar (los cuadros congelados se dibujan igual), `--frames`, `--silent`,
+`--capture-times 1.0,2.5,... --capture-dir <carpeta>` y después
+`python3 $H/parity.py --before <antes> --after <después> --ids a,b --out informe.json --sheet <carpeta>`.
+
+**FPS.** La herramienta de cadencia decide qué visuales piden 60 FPS y guarda
+cada cambio en `packages/visual_catalog/energy/frame_rate_record.json`:
+
+```sh
+cd studio && dart run tool/frame_rate.dart status
+cd studio && dart run tool/frame_rate.dart record --from-csv <medición.csv> --base-commit <commit medido>
+cd studio && dart run tool/frame_rate.dart apply --ids a,b   # o --all
+cd studio && dart run tool/frame_rate.dart revert --ids a,b  # o --all
+cd studio && dart run tool/frame_rate.dart check
+```
+
+`status` muestra la cadencia de cada visual; `record` lee el CSV de una
+medición del harness y anota en el registro qué visuales piden 30, con la
+medición y el commit medido; `apply` y `revert` aplican o deshacen los cambios
+del registro y `check` comprueba que la metadata coincida con él.
+
 ## Votación del equipo
+
+### Visuales ya aceptados
+
+El menú de filtros separa **En evaluación** y **Ya aceptados** incluso sin
+iniciar una sesión del equipo. Los aceptados conservan sus fuentes, reproducción,
+ajustes y ranking histórico; quedan fuera de la cola, los contadores y el resumen
+de la votación. No se pueden enviar ni cambiar votos desde esa sección.
+
+`studio/assets/accepted_visuals.json` es un registro portable de decisiones,
+independiente de los votos y de la preparación técnica. Cada decisión nombra el
+ID y la revisión exacta de `visualRevision`: una revisión nueva vuelve a
+evaluación. **En la app** identifica el visual integrado; **Variante equivalente**
+identifica el fondo o transparencia de la misma familia cerrado junto con él,
+sin afirmar que esa variante también esté integrada. Una familia no agrupa sus
+secuelas (por ejemplo, Aura y Aura 2).
+
+El responsable exporta el registro desde los snapshots aprobados y la selección
+documentada con `minibase/tool/export_creator_acceptances.dart` en Color Lights.
+Desde `minibase/`, el lote actual se exporta así:
+
+```sh
+dart run tool/export_creator_acceptances.dart \
+  --selection ../metadata/creator_catalog/selection/2026-10-09-creator-100.json \
+  --equivalences ../metadata/creator_catalog/selection/2026-10-09-creator-equivalents.json
+```
+
+El archivo de equivalencias fija el ID y la revisión autorizada de cada variante,
+junto con el visual integrado al que corresponde. No se regenera tomando dibujos
+nuevos del catálogo: si una variante cambia, su nueva revisión vuelve a evaluación
+y necesita una decisión explícita antes de incorporarse al registro.
+
+Creator sólo consume el asset local y sigue siendo independiente del monorepo.
+Después de actualizar el registro se distribuye la versión nueva de Creator a
+los colaboradores; no modifica el servicio remoto de votos ni una instalación
+antigua. Un registro ausente o inválido se registra como error y deja el catálogo
+en evaluación, sin bloquear la creación ni inventar aceptaciones.
 
 Las notas del 1 al 10 viven en Chic Team (proyecto `chic-ads`), no en el repo.
 El estudio llama por HTTPS a `/api/creator-review` con una clave personal
@@ -265,6 +448,58 @@ ranking y la exportación a CSV. Revocar una clave conserva sus votos.
   que el equipo dejó en Aprobado.
 - Para probar contra otro servidor:
   `flutter run --dart-define=CREATOR_REVIEW_URL=<url>/api/creator-review`.
+
+## Registro técnico de candidatos
+
+`studio/tool/readiness.dart` separa el estado técnico de la nota del equipo y
+de la aprobación. `prepare --evidence <carpeta> --run-checks` corre las pruebas
+existentes (`check_native.py --strict-modifiers` y `--pass-report harness`,
+`check_creator_scenes.py`, `check_creator_catalog.rb --admission`), opcionalmente
+el harness Mac (`--run-harness`), y escribe `packages/visual_catalog/readiness/`:
+`registry.json` (identidad técnica = revisión del voto + programa compilado +
+**manifiesto de build**; cada prueba con lo que demuestra y lo que no; estado
+`verified` / `pendingEvidence` / `needsRepair`), `studio_readiness.json` (lo
+que Studio muestra como «Técnico», con el sello `buildHash`) y
+`revision_links.json`.
+
+El manifiesto de build (`scene_compositor/lib/creator_build_manifest.dart`) lo
+escribe el hook normal (`compile_visuals.dart`) en
+`packages/visual_catalog/assets/creator_build_manifest.json`: SDK C++/ABI, los
+Swift que compila el camino Creator (`SceneCatalog*.swift`, señal, allocator),
+el compilador de materiales, las imágenes, las herramientas de prueba, las
+superficies y la copia del contrato de energía, con hashes de contenido. Studio
+compara su manifiesto empaquetado con el sello del registro: distinto, ausente
+o sin sello → «Sin comprobar» en todo el catálogo. `prepare` rechaza pruebas
+de otro catálogo o de otro manifiesto (`checks.meta.json`), y la aprobación de
+Color Lights recalcula el manifiesto con lo que la app compila de verdad.
+
+El contrato de energía de la app no se copia a mano: `readiness contract import
+<scene_energy_budget_v1.json>` deja en `readiness/energy_contract.json` una copia
+DATA con revisión, hash semántico (JSON canónico), procedencia y sólo los valores
+que esta herramienta consume (techos por slot, márgenes, protocolo de medición,
+dispositivo y superficie de referencia, regla de factibilidad). `prepare
+--energy-contract <vivo>` refresca la copia si el hash semántico cambió aunque
+la revisión sea la misma; sin copia nada certifica.
+
+Las fichas del iPhone no se escriben a mano. `readiness cards import --rows
+<energy_probe.jsonl>` convierte las filas medidas por `minibase/tool/energy_probe.py
+--target-kind creator` (sobre Visual Studio con `--colorlights-qa-scene
+energy-probe=<id>[@max|@variation=<i>]`) en `readiness/device_cards.json`, cada
+una atada a su fila y a su log de consola por hash. En cada `prepare` la ficha
+se vuelve a leer de la fila: programa, revisión y manifiesto que corrió la
+sonda, dispositivo físico de referencia y versión de iOS, estado térmico
+nominal, warmup y ventanas del contrato, cadencia alcanzada y factibilidad,
+superficie 664×1440 y techos del slot. `verified` exige la ficha de los
+valores iniciales a la cadencia del visual; máximo y variaciones sólo se
+suman al alcance si su ficha existe y cabe. `status` devuelve 1 si el dibujo o
+el motor cambiaron desde la comprobación.
+
+Los votos nunca se copian: `links propose --base <commit>` propone enlaces con
+evidencia (sólo cadencia + regla 30/60, o paridad de píxeles de capturas del
+harness) y `links review … --reviewer <nombre>` los confirma o rechaza tras ver
+el A/B. Studio cuenta los votos de la revisión anterior sólo con un enlace
+`reviewed`. Guía completa en `docs/apps/colorlights26/creator-readiness.md`
+del workspace de Color Lights.
 
 ## Entregar y actualizar la app
 
@@ -390,3 +625,10 @@ una discrepancia es un error visible, no una sustitución por una versión anter
 Las salidas C++ viven en `build/creator_native/<configuración>` de cada aplicación;
 las herramientas manuales usan la raíz `build/creator_native`. No compartir
 ese directorio entre aplicaciones ni copiar binarios generados a mano.
+
+## Validación del primer cuadro en pausa
+
+La preparación puede pedir un dibujo antes de reproducir y antes de llamar a `update`. `render` debe aceptar el estado de `reset`; una capa transparente puede empezar vacía. El gate nativo también configura, dibuja, espera en pausa y reinicia sin avanzar el tiempo, en los dos viewports. Se ejecuta antes del replay de cada visual; `check_native.py --initial-frames` permite aislarlo. Esta comprobación detectó el cálculo de brotes con cero generaciones en las dos variantes de Árbol Fractal. La corrección sólo omite esos brotes todavía inexistentes y conserva las capturas de reproducción.
+
+
+La evidencia física sólo admite ventanas con `playing == true` en todos sus registros, incluida la prueba sostenida después del calentamiento. Una pausa o un estado desconocido invalida la captura antes de comparar los FPS; se conserva para diagnóstico y no certifica al visual.

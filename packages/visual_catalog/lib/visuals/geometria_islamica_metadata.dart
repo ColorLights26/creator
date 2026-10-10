@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff050b2a, 0xffffc23a, 0xffe0102f, 0xff00a86b],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Las estrellas se transforman sin parar: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

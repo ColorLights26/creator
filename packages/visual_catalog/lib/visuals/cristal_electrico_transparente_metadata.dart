@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0x00000000, 0xffc81400, 0xffff7a00, 0xffffe680],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Las ramas crecen paso a paso: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

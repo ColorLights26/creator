@@ -12,6 +12,10 @@ import 'package:visual_catalog/visual_catalog.dart';
 
 import '../performance/visual_performance.dart';
 import '../performance/visual_performance_overlay.dart';
+import '../readiness/creator_readiness.dart';
+import '../readiness/readiness_assets.dart';
+import '../team_review/revision_links.dart';
+import '../team_review/accepted_visuals.dart';
 import '../team_review/team_ranking.dart';
 import '../team_review/team_ranking_screen.dart';
 import '../team_review/team_rating_panel.dart';
@@ -62,10 +66,28 @@ class CreatorStudio extends StatefulWidget {
     this.thumbnailBuilder = _defaultThumbnail,
     this.backdropBuilder = _defaultBackdrop,
     this.recordingsLoader = loadStudioRecordings,
+    this.readinessLoader = loadCreatorReadiness,
+    this.buildHashLoader = loadCreatorBuildHash,
+    this.revisionLinksLoader = loadRevisionLinks,
+    this.acceptedVisualsLoader = loadAcceptedVisuals,
     this.teamReview,
     this.personalVariations,
     super.key,
   });
+
+  /// Technical readiness of each visual (readiness/studio_readiness.json).
+  /// Separate from the vote: the ranking shows both without mixing them.
+  final Future<CreatorReadiness> Function() readinessLoader;
+
+  /// Build manifest hash the studio bundles (null when the hook did not run).
+  final Future<String?> Function() buildHashLoader;
+
+  /// Reviewed revision links; given to [teamReview] so inherited votes
+  /// count in the queue, the filters and the ranking.
+  final Future<RevisionLinks> Function() revisionLinksLoader;
+
+  /// Portable editorial decisions, independent of a reviewer session.
+  final Future<AcceptedVisuals> Function() acceptedVisualsLoader;
 
   /// Where saved looks ("Mía 1") live; on-device preferences by default.
   final PersonalVariations? personalVariations;
@@ -96,6 +118,14 @@ class _CreatorStudioState extends State<CreatorStudio>
   Future<void> _commands = Future<void>.value();
   List<CreatorVisualDefinition> _catalog = [];
   Map<String, String> _revisions = {};
+  CreatorReadiness _readiness = const CreatorReadiness.none();
+  AcceptedVisuals _accepted = const AcceptedVisuals.none();
+  bool _acceptedLoading = true;
+  int _acceptedLoadRevision = 0;
+
+  /// The bundled export's engine differs from the catalog the studio runs:
+  /// every technical label falls back to "unknown" until it is regenerated.
+  CreatorEngineMismatch _readinessEngine = CreatorEngineMismatch.none;
   TeamVoteFilter _voteFilter = TeamVoteFilter.all;
   late final List<StudioRecording> _recordings;
   late SceneSignalReplay _replay;
@@ -251,7 +281,9 @@ class _CreatorStudioState extends State<CreatorStudio>
     ];
     _replay = SceneSignalReplay(_recordings.first.recording);
     _readCatalog();
+    unawaited(_loadAccepted());
     unawaited(_loadRecordings());
+    unawaited(_loadReadiness());
     if (widget.teamReview case final TeamReviewController review) {
       review.addListener(_teamReviewChanged);
       unawaited(review.start());
@@ -274,6 +306,69 @@ class _CreatorStudioState extends State<CreatorStudio>
     }
   }
 
+  Future<void> _loadAccepted() async {
+    final loadRevision = ++_acceptedLoadRevision;
+    _acceptedLoading = true;
+    AcceptedVisuals accepted;
+    try {
+      accepted = await widget.acceptedVisualsLoader();
+    } on FormatException catch (error, stack) {
+      accepted = acceptedVisualsLoadFailure(error, stack);
+    } on FlutterError catch (error, stack) {
+      accepted = acceptedVisualsLoadFailure(error, stack);
+    }
+    if (_disposed || loadRevision != _acceptedLoadRevision) return;
+    setState(() {
+      _accepted = accepted;
+      _acceptedLoading = false;
+      _alignSelection();
+    });
+    _prepareSelected();
+  }
+
+  AcceptedVisualEntry? _acceptance(CreatorVisualDefinition visual) =>
+      _accepted.entryFor(visual.id, _revisions[visual.id]!);
+
+  bool _inCurrentSection(CreatorVisualDefinition visual) =>
+      !_acceptedLoading &&
+      (_voteFilter == TeamVoteFilter.accepted
+          ? _acceptance(visual) != null
+          : _acceptance(visual) == null);
+
+  void _alignSelection() {
+    final current = _selected;
+    // Retain the selection across an asynchronous register refresh; it will
+    // be reconciled with the new decision before voting becomes available.
+    if (_acceptedLoading) {
+      if (current == null) _selectedId = null;
+      return;
+    }
+    if (current != null && _matchesVoteFilter(current, _voteFilter)) return;
+    _selectedId =
+        _catalog
+            .where((visual) => _matchesVoteFilter(visual, _voteFilter))
+            .firstOrNull
+            ?.id;
+  }
+
+  /// Technical states and reviewed links are optional: without them the
+  /// ranking shows no technical label and votes stay per revision.
+  Future<void> _loadReadiness() async {
+    final readiness = await widget.readinessLoader();
+    final buildHash = await widget.buildHashLoader();
+    final links = await widget.revisionLinksLoader();
+    if (_disposed) return;
+    // Compare the export's build stamp with the manifest the studio bundles:
+    // a changed SDK, runtime, compiler, resource, check, surface or contract
+    // invalidates the technical labels even if the drawing (the vote
+    // revision) is untouched. Unknown on either side stays unknown.
+    widget.teamReview?.links = links;
+    setState(() {
+      _readiness = readiness;
+      _readinessEngine = readiness.engineMismatch(buildHash);
+    });
+  }
+
   void _readCatalog() {
     try {
       final catalog = validateCreatorCatalog(widget.catalogBuilder());
@@ -282,12 +377,7 @@ class _CreatorStudioState extends State<CreatorStudio>
         for (final visual in catalog) visual.id: visualRevision(visual),
       };
       // Recargar conserva el visual que se está viendo.
-      final keepCurrent =
-          _selectedId != null && catalog.any((v) => v.id == _selectedId);
-
-      if (!keepCurrent) {
-        _selectedId = catalog.isEmpty ? null : catalog.first.id;
-      }
+      _alignSelection();
       _error = null;
     } on Object catch (error, stack) {
       _catalog = [];
@@ -302,7 +392,14 @@ class _CreatorStudioState extends State<CreatorStudio>
     if (!_disposed) setState(() {});
   }
 
-  bool _matchesVoteFilter(CreatorVisualDefinition visual, TeamVoteFilter filter) {
+  bool _matchesVoteFilter(
+    CreatorVisualDefinition visual,
+    TeamVoteFilter filter,
+  ) {
+    if (_acceptedLoading) return false;
+    final accepted = _acceptance(visual) != null;
+    if (filter == TeamVoteFilter.accepted) return accepted;
+    if (accepted) return false;
     final review = widget.teamReview;
     final revision = _revisions[visual.id];
     if (review == null || revision == null) return true;
@@ -318,9 +415,10 @@ class _CreatorStudioState extends State<CreatorStudio>
     setState(() => _voteFilter = filter);
     final current = _selected;
     if (current != null && _matchesVoteFilter(current, filter)) return;
-    final first = _catalog
-        .where((visual) => _matchesVoteFilter(visual, filter))
-        .firstOrNull;
+    final first =
+        _catalog
+            .where((visual) => _matchesVoteFilter(visual, filter))
+            .firstOrNull;
     _selectVisual(first?.id);
   }
 
@@ -328,7 +426,38 @@ class _CreatorStudioState extends State<CreatorStudio>
     final review = widget.teamReview;
     final visual = _selected;
     final revision = visual == null ? null : _revisions[visual.id];
-    if (review == null || visual == null || revision == null) return null;
+    if (visual == null || revision == null) return null;
+    if (_acceptedLoading) return null;
+    if (_acceptance(visual) case final AcceptedVisualEntry accepted) {
+      return Container(
+        key: const ValueKey('accepted-visual-info'),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.45),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.verified_rounded, color: Color(0xFF73F572)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '${accepted.label} · Fuera de votación',
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+              ),
+            ),
+            if (review != null)
+              IconButton(
+                key: const ValueKey('accepted-historical-ranking'),
+                tooltip: 'Ranking histórico del equipo',
+                onPressed: () => unawaited(_openRanking(review)),
+                icon: const Icon(Icons.leaderboard_rounded),
+              ),
+          ],
+        ),
+      );
+    }
+    if (review == null) return null;
     // The same structure with or without the notice, so the panel keeps a
     // score being chosen when the notice comes and goes.
     final panel = KeyedSubtree(
@@ -341,27 +470,27 @@ class _CreatorStudioState extends State<CreatorStudio>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (_session?.differsFromOriginal == true)
-        Padding(
-          key: const ValueKey('adjustments-viewing-variation'),
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Row(
-            children: [
-              const Icon(Icons.tune_rounded, size: 16, color: Colors.amber),
-              const SizedBox(width: 6),
-              const Expanded(
-                child: Text(
-                  'Estás viendo una variación',
-                  style: TextStyle(color: Colors.amber, fontSize: 13),
+          Padding(
+            key: const ValueKey('adjustments-viewing-variation'),
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              children: [
+                const Icon(Icons.tune_rounded, size: 16, color: Colors.amber),
+                const SizedBox(width: 6),
+                const Expanded(
+                  child: Text(
+                    'Estás viendo una variación',
+                    style: TextStyle(color: Colors.amber, fontSize: 13),
+                  ),
                 ),
-              ),
-              TextButton(
-                key: const ValueKey('adjustments-view-original'),
-                onPressed: _showOriginal,
-                child: const Text('Ver original'),
-              ),
-            ],
+                TextButton(
+                  key: const ValueKey('adjustments-view-original'),
+                  onPressed: _showOriginal,
+                  child: const Text('Ver original'),
+                ),
+              ],
+            ),
           ),
-        ),
         panel,
       ],
     );
@@ -380,7 +509,8 @@ class _CreatorStudioState extends State<CreatorStudio>
       // A visual the team already discarded doesn't need more votes.
       queue: [
         for (final item in _catalog)
-          if (!review.isTeamDiscarded(item.id, _revisions[item.id]!))
+          if (_acceptance(item) == null &&
+              !review.isTeamDiscarded(item.id, _revisions[item.id]!))
             (id: item.id, revision: _revisions[item.id]!),
       ],
       onSelectVisual: _selectVisual,
@@ -395,30 +525,61 @@ class _CreatorStudioState extends State<CreatorStudio>
         id: visual.id,
         name: visual.name,
         revision: _revisions[visual.id]!,
+        technical:
+            _readiness.isEmpty
+                ? null
+                : _technicalLabel(
+                  _readiness.entryFor(
+                    visual.id,
+                    _revisions[visual.id]!,
+                    engine: _readinessEngine,
+                  ),
+                ),
       ),
   ];
+
+  static String _technicalLabel(CreatorReadinessEntry entry) =>
+      entry.detail.isEmpty
+          ? entry.state.label
+          : '${entry.state.label} · ${entry.detail}';
 
   Future<void> _openRanking(TeamReviewController review) async {
     final chosen = await Navigator.of(context).push<String>(
       MaterialPageRoute(
-        builder: (context) => TeamRankingScreen(
-          controller: review,
-          entries: _rankingEntries,
-          onOpenVisual: (id) => Navigator.of(context).pop(id),
-        ),
+        builder:
+            (context) => TeamRankingScreen(
+              controller: review,
+              entries: _rankingEntries,
+              onOpenVisual: (id) => Navigator.of(context).pop(id),
+            ),
       ),
     );
-    if (chosen != null && !_disposed) _selectVisual(chosen);
+    if (chosen != null && !_disposed) _openCatalogVisual(chosen);
+  }
+
+  void _openCatalogVisual(String? id) {
+    final visual = _catalog.where((visual) => visual.id == id).firstOrNull;
+    if (visual == null) return;
+    final filter =
+        _acceptance(visual) == null
+            ? TeamVoteFilter.all
+            : TeamVoteFilter.accepted;
+    setState(() => _voteFilter = filter);
+    _selectVisual(id);
   }
 
   /// The end of a round: nothing left in the filter, or everything voted.
   Future<void> _openSummary(TeamReviewController review) async {
     final choice = await Navigator.of(context).push<TeamSummaryChoice>(
       MaterialPageRoute(
-        builder: (context) => TeamVotingSummaryScreen(
-          controller: review,
-          entries: _rankingEntries,
-        ),
+        builder:
+            (context) => TeamVotingSummaryScreen(
+              controller: review,
+              entries: [
+                for (final entry in _rankingEntries)
+                  if (!_accepted.contains(entry.id, entry.revision)) entry,
+              ],
+            ),
       ),
     );
     if (choice == null || _disposed) return;
@@ -431,7 +592,7 @@ class _CreatorStudioState extends State<CreatorStudio>
         // Switching to "Por votar" lands on the first visual left to vote.
         _setVoteFilter(TeamVoteFilter.toVote.name);
       case TeamSummaryAction.openVisual:
-        _selectVisual(choice.visualId);
+        _openCatalogVisual(choice.visualId);
     }
   }
 
@@ -445,7 +606,9 @@ class _CreatorStudioState extends State<CreatorStudio>
     if (_disposed) return;
     _stopReplay();
     _revision++;
+    _acceptedLoading = true;
     _readCatalog();
+    unawaited(_loadAccepted());
     if (_sourcesReady) {
       _prepareSelected();
     } else {
@@ -508,7 +671,8 @@ class _CreatorStudioState extends State<CreatorStudio>
   void _prepareSelected() {
     final visual = _selected;
     final viewport = _viewport;
-    if (_disposed || !_sourcesReady || viewport == null) return;
+    if (_disposed || !_sourcesReady || (visual != null && viewport == null))
+      return;
     _stopReplay();
     _performance.restart();
     final revision = ++_revision;
@@ -519,6 +683,7 @@ class _CreatorStudioState extends State<CreatorStudio>
       setState(() {});
       return;
     }
+    if (viewport == null) return;
     _loading = true;
     _error = null;
     _sent = null;
@@ -835,9 +1000,12 @@ class _CreatorStudioState extends State<CreatorStudio>
     }
     for (final sample in batch.samples) {
       if (!_isCurrent(revision)) return;
-      var frame = batch.cycle == 0
-          ? sample.frame
-          : sample.frame.withSessionId(sample.frame.sessionId + batch.cycle);
+      var frame =
+          batch.cycle == 0
+              ? sample.frame
+              : sample.frame.withSessionId(
+                sample.frame.sessionId + batch.cycle,
+              );
       if (_muted) {
         frame = frame.toSilent();
       }
@@ -922,30 +1090,40 @@ class _CreatorStudioState extends State<CreatorStudio>
     // the filter, so voting never yanks it away; "Siguiente" moves on.
     final shown = [
       for (var index = 0; index < _catalog.length; index++)
-        if (_catalog[index].id == _selectedId ||
-            _matchesVoteFilter(_catalog[index], _voteFilter))
+        if (_inCurrentSection(_catalog[index]) &&
+            (_catalog[index].id == _selectedId ||
+                _matchesVoteFilter(_catalog[index], _voteFilter)))
           index,
     ];
     return StudioView(
-      voteFilters: widget.teamReview == null
-          ? const []
-          : [
-              for (final filter in TeamVoteFilter.values)
-                StudioFilterOption(
-                  id: filter.name,
-                  label: filter.label,
-                  count: _catalog
+      catalogSectionTitle:
+          _voteFilter == TeamVoteFilter.accepted
+              ? 'Ya aceptados'
+              : 'En evaluación',
+      voteFilters: [
+        for (final filter in TeamVoteFilter.values)
+          if (widget.teamReview != null ||
+              filter == TeamVoteFilter.all ||
+              filter == TeamVoteFilter.accepted)
+            StudioFilterOption(
+              id: filter.name,
+              label: filter.label,
+              count:
+                  _catalog
                       .where((visual) => _matchesVoteFilter(visual, filter))
                       .length,
-                ),
-            ],
+            ),
+      ],
       selectedVoteFilter: _voteFilter.name,
       onVoteFilterChanged: _setVoteFilter,
-      onListEnd: switch (widget.teamReview) {
-        final TeamReviewController review => () =>
-            unawaited(_openSummary(review)),
-        null => null,
-      },
+      onListEnd:
+          _voteFilter == TeamVoteFilter.accepted
+              ? null
+              : switch (widget.teamReview) {
+                final TeamReviewController review =>
+                  () => unawaited(_openSummary(review)),
+                null => null,
+              },
       visuals: [
         for (final index in shown)
           StudioVisualItem(
@@ -954,6 +1132,9 @@ class _CreatorStudioState extends State<CreatorStudio>
             description: _catalog[index].description,
             role: _catalog[index].role,
             details: [
+              if (_acceptance(_catalog[index])
+                  case final AcceptedVisualEntry entry)
+                entry.label,
               _catalog[index].publication == CreatorPublication.draft
                   ? 'Borrador'
                   : 'Publicado',
@@ -984,7 +1165,7 @@ class _CreatorStudioState extends State<CreatorStudio>
       reactionEnabled: _selected?.reactivity == CreatorReactivity.optional,
       muted: _muted,
       onToggleMuted: _toggleMuted,
-      loading: _loading,
+      loading: _loading || _acceptedLoading,
       error: _error,
       onSelectVisual: _selectVisual,
       onSelectSource: _selectSource,
@@ -1009,7 +1190,9 @@ class _CreatorStudioState extends State<CreatorStudio>
       ],
       backdropBuilder: (id) {
         final index = _catalog.indexWhere((visual) => visual.id == id);
-        return index < 0 ? null : widget.backdropBuilder(_catalog[index], index);
+        return index < 0
+            ? null
+            : widget.backdropBuilder(_catalog[index], index);
       },
       signalListenable: _latestSignal,
       onPictureInPicture:

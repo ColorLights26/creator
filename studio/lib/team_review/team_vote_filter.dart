@@ -6,13 +6,14 @@ import 'team_review_controller.dart';
 /// The verdict filters only include visuals you already voted: before
 /// voting nobody sees the team's opinion, not even through a filter.
 enum TeamVoteFilter {
-  all('Todos'),
+  all('En evaluación'),
   toVote('Por votar'),
   voted('Ya votados'),
   approved('Aprobados'),
   improvable('Con potencial'),
   discarded('Descartados'),
-  waiting('Esperando votos');
+  waiting('Esperando votos'),
+  accepted('Ya aceptados');
 
   const TeamVoteFilter(this.label);
 

@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0x00000000, 0xff00ff6a, 0xffb4ff00, 0xffffffff],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Giro continuo en 3D: a 60 FPS la esfera gira con fluidez.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

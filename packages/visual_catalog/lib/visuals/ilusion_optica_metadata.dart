@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff000000, 0xffff1a1a, 0xffffffff, 0xff7a0000],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Patrones en movimiento continuo: a 60 FPS la ilusión es fluida.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

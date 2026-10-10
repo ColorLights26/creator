@@ -171,6 +171,7 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
 
   Widget _buildVoting(BuildContext context) {
     final mine = controller.myRating(visualId, revision);
+    final inherited = controller.inheritedRating(visualId, revision);
     // If the owner reset the vote meanwhile, this is a first vote again.
     final changing = _changing && mine != null;
     final locked = mine != null && !changing;
@@ -239,6 +240,18 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
             case final Widget action) ...[
           const SizedBox(height: 8),
           action,
+        ],
+        if (inherited != null && !changing) ...[
+          const SizedBox(height: 6),
+          Text(
+            key: const ValueKey('team-rating-inherited'),
+            'Tu ${inherited.score} es de la versión anterior, revisada como '
+            'equivalente. Vale aquí; mantén presionado para votar de nuevo.',
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.white.withValues(alpha: 0.6),
+            ),
+          ),
         ],
         const SizedBox(height: 8),
         Row(
@@ -429,12 +442,18 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
       for (final rating in ratings)
         if (rating.reviewerId != mine.reviewerId) rating,
     ];
+    // Votes on THIS exact revision the reviewer has not unlocked: the average
+    // is partial and must say so, never read as the whole team's verdict.
+    final hiddenHere = controller.hiddenCount(visualId, revision);
     return Text.rich(
       TextSpan(
         style: style,
         children: [
           TextSpan(
-            text: 'Equipo ${_formatScore(average)}',
+            text:
+                hiddenHere > 0
+                    ? 'Equipo ${_formatScore(average)} (parcial)'
+                    : 'Equipo ${_formatScore(average)}',
             style: const TextStyle(fontWeight: FontWeight.w800, color: _accent),
           ),
           TextSpan(
@@ -448,6 +467,12 @@ class _TeamRatingPanelState extends State<TeamRatingPanel> {
                         )
                         .join(),
           ),
+          if (hiddenHere > 0)
+            TextSpan(
+              text:
+                  ' · faltan $hiddenHere '
+                  '${hiddenHere == 1 ? 'voto' : 'votos'} de esta versión',
+            ),
         ],
       ),
     );

@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff000000, 0xffffffff, 0xffc9d0e0, 0xff7a8296],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // El haz y el arcoíris laten sin parar: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

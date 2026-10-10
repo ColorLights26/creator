@@ -153,6 +153,9 @@ final class SceneCreatorCommandRenderer {
   private let program: SceneCreatorCatalog.Program
   private let images: [MTLTexture]
   private let colorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
+  private var poolSize = SIMD2<Int>(0, 0)
+  private var sourcePool = [MTLTexture]()
+  private var floatPool = [MTLTexture]()
 
   init(device: MTLDevice, program: SceneCreatorCatalog.Program) throws {
     self.device = device; self.program = program
@@ -196,15 +199,21 @@ final class SceneCreatorCommandRenderer {
 
   private struct State {
     var transform = CGAffineTransform.identity
-    var clips: [(SceneCatalogVectorPath, CGAffineTransform)] = []
+    /// Active clips with their mask, rendered once when the clip is pushed.
+    var clips: [CIImage] = []
   }
   private struct Saved {
     let state: State
     let parent: CIImage?
     let opacity: Float
     let blend: Int
+    var floating: MTLTexture? = nil
   }
 
+  /// Preserve authored composition order with eight reusable source textures.
+  /// RGBA16 checkpoints release each CI batch without clipping additive RGB.
+  /// Layer parents retain their checkpoint until restore. The native counter
+  /// mirrors allocations, including double-sized float textures and masks.
   func render(commands: UnsafeBufferPointer<Float>, size: CGSize, width: Int, height: Int,
               background: [Float]? = nil, outputAllocator: SceneSurfaceNativeOutputAllocator) throws -> MTLTexture {
     let bounds = CGRect(x: 0, y: 0, width: width, height: height)
@@ -216,10 +225,19 @@ final class SceneCreatorCommandRenderer {
       output = CIImage(color: CIColor(red: CGFloat(fill[0]), green: CGFloat(fill[1]), blue: CGFloat(fill[2]))).cropped(to: bounds)
     }
     var state = State(); var stack = [Saved]()
-    var canvas = SceneCatalogVectorCanvas(); var batchBlend = 0
+    var floating: MTLTexture?
+    if poolSize != SIMD2(width, height) {
+      sourcePool.removeAll(); floatPool.removeAll(); poolSize = SIMD2(width, height)
+    }
+    let frame = try SceneCatalogFrameCommand(queue: queue)
+    for texture in sourcePool + floatPool { try frame.retain(texture) }
+    var nextSource = 0; var usedSources = 0
+    var usedFloats = Set<ObjectIdentifier>()
+    let strokeGeometry = SceneCatalogVectorCanvas.StrokeGeometryCache()
+    var canvas = SceneCatalogVectorCanvas(strokeGeometry: strokeGeometry); var batchBlend = 0
     var passes = 0; var retainedBytes = 0
     // CI retains the intermediate images until the final render. Account for
-    // every allocation, including masks/groups, rather than only vector scratch.
+    // every texture, including masks and materializations, not only vector scratch.
     func account(_ w: Int, _ h: Int) throws {
       passes += 1; retainedBytes += w * h * 4
       guard passes <= 192, retainedBytes <= 128 * 1024 * 1024 else { throw SceneCreatorFailure("Scene intermediate texture/pass budget exceeded") }
@@ -232,31 +250,73 @@ final class SceneCreatorCommandRenderer {
       source.applyingFilter(blend == 1 ? "CIAdditionCompositing" : blend == 2 ? "CIScreenBlendMode" : "CISourceOverCompositing",
         parameters: [kCIInputBackgroundImageKey: destination]).cropped(to: bounds)
     }
-    func clipped(_ source: CIImage) throws -> CIImage {
+    func clipped(_ source: CIImage) -> CIImage {
       var result = source
-      for (path, transform) in state.clips {
-        try account(width, height)
-        let maskCanvas = SceneCatalogVectorCanvas(); maskCanvas.concat(transform)
-        let paint = SceneCatalogVectorPaint(); paint.color = .init(0xffffffff)
-        maskCanvas.drawPath(path, paint)
-        let texture = try vector.render(canvas: maskCanvas, logicalWidth: size.width, logicalHeight: size.height,
-          width: width, height: height, outputAllocator: nil)
-        result = result.applyingFilter("CIBlendWithAlphaMask", parameters: [kCIInputBackgroundImageKey: transparent, kCIInputMaskImageKey: try image(texture)])
+      for mask in state.clips {
+        result = result.applyingFilter("CIBlendWithAlphaMask", parameters: [kCIInputBackgroundImageKey: transparent, kCIInputMaskImageKey: mask])
       }
       return result
     }
+    /// A texture Core Image can render into (the output allocator's textures
+    /// are render targets only).
+    func newTexture() throws -> MTLTexture {
+      let descriptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: .bgra8Unorm, width: width, height: height, mipmapped: false)
+      descriptor.usage = [.shaderRead, .shaderWrite, .renderTarget]; descriptor.storageMode = .private
+      guard let texture = device.makeTexture(descriptor: descriptor) else { throw SceneCreatorFailure("Native scene intermediate unavailable") }
+      return texture
+    }
+    // Add/screen may leave RGB above 1 before later source-over draws.
+    // Preserve that range, settling each expression into reusable float
+    // textures instead of retaining one full-screen texture per points call.
+    func materialize(_ excluding: [MTLTexture] = []) throws {
+      var protected = excluding + stack.compactMap { $0.floating }
+      if let floating { protected.append(floating) }
+      var target = floatPool.first { candidate in !protected.contains { $0 === candidate } }
+      if target == nil {
+        let descriptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: .rgba16Float, width: width, height: height, mipmapped: false)
+        descriptor.usage = [.shaderRead, .shaderWrite, .renderTarget]; descriptor.storageMode = .private
+        guard let created = device.makeTexture(descriptor: descriptor) else { throw SceneCreatorFailure("Float composition output unavailable") }
+        floatPool.append(created); target = created
+      }
+      guard let target else { throw SceneCreatorFailure("Float composition command unavailable") }
+      if usedFloats.insert(ObjectIdentifier(target)).inserted {
+        // Count live RGBA16 units even when reusing the preceding frame's pool.
+        try account(width, height); try account(width, height)
+      }
+      try frame.retain(target)
+      context.render(output, to: target, commandBuffer: frame.command, bounds: bounds, colorSpace: colorSpace)
+      output = try image(target); floating = target; nextSource = 0
+    }
+    func sourceTexture() throws -> MTLTexture {
+      if nextSource == 8 { try materialize() }
+      if nextSource == sourcePool.count {
+        sourcePool.append(try newTexture())
+      }
+      if nextSource == usedSources { try account(width, height); usedSources += 1 }
+      let texture = sourcePool[nextSource]; nextSource += 1
+      try frame.retain(texture)
+      return texture
+    }
     func flush() throws {
       guard !canvas.draws.isEmpty else { return }
-      try account(width, height)
+      let target = try sourceTexture()
       let texture = try vector.render(canvas: canvas, logicalWidth: size.width, logicalHeight: size.height,
-        width: width, height: height, outputAllocator: nil)
-      output = composite(try clipped(image(texture)), output, batchBlend)
-      canvas = SceneCatalogVectorCanvas()
+        width: width, height: height, outputAllocator: nil, into: target, frame: frame)
+      output = composite(clipped(try image(texture)), output, batchBlend)
+      canvas = SceneCatalogVectorCanvas(strokeGeometry: strokeGeometry)
     }
     func append(_ path: SceneCatalogVectorPath, _ paint: SceneCatalogVectorPaint) throws {
       let blend = paint.blendMode == .plus ? 1 : paint.blendMode == .screen ? 2 : 0
       if blend != batchBlend { try flush(); batchBlend = blend }
       canvas.save(); canvas.concat(state.transform); canvas.drawPath(path, paint); canvas.restore()
+    }
+    func draw(points: [SIMD2<Float>], radius: Float, paint: SceneCatalogVectorPaint) throws {
+      try flush()
+      let group = SceneCreatorPointRenderer.Group(points: points, radius: radius, paint: paint, transform: state.transform)
+      let texture = try particles.render(groups: [group], into: sourceTexture(), loadExisting: false,
+        size: size, width: width, height: height, frame: frame)
+      let blend = paint.blendMode == .plus ? 1 : paint.blendMode == .screen ? 2 : 0
+      output = composite(clipped(try image(texture)), output, blend)
     }
     let r = SceneCreatorCommandReader(commands)
     while !r.done {
@@ -271,29 +331,36 @@ final class SceneCreatorCommandRenderer {
         if let parent = saved.parent {
           output = output.applyingFilter("CIColorMatrix", parameters: ["inputAVector": CIVector(x: 0, y: 0, z: 0, w: CGFloat(saved.opacity))])
           output = composite(output, parent, saved.blend)
+          try materialize(saved.floating.map { [$0] } ?? [])
         }
         state = saved.state
       case 3:
-        try flush(); let opacity = try r.value(), blend = try r.integer(0, 2)
-        stack.append(Saved(state: state, parent: output, opacity: opacity, blend: blend)); output = transparent
+        try flush(); if nextSource > 0 { try materialize() }
+        let opacity = try r.value(), blend = try r.integer(0, 2)
+        stack.append(Saved(state: state, parent: output, opacity: opacity, blend: blend, floating: floating))
+        output = transparent; floating = nil
       case 4:
         try flush()
         let matrix = CGAffineTransform(a: CGFloat(try r.value()), b: CGFloat(try r.value()), c: CGFloat(try r.value()), d: CGFloat(try r.value()), tx: CGFloat(try r.value()), ty: CGFloat(try r.value()))
         state.transform = matrix.concatenating(state.transform)
       case 5:
-        try flush(); state.clips.append((try r.path(), state.transform))
+        try flush()
+        let path = try r.path()
+        try account(width, height)
+        let maskCanvas = SceneCatalogVectorCanvas(); maskCanvas.concat(state.transform)
+        let paint = SceneCatalogVectorPaint(); paint.color = .init(0xffffffff)
+        maskCanvas.drawPath(path, paint)
+        let texture = try vector.render(canvas: maskCanvas, logicalWidth: size.width, logicalHeight: size.height,
+          width: width, height: height, outputAllocator: nil, frame: frame)
+        try frame.retain(texture)
+        state.clips.append(try image(texture))
       case 6:
         let paint = try r.paint(); try append(r.path(), paint)
       case 7:
-        try flush(); let paint = try r.paint(), radius = try r.value(), count = try r.integer(0, 32768)
+        let paint = try r.paint(), radius = try r.value(), count = try r.integer(0, 32768)
         var points = [SIMD2<Float>](); points.reserveCapacity(count)
         for _ in 0..<count { points.append(SIMD2(try r.value(), try r.value())) }
-        if !points.isEmpty, radius > 0 {
-          try account(width, height)
-          let texture = try particles.render(points: points, radius: radius, paint: paint, transform: state.transform,
-            size: size, width: width, height: height)
-          output = composite(try clipped(image(texture)), output, paint.blendMode == .plus ? 1 : paint.blendMode == .screen ? 2 : 0)
-        }
+        if !points.isEmpty, radius > 0 { try draw(points: points, radius: radius, paint: paint) }
       case 8, 9:
         try flush()
         let index = try r.integer(0, op == 8 ? images.count - 1 : materials.count - 1), rect = try r.rect()
@@ -308,23 +375,22 @@ final class SceneCreatorCommandRenderer {
           let physical = rect.applying(state.transform).applying(scale)
           let w = max(1, min(width, Int(ceil(abs(physical.width))))), h = max(1, min(height, Int(ceil(abs(physical.height)))))
           try account(w, h)
-          texture = try materials.render(index: index, uniforms: values, images: sampled, width: w, height: h)
+          texture = try materials.render(index: index, uniforms: values, images: sampled, width: w, height: h, frame: frame)
+          try frame.retain(texture)
         }
         let placement = CGAffineTransform(scaleX: rect.width / CGFloat(texture.width), y: rect.height / CGFloat(texture.height))
           .concatenating(CGAffineTransform(translationX: rect.minX, y: rect.minY)).concatenating(state.transform).concatenating(scale)
         var content = try image(texture).transformed(by: placement)
         if opacity != 1 { content = content.applyingFilter("CIColorMatrix", parameters: ["inputAVector": CIVector(x: 0, y: 0, z: 0, w: CGFloat(opacity))]) }
-        output = composite(try clipped(content), output, blend)
+        output = composite(clipped(content), output, blend)
       default: throw SceneCreatorFailure("Unknown drawing command")
       }
       guard r.position == end, stack.count <= 64 else { throw SceneCreatorFailure("Invalid native command layout") }
     }
     try flush()
     guard stack.isEmpty, let target = try SceneSurfaceNativeOutputAllocator.makeTexture(device: device, width: width, height: height, allocator: outputAllocator) else { throw SceneCreatorFailure("Native scene target unavailable") }
-    guard let command = queue.makeCommandBuffer() else { throw SceneCreatorFailure("Composition command unavailable") }
-    context.render(output, to: target, commandBuffer: command, bounds: bounds, colorSpace: colorSpace)
-    command.commit(); command.waitUntilCompleted()
-    guard command.status == .completed else { throw command.error ?? SceneCreatorFailure("Composition failed") }
+    context.render(output, to: target, commandBuffer: frame.command, bounds: bounds, colorSpace: colorSpace)
+    try frame.complete()
     return target
   }
 }

@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff020108, 0xff1f4dff, 0xff9d2bff, 0xffe6dcff],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // La seda se transforma sin parar: a 60 FPS el giro es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

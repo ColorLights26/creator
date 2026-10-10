@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff0a0a0a, 0xffff1f1f, 0xffffd400, 0xfff5f0e6],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Las letras entran de golpe: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

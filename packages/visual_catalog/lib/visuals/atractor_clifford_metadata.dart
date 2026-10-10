@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff050100, 0xffd8200a, 0xffff8a00, 0xffffe9a8],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Los velos cambian de forma sin parar: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

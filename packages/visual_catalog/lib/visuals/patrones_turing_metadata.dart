@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff010506, 0xffff5e00, 0xff00c9b1, 0xffffe3a0],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Los patrones crecen sin parar: a 60 FPS la transformación es fluida.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

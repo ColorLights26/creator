@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff050100, 0xffff2a00, 0xffff9500, 0xffffef9a],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Las generaciones cambian a saltos y las brasas se apagan suave.
-  framesPerSecond: 60,
+  framesPerSecond: 30, // energía: 60 no cabe; ver energy/frame_rate_record.json
 );

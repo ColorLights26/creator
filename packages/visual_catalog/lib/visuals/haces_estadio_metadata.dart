@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff020208, 0xff3a5cff, 0xffff2fb4, 0xff35e8ff],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Haces anchos en movimiento: a 30 FPS se perciben a saltos.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

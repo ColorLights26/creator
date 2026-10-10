@@ -50,6 +50,9 @@ jobs:
       - name: Generate the canonical catalog
         working-directory: studio
         run: dart run tool/compile_visuals.dart
+      - name: Frame rates match the energy record
+        working-directory: studio
+        run: dart run tool/frame_rate.dart check
       - name: Reject stale generated files
         shell: bash
         run: |
@@ -84,19 +87,20 @@ jobs:
           cp studio/test/fixtures/template_example/*.dart packages/visual_catalog/lib/visuals/
           (cd studio && dart run tool/compile_creator.dart)
           dart studio/tool/generate_template.dart --check
-          # Drafts may still carry a modifier that changes nothing (a warning
-          # here, an error at app approval); the template and the test
+          # Drafts may still carry a modifier that changes nothing, or go over
+          # 28 passes per frame on the iPad with every setting at its maximum
+          # or in a variation (warnings here); the template and the test
           # visuals never may.
           set -o pipefail
           python3 packages/scene_program_native/test/check_native.py --generated studio/build/creator_native | tee /tmp/native-check.log
-          if grep -E '^WARN (template_example|modifier_probe):' /tmp/native-check.log; then exit 1; fi
+          if grep -E '^WARN (passes creator_)?(template_example|modifier_probe):' /tmp/native-check.log; then exit 1; fi
           clang++ -std=c++17 -O2 -shared -fPIC packages/scene_program_native/src/creator_scene.cpp packages/scene_program_native/src/creator_registry.cpp -Istudio/build/creator_native -o /tmp/libcreator_test.so
       - name: Native scenes through Flutter Canvas
         working-directory: studio
         run: flutter test --no-pub --dart-define=CREATOR_TEST_LIBRARY=/tmp/libcreator_test.so --dart-define=CREATOR_PIXEL_OUTPUT=/tmp/creator-pixels test/native_scene_pixels_test.dart
       - name: Studio tests, including the compiled portable shader
         working-directory: studio
-        run: flutter test --no-pub test/creator_studio_test.dart test/adjustment_session_test.dart test/team_review_test.dart test/visual_registry_generator_test.dart test/android_shader_runtime_test.dart test/creator_thumbnail_test.dart
+        run: flutter test --no-pub test/creator_studio_test.dart test/adjustment_session_test.dart test/team_review_test.dart test/visual_registry_generator_test.dart test/android_shader_runtime_test.dart test/creator_thumbnail_test.dart test/frame_rate_tool_test.dart
       - name: Resolve compositor test dependencies
         working-directory: packages/scene_compositor
         run: flutter pub get

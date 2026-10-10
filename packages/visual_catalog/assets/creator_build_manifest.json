@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "hash": "046293f82cdfae6084286a43563dd9ca2baac4c9c01c036eebe70b3468467173",
+  "engine": {
+    "sdkHash": "f7e3b26c2d074a5eb648d37f0cc4c5211fae5703cacc9ccedf5b145a85037c76",
+    "abi": 1,
+    "glideRuntime": 2,
+    "runtime": {
+      "files": {
+        "MusicVibeRenderEngine.swift": "35a1c9ee48a0dbd656c41cdea8908e8cb17f7f2b508b6becc02917fc419b66f4",
+        "PictureInPictureHandler.swift": "40cf0d1ee6d9aa918b712b1d30d0d173fe626f8fdc7bf11aeb24acded196b036",
+        "SceneCatalogAmbientShadow.swift": "3a52be81a88438a6a33eeb41286101dbc53cdea1235f96d0e78fff3ec990caab",
+        "SceneCatalogAuroraRenderer.swift": "8907184867c907c366162fa035c5ffd8d0699f8ee2dd2a1a057c7093ea246559",
+        "SceneCatalogAuroraState.swift": "7c462ee18cbbc5836c6e3f1d7b2c86f5eaca55948c606bc2a7d14a5eaf3b7efc",
+        "SceneCatalogBlendKernel.swift": "1c073e0572fa9301883776099e375e3aac432bdd08dce7c9139d626aefb1d49d",
+        "SceneCatalogBlueSkyRenderer.swift": "307f4ff5b8b95b414a7179b7101dfa366cf4e9588e797e9ff624e9375198aff0",
+        "SceneCatalogCloudRenderer.swift": "82279110c987f5d8473e8f112f23ffb3ee641b30ae4c3fd7a2a436e0edd720c2",
+        "SceneCatalogCreatorMaterials.swift": "9f4d6dca02772e4f04d258cce800919b81e0f498f1cc5fbc48a9fc8c116868bb",
+        "SceneCatalogCreatorRegistry.swift": "6870e1d81c8b67fcbfe3af7bffbefbfa8247e51201cd805abf172834c4f666e7",
+        "SceneCatalogCreatorScene.swift": "bc848dcfea64d08a287b3272214f383acf9771fa9f4a31f034bada5d278bd2a5",
+        "SceneCatalogCreatorState.swift": "39af0928bc3f11d00cfd8beb1331bc73f1012031cd3c45fd94d942fc2e0df71d",
+        "SceneCatalogFamilyShaderState.swift": "6b3d1c2cb0fc2abdadb4bc4679970626f32bf30cf98a0b2ddbf891603268f80c",
+        "SceneCatalogFrameCommand.swift": "90c4899f349d1ab4f842d91f895631b97f33690c21daad7ecea11434853c2cc9",
+        "SceneCatalogIndividualShaderState.swift": "f7ec9999d83efbad9909493c4acc82669bc2b42878ce588971d23861a3e11f92",
+        "SceneCatalogLiquidLavaRenderer.swift": "322dc91fa27ddccbc6d640ac16d9e8061542d06167258fd9d01f3a9b8d29504a",
+        "SceneCatalogLiquidLavaState.swift": "0304cf97b533031ce7272c4e614d6fdeb9645c3c1820af29d3866dfde1a019c0",
+        "SceneCatalogNativeProgram.swift": "5913e8a147238c89e19004d47367366bedee5454547dfd1188991f29ca979ffc",
+        "SceneCatalogNeonClubRenderer.swift": "0b1f37fc210ec5cab80cda57aec103e215b2ac82fa7452b7e084fde3480ab9f5",
+        "SceneCatalogNeonClubState.swift": "5954bc6b496b287e4b1c6dce1ca5f48bd07e052325ac2baff47644f5a08b13f7",
+        "SceneCatalogShaderRenderer.swift": "c15525e9452f958b0ebd1009e82b7bf2d0d31dbd0b6a12fc36285f0823f28f10",
+        "SceneCatalogShaderSources.generated.swift": "7b569ce9a7059644b0c4117ad793c75dab6526dd2d7eddb7959de9bfa8c481fa",
+        "SceneCatalogVectorCanvas.swift": "0b2a8173b95720efa713046799b663cec072df1ee71f2f505d159d67796d7a4c",
+        "SceneRenderNodeRegistryV1.generated.swift": "ad6325a78b47fd06b96b70f57d3bed4726fd7e76d43390a2c956c0c1eadbe7c1",
+        "SceneRenderSignalFrameV2.swift": "0210ce37d14bb0ada61d92145d9ec9a127cc730a88c44699b576646f999eb72e",
+        "SceneRenderV2ImageSurface.swift": "76331d573008d5e8e1fa5ecb30aa47b118d52102d537cad02118fdf4cf3d0586",
+        "SceneRenderV2ShadowCompiler.swift": "b858608cbac9d160a9a8ea5367ea82c6a7d6e910928cd930f1fa9bca9e24e898",
+        "SceneVideoAdmissionContract.generated.swift": "059460b2e8d4c91c2cfcf0d7329d4a04dddb654de1ec67e28416d28650219db3",
+        "SceneRenderV2ImageSurface.swift#SceneSurfaceNativeOutputAllocator": "53b4288506c28bee72fc51d80f43795086997f0431a63e5df817f9d38a4f789a"
+      },
+      "hash": "f61b7c3fcde5c9adbbc90e3ed0ba4f4a7254af22c2f95c64952d0aa50b53d272"
+    },
+    "materialToolchainHash": "59a729197497b0aeb62e25afcf4958a78b7bc111378c41fa47b1909b9a51c5ec",
+    "resources": {
+      "files": {},
+      "hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "checks": {
+      "files": {
+        "authored_probe.cpp": "8b9b1ff8ffa819446c9df7e71fc3a48d7d00c32474cd181ffae2025396a47f69",
+        "check_native.py": "b722f1d4e9bc95fbd97ba722961c32502a5ba79ab9f7f5d323ceb76b14bef873",
+        "runtime_test.cpp": "cbccca01e96b9c579c7ac300bedb38c56434c7a6de9b6da87c46f22f3be039d3",
+        "creator_scene_tests.swift": "fb78b2d88b269c152988d9ab4c918abf15bd0c61cf5d05dd3daad3bf3d77d000",
+        "check_creator_scenes.py": "6c052f335afb0bd60b31c736cfa88ab487114517938a2333ed017c65528d4f9d",
+        "creator_catalog_tests.swift": "be5d2ece6ed826b275ce2d86b9bfce8a5a969c62e16de53e15a790de596a501b",
+        "check_creator_catalog.rb": "8a4f097dea74fe2599deae634f561c867a06ce0da58d88156817625af629ec0e"
+      },
+      "hash": "306d9ae38b9d64b2741aeeba44c166b6ee52fc0f96367ce7e52142517ee9de27"
+    },
+    "buildInputs": {
+      "files": {
+        "packages/scene_compositor/lib/native_compiler.dart": "4ac5b5ce447165b808539f58624bb884660a9ca124abdd1ddaf6c9a04a23dccf",
+        "packages/scene_compositor/lib/authoring.dart": "d2e00379194dface5bd4dc468294cead8e1aa5f9eaddd4d70e3c8bfbe63409f4",
+        "packages/scene_compositor/lib/scene_compositor.dart": "5dd0a7b59ef36ecf9fba16674a598a350b6b291e9caca81a40273d3c2efea2f0",
+        "packages/scene_compositor/lib/shader_compiler.dart": "358bc0a78529459fb4bf6540185f26c400e8aac4c78b91153da8067001d6b28b",
+        "packages/scene_compositor/lib/src/creator_command_canvas.dart": "ad926f0a9b06755fcd23f777f37b477c0dd5ef7c57bd31614e4fd1d3ca06ee23",
+        "packages/scene_compositor/lib/src/creator_catalog_decoder.dart": "43cb60b1f740439770ca59ad3deded0aae822a470b0602e3dcb235b61afff117",
+        "packages/scene_compositor/lib/src/creator_visual_definition.dart": "99daa43b72b94541146b523b1e4f5f4da25715c5be14d50dfa39307ba1cc8f41",
+        "packages/scene_compositor/lib/src/creator_visual_metadata.dart": "bb47e18e94b91f66f2ce96e5631d5af30d047dba8088839f775da2dd893be32c",
+        "packages/scene_compositor/lib/src/creator_source_admission.dart": "94e15624804367fe8855e1a66d5ce74f3b56cd72cd4e1c340733b1b839fb1f09",
+        "packages/scene_compositor/lib/src/creator_variation.dart": "b7013899ea4d3207098a8bb72aa185c7848fa7a45218e8f9503a31c01f0101a0",
+        "packages/scene_compositor/lib/src/creator_shader_program.dart": "539712cf2d57cf53e10d1f7607fadc95b3223d5e8b2c93a0dbd316059234740c",
+        "packages/scene_compositor/lib/src/creator_native_program.dart": "0b47b907a3dd325790c45b49e41db733115dd8a12bd45cfedb3436918d0b74bd",
+        "packages/scene_compositor/lib/src/creator_shader_frame.dart": "5c0be4418c4ab4c73640efc14e2dd797ba97ac390dde535615f06d353558c78d",
+        "packages/scene_compositor/lib/src/scene_compositor_controller.dart": "da333d4e36d894ed973f3d0b2b383f56e8abc62c6be6f9e3cec126dbaa13a127",
+        "packages/scene_compositor/ios/Classes/SceneCompositorPlugin.swift": "7c07a1c304ae9cf3b4947942a7c1d6e15e571dc06c008e163dd0e40583be838d",
+        "packages/scene_compositor/lib/creator_build_manifest.dart": "e21d7230219feaba230447e3ea2301c5ca9c884845bb866f4adfc3e6ad909347",
+        "packages/scene_compositor/lib/creator_device_card_evidence.dart": "b9ae9384c9405171e30e9946d1654dd3d7aefacda6b4adb671c94aa3bbc9bb3c",
+        "packages/scene_compositor/lib/creator_trace_samples.dart": "0804c41f3f4eb27d9b1033aea3d3543235c91e0cb6dd1a84a9c4a485d0248334",
+        "packages/scene_compositor_host/lib/scene_compositor_host.dart": "461ea7a76f8620cddc73119efe59084a735befdabfc8aa67cadf116d244cdd9f",
+        "packages/scene_compositor_host/ios/Classes/SceneCompositorHostPlugin.swift": "c80ef5d96a0827e63d54f520dfe8897bae8508c14e10ffbb52250e3dbd3e6d28",
+        "packages/scene_compositor_host/ios/Classes/SceneCompositorHostQaChannel.swift": "5f246783674acb2305d44c84ff148cf98e7e8c964d593820a6c1567ccbf4e678",
+        "packages/scene_compositor/ios/scene_compositor.podspec": "d0bd0f503e7eff6b9963adea63b82b29e9ead93d2659b22a3defa38be278c86b",
+        "packages/scene_compositor_host/ios/scene_compositor_host.podspec": "98660d4410670fe780413ba27b5e38ef43a19f501b8c3b461cccbfa8a66724fe",
+        "studio/tool/compile_visuals.dart": "3b0b96ef5352935ff81bc6e2e9fff1d30ead030f40f40df8344cc4417e76dde9",
+        "studio/tool/build_catalog_assets.dart": "d63b21bd01d0802a16c2d0a98f9225b0bce6a82be5c6edb663ce07d174b1b943",
+        "studio/tool/readiness.dart": "729f30c7e5fff90b9536178378cf5c65bf0b3d517500d5e25313da1416274251",
+        "studio/lib/probe/energy_probe_record.dart": "0eb3bb22905f6c5fa4688edc0c366f671e86fd9fbd6135c6b67b1c1d7260f906",
+        "studio/lib/probe/energy_probe_screen.dart": "dc482168f5d99b02136b919391fba73d79d21a0d28b9d3b66e80c009716aa444",
+        "studio/lib/probe/energy_probe_identity.dart": "c01900590ef8267474383aeb4d4af6b56099a2ab20eb339992b563a4ca87ce64",
+        "studio/lib/probe/energy_probe_loud_signal.dart": "8d8eea352e41c71921fb371a653f270e64559e14149da706faf089918da0062d",
+        "studio/lib/probe/energy_probe_profile.dart": "7b47040ce59d1ddca4d57484a87cea52b25746241dbe8390f21bc7f25c6095ba",
+        "studio/lib/probe/energy_probe_spec.dart": "e59416b9b36b5093dc7aec6a7c99718ae10336eac8a89570a0ef837e11441a4e"
+      },
+      "hash": "9952ef7af93ca50602b4d86515ac6bfb89544c755f49e05d452607f7ebcc8de1"
+    },
+    "surfaces": {
+      "iPhone": {
+        "width": 664,
+        "height": 1440,
+        "logicalHeight": 852,
+        "maxPasses": 35
+      },
+      "iPad": {
+        "width": 900,
+        "height": 1296,
+        "logicalHeight": 1180,
+        "maxPasses": 28
+      }
+    },
+    "rendererMaxPasses": 192,
+    "rendererMaxRetainedBytes": 134217728,
+    "energyContract": {
+      "revision": "scene-energy-budget-v1",
+      "semanticHash": "f8cd0d04940e0cf0a80d6861d073ea6c061f353e4c442708ba22a53499d3f012",
+      "valuesHash": "2ea928927b705de186d7816d11650e4f6bd2cced1e4cff0a1942a57fe6eac9e7"
+    }
+  },
+  "catalogSha256": "9ec052e5b53006f5436b1342d578b5c2a343fb6334b72fdd797bec7dc80a5faa"
+}

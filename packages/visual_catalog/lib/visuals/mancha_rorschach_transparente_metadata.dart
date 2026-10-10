@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0x00000000, 0xff0a0505, 0xffc8001e, 0xff5a0010],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // La tinta se transforma despacio y salpica rápido: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

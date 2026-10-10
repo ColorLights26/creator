@@ -16,6 +16,10 @@ class Visual final : public Scene {
   std::array<float, 31> spec{};
   float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;
   float kick = 0, flash = 0, drive = 0;
+  // Geometría y pinturas de las filas del cuadro (memoria reservada en reset).
+  mutable std::vector<Path> crests, fills;
+  const Path blank;
+  mutable std::vector<Paint> auras, strokes;
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
@@ -56,6 +60,10 @@ class Visual final : public Scene {
     frac = 0;
     spec.fill(0);
     bass = body = spark = energy = slowBass = kick = flash = drive = 0;
+    crests.assign(size_t(kRows), Path());
+    fills.assign(size_t(kRows), Path());
+    auras.assign(size_t(kRows), Paint());
+    strokes.assign(size_t(kRows), Paint());
   }
 
   void update(const Frame& f) override {
@@ -107,6 +115,7 @@ class Visual final : public Scene {
     const Color& line = f.colors[1];
     const Color& glow = f.colors[2];
     // De la fila más antigua (al fondo) a la más reciente (delante).
+    int count = 0;
     for (int k = kRows - 1; k >= 0; k--) {
       int64_t n = pushed - k;
       int row = int(((n % kRows) + kRows) % kRows);
@@ -117,38 +126,60 @@ class Visual final : public Scene {
       float yBase = h * 0.16f + h * 0.74f * std::pow(1.0f - z, 1.3f);
       float hs = h * 0.24f * persp * (0.9f + 0.4f * amp);
       float spread = w * 1.25f * persp;
-      Path crest, fill;
+      Path& crest = crests[size_t(count)];
+      Path& fill = fills[size_t(count)];
+      crest = blank;  // copia de un trazo vacío: conserva la memoria del cuadro anterior
       for (int col = 0; col < kCols; col++) {
         float x = w * 0.5f + (float(col) / float(kCols - 1) - 0.5f) * spread;
         float y = yBase - grid[size_t(row * kCols + col)] * hs;
-        if (col == 0) {
-          crest.moveTo(x, y);
-          fill.moveTo(x, y);
-        } else {
-          crest.lineTo(x, y);
-          fill.lineTo(x, y);
-        }
+        if (col == 0) crest.moveTo(x, y); else crest.lineTo(x, y);
       }
+      fill = crest;
       fill.lineTo(w * 0.5f + 0.5f * spread, yBase + h);
       fill.lineTo(w * 0.5f - 0.5f * spread, yBase + h);
       fill.close();
-      Paint cover;
-      cover.color = {bg.r, bg.g, bg.b, 1.0f};
-      c.path(fill, cover);
       float fade = std::pow(1.0f - z, 0.8f) * std::clamp((1.0f - z) * 6.0f, 0.0f, 1.0f);
       float peak = peaks[size_t(row)];
-      Paint aura;
-      aura.blend = Blend::plus;
+      Paint& aura = auras[size_t(count)];
+      aura = Paint();
       aura.strokeWidth = 5.0f * px * persp;
       aura.strokeJoin = 1;
       aura.color = {glow.r, glow.g, glow.b, std::clamp((0.06f + 0.5f * peak) * fade * f.glow * (0.8f + 0.6f * kick), 0.0f, 1.0f)};
-      c.path(crest, aura);
-      Paint stroke;
+      Paint& stroke = strokes[size_t(count)];
+      stroke = Paint();
       stroke.strokeWidth = (1.1f + 0.6f * kick * amp) * px * (0.6f + 0.4f * persp);
       stroke.strokeJoin = 1;
       stroke.color = {line.r, line.g, line.b, std::clamp(fade * (0.75f + 0.25f * flash), 0.0f, 1.0f)};
-      c.path(crest, stroke);
+      count++;
     }
+    // Cada fila tapa a las de detrás con su relleno opaco y encima va su
+    // línea: todo eso es sourceOver y va en un solo lote, en el mismo orden.
+    Paint cover;
+    cover.color = {bg.r, bg.g, bg.b, 1.0f};
+    for (int i = 0; i < count; i++) {
+      c.path(fills[size_t(i)], cover);
+      c.path(crests[size_t(i)], strokes[size_t(i)]);
+    }
+    // El halo de cada cresta se suma a la luz (plus) entre su relleno y su
+    // línea. Va en una capa aditiva aparte con el mismo orden: allí el relleno
+    // se repite en negro opaco (tapa los halos de detrás) y la línea en negro
+    // con su opacidad (atenúa lo que cubre), así la suma final es la misma.
+    c.saveLayer(1.0f, Blend::plus);
+    Paint hide;
+    hide.color = {0.0f, 0.0f, 0.0f, 1.0f};
+    bool lit = false;  // antes del primer halo no hay nada que tapar en la capa
+    for (int i = 0; i < count; i++) {
+      if (lit) c.path(fills[size_t(i)], hide);
+      if (auras[size_t(i)].color.a > 0.0f) {
+        c.path(crests[size_t(i)], auras[size_t(i)]);
+        lit = true;
+      }
+      if (!lit) continue;
+      Paint shade = strokes[size_t(i)];
+      shade.color = {0.0f, 0.0f, 0.0f, shade.color.a};
+      c.path(crests[size_t(i)], shade);
+    }
+    c.restore();
   }
 };
 ''';

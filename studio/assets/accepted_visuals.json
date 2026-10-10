@@ -1,0 +1,1543 @@
+{
+  "schemaVersion": 1,
+  "source": "Color Lights approved snapshots",
+  "approvedCatalogRevision": "ddb48934b9b08b81b56715a3cd3ce34c709c75ce6eda609d4894165703fbccbe",
+  "entries": [
+    {
+      "id": "anillos_humo",
+      "revision": "8bd8621c0d65e53d",
+      "integratedId": "anillos_humo",
+      "integratedRevision": "8bd8621c0d65e53d",
+      "snapshotRevision": "f820e4c2186573b238d7a01852a5556cfbf24d16ac3c62cbde9c135ae1ceaac2",
+      "relation": "integrated",
+      "family": "anillos_humo"
+    },
+    {
+      "id": "arbol_fractal",
+      "revision": "aedb36c844291c8f",
+      "integratedId": "arbol_fractal",
+      "integratedRevision": "aedb36c844291c8f",
+      "snapshotRevision": "43aee5e7252e454325051da70b5ce050b21d9efd67f7be82a44bd1c75e20b154",
+      "relation": "integrated",
+      "family": "arbol_fractal"
+    },
+    {
+      "id": "arbol_fractal_transparente",
+      "revision": "d37d4a58cdb9a05a",
+      "integratedId": "arbol_fractal",
+      "integratedRevision": "aedb36c844291c8f",
+      "snapshotRevision": "43aee5e7252e454325051da70b5ce050b21d9efd67f7be82a44bd1c75e20b154",
+      "relation": "equivalent",
+      "family": "arbol_fractal"
+    },
+    {
+      "id": "arcos_sueno",
+      "revision": "3043365bd5d33ce6",
+      "integratedId": "arcos_sueno",
+      "integratedRevision": "3043365bd5d33ce6",
+      "snapshotRevision": "c48b6fa4a3ecdf7a99961f07df173a4df2859210d91d4c4d195b045136e7d437",
+      "relation": "integrated",
+      "family": "arcos_sueno"
+    },
+    {
+      "id": "arena_colores",
+      "revision": "ddf518dc08ad1e7c",
+      "integratedId": "arena_colores",
+      "integratedRevision": "ddf518dc08ad1e7c",
+      "snapshotRevision": "d0234424866e4763bcfc6d2d665422c66d58495600035fef454f24c31cd6d079",
+      "relation": "integrated",
+      "family": "arena_colores"
+    },
+    {
+      "id": "arena_colores_transparente",
+      "revision": "23d97d7271433200",
+      "integratedId": "arena_colores",
+      "integratedRevision": "ddf518dc08ad1e7c",
+      "snapshotRevision": "d0234424866e4763bcfc6d2d665422c66d58495600035fef454f24c31cd6d079",
+      "relation": "equivalent",
+      "family": "arena_colores"
+    },
+    {
+      "id": "art_deco",
+      "revision": "528369d0a7f94772",
+      "integratedId": "art_deco",
+      "integratedRevision": "528369d0a7f94772",
+      "snapshotRevision": "18814dc29956b390d4e8d2b6b393f57c99f063ef11800dec541a70fbe00e0648",
+      "relation": "integrated",
+      "family": "art_deco"
+    },
+    {
+      "id": "atractor_lorenz",
+      "revision": "07f91e1351402441",
+      "integratedId": "atractor_lorenz",
+      "integratedRevision": "07f91e1351402441",
+      "snapshotRevision": "07b265c39f5754d82d3ca94513f9ac40a7bc6fc9ba8fef121b2bda909ca6eb45",
+      "relation": "integrated",
+      "family": "atractor_lorenz"
+    },
+    {
+      "id": "atractor_lorenz_transparente",
+      "revision": "5d940a3aa94770ce",
+      "integratedId": "atractor_lorenz",
+      "integratedRevision": "07f91e1351402441",
+      "snapshotRevision": "07b265c39f5754d82d3ca94513f9ac40a7bc6fc9ba8fef121b2bda909ca6eb45",
+      "relation": "equivalent",
+      "family": "atractor_lorenz"
+    },
+    {
+      "id": "aura",
+      "revision": "e4aa59c999ca34a3",
+      "integratedId": "aura",
+      "integratedRevision": "e4aa59c999ca34a3",
+      "snapshotRevision": "96048f1cc2a87afba1d63162b2c67516522ac310635221883f74ba3969d99c30",
+      "relation": "integrated",
+      "family": "aura"
+    },
+    {
+      "id": "aura_2",
+      "revision": "22f89367050bbcbb",
+      "integratedId": "aura_2_transparente",
+      "integratedRevision": "ba84e2ce3e334b8d",
+      "snapshotRevision": "5d206b715bf8c79601e32c49279152a8b36d553c4ebf0faec18fded60055f063",
+      "relation": "equivalent",
+      "family": "aura_2"
+    },
+    {
+      "id": "aura_2_transparente",
+      "revision": "ba84e2ce3e334b8d",
+      "integratedId": "aura_2_transparente",
+      "integratedRevision": "ba84e2ce3e334b8d",
+      "snapshotRevision": "5d206b715bf8c79601e32c49279152a8b36d553c4ebf0faec18fded60055f063",
+      "relation": "integrated",
+      "family": "aura_2"
+    },
+    {
+      "id": "bokeh_luces",
+      "revision": "05f84d61f21138a7",
+      "integratedId": "bokeh_luces",
+      "integratedRevision": "05f84d61f21138a7",
+      "snapshotRevision": "3bdedd6beb2feb0c2e1eedfa727fcb24b3de21a597f6644736fc46fd62b99a5a",
+      "relation": "integrated",
+      "family": "bokeh_luces"
+    },
+    {
+      "id": "bokeh_luces_2",
+      "revision": "2390637a9948ab4d",
+      "integratedId": "bokeh_luces_2",
+      "integratedRevision": "2390637a9948ab4d",
+      "snapshotRevision": "2e516b6ee5dd40b2365edd169070a372db9b5cc4228ceb39696afc6a48f26d7e",
+      "relation": "integrated",
+      "family": "bokeh_luces_2"
+    },
+    {
+      "id": "bokeh_luces_2_transparente",
+      "revision": "ce3a2a30401861fd",
+      "integratedId": "bokeh_luces_2",
+      "integratedRevision": "2390637a9948ab4d",
+      "snapshotRevision": "2e516b6ee5dd40b2365edd169070a372db9b5cc4228ceb39696afc6a48f26d7e",
+      "relation": "equivalent",
+      "family": "bokeh_luces_2"
+    },
+    {
+      "id": "bokeh_luces_transparente",
+      "revision": "578db02adc1cca8f",
+      "integratedId": "bokeh_luces",
+      "integratedRevision": "05f84d61f21138a7",
+      "snapshotRevision": "3bdedd6beb2feb0c2e1eedfa727fcb24b3de21a597f6644736fc46fd62b99a5a",
+      "relation": "equivalent",
+      "family": "bokeh_luces"
+    },
+    {
+      "id": "bola_discoteca",
+      "revision": "85bee59eda009f39",
+      "integratedId": "bola_discoteca_transparente",
+      "integratedRevision": "aac91f1b0ac8ab1d",
+      "snapshotRevision": "b1f9ca79dc6983b63081e357d7e4638f93b9d24199ded3fa99e1e5df463d873b",
+      "relation": "equivalent",
+      "family": "bola_discoteca"
+    },
+    {
+      "id": "bola_discoteca_transparente",
+      "revision": "aac91f1b0ac8ab1d",
+      "integratedId": "bola_discoteca_transparente",
+      "integratedRevision": "aac91f1b0ac8ab1d",
+      "snapshotRevision": "b1f9ca79dc6983b63081e357d7e4638f93b9d24199ded3fa99e1e5df463d873b",
+      "relation": "integrated",
+      "family": "bola_discoteca"
+    },
+    {
+      "id": "caleidoscopio_infinito",
+      "revision": "11916bee780d3521",
+      "integratedId": "caleidoscopio_infinito",
+      "integratedRevision": "11916bee780d3521",
+      "snapshotRevision": "0f052f265ffe9629ba6af7bf6fa501c5bb5a4252fe2200d75b7ea0b8adbd463e",
+      "relation": "integrated",
+      "family": "caleidoscopio_infinito"
+    },
+    {
+      "id": "caleidoscopio_infinito_transparente",
+      "revision": "bee1039f5379b601",
+      "integratedId": "caleidoscopio_infinito",
+      "integratedRevision": "11916bee780d3521",
+      "snapshotRevision": "0f052f265ffe9629ba6af7bf6fa501c5bb5a4252fe2200d75b7ea0b8adbd463e",
+      "relation": "equivalent",
+      "family": "caleidoscopio_infinito"
+    },
+    {
+      "id": "campo_flujo",
+      "revision": "86abbfc332f055e9",
+      "integratedId": "campo_flujo_transparente",
+      "integratedRevision": "4a647e288a0ca410",
+      "snapshotRevision": "a6ede902ec2af84af7e32219d423e7f6925351ad72aa7e0762e2245cbbde7b98",
+      "relation": "equivalent",
+      "family": "campo_flujo"
+    },
+    {
+      "id": "campo_flujo_transparente",
+      "revision": "4a647e288a0ca410",
+      "integratedId": "campo_flujo_transparente",
+      "integratedRevision": "4a647e288a0ca410",
+      "snapshotRevision": "a6ede902ec2af84af7e32219d423e7f6925351ad72aa7e0762e2245cbbde7b98",
+      "relation": "integrated",
+      "family": "campo_flujo"
+    },
+    {
+      "id": "capas_papel",
+      "revision": "3e4c4ef261175c1d",
+      "integratedId": "capas_papel",
+      "integratedRevision": "3e4c4ef261175c1d",
+      "snapshotRevision": "2cbf0ebed712417a55d40bf36bbfb7be9a416062eeaa3c474a4c20846a3f2acf",
+      "relation": "integrated",
+      "family": "capas_papel"
+    },
+    {
+      "id": "cascada_codigo",
+      "revision": "2cfd3b327d01ca7b",
+      "integratedId": "cascada_codigo_transparente",
+      "integratedRevision": "c6c1d751f7255344",
+      "snapshotRevision": "c53c863d8d5677415cf83ef9f3ab5cc0358316c05f98b495eccb9eb195875150",
+      "relation": "equivalent",
+      "family": "cascada_codigo"
+    },
+    {
+      "id": "cascada_codigo_transparente",
+      "revision": "c6c1d751f7255344",
+      "integratedId": "cascada_codigo_transparente",
+      "integratedRevision": "c6c1d751f7255344",
+      "snapshotRevision": "c53c863d8d5677415cf83ef9f3ab5cc0358316c05f98b495eccb9eb195875150",
+      "relation": "integrated",
+      "family": "cascada_codigo"
+    },
+    {
+      "id": "catedral_luz",
+      "revision": "78bea45211e850ae",
+      "integratedId": "catedral_luz",
+      "integratedRevision": "78bea45211e850ae",
+      "snapshotRevision": "01a2a6a3ce560bb58250c9960526beb2d38f9cc4d23438cd148e4df6f3dc52c7",
+      "relation": "integrated",
+      "family": "catedral_luz"
+    },
+    {
+      "id": "catedral_luz_transparente",
+      "revision": "2fd2ef1c60e6d695",
+      "integratedId": "catedral_luz",
+      "integratedRevision": "78bea45211e850ae",
+      "snapshotRevision": "01a2a6a3ce560bb58250c9960526beb2d38f9cc4d23438cd148e4df6f3dc52c7",
+      "relation": "equivalent",
+      "family": "catedral_luz"
+    },
+    {
+      "id": "causticas",
+      "revision": "ae00438a726193a1",
+      "integratedId": "causticas",
+      "integratedRevision": "ae00438a726193a1",
+      "snapshotRevision": "3d5a4135abacbbfa21f95095879c29c37275aa350ddbf082c4e1fad485bab983",
+      "relation": "integrated",
+      "family": "causticas"
+    },
+    {
+      "id": "celulas_voronoi",
+      "revision": "86e4cd2b78bb56f5",
+      "integratedId": "celulas_voronoi",
+      "integratedRevision": "86e4cd2b78bb56f5",
+      "snapshotRevision": "1f6cd25b6e21db6d7f4ae7a77269a1e86ec753e441cbae26bd7888e44383f6a1",
+      "relation": "integrated",
+      "family": "celulas_voronoi"
+    },
+    {
+      "id": "cimatica",
+      "revision": "da7f1049260edbc1",
+      "integratedId": "cimatica",
+      "integratedRevision": "da7f1049260edbc1",
+      "snapshotRevision": "bfea56a75689f5ed925d139dbb568b2757dff1d23501a6a16f3c5d79331f25ee",
+      "relation": "integrated",
+      "family": "cimatica"
+    },
+    {
+      "id": "cimatica_transparente",
+      "revision": "ffa07708d954f531",
+      "integratedId": "cimatica",
+      "integratedRevision": "da7f1049260edbc1",
+      "snapshotRevision": "bfea56a75689f5ed925d139dbb568b2757dff1d23501a6a16f3c5d79331f25ee",
+      "relation": "equivalent",
+      "family": "cimatica"
+    },
+    {
+      "id": "circulo_trap",
+      "revision": "4c28de9e0376b56c",
+      "integratedId": "circulo_trap",
+      "integratedRevision": "4c28de9e0376b56c",
+      "snapshotRevision": "9761912113b628070fcf5f0631e55e7066cf49ec32746bef95b29f7bb2eab2e8",
+      "relation": "integrated",
+      "family": "circulo_trap"
+    },
+    {
+      "id": "circulos_infinitos",
+      "revision": "48d83768631664e1",
+      "integratedId": "circulos_infinitos",
+      "integratedRevision": "48d83768631664e1",
+      "snapshotRevision": "84e1e5aa027a9d196f32c5621544ff3a8e2f75a20e8185227fcf2adea8f8baa5",
+      "relation": "integrated",
+      "family": "circulos_infinitos"
+    },
+    {
+      "id": "confeti",
+      "revision": "07765ae2b94a3eac",
+      "integratedId": "confeti",
+      "integratedRevision": "07765ae2b94a3eac",
+      "snapshotRevision": "29d19d72c26c0ab03668d7b236c0d3ccba47e62f0119c5462cbf20d306be7213",
+      "relation": "integrated",
+      "family": "confeti"
+    },
+    {
+      "id": "constelacion_viva",
+      "revision": "6b87a6c029f301c5",
+      "integratedId": "constelacion_viva",
+      "integratedRevision": "6b87a6c029f301c5",
+      "snapshotRevision": "c08ef708a31a407a9f36d8164777402a00bb56e36b1e55fc1fd357c0b231a2b7",
+      "relation": "integrated",
+      "family": "constelacion_viva"
+    },
+    {
+      "id": "constelacion_viva_transparente",
+      "revision": "5e3e083a080629ed",
+      "integratedId": "constelacion_viva",
+      "integratedRevision": "6b87a6c029f301c5",
+      "snapshotRevision": "c08ef708a31a407a9f36d8164777402a00bb56e36b1e55fc1fd357c0b231a2b7",
+      "relation": "equivalent",
+      "family": "constelacion_viva"
+    },
+    {
+      "id": "corredor_neon",
+      "revision": "06096d8491072c06",
+      "integratedId": "corredor_neon",
+      "integratedRevision": "06096d8491072c06",
+      "snapshotRevision": "4f9ada109b8098e194aa0f238dc9079410c06761295a5a2bc42619bf7b7b0d49",
+      "relation": "integrated",
+      "family": "corredor_neon"
+    },
+    {
+      "id": "cristal_electrico",
+      "revision": "de3998d00aea70e7",
+      "integratedId": "cristal_electrico",
+      "integratedRevision": "de3998d00aea70e7",
+      "snapshotRevision": "473f88921334f80e14316751c6fc323863ac720b12499ff8669da144a2704769",
+      "relation": "integrated",
+      "family": "cristal_electrico"
+    },
+    {
+      "id": "cristal_electrico_transparente",
+      "revision": "bdb9f7a34d8eb063",
+      "integratedId": "cristal_electrico",
+      "integratedRevision": "de3998d00aea70e7",
+      "snapshotRevision": "473f88921334f80e14316751c6fc323863ac720b12499ff8669da144a2704769",
+      "relation": "equivalent",
+      "family": "cristal_electrico"
+    },
+    {
+      "id": "cristales_polarizados",
+      "revision": "23f58e6fdb3d1601",
+      "integratedId": "cristales_polarizados",
+      "integratedRevision": "23f58e6fdb3d1601",
+      "snapshotRevision": "699b06dc9b64c4c5b098ac50284011f9df3f7dd39039e05562b20561d7b9ba44",
+      "relation": "integrated",
+      "family": "cristales_polarizados"
+    },
+    {
+      "id": "cromo_liquido",
+      "revision": "5aa92934f30a2e21",
+      "integratedId": "cromo_liquido",
+      "integratedRevision": "5aa92934f30a2e21",
+      "snapshotRevision": "115407987c587d568ed2792a7e36e29947c9baef93bcd364e557ca9e18ae1f85",
+      "relation": "integrated",
+      "family": "cromo_liquido"
+    },
+    {
+      "id": "cromo_liquido_transparente",
+      "revision": "429329f16b5d757b",
+      "integratedId": "cromo_liquido",
+      "integratedRevision": "5aa92934f30a2e21",
+      "snapshotRevision": "115407987c587d568ed2792a7e36e29947c9baef93bcd364e557ca9e18ae1f85",
+      "relation": "equivalent",
+      "family": "cromo_liquido"
+    },
+    {
+      "id": "cubo_led",
+      "revision": "b868a5bcea4ce3ad",
+      "integratedId": "cubo_led",
+      "integratedRevision": "b868a5bcea4ce3ad",
+      "snapshotRevision": "2cd80c2cee04d14d951253325f4411f2805e5ee4e46a3d4262aa2137d912ddcf",
+      "relation": "integrated",
+      "family": "cubo_led"
+    },
+    {
+      "id": "cubo_magico",
+      "revision": "15ca4a9dc018b9e8",
+      "integratedId": "cubo_magico",
+      "integratedRevision": "15ca4a9dc018b9e8",
+      "snapshotRevision": "8bbd2d62d04f149667f90f9c6a95f3b1554f7f8c5fafbb5c754ac69e403b08b1",
+      "relation": "integrated",
+      "family": "cubo_magico"
+    },
+    {
+      "id": "cuerdas_vibrantes",
+      "revision": "30bc62d50ba2728f",
+      "integratedId": "cuerdas_vibrantes",
+      "integratedRevision": "30bc62d50ba2728f",
+      "snapshotRevision": "5920730b70ab34620f388d43a7037ab04170de6a9f1f7bb31e43f745c94601d5",
+      "relation": "integrated",
+      "family": "cuerdas_vibrantes"
+    },
+    {
+      "id": "deriva_julia",
+      "revision": "afa8a4aa913a61ea",
+      "integratedId": "deriva_julia_transparente",
+      "integratedRevision": "c99b958ff8d82225",
+      "snapshotRevision": "6cd2e668003601efd79fa2626348e7943b9aa640eddc91ac70ba2e9d3893bf38",
+      "relation": "equivalent",
+      "family": "deriva_julia"
+    },
+    {
+      "id": "deriva_julia_transparente",
+      "revision": "c99b958ff8d82225",
+      "integratedId": "deriva_julia_transparente",
+      "integratedRevision": "c99b958ff8d82225",
+      "snapshotRevision": "6cd2e668003601efd79fa2626348e7943b9aa640eddc91ac70ba2e9d3893bf38",
+      "relation": "integrated",
+      "family": "deriva_julia"
+    },
+    {
+      "id": "descarga_tesla",
+      "revision": "1f876c724711d217",
+      "integratedId": "descarga_tesla",
+      "integratedRevision": "1f876c724711d217",
+      "snapshotRevision": "728fc14eee40574eac59c114061a76ab83a43040dd1d155eb852327808a876ee",
+      "relation": "integrated",
+      "family": "descarga_tesla"
+    },
+    {
+      "id": "descarga_tesla_transparente",
+      "revision": "37a142f0b3ce24c0",
+      "integratedId": "descarga_tesla",
+      "integratedRevision": "1f876c724711d217",
+      "snapshotRevision": "728fc14eee40574eac59c114061a76ab83a43040dd1d155eb852327808a876ee",
+      "relation": "equivalent",
+      "family": "descarga_tesla"
+    },
+    {
+      "id": "dona_ascii",
+      "revision": "23fcbbe94e4037b1",
+      "integratedId": "dona_ascii",
+      "integratedRevision": "23fcbbe94e4037b1",
+      "snapshotRevision": "699f129417bbe8a11bcc849496856adfb100a08fab7395104b2a6ad678bb28ce",
+      "relation": "integrated",
+      "family": "dona_ascii"
+    },
+    {
+      "id": "dona_ascii_transparente",
+      "revision": "916f5615978b96c0",
+      "integratedId": "dona_ascii",
+      "integratedRevision": "23fcbbe94e4037b1",
+      "snapshotRevision": "699f129417bbe8a11bcc849496856adfb100a08fab7395104b2a6ad678bb28ce",
+      "relation": "equivalent",
+      "family": "dona_ascii"
+    },
+    {
+      "id": "eco_infinito",
+      "revision": "fa8025c763099514",
+      "integratedId": "eco_infinito_transparente",
+      "integratedRevision": "8e2ed8d2e379d32c",
+      "snapshotRevision": "180f19fe681f576cf52bab6fd2ce51441d23bfc4b2f27ec25883f3ed0c37710d",
+      "relation": "equivalent",
+      "family": "eco_infinito"
+    },
+    {
+      "id": "eco_infinito_transparente",
+      "revision": "8e2ed8d2e379d32c",
+      "integratedId": "eco_infinito_transparente",
+      "integratedRevision": "8e2ed8d2e379d32c",
+      "snapshotRevision": "180f19fe681f576cf52bab6fd2ce51441d23bfc4b2f27ec25883f3ed0c37710d",
+      "relation": "integrated",
+      "family": "eco_infinito"
+    },
+    {
+      "id": "enjambre_metamorfo",
+      "revision": "8f1312671ec353f9",
+      "integratedId": "enjambre_metamorfo",
+      "integratedRevision": "8f1312671ec353f9",
+      "snapshotRevision": "7366a313edb9b65c1c5656b5420ffe6e9e93aa1a26141bab89f285d39ac9a001",
+      "relation": "integrated",
+      "family": "enjambre_metamorfo"
+    },
+    {
+      "id": "enjambre_metamorfo_transparente",
+      "revision": "75cfc47d3222f8bb",
+      "integratedId": "enjambre_metamorfo",
+      "integratedRevision": "8f1312671ec353f9",
+      "snapshotRevision": "7366a313edb9b65c1c5656b5420ffe6e9e93aa1a26141bab89f285d39ac9a001",
+      "relation": "equivalent",
+      "family": "enjambre_metamorfo"
+    },
+    {
+      "id": "epiciclos",
+      "revision": "bcc2cc455b34e4c5",
+      "integratedId": "epiciclos",
+      "integratedRevision": "bcc2cc455b34e4c5",
+      "snapshotRevision": "ed9356b84c8fab5042d72d8127c1574fa4e020481d31d148086818b3863e986a",
+      "relation": "integrated",
+      "family": "epiciclos"
+    },
+    {
+      "id": "epiciclos_transparente",
+      "revision": "74ee445c378fa4e0",
+      "integratedId": "epiciclos",
+      "integratedRevision": "bcc2cc455b34e4c5",
+      "snapshotRevision": "ed9356b84c8fab5042d72d8127c1574fa4e020481d31d148086818b3863e986a",
+      "relation": "equivalent",
+      "family": "epiciclos"
+    },
+    {
+      "id": "esfera_sonica",
+      "revision": "6380fb9197e24e67",
+      "integratedId": "esfera_sonica_transparente",
+      "integratedRevision": "6cf1b59481b1ac33",
+      "snapshotRevision": "fc0edb74b3e90436b2a7c4e3148407d77a87d576fadb70d3c1ed6a4a6f58f442",
+      "relation": "equivalent",
+      "family": "esfera_sonica"
+    },
+    {
+      "id": "esfera_sonica_transparente",
+      "revision": "6cf1b59481b1ac33",
+      "integratedId": "esfera_sonica_transparente",
+      "integratedRevision": "6cf1b59481b1ac33",
+      "snapshotRevision": "fc0edb74b3e90436b2a7c4e3148407d77a87d576fadb70d3c1ed6a4a6f58f442",
+      "relation": "integrated",
+      "family": "esfera_sonica"
+    },
+    {
+      "id": "espiral_primos",
+      "revision": "1c27b02879a393ff",
+      "integratedId": "espiral_primos",
+      "integratedRevision": "1c27b02879a393ff",
+      "snapshotRevision": "1390f6f9d132b38f4bcbcfa445e9d6409c1abc77e0533ec596cfbf8a6ca2b2d5",
+      "relation": "integrated",
+      "family": "espiral_primos"
+    },
+    {
+      "id": "estrella_neon",
+      "revision": "13fad43477a614ae",
+      "integratedId": "estrella_neon",
+      "integratedRevision": "13fad43477a614ae",
+      "snapshotRevision": "64c5615d2d5b058c84eb388fdd19006467f5df75548d2c01533142dff0a9d253",
+      "relation": "integrated",
+      "family": "estrella_neon"
+    },
+    {
+      "id": "estrella_neon_transparente",
+      "revision": "36511d147ab7be0e",
+      "integratedId": "estrella_neon",
+      "integratedRevision": "13fad43477a614ae",
+      "snapshotRevision": "64c5615d2d5b058c84eb388fdd19006467f5df75548d2c01533142dff0a9d253",
+      "relation": "equivalent",
+      "family": "estrella_neon"
+    },
+    {
+      "id": "flor_vida",
+      "revision": "668749f69fc6ccea",
+      "integratedId": "flor_vida",
+      "integratedRevision": "668749f69fc6ccea",
+      "snapshotRevision": "6040e18b19d0fbf7eea6678541f4b24a1026be0c14a558304df96713d52a6ee8",
+      "relation": "integrated",
+      "family": "flor_vida"
+    },
+    {
+      "id": "flor_vida_transparente",
+      "revision": "d2bd89192cdfd224",
+      "integratedId": "flor_vida",
+      "integratedRevision": "668749f69fc6ccea",
+      "snapshotRevision": "6040e18b19d0fbf7eea6678541f4b24a1026be0c14a558304df96713d52a6ee8",
+      "relation": "equivalent",
+      "family": "flor_vida"
+    },
+    {
+      "id": "fuegos_artificiales",
+      "revision": "36bd66cedac0a2ed",
+      "integratedId": "fuegos_artificiales_transparente",
+      "integratedRevision": "4a669bc39001e21b",
+      "snapshotRevision": "69d0ef10254982c5fd75379b2e2836b52fa60ebeba71e02a923142015c0bd5d7",
+      "relation": "equivalent",
+      "family": "fuegos_artificiales"
+    },
+    {
+      "id": "fuegos_artificiales_transparente",
+      "revision": "4a669bc39001e21b",
+      "integratedId": "fuegos_artificiales_transparente",
+      "integratedRevision": "4a669bc39001e21b",
+      "snapshotRevision": "69d0ef10254982c5fd75379b2e2836b52fa60ebeba71e02a923142015c0bd5d7",
+      "relation": "integrated",
+      "family": "fuegos_artificiales"
+    },
+    {
+      "id": "giroscopio_cuantico",
+      "revision": "f98bf54ca2c71e8e",
+      "integratedId": "giroscopio_cuantico",
+      "integratedRevision": "f98bf54ca2c71e8e",
+      "snapshotRevision": "8ce4b01af11f1bfe7970842ea3f42708081afa8b0da20989e6e256fa982af22d",
+      "relation": "integrated",
+      "family": "giroscopio_cuantico"
+    },
+    {
+      "id": "globo_tesla",
+      "revision": "a4451ddf3176cd36",
+      "integratedId": "globo_tesla_transparente",
+      "integratedRevision": "37d8f3e3abfea196",
+      "snapshotRevision": "3709eb96250ce00bee8bfdb069ee7631a3f24fe528a1e452730839aaea42f254",
+      "relation": "equivalent",
+      "family": "globo_tesla"
+    },
+    {
+      "id": "globo_tesla_transparente",
+      "revision": "37d8f3e3abfea196",
+      "integratedId": "globo_tesla_transparente",
+      "integratedRevision": "37d8f3e3abfea196",
+      "snapshotRevision": "3709eb96250ce00bee8bfdb069ee7631a3f24fe528a1e452730839aaea42f254",
+      "relation": "integrated",
+      "family": "globo_tesla"
+    },
+    {
+      "id": "golden_particles_scene",
+      "revision": "1c9a8682d81a7ba3",
+      "integratedId": "golden_particles_scene",
+      "integratedRevision": "1c9a8682d81a7ba3",
+      "snapshotRevision": "f705cec485cf5482dee8d16e88d0d133d92c5e799c768197200ef4171ba4c939",
+      "relation": "integrated",
+      "family": "golden_particles_scene"
+    },
+    {
+      "id": "goteo_pollock",
+      "revision": "3b8e8e6ce3520496",
+      "integratedId": "goteo_pollock",
+      "integratedRevision": "3b8e8e6ce3520496",
+      "snapshotRevision": "46855a9fa637cdb81fb8040ff33e59fb8aa673225aa82a40e958abe2bade715d",
+      "relation": "integrated",
+      "family": "goteo_pollock"
+    },
+    {
+      "id": "goteo_pollock_transparente",
+      "revision": "8f875f9a48f9b3d4",
+      "integratedId": "goteo_pollock",
+      "integratedRevision": "3b8e8e6ce3520496",
+      "snapshotRevision": "46855a9fa637cdb81fb8040ff33e59fb8aa673225aa82a40e958abe2bade715d",
+      "relation": "equivalent",
+      "family": "goteo_pollock"
+    },
+    {
+      "id": "haces_estadio",
+      "revision": "da4c2dabde0396e4",
+      "integratedId": "haces_estadio_transparente",
+      "integratedRevision": "6c77440ea4abea9c",
+      "snapshotRevision": "66e67aeda2be87f970414d466ffa46152250496d504a7698ee33c33bd54c37f6",
+      "relation": "equivalent",
+      "family": "haces_estadio"
+    },
+    {
+      "id": "haces_estadio_transparente",
+      "revision": "6c77440ea4abea9c",
+      "integratedId": "haces_estadio_transparente",
+      "integratedRevision": "6c77440ea4abea9c",
+      "snapshotRevision": "66e67aeda2be87f970414d466ffa46152250496d504a7698ee33c33bd54c37f6",
+      "relation": "integrated",
+      "family": "haces_estadio"
+    },
+    {
+      "id": "helice_holografica",
+      "revision": "442e20b99e471a58",
+      "integratedId": "helice_holografica",
+      "integratedRevision": "442e20b99e471a58",
+      "snapshotRevision": "cb8cad3d6ad5d4705f74aa91fef5413c8e469f4c9510a2805d1ac863f8241745",
+      "relation": "integrated",
+      "family": "helice_holografica"
+    },
+    {
+      "id": "helice_holografica_transparente",
+      "revision": "ff31e9cb1a876867",
+      "integratedId": "helice_holografica",
+      "integratedRevision": "442e20b99e471a58",
+      "snapshotRevision": "cb8cad3d6ad5d4705f74aa91fef5413c8e469f4c9510a2805d1ac863f8241745",
+      "relation": "equivalent",
+      "family": "helice_holografica"
+    },
+    {
+      "id": "hipervelocidad",
+      "revision": "1ec3216876b8a5f0",
+      "integratedId": "hipervelocidad_transparente",
+      "integratedRevision": "de3b440f4ac03fbb",
+      "snapshotRevision": "d3f3cd084f7f28fd42f183c7c551ae072c91e8b56f47030c02e16e92380bfdda",
+      "relation": "equivalent",
+      "family": "hipervelocidad"
+    },
+    {
+      "id": "hipervelocidad_transparente",
+      "revision": "de3b440f4ac03fbb",
+      "integratedId": "hipervelocidad_transparente",
+      "integratedRevision": "de3b440f4ac03fbb",
+      "snapshotRevision": "d3f3cd084f7f28fd42f183c7c551ae072c91e8b56f47030c02e16e92380bfdda",
+      "relation": "integrated",
+      "family": "hipervelocidad"
+    },
+    {
+      "id": "ilusion_optica",
+      "revision": "5080446609f0f883",
+      "integratedId": "ilusion_optica",
+      "integratedRevision": "5080446609f0f883",
+      "snapshotRevision": "f380ec8452b796efdf952f822b03ee9b5e9387247b0f8cec1517d4adfc5df223",
+      "relation": "integrated",
+      "family": "ilusion_optica"
+    },
+    {
+      "id": "ilusion_optica_transparente",
+      "revision": "8acfd62fe233a410",
+      "integratedId": "ilusion_optica",
+      "integratedRevision": "5080446609f0f883",
+      "snapshotRevision": "f380ec8452b796efdf952f822b03ee9b5e9387247b0f8cec1517d4adfc5df223",
+      "relation": "equivalent",
+      "family": "ilusion_optica"
+    },
+    {
+      "id": "interferencia",
+      "revision": "e18436a265404f4b",
+      "integratedId": "interferencia_transparente",
+      "integratedRevision": "41f63b5a5e61c270",
+      "snapshotRevision": "e28f50d668d9932133ee5bd8bea20ea0de206112f08b145ae8a6dfb793e6734b",
+      "relation": "equivalent",
+      "family": "interferencia"
+    },
+    {
+      "id": "interferencia_transparente",
+      "revision": "41f63b5a5e61c270",
+      "integratedId": "interferencia_transparente",
+      "integratedRevision": "41f63b5a5e61c270",
+      "snapshotRevision": "e28f50d668d9932133ee5bd8bea20ea0de206112f08b145ae8a6dfb793e6734b",
+      "relation": "integrated",
+      "family": "interferencia"
+    },
+    {
+      "id": "jardin_alucinante",
+      "revision": "248578975eebb1d8",
+      "integratedId": "jardin_alucinante_transparente",
+      "integratedRevision": "94a6f5e1290e4965",
+      "snapshotRevision": "726af98f5d3b84db3fb7a51e55ef5ccf258bf32cd03812ad279f7176fbc67b9a",
+      "relation": "equivalent",
+      "family": "jardin_alucinante"
+    },
+    {
+      "id": "jardin_alucinante_transparente",
+      "revision": "94a6f5e1290e4965",
+      "integratedId": "jardin_alucinante_transparente",
+      "integratedRevision": "94a6f5e1290e4965",
+      "snapshotRevision": "726af98f5d3b84db3fb7a51e55ef5ccf258bf32cd03812ad279f7176fbc67b9a",
+      "relation": "integrated",
+      "family": "jardin_alucinante"
+    },
+    {
+      "id": "juego_vida",
+      "revision": "c60adf40c0a55edb",
+      "integratedId": "juego_vida_transparente",
+      "integratedRevision": "e01b198bc5b474da",
+      "snapshotRevision": "c1576927bb5f3a210dc6b19672267e021da0f400a5e83601e6342665cc99f40d",
+      "relation": "equivalent",
+      "family": "juego_vida"
+    },
+    {
+      "id": "juego_vida_transparente",
+      "revision": "e01b198bc5b474da",
+      "integratedId": "juego_vida_transparente",
+      "integratedRevision": "e01b198bc5b474da",
+      "snapshotRevision": "c1576927bb5f3a210dc6b19672267e021da0f400a5e83601e6342665cc99f40d",
+      "relation": "integrated",
+      "family": "juego_vida"
+    },
+    {
+      "id": "laberinto_vivo",
+      "revision": "715d5233ab38179f",
+      "integratedId": "laberinto_vivo",
+      "integratedRevision": "715d5233ab38179f",
+      "snapshotRevision": "95cfbe9c0380d42fc5c2da49d66349a02039c19dc02b2c36e3cf70f99efb17c4",
+      "relation": "integrated",
+      "family": "laberinto_vivo"
+    },
+    {
+      "id": "llama_fractal",
+      "revision": "459ed95bc4cdaa61",
+      "integratedId": "llama_fractal",
+      "integratedRevision": "459ed95bc4cdaa61",
+      "snapshotRevision": "2cea88e33dc59e6e2317c279151353dd9ae7875a929b06d86f3856a9c8fbfcaf",
+      "relation": "integrated",
+      "family": "llama_fractal"
+    },
+    {
+      "id": "llamarada",
+      "revision": "3f6d81aadc4ad6cc",
+      "integratedId": "llamarada_transparente",
+      "integratedRevision": "dcc2bf8646ee5f27",
+      "snapshotRevision": "15ce416871dbdff372d79345ef1e6ed1eba26bd79d1586ff7dd704d7b4ffcddf",
+      "relation": "equivalent",
+      "family": "llamarada"
+    },
+    {
+      "id": "llamarada_transparente",
+      "revision": "dcc2bf8646ee5f27",
+      "integratedId": "llamarada_transparente",
+      "integratedRevision": "dcc2bf8646ee5f27",
+      "snapshotRevision": "15ce416871dbdff372d79345ef1e6ed1eba26bd79d1586ff7dd704d7b4ffcddf",
+      "relation": "integrated",
+      "family": "llamarada"
+    },
+    {
+      "id": "lluvia_cinetica",
+      "revision": "04a042e11b403cd9",
+      "integratedId": "lluvia_cinetica_transparente",
+      "integratedRevision": "3ec1e0e5166b8ca5",
+      "snapshotRevision": "4d237ec43a2c271ccc277ef0541534ab8fcd7c87579420d239ff4b8e099679df",
+      "relation": "equivalent",
+      "family": "lluvia_cinetica"
+    },
+    {
+      "id": "lluvia_cinetica_transparente",
+      "revision": "3ec1e0e5166b8ca5",
+      "integratedId": "lluvia_cinetica_transparente",
+      "integratedRevision": "3ec1e0e5166b8ca5",
+      "snapshotRevision": "4d237ec43a2c271ccc277ef0541534ab8fcd7c87579420d239ff4b8e099679df",
+      "relation": "integrated",
+      "family": "lluvia_cinetica"
+    },
+    {
+      "id": "luciernagas",
+      "revision": "086bc74cd7a26fb2",
+      "integratedId": "luciernagas_transparente",
+      "integratedRevision": "23a11a1060a80740",
+      "snapshotRevision": "7532fbe7efa0e5f2abb7f21080742ffb57ae85d1c2bfe129d54fc28b695523be",
+      "relation": "equivalent",
+      "family": "luciernagas"
+    },
+    {
+      "id": "luciernagas_transparente",
+      "revision": "23a11a1060a80740",
+      "integratedId": "luciernagas_transparente",
+      "integratedRevision": "23a11a1060a80740",
+      "snapshotRevision": "7532fbe7efa0e5f2abb7f21080742ffb57ae85d1c2bfe129d54fc28b695523be",
+      "relation": "integrated",
+      "family": "luciernagas"
+    },
+    {
+      "id": "luz_bordes",
+      "revision": "b5a8a444f3e6fe1c",
+      "integratedId": "luz_bordes_transparente",
+      "integratedRevision": "84a59c25f9d8712e",
+      "snapshotRevision": "f0531e9e4040ede71151fb7fc7f5e897b52afd2872ec292d523e60199147de30",
+      "relation": "equivalent",
+      "family": "luz_bordes"
+    },
+    {
+      "id": "luz_bordes_2",
+      "revision": "324f6f6e8af5d808",
+      "integratedId": "luz_bordes_2",
+      "integratedRevision": "324f6f6e8af5d808",
+      "snapshotRevision": "f54fc4f497bac63e19531d0458409a4d1d59fbde6bc43e97eadf33ae46d13aa8",
+      "relation": "integrated",
+      "family": "luz_bordes_2"
+    },
+    {
+      "id": "luz_bordes_2_transparente",
+      "revision": "eb03d848f30a2a97",
+      "integratedId": "luz_bordes_2",
+      "integratedRevision": "324f6f6e8af5d808",
+      "snapshotRevision": "f54fc4f497bac63e19531d0458409a4d1d59fbde6bc43e97eadf33ae46d13aa8",
+      "relation": "equivalent",
+      "family": "luz_bordes_2"
+    },
+    {
+      "id": "luz_bordes_transparente",
+      "revision": "84a59c25f9d8712e",
+      "integratedId": "luz_bordes_transparente",
+      "integratedRevision": "84a59c25f9d8712e",
+      "snapshotRevision": "f0531e9e4040ede71151fb7fc7f5e897b52afd2872ec292d523e60199147de30",
+      "relation": "integrated",
+      "family": "luz_bordes"
+    },
+    {
+      "id": "magma",
+      "revision": "f860a9e46567a246",
+      "integratedId": "magma",
+      "integratedRevision": "f860a9e46567a246",
+      "snapshotRevision": "0562e917f34b1f0916b6fe94d2884f4b7872194e72e5e96287665728145a7298",
+      "relation": "integrated",
+      "family": "magma"
+    },
+    {
+      "id": "magma_2",
+      "revision": "0d3a426f9b013628",
+      "integratedId": "magma_2",
+      "integratedRevision": "0d3a426f9b013628",
+      "snapshotRevision": "6c59e5b52142f87adf10ff96367935840b4510fbfdf9524f6ec59289c9acc389",
+      "relation": "integrated",
+      "family": "magma_2"
+    },
+    {
+      "id": "magma_2_transparente",
+      "revision": "d0130ee70fffd456",
+      "integratedId": "magma_2",
+      "integratedRevision": "0d3a426f9b013628",
+      "snapshotRevision": "6c59e5b52142f87adf10ff96367935840b4510fbfdf9524f6ec59289c9acc389",
+      "relation": "equivalent",
+      "family": "magma_2"
+    },
+    {
+      "id": "magma_transparente",
+      "revision": "306988adce58ba5e",
+      "integratedId": "magma",
+      "integratedRevision": "f860a9e46567a246",
+      "snapshotRevision": "0562e917f34b1f0916b6fe94d2884f4b7872194e72e5e96287665728145a7298",
+      "relation": "equivalent",
+      "family": "magma"
+    },
+    {
+      "id": "mancha_rorschach",
+      "revision": "e4658631c779c49c",
+      "integratedId": "mancha_rorschach_transparente",
+      "integratedRevision": "8715fb6ed611a24d",
+      "snapshotRevision": "5c2d68bceed9530586d1619995a52413e9e0914958e5babf10fe6ff263b5ce22",
+      "relation": "equivalent",
+      "family": "mancha_rorschach"
+    },
+    {
+      "id": "mancha_rorschach_transparente",
+      "revision": "8715fb6ed611a24d",
+      "integratedId": "mancha_rorschach_transparente",
+      "integratedRevision": "8715fb6ed611a24d",
+      "snapshotRevision": "5c2d68bceed9530586d1619995a52413e9e0914958e5babf10fe6ff263b5ce22",
+      "relation": "integrated",
+      "family": "mancha_rorschach"
+    },
+    {
+      "id": "mandala_alucinante",
+      "revision": "898cbf076f9011a7",
+      "integratedId": "mandala_alucinante",
+      "integratedRevision": "898cbf076f9011a7",
+      "snapshotRevision": "d7ff6d55cfb49c1f9e010da991f1b2773991b14276755fe29f331281a27b8711",
+      "relation": "integrated",
+      "family": "mandala_alucinante"
+    },
+    {
+      "id": "mandala_alucinante_transparente",
+      "revision": "d37c0a27c0e19124",
+      "integratedId": "mandala_alucinante",
+      "integratedRevision": "898cbf076f9011a7",
+      "snapshotRevision": "d7ff6d55cfb49c1f9e010da991f1b2773991b14276755fe29f331281a27b8711",
+      "relation": "equivalent",
+      "family": "mandala_alucinante"
+    },
+    {
+      "id": "mandala_fuego",
+      "revision": "23dd1a7b3884cc33",
+      "integratedId": "mandala_fuego_transparente",
+      "integratedRevision": "2b6bc80327dabd37",
+      "snapshotRevision": "f6ec4673b6b329b3055d6a647b60bba16f5e3ea5630ce08fd9737c7986ecefcf",
+      "relation": "equivalent",
+      "family": "mandala_fuego"
+    },
+    {
+      "id": "mandala_fuego_transparente",
+      "revision": "2b6bc80327dabd37",
+      "integratedId": "mandala_fuego_transparente",
+      "integratedRevision": "2b6bc80327dabd37",
+      "snapshotRevision": "f6ec4673b6b329b3055d6a647b60bba16f5e3ea5630ce08fd9737c7986ecefcf",
+      "relation": "integrated",
+      "family": "mandala_fuego"
+    },
+    {
+      "id": "mapa_topografico",
+      "revision": "4f84c6ea119e2517",
+      "integratedId": "mapa_topografico_transparente",
+      "integratedRevision": "503dc6b1e5fb4381",
+      "snapshotRevision": "a8b0cbaa8f21d78a9f386e429854a8ee55fddad04e9b01cd25241f654665a56c",
+      "relation": "equivalent",
+      "family": "mapa_topografico"
+    },
+    {
+      "id": "mapa_topografico_transparente",
+      "revision": "503dc6b1e5fb4381",
+      "integratedId": "mapa_topografico_transparente",
+      "integratedRevision": "503dc6b1e5fb4381",
+      "snapshotRevision": "a8b0cbaa8f21d78a9f386e429854a8ee55fddad04e9b01cd25241f654665a56c",
+      "relation": "integrated",
+      "family": "mapa_topografico"
+    },
+    {
+      "id": "marmoleado",
+      "revision": "b5e70a4918405daa",
+      "integratedId": "marmoleado",
+      "integratedRevision": "b5e70a4918405daa",
+      "snapshotRevision": "ae3eea96cd874e04e919ee444be5892daad90d2d0f7714f5a5259dd95525f515",
+      "relation": "integrated",
+      "family": "marmoleado"
+    },
+    {
+      "id": "metal_tornasol",
+      "revision": "2c8aa293ebe5198d",
+      "integratedId": "metal_tornasol_transparente",
+      "integratedRevision": "bc603a5252492663",
+      "snapshotRevision": "443473f57d36a065a5c380f7d9eea1ce782bab50792c9ec66dd480733e54cc5a",
+      "relation": "equivalent",
+      "family": "metal_tornasol"
+    },
+    {
+      "id": "metal_tornasol_transparente",
+      "revision": "bc603a5252492663",
+      "integratedId": "metal_tornasol_transparente",
+      "integratedRevision": "bc603a5252492663",
+      "snapshotRevision": "443473f57d36a065a5c380f7d9eea1ce782bab50792c9ec66dd480733e54cc5a",
+      "relation": "integrated",
+      "family": "metal_tornasol"
+    },
+    {
+      "id": "mil_relojes",
+      "revision": "68c5d5ab194cfa8d",
+      "integratedId": "mil_relojes",
+      "integratedRevision": "68c5d5ab194cfa8d",
+      "snapshotRevision": "a50d0cef44e24c6e859c806124b4ee96ee686489eebd6895e80d66ec4a526d73",
+      "relation": "integrated",
+      "family": "mil_relojes"
+    },
+    {
+      "id": "muro_cinetico",
+      "revision": "780a9406d1dd79ca",
+      "integratedId": "muro_cinetico_transparente",
+      "integratedRevision": "71ba7bd5d627c9a8",
+      "snapshotRevision": "d30e137fd7eb099074acc6e83935f0b584312ac8f60eed5c2c9e482159aaeae8",
+      "relation": "equivalent",
+      "family": "muro_cinetico"
+    },
+    {
+      "id": "muro_cinetico_2",
+      "revision": "27b443b173e38512",
+      "integratedId": "muro_cinetico_2_transparente",
+      "integratedRevision": "d1a8beba7b740ccb",
+      "snapshotRevision": "c3a8e948b17abcd7b87df8c9e619fb7f1704e4e511139809bc82b6d913f72ea9",
+      "relation": "equivalent",
+      "family": "muro_cinetico_2"
+    },
+    {
+      "id": "muro_cinetico_2_transparente",
+      "revision": "d1a8beba7b740ccb",
+      "integratedId": "muro_cinetico_2_transparente",
+      "integratedRevision": "d1a8beba7b740ccb",
+      "snapshotRevision": "c3a8e948b17abcd7b87df8c9e619fb7f1704e4e511139809bc82b6d913f72ea9",
+      "relation": "integrated",
+      "family": "muro_cinetico_2"
+    },
+    {
+      "id": "muro_cinetico_transparente",
+      "revision": "71ba7bd5d627c9a8",
+      "integratedId": "muro_cinetico_transparente",
+      "integratedRevision": "71ba7bd5d627c9a8",
+      "snapshotRevision": "d30e137fd7eb099074acc6e83935f0b584312ac8f60eed5c2c9e482159aaeae8",
+      "relation": "integrated",
+      "family": "muro_cinetico"
+    },
+    {
+      "id": "nebulosa_viva",
+      "revision": "45399529678f0451",
+      "integratedId": "nebulosa_viva",
+      "integratedRevision": "45399529678f0451",
+      "snapshotRevision": "8e614d0c95bf75d69cccfca98df3a9261a5996122c16b7e72ff68155b4fe005f",
+      "relation": "integrated",
+      "family": "nebulosa_viva"
+    },
+    {
+      "id": "nucleo_cristal",
+      "revision": "da0d4cb067c26c74",
+      "integratedId": "nucleo_cristal_transparente",
+      "integratedRevision": "6e22624012d5e941",
+      "snapshotRevision": "fb6d526954af829587e59d2718b514ebd61db01bb7354a82e36cb77dfeb88466",
+      "relation": "equivalent",
+      "family": "nucleo_cristal"
+    },
+    {
+      "id": "nucleo_cristal_transparente",
+      "revision": "6e22624012d5e941",
+      "integratedId": "nucleo_cristal_transparente",
+      "integratedRevision": "6e22624012d5e941",
+      "snapshotRevision": "fb6d526954af829587e59d2718b514ebd61db01bb7354a82e36cb77dfeb88466",
+      "relation": "integrated",
+      "family": "nucleo_cristal"
+    },
+    {
+      "id": "ojo_psicodelico",
+      "revision": "2fe73d87080da22b",
+      "integratedId": "ojo_psicodelico_transparente",
+      "integratedRevision": "79b1ee98826f559e",
+      "snapshotRevision": "ea1d4e87cace6ef745c900158a57f8ccd8bab1e735577b878403fc8d7abec078",
+      "relation": "equivalent",
+      "family": "ojo_psicodelico"
+    },
+    {
+      "id": "ojo_psicodelico_transparente",
+      "revision": "79b1ee98826f559e",
+      "integratedId": "ojo_psicodelico_transparente",
+      "integratedRevision": "79b1ee98826f559e",
+      "snapshotRevision": "ea1d4e87cace6ef745c900158a57f8ccd8bab1e735577b878403fc8d7abec078",
+      "relation": "integrated",
+      "family": "ojo_psicodelico"
+    },
+    {
+      "id": "panal_energia",
+      "revision": "7a73e6c1e7cb98a3",
+      "integratedId": "panal_energia",
+      "integratedRevision": "7a73e6c1e7cb98a3",
+      "snapshotRevision": "32aa8a30088fa96cc3c1d2851b0274786f8f68f1d503160c70131b36c5d985c4",
+      "relation": "integrated",
+      "family": "panal_energia"
+    },
+    {
+      "id": "panel_discos",
+      "revision": "77d9e3ceb7ea960c",
+      "integratedId": "panel_discos_transparente",
+      "integratedRevision": "99c3ec6f87eac68f",
+      "snapshotRevision": "475508faff49f97a26d6b3ca082a093be43133e6f931bb5a080e36d5aa587d22",
+      "relation": "equivalent",
+      "family": "panel_discos"
+    },
+    {
+      "id": "panel_discos_transparente",
+      "revision": "99c3ec6f87eac68f",
+      "integratedId": "panel_discos_transparente",
+      "integratedRevision": "99c3ec6f87eac68f",
+      "snapshotRevision": "475508faff49f97a26d6b3ca082a093be43133e6f931bb5a080e36d5aa587d22",
+      "relation": "integrated",
+      "family": "panel_discos"
+    },
+    {
+      "id": "pantalla_led",
+      "revision": "f2b11f140a3b01c1",
+      "integratedId": "pantalla_led_transparente",
+      "integratedRevision": "eb18ae5f2902940f",
+      "snapshotRevision": "e9d3da2c656d81cc5e1370c478f55d61f71c29d98ae2ba242e6d8957562a85f6",
+      "relation": "equivalent",
+      "family": "pantalla_led"
+    },
+    {
+      "id": "pantalla_led_transparente",
+      "revision": "eb18ae5f2902940f",
+      "integratedId": "pantalla_led_transparente",
+      "integratedRevision": "eb18ae5f2902940f",
+      "snapshotRevision": "e9d3da2c656d81cc5e1370c478f55d61f71c29d98ae2ba242e6d8957562a85f6",
+      "relation": "integrated",
+      "family": "pantalla_led"
+    },
+    {
+      "id": "pasillo_geometrico",
+      "revision": "36bf92905db78eff",
+      "integratedId": "pasillo_geometrico_transparente",
+      "integratedRevision": "e898b7feef6202ee",
+      "snapshotRevision": "708f669c56d9e0c096b210740046160d01e8a46814ecc229b3729a17afd7c0f6",
+      "relation": "equivalent",
+      "family": "pasillo_geometrico"
+    },
+    {
+      "id": "pasillo_geometrico_transparente",
+      "revision": "e898b7feef6202ee",
+      "integratedId": "pasillo_geometrico_transparente",
+      "integratedRevision": "e898b7feef6202ee",
+      "snapshotRevision": "708f669c56d9e0c096b210740046160d01e8a46814ecc229b3729a17afd7c0f6",
+      "relation": "integrated",
+      "family": "pasillo_geometrico"
+    },
+    {
+      "id": "patrones_turing",
+      "revision": "74b307db43ec5631",
+      "integratedId": "patrones_turing",
+      "integratedRevision": "74b307db43ec5631",
+      "snapshotRevision": "d64f648923cbd05b490dd2eb418efd1840283f266abd7d5fcfea130fd555bffc",
+      "relation": "integrated",
+      "family": "patrones_turing"
+    },
+    {
+      "id": "pelicula_iridiscente",
+      "revision": "1d44e31fdd888b9c",
+      "integratedId": "pelicula_iridiscente",
+      "integratedRevision": "1d44e31fdd888b9c",
+      "snapshotRevision": "4774b926ac6b4efc8c49aa0fdec4238ffe7ccef3727029fec5e10d614715a0bb",
+      "relation": "integrated",
+      "family": "pelicula_iridiscente"
+    },
+    {
+      "id": "plasma_scene",
+      "revision": "37ed6df326d85b69",
+      "integratedId": "plasma_scene_transparente",
+      "integratedRevision": "13224826c4f69e35",
+      "snapshotRevision": "1ab617988a8ddcfa13c80c7e7cc790ba9d3c044758b231b059e37ce263cbdbb9",
+      "relation": "equivalent",
+      "family": "plasma_scene"
+    },
+    {
+      "id": "plasma_scene",
+      "revision": "f2a8987b673e5990",
+      "integratedId": "plasma_scene",
+      "integratedRevision": "f2a8987b673e5990",
+      "snapshotRevision": "acfcdd144549e1fdf7a8712e91d308d83b04b15cf0705db76b79aedfe7239bb7",
+      "relation": "integrated",
+      "family": "plasma_scene"
+    },
+    {
+      "id": "plasma_scene_transparente",
+      "revision": "13224826c4f69e35",
+      "integratedId": "plasma_scene_transparente",
+      "integratedRevision": "13224826c4f69e35",
+      "snapshotRevision": "1ab617988a8ddcfa13c80c7e7cc790ba9d3c044758b231b059e37ce263cbdbb9",
+      "relation": "integrated",
+      "family": "plasma_scene"
+    },
+    {
+      "id": "pop_art",
+      "revision": "cdc148af198ca356",
+      "integratedId": "pop_art",
+      "integratedRevision": "cdc148af198ca356",
+      "snapshotRevision": "99f24153161b0f0ae20efa96b0e8f274ca9e8cd55303502aafd08739a409bd3e",
+      "relation": "integrated",
+      "family": "pop_art"
+    },
+    {
+      "id": "portal_cuantico",
+      "revision": "7b537e4a9db985c2",
+      "integratedId": "portal_cuantico_transparente",
+      "integratedRevision": "e082653d8b2f78b8",
+      "snapshotRevision": "2e8cac7ead55101b78aac3fd35d2dd69b5b343ef471b79a4cd3cdbe86ba57523",
+      "relation": "equivalent",
+      "family": "portal_cuantico"
+    },
+    {
+      "id": "portal_cuantico_transparente",
+      "revision": "e082653d8b2f78b8",
+      "integratedId": "portal_cuantico_transparente",
+      "integratedRevision": "e082653d8b2f78b8",
+      "snapshotRevision": "2e8cac7ead55101b78aac3fd35d2dd69b5b343ef471b79a4cd3cdbe86ba57523",
+      "relation": "integrated",
+      "family": "portal_cuantico"
+    },
+    {
+      "id": "reaccion_bz",
+      "revision": "bce77b3054875c3e",
+      "integratedId": "reaccion_bz",
+      "integratedRevision": "bce77b3054875c3e",
+      "snapshotRevision": "2569c95af9d6f886e403c227e939a2c3c59e5db1521a779de7723f3bb1f6cd67",
+      "relation": "integrated",
+      "family": "reaccion_bz"
+    },
+    {
+      "id": "rorschach_rayos_x",
+      "revision": "930f0967464428db",
+      "integratedId": "rorschach_rayos_x_transparente",
+      "integratedRevision": "33fa9b0d1708ce06",
+      "snapshotRevision": "f3fa2e7e6832257f810faeb40fd84dcde0db9b5e9cd0d6127d6bba3089eeb4f8",
+      "relation": "equivalent",
+      "family": "rorschach_rayos_x"
+    },
+    {
+      "id": "rorschach_rayos_x_transparente",
+      "revision": "33fa9b0d1708ce06",
+      "integratedId": "rorschach_rayos_x_transparente",
+      "integratedRevision": "33fa9b0d1708ce06",
+      "snapshotRevision": "f3fa2e7e6832257f810faeb40fd84dcde0db9b5e9cd0d6127d6bba3089eeb4f8",
+      "relation": "integrated",
+      "family": "rorschach_rayos_x"
+    },
+    {
+      "id": "show_laser",
+      "revision": "c54bf238eb9a3070",
+      "integratedId": "show_laser_transparente",
+      "integratedRevision": "765dd5129e29293a",
+      "snapshotRevision": "33fdc9f5737a7e971850590388316bcada01ecd2308425988da9c18178f7669c",
+      "relation": "equivalent",
+      "family": "show_laser"
+    },
+    {
+      "id": "show_laser_transparente",
+      "revision": "765dd5129e29293a",
+      "integratedId": "show_laser_transparente",
+      "integratedRevision": "765dd5129e29293a",
+      "snapshotRevision": "33fdc9f5737a7e971850590388316bcada01ecd2308425988da9c18178f7669c",
+      "relation": "integrated",
+      "family": "show_laser"
+    },
+    {
+      "id": "synthwave_scene",
+      "revision": "1a9666f6da74cf76",
+      "integratedId": "synthwave_scene",
+      "integratedRevision": "1a9666f6da74cf76",
+      "snapshotRevision": "bb664d8129960b7f4f3e4846d7953aa0c1ea7b10131f32aae85e584cd88e06cd",
+      "relation": "integrated",
+      "family": "synthwave_scene"
+    },
+    {
+      "id": "telar",
+      "revision": "ba4a793203db1ab2",
+      "integratedId": "telar",
+      "integratedRevision": "ba4a793203db1ab2",
+      "snapshotRevision": "345f5ce0789a43db90b1fb640ae569afc6d37eec349ec481df6c3c50eb7c5dc0",
+      "relation": "integrated",
+      "family": "telar"
+    },
+    {
+      "id": "tinta_agua",
+      "revision": "7b7292119d494309",
+      "integratedId": "tinta_agua",
+      "integratedRevision": "7b7292119d494309",
+      "snapshotRevision": "ff69e8454526084eb22acdb50094ce6b63d3b1de7869e1955d25be08c53991c1",
+      "relation": "integrated",
+      "family": "tinta_agua"
+    },
+    {
+      "id": "tipografia_cinetica",
+      "revision": "ef9c29ec7fdf02f6",
+      "integratedId": "tipografia_cinetica",
+      "integratedRevision": "ef9c29ec7fdf02f6",
+      "snapshotRevision": "08c8685293f2b18b756a867b9024d88922745d9c4d8dbc8c3b6ec2cbc46e4f26",
+      "relation": "integrated",
+      "family": "tipografia_cinetica"
+    },
+    {
+      "id": "torbellino_igneo",
+      "revision": "e65580f70e800ae4",
+      "integratedId": "torbellino_igneo",
+      "integratedRevision": "e65580f70e800ae4",
+      "snapshotRevision": "ed6755ab34997ca4804ca0f9820407b485f5cf2cd6bc009e2c0eb7431d4be54a",
+      "relation": "integrated",
+      "family": "torbellino_igneo"
+    },
+    {
+      "id": "torbellino_igneo_ii",
+      "revision": "598eec01b7c422f4",
+      "integratedId": "torbellino_igneo_ii",
+      "integratedRevision": "598eec01b7c422f4",
+      "snapshotRevision": "b1d9a604cbfa93c919e838fd3d48f4b92568563409285fecc7307b3062362624",
+      "relation": "integrated",
+      "family": "torbellino_igneo_ii"
+    },
+    {
+      "id": "torbellino_igneo_transparente",
+      "revision": "b6bc1137d75990eb",
+      "integratedId": "torbellino_igneo",
+      "integratedRevision": "e65580f70e800ae4",
+      "snapshotRevision": "ed6755ab34997ca4804ca0f9820407b485f5cf2cd6bc009e2c0eb7431d4be54a",
+      "relation": "equivalent",
+      "family": "torbellino_igneo"
+    },
+    {
+      "id": "tunel_laser",
+      "revision": "007ebc23e7470833",
+      "integratedId": "tunel_laser_transparente",
+      "integratedRevision": "0485fe920e4cf5e3",
+      "snapshotRevision": "684b8a8d2cd6fa3c76ecfca5160ab3cdcc4e75428f6ae8a071ad6a0f3630e22c",
+      "relation": "equivalent",
+      "family": "tunel_laser"
+    },
+    {
+      "id": "tunel_laser_transparente",
+      "revision": "0485fe920e4cf5e3",
+      "integratedId": "tunel_laser_transparente",
+      "integratedRevision": "0485fe920e4cf5e3",
+      "snapshotRevision": "684b8a8d2cd6fa3c76ecfca5160ab3cdcc4e75428f6ae8a071ad6a0f3630e22c",
+      "relation": "integrated",
+      "family": "tunel_laser"
+    },
+    {
+      "id": "un_bit",
+      "revision": "d22d1c701c4f66f3",
+      "integratedId": "un_bit",
+      "integratedRevision": "d22d1c701c4f66f3",
+      "snapshotRevision": "d5e8f74292fbff5b9504bf9252effe04873219a243eb1b5ea7ae903423640f89",
+      "relation": "integrated",
+      "family": "un_bit"
+    },
+    {
+      "id": "v08_espectro_cosmico",
+      "revision": "ec1668e3aea6f4b0",
+      "integratedId": "v08_espectro_cosmico",
+      "integratedRevision": "ec1668e3aea6f4b0",
+      "snapshotRevision": "b0bbdaf9dc4c9305a300bf772d643892bfb7be7f85100f98b6cd43690a409368",
+      "relation": "integrated",
+      "family": "v08_espectro_cosmico"
+    },
+    {
+      "id": "v08_espectro_cosmico_transparente",
+      "revision": "7ee289f934e3f571",
+      "integratedId": "v08_espectro_cosmico",
+      "integratedRevision": "ec1668e3aea6f4b0",
+      "snapshotRevision": "b0bbdaf9dc4c9305a300bf772d643892bfb7be7f85100f98b6cd43690a409368",
+      "relation": "equivalent",
+      "family": "v08_espectro_cosmico"
+    },
+    {
+      "id": "v09_espiral_aurea",
+      "revision": "685eec1e8917f8ef",
+      "integratedId": "v09_espiral_aurea",
+      "integratedRevision": "685eec1e8917f8ef",
+      "snapshotRevision": "611ae6c119d12c44bdc743370db83bcae5ec2b80cfd9e6a9690ec02c3d79a41b",
+      "relation": "integrated",
+      "family": "v09_espiral_aurea"
+    },
+    {
+      "id": "v09_espiral_aurea_transparente",
+      "revision": "5020d8c71d5d7c31",
+      "integratedId": "v09_espiral_aurea",
+      "integratedRevision": "685eec1e8917f8ef",
+      "snapshotRevision": "611ae6c119d12c44bdc743370db83bcae5ec2b80cfd9e6a9690ec02c3d79a41b",
+      "relation": "equivalent",
+      "family": "v09_espiral_aurea"
+    },
+    {
+      "id": "v10_supernova",
+      "revision": "2bc2ece0552d8b5f",
+      "integratedId": "v10_supernova_transparente",
+      "integratedRevision": "487ec42ca4d7bdfc",
+      "snapshotRevision": "9373bea39f4e1a661f222a819de295d21d5ef1045df13aced838248359eaa4b4",
+      "relation": "equivalent",
+      "family": "v10_supernova"
+    },
+    {
+      "id": "v10_supernova_transparente",
+      "revision": "487ec42ca4d7bdfc",
+      "integratedId": "v10_supernova_transparente",
+      "integratedRevision": "487ec42ca4d7bdfc",
+      "snapshotRevision": "9373bea39f4e1a661f222a819de295d21d5ef1045df13aced838248359eaa4b4",
+      "relation": "integrated",
+      "family": "v10_supernova"
+    },
+    {
+      "id": "v11_archivo_corrupto",
+      "revision": "7a2d13809544cd71",
+      "integratedId": "v11_archivo_corrupto_transparente",
+      "integratedRevision": "df093edd6145d731",
+      "snapshotRevision": "3a7bd2f3c01c0aa6e4fe2a64b1a4f1bc96069b46bd3c322f2a06520f9714bc19",
+      "relation": "equivalent",
+      "family": "v11_archivo_corrupto"
+    },
+    {
+      "id": "v11_archivo_corrupto_transparente",
+      "revision": "df093edd6145d731",
+      "integratedId": "v11_archivo_corrupto_transparente",
+      "integratedRevision": "df093edd6145d731",
+      "snapshotRevision": "3a7bd2f3c01c0aa6e4fe2a64b1a4f1bc96069b46bd3c322f2a06520f9714bc19",
+      "relation": "integrated",
+      "family": "v11_archivo_corrupto"
+    },
+    {
+      "id": "v13_nubes_volumetricas",
+      "revision": "536a95aeaa7f5ff1",
+      "integratedId": "v13_nubes_volumetricas_transparente",
+      "integratedRevision": "6337bb5a2105e908",
+      "snapshotRevision": "0de5637b8045ed74b02d0d5fa076d77b0879b50020ab91eaed37ec4bcd4ee7ba",
+      "relation": "equivalent",
+      "family": "v13_nubes_volumetricas"
+    },
+    {
+      "id": "v13_nubes_volumetricas_transparente",
+      "revision": "6337bb5a2105e908",
+      "integratedId": "v13_nubes_volumetricas_transparente",
+      "integratedRevision": "6337bb5a2105e908",
+      "snapshotRevision": "0de5637b8045ed74b02d0d5fa076d77b0879b50020ab91eaed37ec4bcd4ee7ba",
+      "relation": "integrated",
+      "family": "v13_nubes_volumetricas"
+    },
+    {
+      "id": "vidrio_liquido",
+      "revision": "d844018a8ee6cb70",
+      "integratedId": "vidrio_liquido",
+      "integratedRevision": "d844018a8ee6cb70",
+      "snapshotRevision": "d6bdda57150c54824ba90cac5dba13b64c0d3905cb7641c7649ce74d34d65104",
+      "relation": "integrated",
+      "family": "vidrio_liquido"
+    },
+    {
+      "id": "vision_termica",
+      "revision": "85112e5a3dadf1b6",
+      "integratedId": "vision_termica",
+      "integratedRevision": "85112e5a3dadf1b6",
+      "snapshotRevision": "626c73d6e7696718753ac61854114c7f2c4eb7932a4ede6d1a6e171a80756a31",
+      "relation": "integrated",
+      "family": "vision_termica"
+    },
+    {
+      "id": "vortice_cosmico",
+      "revision": "69c2bc97f1ad4c81",
+      "integratedId": "vortice_cosmico",
+      "integratedRevision": "69c2bc97f1ad4c81",
+      "snapshotRevision": "d95eb0d049182f7f62ba088b446ced9c86e1f2350c1b5e41025fbb7ba822200a",
+      "relation": "integrated",
+      "family": "vortice_cosmico"
+    },
+    {
+      "id": "vortice_hipnotico",
+      "revision": "7ab63e448125f5c9",
+      "integratedId": "vortice_hipnotico_transparente",
+      "integratedRevision": "7864a9eb81f8cd11",
+      "snapshotRevision": "2350cdb1774b7b71c928a91a800a27efcd76cc77ce68df61898a87e7d4c76be5",
+      "relation": "equivalent",
+      "family": "vortice_hipnotico"
+    },
+    {
+      "id": "vortice_hipnotico_transparente",
+      "revision": "7864a9eb81f8cd11",
+      "integratedId": "vortice_hipnotico_transparente",
+      "integratedRevision": "7864a9eb81f8cd11",
+      "snapshotRevision": "2350cdb1774b7b71c928a91a800a27efcd76cc77ce68df61898a87e7d4c76be5",
+      "relation": "integrated",
+      "family": "vortice_hipnotico"
+    },
+    {
+      "id": "zoom_infinito",
+      "revision": "f22c610ecb83c7b7",
+      "integratedId": "zoom_infinito",
+      "integratedRevision": "f22c610ecb83c7b7",
+      "snapshotRevision": "1143c24356ea0f788c54bfa4525efe57b57af31185d1274463f811f31abaa24a",
+      "relation": "integrated",
+      "family": "zoom_infinito"
+    },
+    {
+      "id": "zoom_infinito_transparente",
+      "revision": "842807284fc57b1f",
+      "integratedId": "zoom_infinito",
+      "integratedRevision": "f22c610ecb83c7b7",
+      "snapshotRevision": "1143c24356ea0f788c54bfa4525efe57b57af31185d1274463f811f31abaa24a",
+      "relation": "equivalent",
+      "family": "zoom_infinito"
+    }
+  ],
+  "counts": {
+    "integratedSnapshots": 104,
+    "equivalentVariants": 66,
+    "currentAccepted": 166,
+    "currentEvaluation": 124
+  }
+}

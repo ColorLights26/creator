@@ -1,9 +1,11 @@
 #include "creator_scene.hpp"
 #include "creator_abi.h"
 #include <cassert>
+#include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <random>
 #include <string>
 #if __has_include("creator_probe_cases.inc")
@@ -70,7 +72,7 @@ std::vector<float> options(const std::array<float, 4>& basics, const std::vector
 
 struct Instance {
   CPInstance* handle;
-  explicit Instance(const creator::Program& program) : handle(cp_create(program.id, program.hash, 42)) {
+  explicit Instance(const creator::Program& program, uint32_t seed = 42) : handle(cp_create(program.id, program.hash, seed)) {
     if (!handle) throw Failure(cp_error(nullptr));
   }
   ~Instance() { cp_destroy(handle); }
@@ -104,7 +106,26 @@ std::string visualName(const creator::Program& program) {
   return id.rfind("creator_", 0) == 0 ? id.substr(8) : id;
 }
 
+void checkInitialFrames(const creator::Program& program) {
+  for (const auto& size : {std::pair<double, double>{320, 568}, {834, 1194}}) {
+    Instance p(program);
+    const auto values = options({1, 1, 1, 1}, {});
+    p.check(cp_configure(p.handle, values.data(), uint32_t(values.size()), 1, 0, 0));
+    p.check(cp_update(p.handle, size.first, size.second, 0, 0));
+    p.check(cp_draw(p.handle));
+    const auto initial = p.commands();
+    p.check(cp_update(p.handle, size.first, size.second, 60, 0));
+    p.check(cp_draw(p.handle));
+    if (initial != p.commands()) throw Failure("el dibujo avanza antes de reproducir.");
+    p.check(cp_reset(p.handle, 42));
+    p.check(cp_update(p.handle, size.first, size.second, 60, 0));
+    p.check(cp_draw(p.handle));
+    if (initial != p.commands()) throw Failure("reiniciar en pausa cambia el primer cuadro.");
+  }
+}
+
 void checkProgram(const creator::Program& program) {
+  checkInitialFrames(program);
   auto a = replay(program, 30), b = replay(program, 30), c = replay(program, 60);
   if (a.empty() || a != b || c.empty())
     throw Failure("no dibuja nada o no repite el mismo dibujo con la misma semilla "
@@ -141,6 +162,10 @@ void checkProgram(const creator::Program& program) {
 }
 
 #ifdef CREATOR_PROBE_CASES
+struct Loud;
+void warnPasses(const creator::Program& program, const std::string& with, const std::array<float, 4>& basics,
+                const std::vector<float>& modifiers, const Loud& music);
+
 /// Three seconds at 30 FPS with loud music (none when [reactive] is false,
 /// as the app plays it). [switches] change the modifiers live at a frame,
 /// which exercises the engine's transitions.
@@ -163,8 +188,11 @@ Clip play(const creator::Program& program, bool reactive, const std::array<float
 }
 
 /// Every extreme, option and variation with loud music. Returns the
-/// modifiers that never change the drawing.
-std::vector<std::string> sweep(const creator::Program& program, const CreatorProbeCase& probe, const Music& music) {
+/// modifiers that never change the drawing. Every setting at its maximum
+/// and each variation also count their passes on the iPad, with the gate's
+/// music [gate].
+std::vector<std::string> sweep(const creator::Program& program, const CreatorProbeCase& probe, const Music& music,
+                               const Loud& gate) {
   const std::array<float, 4> loud = {2, 1, 2, 2};  // intensity, speed, detail, glow
   const bool reactive = probe.reactive;
   std::vector<float> initial;
@@ -196,6 +224,7 @@ std::vector<std::string> sweep(const creator::Program& program, const CreatorPro
   const auto low = all(false), high = all(true);
   try { play(program, reactive, loud, low, music); } catch (const Failure& e) { throw Failure(std::string("todos al mínimo: ") + e.what()); }
   try { play(program, reactive, loud, high, music); } catch (const Failure& e) { throw Failure(std::string("todos al máximo: ") + e.what()); }
+  warnPasses(program, "todos los ajustes al máximo", loud, high, gate);
   std::mt19937 random(7);
   for (int combo = 0; combo < 8; combo++) {
     std::vector<float> values;
@@ -208,8 +237,10 @@ std::vector<std::string> sweep(const creator::Program& program, const CreatorPro
     catch (const Failure& e) { throw Failure("combinación al azar " + std::to_string(combo) + ": " + e.what()); }
   }
   for (const auto& variation : probe.variations) {
-    try { play(program, reactive, variation.controls, variation.modifiers.empty() ? initial : variation.modifiers, music); }
+    const auto& values = variation.modifiers.empty() ? initial : variation.modifiers;
+    try { play(program, reactive, variation.controls, values, music); }
     catch (const Failure& e) { throw Failure(std::string("variación ") + variation.name + ": " + e.what()); }
+    warnPasses(program, std::string("la variación ") + variation.name, variation.controls, values, gate);
   }
   if (!probe.modifiers.empty()) {
     try { play(program, reactive, loud, initial, music, 30, 3, {{30, high}, {45, low}}); }
@@ -224,6 +255,322 @@ std::vector<std::string> sweep(const creator::Program& program, const CreatorPro
   if (!same) throw Failure("con los modificadores al máximo, el movimiento difiere entre 30 y 60 FPS.");
   return dead;
 }
+
+/// Texture accounting of the production bounded compositor. BGRA8 sources
+/// are reused after every eight draws; RGBA16 checkpoints count as two units
+/// and protect active layer parents. Masks and materials remain separate.
+/// The guard is 192 units / 128 MiB, rather than a limit on draw calls.
+struct Passes {
+  int passes = 0;
+  uint64_t bytes = 0;
+  // Where they come from, for the message.
+  int figures = 0;          // runs of figures (vector passes)
+  int afterPoints = 0;      // of them, started because a figure followed points()
+  int pointTextures = 0;    // points() that had to open a texture (no live one yet)
+  int points = 0;           // points() calls with points
+  int copies = 0;           // output copied before drawing (after image/material/group)
+  int materials = 0;
+  int clipMasks = 0;        // one per clip
+  int clipBlendBreaks = 0;  // layers closed inside a clip by a Blend change
+  int groups = 0;           // saveLayer groups closed
+};
+
+/// CGAffineTransform in double, like CGFloat: (x, y) -> (a x + c y + tx, b x + d y + ty).
+struct Affine {
+  double a = 1, b = 0, c = 0, d = 1, tx = 0, ty = 0;
+  /// `first.concatenating(then)`: first applied, then [then].
+  static Affine concat(const Affine& m, const Affine& n) {
+    return {m.a * n.a + m.b * n.c, m.a * n.b + m.b * n.d, m.c * n.a + m.d * n.c,
+            m.c * n.b + m.d * n.d, m.tx * n.a + m.ty * n.c + n.tx, m.tx * n.b + m.ty * n.d + n.ty};
+  }
+};
+struct Box { double x, y, width, height; };
+
+/// CGRect.applying: the box around the four transformed corners.
+Box applying(const Box& r, const Affine& t) {
+  const double xs[2] = {std::min(r.x, r.x + r.width), std::max(r.x, r.x + r.width)};
+  const double ys[2] = {std::min(r.y, r.y + r.height), std::max(r.y, r.y + r.height)};
+  const double inf = std::numeric_limits<double>::infinity();
+  double minX = inf, minY = inf, maxX = -inf, maxY = -inf;
+  for (double x : xs) for (double y : ys) {
+    const double px = t.a * x + t.c * y + t.tx, py = t.b * x + t.d * y + t.ty;
+    minX = std::min(minX, px); maxX = std::max(maxX, px);
+    minY = std::min(minY, py); maxY = std::max(maxY, py);
+  }
+  return {minX, minY, maxX - minX, maxY - minY};
+}
+
+int texels(double extent, int limit) {
+  const double size = std::ceil(std::abs(extent));
+  return size >= limit ? limit : size >= 1 ? int(size) : 1;
+}
+
+Passes countPasses(const float* c, size_t length, double viewWidth, double viewHeight, int width, int height) {
+  Passes s;
+  const Affine scale{double(width) / viewWidth, 0, 0, double(height) / viewHeight, 0, 0};
+  Affine transform;
+  int clips = 0;
+  struct Saved { Affine transform; int clips; bool layer; int floating; };
+  std::vector<Saved> stack;
+  int floating = -1, floatPool = 0, sourcePool = 0, nextSource = 0, batchBlend = 0;
+  bool pendingFigures = false;
+  auto account = [&](int w, int h) { s.passes++; s.bytes += uint64_t(w) * uint64_t(h) * 4; };
+  auto materialize = [&](int excluding = -1) {
+    int next = 0;
+    for (; next < floatPool; next++) {
+      bool protectedTexture = next == floating || next == excluding;
+      for (const auto& saved : stack) protectedTexture |= next == saved.floating;
+      if (!protectedTexture) break;
+    }
+    if (next == floatPool) { floatPool++; account(width, height); account(width, height); }
+    floating = next; nextSource = 0; s.copies++;
+  };
+  auto source = [&] {
+    if (nextSource == 8) materialize();
+    if (nextSource == sourcePool) { sourcePool++; account(width, height); }
+    nextSource++;
+  };
+  auto flush = [&] { if (pendingFigures) { source(); s.figures++; pendingFigures = false; } };
+  size_t pos = 0;
+  auto blendOf = [&](size_t paint) { return int(c[paint + 4]); };
+  auto paintLength = [&](size_t paint) { return size_t(14 + 5 * int(c[paint + 13])); };
+  while (pos + 2 <= length) {
+    const int op = int(c[pos]);
+    const size_t count = size_t(c[pos + 1]), body = pos + 2, end = body + count;
+    switch (op) {
+      case 1: flush(); stack.push_back({transform, clips, false, -1}); break;
+      case 3:
+        flush(); if (nextSource > 0) materialize();
+        stack.push_back({transform, clips, true, floating}); floating = -1;
+        break;
+      case 2: {
+        flush(); if (stack.empty()) break;
+        const Saved saved = stack.back(); stack.pop_back();
+        if (saved.layer) { s.groups++; materialize(saved.floating); }
+        transform = saved.transform; clips = saved.clips;
+        break;
+      }
+      case 4: {
+        flush();
+        const Affine local{c[body], c[body + 1], c[body + 2], c[body + 3], c[body + 4], c[body + 5]};
+        transform = Affine::concat(local, transform); break;
+      }
+      case 5: flush(); clips++; account(width, height); s.clipMasks++; break;
+      case 6: {
+        const int blend = blendOf(body);
+        if (blend != batchBlend) { flush(); batchBlend = blend; }
+        pendingFigures = true; break;
+      }
+      case 7: {
+        flush();
+        const size_t after = body + paintLength(body);
+        if (c[after] > 0 && int(c[after + 1]) > 0) { s.points++; source(); }
+        break;
+      }
+      case 8: flush(); break;
+      case 9: {
+        flush();
+        const Box rect{c[body + 1], c[body + 2], c[body + 3], c[body + 4]};
+        const Box physical = applying(applying(rect, transform), scale);
+        account(texels(physical.width, width), texels(physical.height, height)); s.materials++;
+        break;
+      }
+      default: break;
+    }
+    pos = end;
+  }
+  flush(); return s;
+}
+
+/// The renderer's guard: past 192 passes or 128 MiB it drops the frame.
+constexpr int rendererPasses = 192;
+constexpr uint64_t byteLimit = 128ull * 1024 * 1024;
+
+/// Bytes of one full-screen pass on a [width] x [height] surface.
+constexpr uint64_t fullScreen(int width, int height) { return uint64_t(width) * uint64_t(height) * 4; }
+
+/// The most full-screen passes that fit in the guard on that surface.
+constexpr int passLimitFor(int width, int height) {
+  return int(std::min<uint64_t>(rendererPasses, byteLimit / fullScreen(width, height)));
+}
+
+/// The two surfaces of the app: the iPhone (664x1440 px, 852 logical points
+/// high) and the iPad (900x1296 px, 1180 high). The viewport keeps the
+/// logical height and takes the width from the pixel aspect, as iOS does.
+/// Each one fails past the full-screen passes that fit in 128 MiB.
+struct Surface { const char* name; int width, height; double logicalHeight; int passLimit; };
+constexpr Surface surfaces[] = {{"iPhone", 664, 1440, 852, passLimitFor(664, 1440)},
+                                {"iPad", 900, 1296, 1180, passLimitFor(900, 1296)}};
+// The template, README.md and MAINTAINER.md quote these two numbers.
+static_assert(surfaces[0].passLimit == 35 && surfaces[1].passLimit == 28, "update the template and the docs");
+constexpr const Surface& iPad = surfaces[1];
+
+/// The harness music: the loud synthetic signals (makeLoud) with the levels
+/// x1.35, played from where the music starts; the silence that follows ends
+/// the run. Frames are indexed as the energy harness does.
+struct Loud {
+  std::vector<uint8_t> bytes;
+  size_t loudStart = 0, silenceStart = 0, silenceEnd = 0;
+  bool empty() const { return bytes.empty(); }
+  static bool active(const uint8_t* frame) { uint16_t flags; std::memcpy(&flags, frame + 6, 2); return (flags & 5) == 5; }
+  explicit Loud(const Music& music) : bytes(music.bytes), loudStart(music.start) {
+    const size_t frames = bytes.size() / frameBytes;
+    for (size_t f = 0; f < frames; f++) {
+      uint8_t* b = bytes.data() + f * frameBytes;
+      if (!active(b)) continue;
+      // dynamics[0..4], then channels, spectrum summary, instant and smoothed spectrum.
+      for (size_t o = 40; o < 356; o += 4) {
+        if (o == 60) continue;
+        float v; std::memcpy(&v, b + o, 4);
+        v = std::min(1.f, std::max(0.f, v * 1.35f));
+        std::memcpy(b + o, &v, 4);
+      }
+    }
+    silenceStart = loudStart;
+    while (silenceStart < frames && active(bytes.data() + silenceStart * frameBytes)) silenceStart++;
+    silenceEnd = silenceStart;
+    while (silenceEnd < frames && !active(bytes.data() + silenceEnd * frameBytes)) silenceEnd++;
+  }
+  /// Signal frame for app frame [i] of [frames], the last [silent] of them silent.
+  const uint8_t* frame(int i, int frames, int silent, int fps) const {
+    const int loud = frames - silent;
+    const size_t index = i < loud
+      ? loudStart + size_t(double(i) * 30 / double(fps)) % std::max<size_t>(1, silenceStart - loudStart)
+      : std::min(silenceEnd - 1, silenceStart + size_t(double(i - loud) * 30 / double(fps)));
+    return bytes.data() + index * frameBytes;
+  }
+};
+
+struct SurfacePasses { Passes most; uint64_t bytes = 0; double at = 0; };
+
+/// Plays [program] like the app (its fps, seed, controls, colors and
+/// reactivity) and keeps its most expensive frame. [basics] and [modifiers]
+/// replace its initial controls and modifiers.
+SurfacePasses playPasses(const creator::Program& program, const CreatorPassCase& visual, const Surface& surface,
+                         const Loud& music, int frames, int silent, const std::array<float, 4>* basics = nullptr,
+                         const std::vector<float>* modifiers = nullptr) {
+  Instance p(program, visual.seed);
+  std::vector<float> values;
+  if (basics) values.assign(basics->begin(), basics->end());
+  else for (double control : visual.controls) values.push_back(float(control));
+  for (uint32_t argb : visual.colors) {
+    const auto color = creator::Color::argb(argb);
+    values.insert(values.end(), {color.r, color.g, color.b, color.a});
+  }
+  if (modifiers) values.insert(values.end(), modifiers->begin(), modifiers->end());
+  p.configure(values, 0, visual.reactive);
+  const double viewHeight = surface.logicalHeight;
+  const double viewWidth = surface.logicalHeight * surface.width / surface.height;
+  SurfacePasses result;
+  for (int i = 0; i < frames; i++) {
+    if (!music.empty()) p.check(cp_consume(p.handle, music.frame(i, frames, silent, visual.fps), frameBytes));
+    p.check(cp_update(p.handle, viewWidth, viewHeight, double(i) / visual.fps, 0));
+    p.check(cp_draw(p.handle));
+    const auto counted = countPasses(cp_commands(p.handle), cp_command_length(p.handle),
+                                     viewWidth, viewHeight, surface.width, surface.height);
+    if (counted.passes > result.most.passes) { result.most = counted; result.at = double(i) / visual.fps; }
+    result.bytes = std::max(result.bytes, counted.bytes);
+  }
+  return result;
+}
+
+const CreatorPassCase& passCase(const creator::Program& program) {
+  for (const auto& visual : creatorPassCases())
+    if (std::strcmp(visual.program, program.id) == 0) return visual;
+  throw Failure("falta su caso de pasadas: vuelve a generar el catálogo.");
+}
+
+/// The gate plays the initial settings; the sweep asks for its other ones
+/// here (every setting at its maximum, each variation): the same 14 s on
+/// the iPad, a warning and never a failure.
+void warnPasses(const creator::Program& program, const std::string& with, const std::array<float, 4>& basics,
+                const std::vector<float>& modifiers, const Loud& music) {
+  try {
+    const auto& visual = passCase(program);
+    const auto run = playPasses(program, visual, iPad, music, 14 * visual.fps, 2 * visual.fps, &basics, &modifiers);
+    if (run.most.passes > iPad.passLimit)
+      std::cout << "WARN passes " << program.id << ": " << run.most.passes << " pasadas con " << with << " (máx "
+                << iPad.passLimit << " en iPad)\n";
+  } catch (const Failure& e) {
+    std::cout << "WARN passes " << program.id << ": no se pudieron contar con " << with << ": " << e.what() << "\n";
+  }
+}
+
+std::string decimal(double value, const char* format = "%.1f") {
+  char text[32]; std::snprintf(text, sizeof text, format, value);
+  std::string result = text;
+  for (auto& ch : result) if (ch == '.') ch = ',';
+  return result;
+}
+
+/// --pass-report harness: the energy harness schedule (240 frames at the
+/// visual's fps, the last 60 silent), max passes and bytes on each surface.
+void reportPasses(const creator::Program& program, const Loud& music) {
+  const auto& visual = passCase(program);
+  std::cout << "PASSES " << program.id << " fps " << visual.fps;
+  for (const auto& surface : surfaces) {
+    const auto run = playPasses(program, visual, surface, music, 240, 60);
+    std::cout << " " << surface.name << " " << run.most.passes << " " << run.bytes;
+  }
+  std::cout << "\n";
+}
+
+/// The gate: 12 s of loud music and 2 s of silence at the visual's fps.
+/// A frame over its surface's limit (35 passes on the iPhone, 28 on the
+/// iPad) or over 128 MiB fails; the message says what each surface exceeded.
+void checkPasses(const creator::Program& program, const Loud& music) {
+  const auto& visual = passCase(program);
+  if (music.empty() && visual.reactive) throw Failure("faltan las señales de música para contar sus pasadas.");
+  SurfacePasses runs[2];
+  bool overPasses[2], overBytes[2];
+  for (int k = 0; k < 2; k++) {
+    try { runs[k] = playPasses(program, visual, surfaces[k], music, 14 * visual.fps, 2 * visual.fps); }
+    catch (const Failure& e) { throw Failure(std::string("al contar sus pasadas: ") + e.what()); }
+    overPasses[k] = runs[k].most.passes > surfaces[k].passLimit;
+    overBytes[k] = runs[k].bytes > byteLimit;
+  }
+  auto counted = [&](int k) {
+    return std::to_string(runs[k].most.passes) + " (máx " + std::to_string(surfaces[k].passLimit) + ")";
+  };
+  if (!overPasses[0] && !overBytes[0] && !overPasses[1] && !overBytes[1]) {
+    std::cout << "PASS passes " << program.id << ": iPhone " << counted(0) << ", iPad " << counted(1) << "\n";
+    return;
+  }
+  auto mib = [](uint64_t bytes, const char* format) { return decimal(double(bytes) / 1048576, format) + " MiB"; };
+  // Only what was exceeded, per surface, and where each limit comes from.
+  std::string exceeded, limits, fine;
+  int k = -1;  // the failing surface whose most expensive frame is broken down
+  for (int s = 0; s < 2; s++) {
+    const auto& surface = surfaces[s];
+    const std::string passes = std::to_string(runs[s].most.passes), limit = std::to_string(surface.passLimit);
+    if (!overPasses[s] && !overBytes[s]) {
+      fine = std::string(" El ") + surface.name + " cumple: " + passes + " de " + limit + ".";
+      continue;
+    }
+    if (k < 0 || runs[s].most.passes > runs[k].most.passes) k = s;
+    if (!exceeded.empty()) exceeded += "; ";
+    exceeded += passes + " pasadas por cuadro en el " + surface.name;
+    if (overPasses[s]) exceeded += " (máx " + limit + ")";
+    if (overBytes[s]) exceeded += " y " + mib(runs[s].bytes, "%.1f") + " (máx 128)";
+    if (overPasses[s])
+      limits += std::string(" En el ") + surface.name + " cada pasada de pantalla completa ocupa " +
+                mib(fullScreen(surface.width, surface.height), "%.2f") + ": " + limit + " ya llenan " +
+                mib(surface.passLimit * fullScreen(surface.width, surface.height), "%.1f") + ".";
+  }
+  const auto& at = runs[k].most;
+  throw Failure(exceeded + ". La app no publica un cuadro de más de 128 MiB: la imagen se queda congelada." +
+    limits + fine + " En el cuadro más caro (" + surfaces[k].name + ", " + decimal(runs[k].at) +
+    " s): tramos vectoriales " + std::to_string(at.figures) +
+    ", llamadas points() " + std::to_string(at.points) +
+    ", checkpoints de composición " + std::to_string(at.copies) +
+    ", materiales " + std::to_string(at.materials) +
+    ", máscaras de recorte " + std::to_string(at.clipMasks) +
+    ", capas (saveLayer) " + std::to_string(at.groups) +
+    ". El motor reutiliza ocho texturas fuente; cada checkpoint RGBA16 ocupa dos unidades BGRA8. "
+    "Cada material cuesta una textura del tamaño de su rectángulo y cada clip una máscara. "
+    "Reduce materiales, capas anidadas y recortes por celda. Para reducir trabajo, agrupa puntos "
+    "en un lote de puntos por color y conserva el orden de composición del autor.");
+}
 #endif
 
 }  // namespace
@@ -231,9 +578,17 @@ std::vector<std::string> sweep(const creator::Program& program, const CreatorPro
 int main(int argc, char** argv) {
   Music music;
   bool strict = false;
+  bool initialFramesOnly = false;
+  std::string report;
   for (int i = 1; i < argc; i++) {
     const std::string arg = argv[i];
+    if (arg == "--initial-frames") { initialFramesOnly = true; continue; }
     if (arg == "--strict-modifiers") { strict = true; continue; }
+    if (arg == "--pass-report") {
+      if (i + 1 >= argc || std::string(argv[i + 1]) != "harness") { std::cerr << "--pass-report sólo admite harness.\n"; return 1; }
+      report = argv[++i];
+      continue;
+    }
     std::ifstream file(arg, std::ios::binary);
     music.bytes.assign(std::istreambuf_iterator<char>(file), {});
     if (music.bytes.empty() || music.bytes.size() % frameBytes) {
@@ -243,15 +598,42 @@ int main(int argc, char** argv) {
     music.makeLoud();
   }
   int failures = 0;
+  if (initialFramesOnly) {
+    for (const auto& program : creator::installedPrograms()) {
+      try {
+        checkInitialFrames(program);
+        std::cout << "PASS initial paused/reset " << program.id << "\n";
+      } catch (const std::exception& e) {
+        std::cerr << "FAIL " << visualName(program) << ": initial paused/reset: " << e.what() << "\n";
+        failures++;
+      }
+    }
+    return failures ? 1 : 0;
+  }
+#ifdef CREATOR_PROBE_CASES
+  const Loud loud(music);
+  if (!report.empty()) {
+    if (loud.empty()) { std::cerr << "Faltan las señales de música.\n"; return 1; }
+    for (const auto& program : creator::installedPrograms()) {
+      try { reportPasses(program, loud); }
+      catch (const std::exception& e) { std::cerr << "FAIL " << visualName(program) << ": " << e.what() << "\n"; failures++; }
+    }
+    return failures ? 1 : 0;
+  }
+#else
+  if (!report.empty()) { std::cerr << "Faltan los casos generados (creator_probe_cases.inc).\n"; return 1; }
+#endif
   // Every visual is checked even when one fails, so one fix never hides the next.
   for (const auto& program : creator::installedPrograms()) {
+    bool runs = false;
     try {
       checkProgram(program);
+      runs = true;
 #ifdef CREATOR_PROBE_CASES
       for (const auto& probe : creatorProbeCases()) {
         if (std::strcmp(probe.program, program.id) != 0) continue;
         if (music.bytes.empty()) throw Failure("faltan las señales de música para probar sus modificadores.");
-        const auto dead = sweep(program, probe, music);
+        const auto dead = sweep(program, probe, music, loud);
         for (const auto& id : dead) {
           std::cout << (strict ? "FAIL " : "WARN ") << visualName(program) << ": el modificador " << id
                     << " no cambia nada, ni en sus extremos ni con música.\n";
@@ -264,6 +646,18 @@ int main(int argc, char** argv) {
       std::cerr << "FAIL " << visualName(program) << ": " << e.what() << "\n";
       failures++;
     }
+#ifdef CREATOR_PROBE_CASES
+    // Energy: its own check, so a modifier failure never hides it.
+    if (runs) {
+      try { checkPasses(program, loud); }
+      catch (const std::exception& e) {
+        std::cerr << "FAIL " << visualName(program) << ": " << e.what() << "\n";
+        failures++;
+      }
+    }
+#else
+    (void)runs;
+#endif
   }
   if (failures) {
     std::cerr << failures << " problema(s). Copia cada línea FAIL, la plantilla y el archivo del visual a la IA.\n";

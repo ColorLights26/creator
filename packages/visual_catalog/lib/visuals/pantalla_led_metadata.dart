@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff000000, 0xffff1a12, 0xffffe6d2, 0xff5a0000],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Barridos y anillos continuos: a 60 FPS el movimiento es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

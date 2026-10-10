@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff000000, 0xffffb02e, 0xff19e0c8, 0xffff3fa4],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Crecimiento y giro de la luz continuos: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30, // energía: 60 no cabe; ver energy/frame_rate_record.json
 );

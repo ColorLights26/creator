@@ -54,6 +54,33 @@ class Visual final : public Scene {
   int autoCurve = 0, stage = 0, builtCurve = -1, builtLevel = -1;
   bool holding = false;
   std::vector<Vec2> pts;
+  // Tramos del trazo del cuadro (memoria reservada en reset). Cada tramo se
+  // parte en bloques de 16 segmentos con su caja, para tapar sólo lo cercano.
+  static constexpr int kChunks = 28, kBlock = 16, kMaxLayers = 12;
+  struct Box { float x0, y0, x1, y1; };
+  struct Block { Box box; int s, e; };
+  struct Chunk { Box box; int b0, b1, layer; };
+  mutable std::vector<Path> paths;
+  mutable std::vector<Paint> glows, lines;
+  // Bloques de cada tramo con su caja en el espacio de la curva ([-1, 1]):
+  // se calculan una vez al construir la curva; cada cuadro sólo los escala.
+  std::vector<Block> shape;
+  std::array<int, kChunks + 1> shapeAt{};
+  mutable std::vector<Block> blocks;
+  mutable std::vector<Box> waiting;  // cajas de las partes negras sin pintar
+  mutable std::array<Chunk, kChunks> chunks{};
+  mutable Path cover;
+  const Path blank;
+
+  static void grow(Box& b, Vec2 q) {
+    b.x0 = std::min(b.x0, q.x); b.y0 = std::min(b.y0, q.y);
+    b.x1 = std::max(b.x1, q.x); b.y1 = std::max(b.y1, q.y);
+  }
+  // Las cajas se tocan con un margen r alrededor de cada una (r1 y r2).
+  static bool touch(const Box& a, float r1, const Box& b, float r2) {
+    float r = r1 + r2;
+    return a.x0 - r <= b.x1 && b.x0 - r <= a.x1 && a.y0 - r <= b.y1 && b.y0 - r <= a.y1;
+  }
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
@@ -185,6 +212,21 @@ class Visual final : public Scene {
     float cx = (minX + maxX) * 0.5f, cy = (minY + maxY) * 0.5f;
     float s = 2.0f / std::max(std::max(maxX - minX, maxY - minY), 1e-3f);
     for (auto& p : pts) p = {(p.x - cx) * s, (p.y - cy) * s};
+    shape.clear();
+    const size_t n = pts.size();
+    for (int ch = 0; ch < kChunks; ch++) {
+      shapeAt[size_t(ch)] = int(shape.size());
+      size_t a = n * size_t(ch) / kChunks, end = std::min(n, n * size_t(ch + 1) / kChunks + 1);
+      if (a >= n) continue;
+      for (size_t s0 = a;; s0 += kBlock) {
+        size_t e0 = std::min(s0 + size_t(kBlock), end - 1);
+        Box box{1e30f, 1e30f, -1e30f, -1e30f};
+        for (size_t i = s0; i <= e0; i++) grow(box, pts[i]);
+        shape.push_back({box, int(s0), int(e0)});
+        if (e0 >= end - 1) break;
+      }
+    }
+    shapeAt[size_t(kChunks)] = int(shape.size());
   }
 
   double drawTime() const { return 3.2 + 0.6 * double(builtLevel > 0 ? std::min(builtLevel, 7) : 1); }
@@ -201,6 +243,18 @@ class Visual final : public Scene {
     builtCurve = builtLevel = -1;
     holding = false;
     pts.reserve(20000);
+    // Cada tramo cabe en 600 puntos (la curva más larga, el dragón de nivel
+    // 7, tiene 16385): se reserva una vez y cada cuadro reutiliza esa memoria.
+    Path most;
+    most.moveTo(0, 0);
+    for (int i = 0; i < 600; i++) most.lineTo(0, 0);
+    paths.assign(size_t(kChunks), most);
+    cover = most;
+    glows.assign(size_t(kChunks), Paint());
+    lines.assign(size_t(kChunks), Paint());
+    blocks.reserve(size_t(16385 / kBlock + 2 * kChunks + 8));
+    shape.reserve(blocks.capacity());
+    waiting.reserve(4 * blocks.capacity());
   }
 
   void update(const Frame& f) override {
@@ -278,40 +332,160 @@ class Visual final : public Scene {
     float spacing = 2.0f * half / std::sqrt(float(n));
     // Graves: la línea engorda con los graves.
     float width = std::clamp(spacing * 0.32f, 1.0f * px, 6.0f * px) * m.grosor * (1.0f + 0.3f * bass * amp) * (1.0f + 0.45f * bassP);
-    const int chunks = 28;
     float wave = pulseAge < 2.5 ? float(pulseAge / 1.6) : 9.0f;
-    for (int ch = 0; ch < chunks; ch++) {
-      size_t a = n * size_t(ch) / chunks, b = std::min(shown, n * size_t(ch + 1) / chunks + 1);
+    int used = 0;
+    blocks.clear();
+    for (int ch = 0; ch < kChunks; ch++) {
+      size_t a = n * size_t(ch) / kChunks, b = std::min(shown, n * size_t(ch + 1) / kChunks + 1);
       if (a >= shown) break;
-      Path p;
+      Path& p = paths[size_t(ch)];
+      p = blank;  // copia de un trazo vacío: conserva la memoria del cuadro anterior
       for (size_t i = a; i < b; i++) {
         Vec2 q{center.x + pts[i].x * half, center.y + pts[i].y * half};
         if (i == a) p.moveTo(q.x, q.y); else p.lineTo(q.x, q.y);
       }
-      float t = float(ch) / float(chunks - 1);
+      // Cajas de los bloques ya dibujados, en el lienzo.
+      Chunk& info = chunks[size_t(ch)];
+      info.box = {1e30f, 1e30f, -1e30f, -1e30f};
+      info.b0 = int(blocks.size());
+      for (int k = shapeAt[size_t(ch)]; k < shapeAt[size_t(ch) + 1]; k++) {
+        Block blk = shape[size_t(k)];
+        if (size_t(blk.s) >= b - 1 && size_t(blk.s) != a) break;  // sin segmentos visibles
+        if (size_t(blk.e) > b - 1) {  // el bloque de la punta, a medio dibujar
+          blk.e = int(b - 1);
+          blk.box = {1e30f, 1e30f, -1e30f, -1e30f};
+          for (int i = blk.s; i <= blk.e; i++) grow(blk.box, pts[size_t(i)]);
+        }
+        blk.box = {center.x + blk.box.x0 * half, center.y + blk.box.y0 * half, center.x + blk.box.x1 * half, center.y + blk.box.y1 * half};
+        grow(info.box, {blk.box.x0, blk.box.y0});
+        grow(info.box, {blk.box.x1, blk.box.y1});
+        blocks.push_back(blk);
+      }
+      info.b1 = int(blocks.size());
+      float t = float(ch) / float(kChunks - 1);
       const Color& c0 = f.colors[1];
       const Color& c1 = f.colors[2];
       const Color& c2 = f.colors[3];
       Color col = t < 0.5f ? Color{c0.r + (c1.r - c0.r) * t * 2.0f, c0.g + (c1.g - c0.g) * t * 2.0f, c0.b + (c1.b - c0.b) * t * 2.0f, 1.0f}
                            : Color{c1.r + (c2.r - c1.r) * (t - 0.5f) * 2.0f, c1.g + (c2.g - c1.g) * (t - 0.5f) * 2.0f, c1.b + (c2.b - c1.b) * (t - 0.5f) * 2.0f, 1.0f};
       // Golpes: el pulso de luz corre más fuerte y más ancho (sin música no hay pulso).
-      float pulse = pulsePower * std::exp(-(t - wave) * (t - wave) * (60.0f - 30.0f * wGolpes)) * (1.0f + 0.4f * wGolpes);
+      // Sin golpe reciente (wave = 9) la exponencial ya vale 0: no se calcula.
+      float pulse = wave >= 9.0f ? 0.0f : pulsePower * std::exp(-(t - wave) * (t - wave) * (60.0f - 30.0f * wGolpes)) * (1.0f + 0.4f * wGolpes);
       // Golpes enciende el trazo entero; Graves lo aviva; Agudos lo hace parpadear por tramos.
       const float flick = sparkP > 0.002f ? hashU(uint32_t(ch) * 2654435761u + tick * 40503u) : 0.0f;
       float lit = (0.8f + 0.3f * body + 1.2f * pulse) * amp * (1.0f + 0.5f * kickP + 0.25f * bassP + 0.45f * sparkP * flick);
-      Paint glow;
-      glow.blend = Blend::plus;
+      Paint& glow = glows[size_t(ch)];
+      glow = Paint();
       glow.strokeWidth = width * 3.0f + 2.0f * px;
       glow.strokeJoin = 1;
       glow.strokeCap = 1;
       glow.color = col.opacity(std::clamp((0.1f + 0.3f * pulse) * f.glow * amp * (1.0f + 1.2f * kickP + 0.8f * bassP), 0.0f, 1.0f));
-      c.path(p, glow);
-      Paint line;
+      Paint& line = lines[size_t(ch)];
+      line = Paint();
       line.strokeWidth = width;
       line.strokeJoin = 1;
       line.strokeCap = 1;
       line.color = Color{std::min(1.0f, col.r * lit + pulse * 0.4f), std::min(1.0f, col.g * lit + pulse * 0.4f), std::min(1.0f, col.b * lit + pulse * 0.4f), 1.0f};
-      c.path(p, line);
+      used = ch + 1;
+    }
+    // El halo de cada tramo se suma a la luz (plus) justo antes de su línea
+    // opaca. Para no pagar dos pasadas por tramo:
+    // 1) Las líneas van todas en un lote, en su orden. Como su propio halo las
+    //    cubre entero y después se suma encima, cada línea se pinta con ese
+    //    halo ya restado: línea + halo = el color de antes, también en el borde.
+    // 2) Los halos van en capas aditivas. Dos halos que pueden tocarse (sus
+    //    cajas se tocan) nunca comparten capa, así se suman entre sí como antes.
+    // 3) En cada capa, la parte de una línea posterior que pasa sobre un halo
+    //    anterior de esa capa se repite en negro opaco: lo tapa como antes.
+    const float glowR = (width * 3.0f + 2.0f * px) * 0.5f + 1.0f, lineR = width * 0.5f + 1.0f;
+    int layers = 0;
+    std::array<uint32_t, kChunks> near{};  // tramos anteriores cuyo halo puede tocar este
+    for (int k = 0; k < used; k++) {
+      uint32_t taken = 0;
+      for (int j = 0; j < k; j++)
+        if (touch(chunks[size_t(j)].box, glowR, chunks[size_t(k)].box, glowR)) {
+          taken |= 1u << chunks[size_t(j)].layer;
+          near[size_t(k)] |= 1u << j;
+        }
+      int layer = 0;
+      while (layer < kMaxLayers - 1 && (taken & (1u << layer))) layer++;
+      chunks[size_t(k)].layer = layer;
+      layers = std::max(layers, layer + 1);
+    }
+    for (int ch = 0; ch < used; ch++) {
+      const Color& g = glows[size_t(ch)].color;
+      Color& l = lines[size_t(ch)].color;
+      l = Color{std::max(0.0f, l.r - g.r * g.a), std::max(0.0f, l.g - g.g * g.a), std::max(0.0f, l.b - g.b * g.a), 1.0f};
+      c.path(paths[size_t(ch)], lines[size_t(ch)]);
+    }
+    for (int layer = 0; layer < layers; layer++) {
+      c.saveLayer(1.0f, Blend::plus);
+      uint32_t drawn = 0;  // halos ya pintados en esta capa
+      // Las partes de líneas que tapan se juntan en un trazo negro hasta el
+      // siguiente halo de la capa (mismo grosor en todas las líneas).
+      cover = blank;
+      waiting.clear();
+      uint32_t pending = 0;  // tramos con partes en el trazo negro sin pintar
+      Paint hide = lines[0];
+      hide.color = Color{0.0f, 0.0f, 0.0f, 1.0f};
+      for (int ch = 0; ch < used; ch++) {
+        const Chunk& info = chunks[size_t(ch)];
+        if (info.layer == layer) {
+          // Lo pendiente sólo tiene que ir antes si alguna de sus partes
+          // puede tocar este halo.
+          bool before = false;
+          if (pending & near[size_t(ch)])
+            for (const Box& pb : waiting) before = before || touch(pb, lineR, info.box, glowR);
+          if (before) {
+            c.path(cover, hide);
+            cover = blank;
+            pending = 0;
+            waiting.clear();
+          }
+          c.path(paths[size_t(ch)], glows[size_t(ch)]);
+          drawn |= 1u << ch;
+          continue;
+        }
+        const uint32_t below = near[size_t(ch)] & drawn;
+        if (!below) continue;
+        // Bloques de esta línea que pasan cerca de algún halo anterior de la
+        // capa; dentro de ellos, sólo los tramos de 4 segmentos que lo tocan.
+        int last = -1;
+        for (int bi = info.b0; bi < info.b1; bi++) {
+          const Block& blk = blocks[size_t(bi)];
+          if (blk.e == blk.s) continue;  // un punto suelto no dibuja línea
+          std::array<int, 32> close{};
+          int found = 0;
+          bool all = false;
+          for (uint32_t rest = below; rest && !all; rest &= rest - 1) {
+            int u = 0;
+            while (!(rest & (1u << u))) u++;
+            const Chunk& other = chunks[size_t(u)];
+            if (!touch(blk.box, lineR, other.box, glowR)) continue;
+            for (int ob = other.b0; ob < other.b1 && !all; ob++) {
+              if (!touch(blk.box, lineR, blocks[size_t(ob)].box, glowR)) continue;
+              if (found == int(close.size())) all = true; else close[size_t(found++)] = ob;
+            }
+          }
+          if (!found && !all) continue;
+          for (int g = blk.s; g < blk.e; g += 4) {
+            const int ge = std::min(g + 4, blk.e);
+            Box fine{1e30f, 1e30f, -1e30f, -1e30f};
+            for (int i = g; i <= ge; i++) grow(fine, pts[size_t(i)]);
+            fine = {center.x + fine.x0 * half, center.y + fine.y0 * half, center.x + fine.x1 * half, center.y + fine.y1 * half};
+            bool hit = all;
+            for (int k = 0; k < found && !hit; k++) hit = touch(fine, lineR, blocks[size_t(close[size_t(k)])].box, glowR);
+            if (!hit) continue;
+            if (g != last) cover.moveTo(center.x + pts[size_t(g)].x * half, center.y + pts[size_t(g)].y * half);
+            for (int i = g + 1; i <= ge; i++) cover.lineTo(center.x + pts[size_t(i)].x * half, center.y + pts[size_t(i)].y * half);
+            last = ge;
+            pending |= 1u << ch;
+            waiting.push_back(fine);
+          }
+        }
+      }
+      if (pending) c.path(cover, hide);
+      c.restore();
     }
     // Agudos: chispas sueltas a lo largo del dibujo, unas 160 a la vez.
     if (sparkP > 0.002f) {

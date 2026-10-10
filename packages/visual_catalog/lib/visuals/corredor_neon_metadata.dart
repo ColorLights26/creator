@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff000000, 0xffff2a00, 0xffffc21a, 0xff6fc8ff],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Avance continuo por el corredor: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0x00000000, 0xff1f7bff, 0xffffa040, 0xffff3dd2],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Contornos que salen sin parar: a 60 FPS el movimiento es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

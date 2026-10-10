@@ -45,16 +45,25 @@ final class SceneCreatorMaterialRenderer {
     }
     definitions = result
   }
-  func render(index: Int, uniforms: [Float], images: [MTLTexture], width: Int, height: Int) throws -> MTLTexture {
+  func render(index: Int, uniforms: [Float], images: [MTLTexture], width: Int, height: Int,
+              frame: SceneCatalogFrameCommand? = nil) throws -> MTLTexture {
     guard definitions.indices.contains(index) else { throw SceneCreatorFailure("Unknown compiled material") }
-    return try renderer.render(definition: definitions[index], uniforms: uniforms, images: images, width: width, height: height)
+    return try renderer.render(definition: definitions[index], uniforms: uniforms, images: images, width: width, height: height, frame: frame)
   }
 }
 
 /// Instanced circles: 1,500 stars submit one draw per paint batch, not 1,500
 /// paths, blur passes or CPU bitmaps. Gradient coordinates remain local pixels.
+/// Several groups (one `points()` call each, with its own radius, paint and
+/// transform) draw in order into one texture: a new one, or the live output.
 @available(iOS 15.0, *)
 final class SceneCreatorPointRenderer {
+  struct Group {
+    let points: [SIMD2<Float>]
+    let radius: Float
+    let paint: SceneCatalogVectorPaint
+    let transform: CGAffineTransform
+  }
   private let device: MTLDevice
   private let queue: MTLCommandQueue
   private let pipelines: [MTLRenderPipelineState]
@@ -75,34 +84,48 @@ final class SceneCreatorPointRenderer {
     }
     self.pipelines = pipelines
   }
-  func render(points: [SIMD2<Float>], radius: Float, paint: SceneCatalogVectorPaint,
-              transform t: CGAffineTransform, size: CGSize, width: Int, height: Int) throws -> MTLTexture {
-    guard !points.isEmpty, points.count <= 32768,
-      let output = try SceneSurfaceNativeOutputAllocator.makeTexture(device: device, width: width, height: height, allocator: nil),
-      let command = queue.makeCommandBuffer() else { throw SceneCreatorFailure("Particle output unavailable") }
+  /// Draws [groups] in order. With [target] the points blend over its
+  /// current content (load); otherwise a new texture cleared to
+  /// [clearColor] is returned.
+  func render(groups: [Group], into target: MTLTexture?, clearColor: MTLClearColor = MTLClearColorMake(0, 0, 0, 0), loadExisting: Bool = true,
+              size: CGSize, width: Int, height: Int, frame: SceneCatalogFrameCommand? = nil) throws -> MTLTexture {
+    guard !groups.isEmpty, groups.allSatisfy({ !$0.points.isEmpty && $0.points.count <= 32768 }) else { throw SceneCreatorFailure("Particle batch invalid") }
+    if let target, target.width != width || target.height != height { throw SceneCreatorFailure("Particle target size mismatch") }
+    guard let output = try target ?? SceneSurfaceNativeOutputAllocator.makeTexture(device: device, width: width, height: height, allocator: nil),
+      let command = frame?.command ?? queue.makeCommandBuffer() else { throw SceneCreatorFailure("Particle output unavailable") }
     let pass = MTLRenderPassDescriptor(); pass.colorAttachments[0].texture = output
-    pass.colorAttachments[0].loadAction = .clear; pass.colorAttachments[0].storeAction = .store
-    pass.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0)
+    pass.colorAttachments[0].loadAction = target == nil || !loadExisting ? .clear : .load; pass.colorAttachments[0].storeAction = .store
+    pass.colorAttachments[0].clearColor = clearColor
     guard let encoder = command.makeRenderCommandEncoder(descriptor: pass) else { throw SceneCreatorFailure("Particle encoder unavailable") }
-    let blend = paint.blendMode == .plus ? 1 : paint.blendMode == .screen ? 2 : 0
-    let gradient = paint.shader
-    var parameters: [SIMD4<Float>] = [
-      SIMD4(Float(width), Float(height), Float(size.width), Float(size.height)),
-      SIMD4(Float(t.a), Float(t.b), Float(t.c), Float(t.d)),
-      SIMD4(Float(t.tx), Float(t.ty), radius, 0), paint.color.rgba,
-      SIMD4(gradient == nil ? 0 : gradient!.radial ? 2 : 1, Float(gradient?.colors.count ?? 0), gradient?.radius ?? 0, 0),
-      SIMD4(gradient?.start.x ?? 0, gradient?.start.y ?? 0, gradient?.end.x ?? 0, gradient?.end.y ?? 0),
-    ]
-    var colors = [SIMD4<Float>](repeating: .zero, count: 8), stops = [Float](repeating: 0, count: 8)
-    if let g = gradient { for i in g.colors.indices { colors[i] = g.colors[i].rgba; stops[i] = Float(g.stops[i]) } }
-    guard let buffer = points.withUnsafeBytes({ device.makeBuffer(bytes: $0.baseAddress!, length: $0.count, options: .storageModeShared) }) else { throw SceneCreatorFailure("Particle buffer unavailable") }
-    encoder.setRenderPipelineState(pipelines[blend]); encoder.setVertexBuffer(buffer, offset: 0, index: 1)
-    parameters.withUnsafeMutableBytes { encoder.setVertexBytes($0.baseAddress!, length: $0.count, index: 0); encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 0) }
-    colors.withUnsafeBytes { encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 2) }
-    stops.withUnsafeBytes { encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 3) }
-    encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4, instanceCount: points.count)
-    encoder.endEncoding(); command.commit(); command.waitUntilCompleted()
-    guard command.status == .completed else { throw command.error ?? SceneCreatorFailure("Particle GPU command failed") }
+    var encoding = true
+    defer { if encoding { encoder.endEncoding() } }
+    for group in groups {
+      let paint = group.paint, t = group.transform
+      let blend = paint.blendMode == .plus ? 1 : paint.blendMode == .screen ? 2 : 0
+      let gradient = paint.shader
+      var parameters: [SIMD4<Float>] = [
+        SIMD4(Float(width), Float(height), Float(size.width), Float(size.height)),
+        SIMD4(Float(t.a), Float(t.b), Float(t.c), Float(t.d)),
+        SIMD4(Float(t.tx), Float(t.ty), group.radius, 0), paint.color.rgba,
+        SIMD4(gradient == nil ? 0 : gradient!.radial ? 2 : 1, Float(gradient?.colors.count ?? 0), gradient?.radius ?? 0, 0),
+        SIMD4(gradient?.start.x ?? 0, gradient?.start.y ?? 0, gradient?.end.x ?? 0, gradient?.end.y ?? 0),
+      ]
+      var colors = [SIMD4<Float>](repeating: .zero, count: 8), stops = [Float](repeating: 0, count: 8)
+      if let g = gradient { for i in g.colors.indices { colors[i] = g.colors[i].rgba; stops[i] = Float(g.stops[i]) } }
+      guard let buffer = group.points.withUnsafeBytes({ device.makeBuffer(bytes: $0.baseAddress!, length: $0.count, options: .storageModeShared) }) else { throw SceneCreatorFailure("Particle buffer unavailable") }
+      try frame?.retain(buffer)
+      encoder.setRenderPipelineState(pipelines[blend]); encoder.setVertexBuffer(buffer, offset: 0, index: 1)
+      parameters.withUnsafeMutableBytes { encoder.setVertexBytes($0.baseAddress!, length: $0.count, index: 0); encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 0) }
+      colors.withUnsafeBytes { encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 2) }
+      stops.withUnsafeBytes { encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 3) }
+      encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4, instanceCount: group.points.count)
+    }
+    encoder.endEncoding()
+    encoding = false
+    if frame == nil {
+      command.commit(); command.waitUntilCompleted()
+      guard command.status == .completed else { throw command.error ?? SceneCreatorFailure("Particle GPU command failed") }
+    }
     return output
   }
   private static let source = """

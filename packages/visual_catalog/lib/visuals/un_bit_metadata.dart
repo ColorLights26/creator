@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff050505, 0xfff2ead8, 0xffff1e1e, 0xff2a2a2a],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // El cubo gira y las esferas orbitan sin parar: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

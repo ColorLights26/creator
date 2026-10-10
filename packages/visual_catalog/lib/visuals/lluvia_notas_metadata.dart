@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff06030a, 0xffff2244, 0xffff8800, 0xffffdd33],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Las notas suben de forma continua: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

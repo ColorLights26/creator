@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff050306, 0xffd4102c, 0xff10b04e, 0xff1a4ee0],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Fragmentos que vuelan: a 60 FPS el estallido es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

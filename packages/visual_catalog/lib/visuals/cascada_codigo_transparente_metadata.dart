@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0x00000000, 0xffff1a1a, 0xffffc400, 0xffffffff],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Caída continua: a 60 FPS las columnas bajan con fluidez.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

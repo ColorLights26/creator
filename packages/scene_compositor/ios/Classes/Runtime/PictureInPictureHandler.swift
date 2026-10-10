@@ -533,12 +533,20 @@ struct SceneSurfaceLayerFrameWork: Equatable {
 struct SceneSurfaceLayerCadenceClock {
     private var framesPerSecond = 0
     private var nextDueAt: CFTimeInterval?
+    private var lastConsumedAt: CFTimeInterval?
+
+    static func timerLeeway(framesPerSecond: Int) -> DispatchTimeInterval {
+        let cadence = min(max(framesPerSecond, 1), 60)
+        // Timer jitter stays below the clock's 10% early-arrival tolerance.
+        return .nanoseconds(1_000_000_000 / cadence / 20)
+    }
 
     mutating func consumeIfDue(
         at hostTime: CFTimeInterval,
         framesPerSecond requestedFramesPerSecond: Int
     ) -> Bool {
         guard hostTime.isFinite else { return false }
+        if let lastConsumedAt, hostTime <= lastConsumedAt { return false }
         let resolvedFramesPerSecond = min(
             max(requestedFramesPerSecond, 1),
             60
@@ -547,6 +555,7 @@ struct SceneSurfaceLayerCadenceClock {
         if framesPerSecond != resolvedFramesPerSecond || nextDueAt == nil {
             framesPerSecond = resolvedFramesPerSecond
             nextDueAt = hostTime + interval
+            lastConsumedAt = hostTime
             return true
         }
         let tolerance = interval * 0.10
@@ -555,10 +564,11 @@ struct SceneSurfaceLayerCadenceClock {
             return false
         }
         var followingDueAt = dueAt + interval
-        while followingDueAt <= hostTime + tolerance {
+        while followingDueAt <= hostTime {
             followingDueAt += interval
         }
         nextDueAt = followingDueAt
+        lastConsumedAt = hostTime
         return true
     }
 
@@ -573,11 +583,13 @@ struct SceneSurfaceLayerCadenceClock {
         )
         framesPerSecond = resolvedFramesPerSecond
         nextDueAt = hostTime + 1.0 / Double(resolvedFramesPerSecond)
+        lastConsumedAt = hostTime
     }
 
     mutating func reset() {
         framesPerSecond = 0
         nextDueAt = nil
+        lastConsumedAt = nil
     }
 }
 
@@ -13753,6 +13765,12 @@ final class SceneSurfaceRenderEngine: NSObject {
                 "preparing": session.preparationId != nil || self.documentInspections[session.id] != nil,
                 "playing": session.playing,
             ]
+            if let buffer = session.texture.copyPixelBuffer()?.takeRetainedValue() {
+                payload["surfacePx"] = [
+                    "width": CVPixelBufferGetWidth(buffer),
+                    "height": CVPixelBufferGetHeight(buffer),
+                ]
+            }
             if let backendClass = session.observedBackend?.backendClass {
                 payload["backendClass"] = backendClass
             }
@@ -14128,7 +14146,9 @@ final class SceneSurfaceRenderEngine: NSObject {
         timer.schedule(
             deadline: .now() + (1.0 / Double(cappedFramesPerSecond)),
             repeating: .nanoseconds(1_000_000_000 / cappedFramesPerSecond),
-            leeway: .milliseconds(2)
+            leeway: SceneSurfaceLayerCadenceClock.timerLeeway(
+                framesPerSecond: cappedFramesPerSecond
+            )
         )
         timer.setEventHandler { [weak self] in
             guard let self else { return }

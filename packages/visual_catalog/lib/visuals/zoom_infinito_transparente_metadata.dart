@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0x00000000, 0xffb30000, 0xffff6a00, 0xffffe066],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Zoom continuo: a 60 FPS el viaje es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

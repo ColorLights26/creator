@@ -2322,16 +2322,18 @@
           "values": {
             "lente": "Anamórfica",
             "recorrido": "Barrido",
-            "pulso": "Golpes"
+            "pulso": "Golpes",
+            "reflejos": 0.9,
+            "speed": 1.3
           }
         },
         {
-          "name": "Estrellas",
+          "name": "Cristal Estelar",
           "values": {
             "lente": "Estrella",
-            "recorrido": "Fijas",
+            "recorrido": "Órbita",
             "pulso": "Brillos",
-            "neblina": 0.8
+            "reflejos": 0.3
           }
         }
       ]
@@ -2366,6 +2368,58 @@
       },
       "publication": "draft",
       "role": "background",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Terminal Binaria",
+          "values": {
+            "caracteres": "Binario",
+            "figura": "Cubo",
+            "columnas": 64,
+            "pulso": "Agudos"
+          }
+        },
+        {
+          "name": "Latido Ámbar",
+          "values": {
+            "caracteres": "Bloques",
+            "figura": "Dona",
+            "columnas": 30,
+            "pulso": "Graves"
+          }
+        }
+      ]
+    },
+    {
+      "id": "dona_ascii_transparente",
+      "name": "Dona ASCII Transparente",
+      "description": "La famosa rosquilla 3D hecha sólo con caracteres de texto, girando en ámbar de monitor antiguo; con la música late, se acelera y cambia a esfera, cubo y octaedro sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "focus",
+        "party"
+      ],
+      "moods": [
+        "retro",
+        "geeky",
+        "hypnotic"
+      ],
+      "concepts": [
+        "ascii art",
+        "donut.c",
+        "terminal",
+        "3d"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.5
+      },
+      "publication": "draft",
+      "role": "overlay",
       "reactivity": "optional",
       "variations": [
         {
@@ -7194,22 +7248,22 @@
     {
       "id": "rorschach_calavera",
       "name": "Rorschach Calavera",
-      "description": "En el hueco de la mancha de Rorschach aparece una calavera con cuencas en las que brillan dos brasas; la mandíbula castañea o habla y con cada golpe de la música se abre en una carcajada.",
+      "description": "Una lámina de Rorschach en la que, a veces, el hueco de papel parece una calavera: nunca está dibujada, aparece y se disuelve con la tinta, y llora regueros de tinta con cada golpe.",
       "purposes": [
         "visualizer",
         "party",
         "focus"
       ],
       "moods": [
-        "disturbing",
-        "dark",
-        "gothic"
+        "eerie",
+        "mysterious",
+        "dark"
       ],
       "concepts": [
         "rorschach",
-        "skull",
         "memento mori",
-        "negative space"
+        "negative space",
+        "pareidolia"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -7217,7 +7271,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.5
+        "timeSeconds": 4.0
       },
       "publication": "draft",
       "role": "background",
@@ -7226,18 +7280,17 @@
         {
           "name": "Memento Mori",
           "values": {
-            "presencia": 1,
-            "mandibula": "Castañea",
-            "derretir": 0.15
+            "presencia": 0.9,
+            "lagrimas": 1,
+            "pulso": "Golpes"
           }
         },
         {
-          "name": "Derretida",
+          "name": "Duda",
           "values": {
-            "derretir": 1,
-            "mandibula": "Habla",
-            "pulso": "Graves",
-            "negativo": true
+            "presencia": 0.3,
+            "lagrimas": 0.2,
+            "mutacion": "Lenta"
           }
         }
       ]
@@ -7309,7 +7362,7 @@
     {
       "id": "rorschach_cosmico",
       "name": "Rorschach Cósmico",
-      "description": "Una mancha de Rorschach que es una ventana al espacio: dentro hay nebulosas, una galaxia o estrellas que viajan hacia ti, con un borde que brilla como un horizonte de sucesos.",
+      "description": "Una nebulosa con forma de mancha de Rorschach: gas rojo, naranja y dorado con filamentos y franjas de polvo oscuro, un cúmulo de estrellas en el centro y ondas de supernova que la recorren con cada golpe.",
       "purposes": [
         "visualizer",
         "party",
@@ -7323,8 +7376,8 @@
       "concepts": [
         "rorschach",
         "nebula",
-        "galaxy",
-        "portal"
+        "supernova",
+        "stars"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -7332,27 +7385,28 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.5
+        "timeSeconds": 4.0
       },
       "publication": "draft",
       "role": "background",
       "reactivity": "optional",
       "variations": [
         {
-          "name": "Portal",
+          "name": "Supernova",
           "values": {
-            "interior": "Galaxia",
-            "viaje": "Giro",
-            "papel": false
+            "gas": 1.5,
+            "polvo": 0.2,
+            "pulso": "Golpes",
+            "mutacion": "Cada golpe"
           }
         },
         {
-          "name": "Hiperespacio",
+          "name": "Nebulosa Oscura",
           "values": {
-            "interior": "Estrellas",
-            "viaje": "Zoom",
-            "pulso": "Golpes",
-            "horizonte": 1
+            "gas": 0.7,
+            "polvo": 1,
+            "nucleo": false,
+            "mutacion": "Lenta"
           }
         }
       ]
@@ -7360,22 +7414,22 @@
     {
       "id": "rorschach_demonio",
       "name": "Rorschach Demonio",
-      "description": "La mancha de Rorschach se convierte en un demonio con cuernos, ojos ardientes y una boca llena de colmillos que ruge con cada golpe de la música, entre brasas que suben.",
+      "description": "Una mancha de Rorschach que arde por dentro: grietas de lava recorren la costra negra, a veces se abren dos rendijas de brasa que te miran y desaparecen; con cada golpe la lava estalla y cambia de forma.",
       "purposes": [
         "visualizer",
         "party",
         "focus"
       ],
       "moods": [
-        "disturbing",
         "dark",
+        "mysterious",
         "intense"
       ],
       "concepts": [
         "rorschach",
-        "demon",
-        "horns",
-        "fangs"
+        "lava",
+        "embers",
+        "demon"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -7383,77 +7437,27 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.5
+        "timeSeconds": 4.0
       },
       "publication": "draft",
       "role": "background",
       "reactivity": "optional",
       "variations": [
         {
-          "name": "Bestia",
+          "name": "Infierno",
           "values": {
-            "cuernos": 1,
-            "acecho": "Convulsiona",
+            "grietas": 1,
             "brasas": 1,
-            "sangre": true
+            "mutacion": "Cada golpe"
           }
         },
         {
-          "name": "Sonrisa",
+          "name": "Acecho",
           "values": {
-            "cuernos": 0.25,
-            "acecho": "Quieto",
-            "pulso": "Graves"
-          }
-        }
-      ]
-    },
-    {
-      "id": "rorschach_enjambre",
-      "name": "Rorschach Enjambre",
-      "description": "Una mancha de Rorschach hecha de miles de bichos que se mueven sin parar: hormigas, moscas o gusanos que forman la figura y se dispersan con cada golpe de la música.",
-      "purposes": [
-        "visualizer",
-        "party",
-        "focus"
-      ],
-      "moods": [
-        "disturbing",
-        "creepy",
-        "organic"
-      ],
-      "concepts": [
-        "rorschach",
-        "swarm",
-        "insects",
-        "crawling"
-      ],
-      "credits": {
-        "author": "Chic Apps",
-        "license": "",
-        "source": ""
-      },
-      "thumbnail": {
-        "timeSeconds": 2.5
-      },
-      "publication": "draft",
-      "role": "background",
-      "reactivity": "optional",
-      "variations": [
-        {
-          "name": "Plaga",
-          "values": {
-            "bichos": "Moscas",
-            "inquietud": 1,
-            "pulso": "Golpes"
-          }
-        },
-        {
-          "name": "Hormiguero",
-          "values": {
-            "bichos": "Hormigas",
-            "mancha": 0,
-            "inquietud": 0.3
+            "grietas": 0.2,
+            "mirada": 1,
+            "pulso": "Graves",
+            "mutacion": "Lenta"
           }
         }
       ]
@@ -7513,7 +7517,7 @@
     {
       "id": "rorschach_fractal",
       "name": "Rorschach Fractal",
-      "description": "Una mancha de Rorschach hecha de un fractal de Julia: bordes infinitos de ramas, conejos o espirales que cambian sin parar, con bandas de color que corren por el borde.",
+      "description": "Una mancha de Rorschach con borde fractal infinito que nunca se repite: el fractal viaja entre familias de formas, se acerca y se aleja, gira y salta a otra forma con cada golpe, con bandas de fuego que corren por el borde.",
       "purposes": [
         "visualizer",
         "party",
@@ -7536,26 +7540,26 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.5
+        "timeSeconds": 4.0
       },
       "publication": "draft",
       "role": "background",
       "reactivity": "optional",
       "variations": [
         {
-          "name": "Dendritas",
+          "name": "Abismo",
           "values": {
-            "familia": "Dendritas",
+            "profundidad": 2.4,
             "bandas": 1,
-            "deriva": "Viaje"
+            "mutacion": "Cada golpe"
           }
         },
         {
-          "name": "Conejos",
+          "name": "Tinta China",
           "values": {
-            "familia": "Conejo",
-            "deriva": "Latido",
-            "negativo": true
+            "bandas": 0,
+            "negativo": true,
+            "pulso": "Graves"
           }
         }
       ]
@@ -7627,7 +7631,7 @@
     {
       "id": "rorschach_hipnotico",
       "name": "Rorschach Hipnótico",
-      "description": "Una mancha de Rorschach de la que salen ecos de su propia forma en bandas blancas y negras que fluyen sin parar hacia dentro o hacia fuera, como una ilusión óptica que te atrapa.",
+      "description": "Ecos de una mancha de Rorschach en bandas blancas y negras que fluyen al ritmo: cada golpe las empuja y lanza una onda que las deforma, los graves cambian cuántas hay y la mancha muta sin parar.",
       "purposes": [
         "visualizer",
         "party",
@@ -7650,7 +7654,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.5
+        "timeSeconds": 4.0
       },
       "publication": "draft",
       "role": "background",
@@ -7660,16 +7664,15 @@
           "name": "Vórtice",
           "values": {
             "torsion": 1,
-            "caida": "Hacia dentro",
-            "ecos": 10
+            "flujo": "Hacia dentro",
+            "ecos": 11
           }
         },
         {
-          "name": "Eco",
+          "name": "Latido",
           "values": {
             "ecos": 4,
-            "invertir": false,
-            "caida": "Vaivén",
+            "flujo": "Vaivén",
             "pulso": "Graves"
           }
         }
@@ -7678,7 +7681,7 @@
     {
       "id": "rorschach_mercurio",
       "name": "Rorschach Mercurio",
-      "description": "Una mancha de Rorschach de metal líquido que refleja fuego o luces de estudio, con gotas sueltas que orbitan; cada golpe de la música manda una onda por la superficie.",
+      "description": "Una mancha de Rorschach de mercurio negro: metal líquido que refleja un horizonte en llamas, cambia de forma salpicando gotas que salen disparadas y vuelven, y se ondula con cada golpe.",
       "purposes": [
         "visualizer",
         "party",
@@ -7686,8 +7689,8 @@
       ],
       "moods": [
         "luxurious",
-        "fluid",
-        "hypnotic"
+        "mysterious",
+        "fluid"
       ],
       "concepts": [
         "rorschach",
@@ -7701,27 +7704,26 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.5
+        "timeSeconds": 4.0
       },
       "publication": "draft",
       "role": "background",
       "reactivity": "optional",
       "variations": [
         {
-          "name": "Mercurio Puro",
+          "name": "Metal Fundido",
           "values": {
-            "entorno": "Estudio",
-            "gotas": 6,
-            "viscosidad": 0.2
+            "reflejo": "Llamas",
+            "gotas": 10,
+            "viscosidad": 0.1
           }
         },
         {
-          "name": "Metal Fundido",
+          "name": "Espejo Negro",
           "values": {
-            "entorno": "Fuego",
+            "reflejo": "Estudio",
             "viscosidad": 0.9,
-            "pulso": "Graves",
-            "cuatro": true
+            "pulso": "Graves"
           }
         }
       ]
@@ -7729,7 +7731,7 @@
     {
       "id": "rorschach_neon",
       "name": "Rorschach Neón",
-      "description": "Una mancha de Rorschach dibujada con tubos de neón rojos, naranjas y amarillos sobre una pared de ladrillo; zumban, parpadean y se encienden a tope con cada golpe de la música.",
+      "description": "Una mancha de Rorschach hecha de tubos de neón sobre ladrillo: los contornos se deslizan y cambian de forma, un chispazo de luz corre por los tubos con cada golpe y los graves los engordan.",
       "purposes": [
         "visualizer",
         "party",
@@ -7752,7 +7754,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.5
+        "timeSeconds": 4.0
       },
       "publication": "draft",
       "role": "background",
@@ -7763,15 +7765,15 @@
           "values": {
             "tubos": 2,
             "zumbido": 1,
-            "trazo": "Fijo"
+            "pulso": "Agudos"
           }
         },
         {
           "name": "Letrero Vivo",
           "values": {
             "tubos": 4,
-            "trazo": "Dibujándose",
-            "relleno": true
+            "relleno": true,
+            "mutacion": "Cada golpe"
           }
         }
       ]
@@ -7779,7 +7781,7 @@
     {
       "id": "rorschach_ojos",
       "name": "Rorschach Ojos",
-      "description": "Una mancha de Rorschach llena de ojos que parpadean y te siguen con la mirada; con cada golpe de la música todos se cierran a la vez y vuelven a abrirse.",
+      "description": "Una mancha de Rorschach llena de ojos que se abren y se cierran por su cuenta, se mueven nerviosos y, con cada golpe, se multiplican y te miran todos a la vez con las pupilas dilatadas.",
       "purposes": [
         "visualizer",
         "party",
@@ -7802,7 +7804,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.5
+        "timeSeconds": 4.0
       },
       "publication": "draft",
       "role": "background",
@@ -7812,7 +7814,7 @@
           "name": "Te Observan",
           "values": {
             "ojos": "Muchos",
-            "mirada": "Te sigue",
+            "locura": 1,
             "venas": 0.9
           }
         },
@@ -7820,31 +7822,31 @@
           "name": "Cíclope",
           "values": {
             "ojos": "Uno gigante",
-            "mirada": "Nerviosa",
-            "pulso": "Graves"
+            "pulso": "Graves",
+            "locura": 0.2
           }
         }
       ]
     },
     {
-      "id": "rorschach_polilla",
-      "name": "Rorschach Polilla",
-      "description": "La mancha de Rorschach cobra vida como una polilla gigante: sus alas de tinta baten al ritmo de la música y en ellas se abren ojos de fuego que te observan.",
+      "id": "rorschach_plegado",
+      "name": "Rorschach Plegado",
+      "description": "Así se hace una lámina de Rorschach, en directo: caen gotas de tinta en media hoja, la hoja se dobla, se aprieta y al abrirse aparece la mancha simétrica en rojo, negro y oro; con cada golpe se hace una lámina nueva.",
       "purposes": [
         "visualizer",
         "party",
         "focus"
       ],
       "moods": [
-        "eerie",
-        "organic",
-        "hypnotic"
+        "artistic",
+        "hypnotic",
+        "surprising"
       ],
       "concepts": [
         "rorschach",
-        "moth",
-        "eyespots",
-        "wings"
+        "paper fold",
+        "ink",
+        "symmetry"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -7852,11 +7854,29 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.5
+        "timeSeconds": 4.0
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Taller",
+          "values": {
+            "tintas": "Fuego",
+            "sombra": 1.5,
+            "mutacion": "Cada compás"
+          }
+        },
+        {
+          "name": "Noche de Tinta",
+          "values": {
+            "tintas": "Noche",
+            "gotas": 1,
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "rorschach_polilla_transparente",
@@ -7893,21 +7913,21 @@
     {
       "id": "rorschach_rayos_x",
       "name": "Rorschach Rayos X",
-      "description": "La mancha de Rorschach vista en negativo como una radiografía de un ser vivo: brilla con venas por dentro, late como un corazón y una franja de escáner la recorre.",
+      "description": "Una mancha de Rorschach vista en una placa de rayos X: dentro se ven huesos, costillas y venas, un corazón que late y un escáner que la recorre; cambia de forma con cada golpe.",
       "purposes": [
         "visualizer",
         "party",
         "focus"
       ],
       "moods": [
-        "disturbing",
         "eerie",
-        "organic"
+        "scientific",
+        "hypnotic"
       ],
       "concepts": [
         "rorschach",
         "x-ray",
-        "veins",
+        "bones",
         "heartbeat"
       ],
       "credits": {
@@ -7916,11 +7936,29 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.5
+        "timeSeconds": 4.0
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Quirófano",
+          "values": {
+            "estructura": "Venas",
+            "pulso": "Graves",
+            "barrido": false
+          }
+        },
+        {
+          "name": "Esqueleto",
+          "values": {
+            "estructura": "Huesos",
+            "grano": 1,
+            "mutacion": "Cada golpe"
+          }
+        }
+      ]
     },
     {
       "id": "rorschach_rayos_x_transparente",
@@ -7957,22 +7995,22 @@
     {
       "id": "rorschach_rostro",
       "name": "Rorschach Rostro",
-      "description": "Una mancha de Rorschach que resulta ser una cara: dos ojos que te miran y parpadean, una boca que se abre con los graves y pupilas que se dilatan con cada golpe.",
+      "description": "Una mancha de Rorschach en la que a veces se ve una cara: ojos que se abren y parpadean, una boca que grita con cada golpe; la cara cambia de expresión con cada forma nueva y se disuelve otra vez.",
       "purposes": [
         "visualizer",
         "party",
         "focus"
       ],
       "moods": [
-        "disturbing",
-        "mysterious",
-        "creepy"
+        "eerie",
+        "surreal",
+        "disturbing"
       ],
       "concepts": [
         "rorschach",
         "pareidolia",
         "face",
-        "eyes"
+        "inkblot"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -7980,11 +8018,29 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.5
+        "timeSeconds": 4.0
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Grito",
+          "values": {
+            "presencia": 1,
+            "tinta": "Doble",
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Fantasma",
+          "values": {
+            "presencia": 0.35,
+            "tinta": "Negra",
+            "mutacion": "Lenta"
+          }
+        }
+      ]
     },
     {
       "id": "rorschach_rostro_transparente",
@@ -8021,7 +8077,7 @@
     {
       "id": "rorschach_sangrante",
       "name": "Rorschach Sangrante",
-      "description": "Una mancha de Rorschach de tinta roja como la sangre que late como un corazón y gotea hacia abajo en regueros que se alargan sin parar sobre el papel.",
+      "description": "Una mancha de Rorschach de sangre brillante que cambia de forma con cada golpe, chupa el papel por sus fibras y suelta regueros que bajan; los golpes la hacen latir y salpicar.",
       "purposes": [
         "visualizer",
         "party",
@@ -8029,14 +8085,14 @@
       ],
       "moods": [
         "disturbing",
-        "dark",
+        "organic",
         "intense"
       ],
       "concepts": [
         "rorschach",
-        "inkblot",
+        "blood",
         "dripping",
-        "blood red"
+        "inkblot"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -8044,11 +8100,29 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.5
+        "timeSeconds": 4.0
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Hemorragia",
+          "values": {
+            "goteo": 1.6,
+            "humedad": 1,
+            "mutacion": "Cada golpe"
+          }
+        },
+        {
+          "name": "Noche de Sangre",
+          "values": {
+            "fondo": true,
+            "goteo": 0.6,
+            "pulso": "Graves"
+          }
+        }
+      ]
     },
     {
       "id": "rorschach_sangrante_transparente",
@@ -8085,7 +8159,7 @@
     {
       "id": "rorschach_tentaculos",
       "name": "Rorschach Tentáculos",
-      "description": "Una mancha de Rorschach de la que brotan tentáculos de tinta que se retuercen, se enroscan y se lanzan hacia fuera con cada golpe de la música.",
+      "description": "Una mancha de Rorschach de la que brotan tentáculos de tinta que se retuercen, se enroscan y se lanzan hacia fuera con cada golpe, en la penumbra de una lámina vieja.",
       "purposes": [
         "visualizer",
         "party",
@@ -8093,14 +8167,14 @@
       ],
       "moods": [
         "disturbing",
-        "organic",
-        "dark"
+        "dark",
+        "organic"
       ],
       "concepts": [
         "rorschach",
         "tentacles",
-        "ink",
-        "creature"
+        "creature",
+        "ink"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -8108,11 +8182,29 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.5
+        "timeSeconds": 4.0
       },
       "publication": "draft",
       "role": "background",
-      "reactivity": "optional"
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Kraken",
+          "values": {
+            "brazos": 8,
+            "retorcer": 1.5,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Acecho",
+          "values": {
+            "brazos": 3,
+            "retorcer": 0.4,
+            "mutacion": "Lenta"
+          }
+        }
+      ]
     },
     {
       "id": "rorschach_tentaculos_transparente",
@@ -8263,7 +8355,7 @@
     {
       "id": "selva_bioluminiscente",
       "name": "Selva Bioluminiscente",
-      "description": "Fractal verde luminoso que respira, con esporas flotando y puntas brillantes.",
+      "description": "Un bosque de noche que brilla con luz propia: ramas retorcidas con hojas verde menta, setas ámbar, helechos encendidos, niebla con rayos de luna, esporas y luciérnagas; cada golpe lanza un pulso de luz que sube desde las raíces hasta las hojas.",
       "purposes": [
         "relax",
         "visualizer"
@@ -8273,9 +8365,10 @@
         "magical"
       ],
       "concepts": [
-        "tree",
-        "fractal",
-        "glow"
+        "forest",
+        "bioluminescence",
+        "glow",
+        "night"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -8290,20 +8383,20 @@
       "reactivity": "optional",
       "variations": [
         {
-          "name": "Sauce",
+          "name": "Sauce Lunar",
           "values": {
-            "apertura": 0.55,
+            "flora": "Lianas",
             "viento": 2.2,
-            "aura": 0.5,
+            "niebla": 0.75,
             "pulso": "Graves"
           }
         },
         {
-          "name": "Abanico Mágico",
+          "name": "Jardín de Flores",
           "values": {
-            "apertura": 1.7,
+            "flora": "Flores",
             "viento": 0.4,
-            "aura": 1,
+            "niebla": 0.2,
             "pulso": "Agudos",
             "speed": 1.3
           }
@@ -9260,14 +9353,16 @@
           "values": {
             "espejo": true,
             "oleaje": 0.6,
+            "bruma": 0.1,
             "pulso": "Golpes"
           }
         },
         {
           "name": "Mar de Fondo",
           "values": {
-            "oleaje": 1.5,
+            "oleaje": 1.6,
             "cruce": 0.6,
+            "bruma": 0.75,
             "pulso": "Graves",
             "speed": 1.3
           }

@@ -106,7 +106,22 @@ void main(List<String> args) {
 // Balancea save/saveLayer con restore. clip intersecta recortes anidados.
 // Path.fillRule=FillRule::evenOdd permite huecos. Blend: sourceOver, plus, screen.
 // El motor posee cadencia/calidad/recursos: 30 FPS por defecto; pedir 60 no lo fuerza.
+// 60 FPS solo si cabe en 4 ms de GPU y 2 ms de CPU por cuadro; si no, 30
+// (framesPerSecond en la metadata). El dibujo debe ser el mismo a 30 y a 60.
 // Acota memoria y trabajo según tu escena. No existe un máximo artificial de 8 bucles.
+//
+// MEMORIA DE COMPOSICIÓN (Creator la comprueba): el motor conserva el orden
+// de figuras, puntos y mezclas que escribes. Reutiliza ocho texturas fuente
+// y libera cada lote con un checkpoint RGBA16, que ocupa dos unidades BGRA8.
+// saveLayer conserva el checkpoint del padre hasta restore. Cada clip ocupa
+// una máscara y cada material una textura del tamaño de su rectángulo.
+// El contador cuenta memoria retenida, no el número de llamadas a points().
+// Límite duro: 128 MiB, equivalentes a 28 unidades de pantalla completa en
+// iPad (900x1296 px) o 35 en iPhone (664x1440 px). Creator prueba los ajustes
+// iniciales, todos al máximo y cada variación; corrige también los avisos.
+// Para reducir trabajo: agrupa puntos por color, evita recortes por celda y
+// muchas capas anidadas; conserva el orden visual de las mezclas. Reservar
+// poca memoria no demuestra bajo consumo: hace falta la ficha física.
 // El código nativo se valida antes de aprobarse; esa validación NO es un sandbox.
 //
 // AJUSTES BÁSICOS: todo visual los tiene y Studio los muestra. Úsalos siempre.
@@ -144,15 +159,17 @@ void main(List<String> args) {
 // En C++: auto m = modifiers(f); para decidir (float, int, bool o el índice).
 //   auto g = glide(f); para transformarse: el motor ya suaviza cada cambio.
 //   g.<slider> y g.<steps> son decimales que se deslizan (5.4 brazos: mezcla 5
-//   y 6); g.<toggle> va de 0 a 1 (úsalo como opacidad); g.<choice>.weight(i) es
+//   y 6); g.<toggle> va de 0 a 1 (úsalo como opacidad o como la parte de los
+//   elementos que cambian); g.<choice>.weight(i) es
 //   el peso de la opción i y los pesos suman 1: mezcla las opciones con ellos.
 //   No escribas tu propio suavizado de los ajustes.
 // Calcula el aspecto en render (así se ve en pausa); update sólo acumula
 // movimiento. Reserva el máximo en reset; nunca reserves memoria ni reinicies
 // al cambiar un ajuste. Para materiales, pasa los valores y pesos como floats.
 // Al fundir dos opciones, reparte los elementos entre ambas en vez de dibujar
-// dos pasadas completas. Límites por cuadro: 32768 puntos por lote y 1 MiB de
-// comandos; colores y opacidades entre 0 y 1 (usa std::clamp).
+// dos pasadas completas. Límites por cuadro: 28 pasadas (35 en el iPhone),
+// 32768 puntos por lote y 1 MiB de comandos; colores y opacidades entre 0 y 1
+// (usa std::clamp).
 // id: letras a-z sin acentos ni ñ, números y _; empieza por letra; hasta 24.
 //   Es el nombre en C++: no uses intensity, speed, detail, glow, colors,
 //   palette, music, time, delta, width, height, seed, modifiers, glide ni
@@ -171,7 +188,11 @@ void main(List<String> args) {
 // que no cambia nada o que falla impide la aprobación.
 // ANTES DE ENTREGAR, comprueba: 3 a 5 ajustes de familias distintas y uno
 // musical (si reacciona); cada id se lee en el C++; ninguno repite un básico; extremos seguros
-// con detail 2; 2 o 3 variaciones; el movimiento es igual a 30 y 60 FPS.
+// con detail 2; 2 o 3 variaciones; el movimiento es igual a 30 y 60 FPS;
+// memoria retenida dentro de 128 MiB con los ajustes iniciales (límite duro),
+// todos al máximo y cada variación; cuenta texturas, checkpoints, capas,
+// máscaras y materiales, no sólo llamadas a dibujo; 60 FPS solo si cabe en
+// 4 ms de GPU y 2 ms de CPU por cuadro.
 //
 // MATERIALES OPCIONALES: añade, después de nativeSource,
 // const shaderSources = <String, String>{

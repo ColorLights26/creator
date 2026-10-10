@@ -1,9 +1,11 @@
 import Foundation
+import CoreGraphics
 import Metal
 
 @main
 enum CreatorCatalogTests {
   static func main() throws {
+    checkVectorGeometry()
     if CommandLine.arguments.count >= 2 {
       try smokeAuthoredCatalog(path: CommandLine.arguments[1])
       return
@@ -48,7 +50,9 @@ enum CreatorCatalogTests {
       }
     }
     // El antiguo tope de 256 ya no existe: sólo se rechaza un catálogo desbocado.
-    precondition(try SceneCreatorCatalog.decode(data(many(300))).count == 300)
+    // `precondition` takes a non-throwing autoclosure: decode first.
+    let threeHundred = try SceneCreatorCatalog.decode(data(many(300)))
+    precondition(threeHundred.count == 300)
     do {
       _ = try SceneCreatorCatalog.decode(data(many(SceneCreatorCatalog.maximumCatalogVisuals + 1)))
       preconditionFailure("Over-limit visuals accepted")
@@ -105,6 +109,19 @@ enum CreatorCatalogTests {
     precondition(ambient.uniforms(size: CGSize(width: 16, height: 16), hostTime: 1, reducedMotion: false)[4..<12].allSatisfy { $0 == 0 })
 
     guard let device = MTLCreateSystemDefaultDevice() else { fatalError("Metal device is required for renderer verification") }
+    let frameQueue = device.makeCommandQueue()!
+    let allocation = device.makeBuffer(length: 4096, options: .storageModeShared)!
+    let gpuFrame = try SceneCatalogFrameCommand(queue: frameQueue)
+    try gpuFrame.retain(allocation)
+    let retained = gpuFrame.retainedBytes
+    try gpuFrame.retain(allocation)
+    precondition(gpuFrame.retainedBytes == retained && retained == allocation.allocatedSize)
+    let constrained = try SceneCatalogFrameCommand(queue: frameQueue, budgetBytes: retained - 1)
+    do { try constrained.retain(allocation); preconditionFailure("Queued frame exceeded its memory budget") }
+    catch {}
+    try gpuFrame.complete()
+    precondition(gpuFrame.command.status == .completed)
+    print("PASS frame commands: completion, resource deduplication and bounded queued memory")
     let renderer = try SceneCatalogShaderRenderer(device: device)
     try renderer.prepare(program: "creator_test")
     let texture = try renderer.render(program: "creator_test", uniforms: values, width: 16, height: 16)
@@ -232,6 +249,149 @@ enum CreatorCatalogTests {
         "Haz que el dibujo use las señales de la plantilla, o elige reactivity: none si es ambiental.")
     }
     print("PASS behavior \(programID): \(program.reactivity), synthetic same-time music/silence/unavailable/off probes")
+  }
+
+  // Frozen pre-optimization geometry: catches changes in winding order,
+  // curve subdivision, Float conversion and device scaling.
+  static func checkVectorGeometry() {
+    var contourScratch = [CGPoint(x: -1234, y: 5678)]
+    let strokes = SceneCatalogVectorCanvas.StrokeGeometryCache()
+    for i in 0..<80 {
+      let path = CGMutablePath()
+      let n = Double(i + 1)
+      path.move(to: CGPoint(x: n * 0.37, y: -n * 0.21))
+      path.addCurve(to: CGPoint(x: n * 1.73, y: n * 0.91),
+        control1: CGPoint(x: -n * 0.83, y: n * 2.13),
+        control2: CGPoint(x: n * 2.71, y: -n * 1.33))
+      path.addQuadCurve(to: CGPoint(x: n * 0.23, y: n * 1.17),
+        control: CGPoint(x: n * 1.47, y: n * 3.19))
+      path.closeSubpath()
+      path.addEllipse(in: CGRect(x: -n, y: n * 0.1, width: n * 0.71, height: n * 1.17))
+      path.addRect(CGRect(x: n * 0.13, y: n * 0.17, width: n * 0.91, height: n * 0.77))
+      path.move(to: CGPoint(x: n, y: n))
+      path.addLine(to: CGPoint(x: n * 1.31, y: n * 1.97))
+      path.addLine(to: CGPoint(x: n * 0.57, y: -n * 0.83))
+      let stroke = path.copy(strokingWithWidth: 0.11 + n * 0.03,
+        lineCap: .round, lineJoin: .round, miterLimit: 4)
+      for cap: CGLineCap in [.butt, .round, .square] {
+        for join: CGLineJoin in [.miter, .round, .bevel] {
+          let expected = path.copy(strokingWithWidth: 0.11 + n * 0.03, lineCap: cap, lineJoin: join, miterLimit: 4)
+          let first = strokes.geometry(path, width: 0.11 + n * 0.03, cap: cap, join: join)
+          let repeated = strokes.geometry(path, width: 0.11 + n * 0.03, cap: cap, join: join)
+          precondition(first.outline == expected && repeated.outline === first.outline,
+            "Stroke reuse changed cap, join or geometry")
+        }
+      }
+      for candidate in [path as CGPath, stroke] {
+        for tolerance in [0.02, 0.08, 0.4] {
+          let original = referenceTriangles(path: candidate, tolerance: tolerance)
+          for scale: SIMD2<Float> in [SIMD2(1, 1), SIMD2(1.08, 1.08), SIMD2(0.5, 2.7)] {
+            let expected = original.map { $0 * scale }
+            let sentinel = SIMD2<Float>(-999, 999)
+            var actual = [sentinel]
+            SceneCatalogVectorRenderer.appendTriangles(path: candidate, tolerance: tolerance,
+              scale: scale, into: &actual)
+            precondition(actual.first == sentinel && actual.count == expected.count + 1)
+            var reused = [sentinel]
+            SceneCatalogVectorRenderer.appendTriangles(path: candidate, tolerance: tolerance,
+              scale: scale, into: &reused, contour: &contourScratch)
+            precondition(contourScratch.isEmpty && reused.count == actual.count)
+            for (a, b) in zip(reused, actual) {
+              precondition(a.x.bitPattern == b.x.bitPattern && a.y.bitPattern == b.y.bitPattern,
+                "Retained contour capacity changed the geometry")
+            }
+            for (a, b) in zip(actual.dropFirst(), expected) {
+              precondition(a.x.bitPattern == b.x.bitPattern && a.y.bitPattern == b.y.bitPattern,
+                "Vector geometry changed during allocation optimization")
+            }
+          }
+        }
+      }
+    }
+    let mutable = CGMutablePath(); mutable.addRect(CGRect(x: 0, y: 0, width: 10, height: 10))
+    let original = strokes.geometry(mutable, width: 2, cap: .round, join: .round)
+    mutable.move(to: CGPoint(x: 2, y: 2)); mutable.addLine(to: CGPoint(x: 8, y: 8))
+    let changed = strokes.geometry(mutable, width: 2, cap: .round, join: .round)
+    precondition(original.source != mutable && changed.outline == mutable.copy(strokingWithWidth: 2,
+      lineCap: .round, lineJoin: .round, miterLimit: 4), "Mutable equal-bounds path reused stale stroke")
+    let collision = CGMutablePath(); collision.move(to: CGPoint(x: 0, y: 0))
+    collision.addLine(to: CGPoint(x: 10, y: 10)); collision.addLine(to: CGPoint(x: 0, y: 10)); collision.closeSubpath()
+    precondition(collision.boundingBox == mutable.boundingBox)
+    let other = strokes.geometry(collision, width: 2, cap: .round, join: .round)
+    precondition(other.outline == collision.copy(strokingWithWidth: 2, lineCap: .round, lineJoin: .round, miterLimit: 4),
+      "Equal bounds are not equal geometry")
+    print("PASS stroke reuse: caps, joins, bounded retention, mutation and equal-bounds collisions")
+    print("PASS vector geometry: 1440 curved/compound/stroked/scaled cases, bit-for-bit")
+    for count in [255, 256, 513, 4096] {
+      let path = CGMutablePath()
+      path.move(to: .zero)
+      for index in 1...count {
+        path.addLine(to: CGPoint(x: Double(index) * 0.17, y: sin(Double(index) * 0.13) * 7))
+      }
+      path.closeSubpath()
+      path.move(to: CGPoint(x: 2, y: 3))
+      path.addLine(to: CGPoint(x: 5, y: 8))
+      path.addLine(to: CGPoint(x: 13, y: 21))
+      path.closeSubpath()
+      path.move(to: CGPoint(x: 31, y: 37))
+      path.addLine(to: CGPoint(x: 41, y: 43))
+      let scale = SIMD2<Float>(1.08, 2.7)
+      let expected = referenceTriangles(path: path, tolerance: 0.08).map { $0 * scale }
+      var actual: [SIMD2<Float>] = []
+      SceneCatalogVectorRenderer.appendTriangles(path: path, tolerance: 0.08,
+        scale: scale, into: &actual, contour: &contourScratch)
+      precondition(contourScratch.isEmpty && actual.count == expected.count)
+      for (a, b) in zip(actual, expected) {
+        precondition(a.x.bitPattern == b.x.bitPattern && a.y.bitPattern == b.y.bitPattern,
+          "Contour growth or reuse changed the geometry")
+      }
+    }
+    print("PASS vector point storage: allocation growth and reuse preserve dense contours")
+  }
+
+  static func referenceTriangles(path: CGPath, tolerance: Double) -> [SIMD2<Float>] {
+    var polygons: [[CGPoint]] = []
+    var current: [CGPoint] = []
+    func flush() { if current.count > 2 { polygons.append(current) }; current.removeAll(keepingCapacity: true) }
+    func distance(_ p: CGPoint, _ a: CGPoint, _ b: CGPoint) -> Double {
+      let dx = b.x - a.x, dy = b.y - a.y
+      let length = hypot(dx, dy)
+      return length < 1e-12 ? hypot(p.x - a.x, p.y - a.y) : abs(dy * p.x - dx * p.y + b.x * a.y - b.y * a.x) / length
+    }
+    func midpoint(_ a: CGPoint, _ b: CGPoint) -> CGPoint { CGPoint(x: (a.x + b.x) / 2, y: (a.y + b.y) / 2) }
+    func cubic(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint, _ d: CGPoint, _ depth: Int) {
+      if depth >= 16 || max(distance(b, a, d), distance(c, a, d)) <= tolerance {
+        current.append(d); return
+      }
+      let ab = midpoint(a, b), bc = midpoint(b, c), cd = midpoint(c, d)
+      let abc = midpoint(ab, bc), bcd = midpoint(bc, cd), middle = midpoint(abc, bcd)
+      cubic(a, ab, abc, middle, depth + 1); cubic(middle, bcd, cd, d, depth + 1)
+    }
+    path.applyWithBlock { pointer in
+      let element = pointer.pointee
+      switch element.type {
+      case .moveToPoint: flush(); current.append(element.points[0])
+      case .addLineToPoint: current.append(element.points[0])
+      case .addQuadCurveToPoint:
+        let a = current.last ?? .zero, b = element.points[0], c = element.points[1]
+        cubic(a, CGPoint(x: a.x + (b.x - a.x) * 2 / 3, y: a.y + (b.y - a.y) * 2 / 3),
+              CGPoint(x: c.x + (b.x - c.x) * 2 / 3, y: c.y + (b.y - c.y) * 2 / 3), c, 0)
+      case .addCurveToPoint: cubic(current.last ?? .zero, element.points[0], element.points[1], element.points[2], 0)
+      case .closeSubpath: flush()
+      @unknown default: preconditionFailure("Unrepresented CGPath element")
+      }
+    }
+    flush()
+    var result: [SIMD2<Float>] = []
+    for polygon in polygons {
+      let origin = polygon[0]
+      for index in 1..<(polygon.count - 1) {
+        for point in [origin, polygon[index], polygon[index + 1]] {
+          result.append(SIMD2(Float(point.x), Float(point.y)))
+        }
+      }
+    }
+    return result
   }
 
   static func readPixels(texture: MTLTexture, device: MTLDevice) -> [UInt8] {

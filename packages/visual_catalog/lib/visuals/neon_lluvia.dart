@@ -213,12 +213,15 @@ class Visual final : public Scene {
           (L.shade + 10.0f) / 255.0f, alpha};
         c.path(body, fill);
         if (!L.wins.empty()) {
+          // Cada ventana suma su luz dos veces. Con alfa doble cabe en una sola
+          // pasada (mismo píxel); si el doble pasa de 1 se dibuja dos veces.
+          const float wa = std::min(1.0f, 0.5f * alpha * boost + 0.6f * punch);
+          const int copies = wa * 2.0f <= 1.0f ? 1 : 2;
           std::vector<Vec2> win;
-          win.reserve(L.wins.size() * 2);
+          win.reserve(L.wins.size() * size_t(copies));
           for (size_t k = 0; k < L.wins.size(); k++) {
             const auto& p = L.wins[k];
-            win.push_back({dx + p.x, p.y});
-            win.push_back({dx + p.x, p.y});
+            for (int n = 0; n < copies; n++) win.push_back({dx + p.x, p.y});
             // Agudos: ventanas sueltas parpadean.
             if (glint > 0.0f && hashU(uint32_t(k * 4 + li) * 2654435761u + tick * 40503u) < glint * 0.3f) {
               twinkle.push_back({dx + p.x, p.y});
@@ -226,7 +229,7 @@ class Visual final : public Scene {
           }
           Paint wp; wp.blend = Blend::plus;
           // Golpes: las ventanas se encienden; Graves: crecen despacio.
-          wp.color = {1, 0.851f, 0.627f, std::min(1.0f, 0.5f * alpha * boost + 0.6f * punch)};
+          wp.color = {1, 0.851f, 0.627f, copies == 1 ? wa * 2.0f : wa};
           c.points(win, 1.7f * (1.0f + 0.6f * swell + 0.5f * punch), wp);
         }
       }
@@ -262,11 +265,10 @@ class Visual final : public Scene {
       }
     }
 
-    // 2. Reflejo mojado invertido (un solo clip para todas las capas combinadas).
+    // 2. Reflejo mojado invertido. La ciudad acaba sobre el horizonte, así que
+    // su reflejo cae entero entre el horizonte y el borde inferior: no hace
+    // falta recortarlo (cada recorte costaba una pasada más por dibujo).
     c.save();
-    Path refClip;
-    refClip.rect({0, horizon, w, h - horizon});
-    c.clip(refClip);
     c.translate(0, horizon);
     c.scale(1, -0.42f);
     c.translate(0, -horizon);
@@ -285,14 +287,12 @@ class Visual final : public Scene {
           (L.shade + 10.0f) / 255.0f, alpha};
         c.path(body, fill);
         if (!L.wins.empty()) {
+          // Alfa doble (siempre <= 0,2) en vez de cada ventana repetida.
           std::vector<Vec2> win;
-          win.reserve(L.wins.size() * 2);
-          for (const auto& p : L.wins) {
-            win.push_back({dx + p.x, p.y});
-            win.push_back({dx + p.x, p.y});
-          }
+          win.reserve(L.wins.size());
+          for (const auto& p : L.wins) win.push_back({dx + p.x, p.y});
           Paint wp; wp.blend = Blend::plus;
-          wp.color = {1, 0.851f, 0.627f, 0.1f * (0.35f + L.depth * 0.65f) * boost};
+          wp.color = {1, 0.851f, 0.627f, 2.0f * 0.1f * (0.35f + L.depth * 0.65f) * boost};
           c.points(win, 1.7f, wp);
         }
       }

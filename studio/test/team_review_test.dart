@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audiovisual_creator/studio/creator_studio.dart';
+import 'package:audiovisual_creator/team_review/accepted_visuals.dart';
 import 'package:audiovisual_creator/team_review/team_ranking.dart';
 import 'package:audiovisual_creator/team_review/team_ranking_screen.dart';
 import 'package:audiovisual_creator/team_review/team_rating_panel.dart';
@@ -466,6 +467,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: CreatorStudio(
+          acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
           catalogBuilder: () => [_aurora, _plasma, _tides],
           controllerFactory: () => compositor,
           recordingsLoader: () async => [],
@@ -682,6 +684,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: CreatorStudio(
+          acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
           catalogBuilder: () => [_aurora, _tides],
           controllerFactory: () => compositor,
           recordingsLoader: () async => [],
@@ -815,6 +818,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: CreatorStudio(
+          acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
           catalogBuilder: () => [_aurora, _plasma, _tides],
           controllerFactory: () => compositor,
           recordingsLoader: () async => [],
@@ -915,6 +919,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: CreatorStudio(
+          acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
           catalogBuilder: () => [_aurora, _plasma, _tides],
           controllerFactory: () => compositor,
           recordingsLoader: () async => [],
@@ -983,6 +988,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: CreatorStudio(
+          acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
           catalogBuilder: () => [_galaxy],
           controllerFactory: _Controller.new,
           recordingsLoader: () async => [],

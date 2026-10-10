@@ -34,11 +34,16 @@ class TeamRankingEntry {
     required this.id,
     required this.name,
     required this.revision,
+    this.technical,
   });
 
   final String id;
   final String name;
   final String revision;
+
+  /// Technical readiness label for this revision (Mac checks and device
+  /// card), separate from the team's vote; null when the studio has none.
+  final String? technical;
 }
 
 class TeamRankingRow {
@@ -49,16 +54,32 @@ class TeamRankingRow {
     int number = 0,
   }) {
     final ratings = controller.ratingsFor(entry.id, entry.revision);
-    final hidden = controller.hiddenCount(entry.id, entry.revision);
+    // Exact votes on this revision the reviewer has not unlocked; and whether
+    // anyone hidden voted here or on a reviewed equivalent (for the lock).
+    final hiddenHere = controller.hiddenCount(entry.id, entry.revision);
+    final hasHidden = controller.hasHiddenVotes(entry.id, entry.revision);
     final scores = {
       for (final rating in ratings) rating.reviewerName: rating.score,
     };
+    // Votes ON this exact revision: own visible (a vote cast on this revision)
+    // plus the ones still hidden here. Inherited votes live on another
+    // revision and are reported apart as [inherited], so a person who voted
+    // both an old and the new revision is never counted twice in one total.
+    final ownVisible =
+        ratings.where((rating) => rating.revision == entry.revision).length;
     return TeamRankingRow(
       number: number,
       entry: entry,
       scores: scores,
-      votes: ratings.length + hidden,
-      locked: hidden > 0,
+      votes: ownVisible + hiddenHere,
+      hiddenHere: hiddenHere,
+      // The unlocked average is partial while votes on THIS revision stay
+      // hidden: shown as "media parcial", never as a complete average.
+      incomplete: scores.isNotEmpty && hiddenHere > 0,
+      // Someone who voted on this revision or on a reviewed equivalent sees
+      // the team's scores; only a reviewer who never voted stays blind.
+      locked: hasHidden && !controller.hasVoted(entry.id, entry.revision),
+      inherited: controller.inheritedVoteCount(entry.id, entry.revision),
       average:
           scores.isEmpty
               ? null
@@ -81,6 +102,9 @@ class TeamRankingRow {
     required this.average,
     required this.comments,
     this.discardedByTeam = false,
+    this.inherited = 0,
+    this.hiddenHere = 0,
+    this.incomplete = false,
   });
 
   /// 1-based position in the catalog, like the N° column of the old sheet.
@@ -90,11 +114,26 @@ class TeamRankingRow {
   /// Visible scores by reviewer name.
   final Map<String, int> scores;
 
-  /// Every vote on this revision, including the ones still hidden.
+  /// Votes ON this exact revision: own visible plus [hiddenHere]. Inherited
+  /// votes (cast on a reviewed-equivalent earlier revision) are not in here;
+  /// they are counted in [inherited], so no person is double-counted.
   final int votes;
+
+  /// Votes cast on THIS exact revision that the reviewer has not unlocked
+  /// yet. Shown as "≥ N en esta versión" because a hidden voter may also be
+  /// among the inherited visible votes; it is not added to [votes].
+  final int hiddenHere;
+
+  /// The visible average omits hidden votes on this revision: it is partial,
+  /// never presented as the whole team's verdict.
+  final bool incomplete;
 
   /// Others voted but you didn't yet: their scores stay hidden.
   final bool locked;
+
+  /// Visible votes that were cast on an earlier revision reviewed as
+  /// equivalent to this one. They keep their own revision and comments.
+  final int inherited;
 
   /// Average of the visible scores; null when there are none.
   final double? average;
@@ -109,6 +148,10 @@ class TeamRankingRow {
     if (locked) return TeamVerdict.locked;
     final value = average;
     if (value == null) return TeamVerdict.noVotes;
+    // A partial average (hidden votes on this revision) is never a settled
+    // verdict: it still needs those votes before it can read approved or
+    // discarded.
+    if (incomplete) return TeamVerdict.needsVotes;
     if (scores.length < teamMinimumVotes) return TeamVerdict.needsVotes;
     if (value >= teamApprovalThreshold) return TeamVerdict.approved;
     if (value >= teamPotentialThreshold) return TeamVerdict.improvable;

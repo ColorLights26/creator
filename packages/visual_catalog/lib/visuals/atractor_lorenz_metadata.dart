@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff01020a, 0xff1e6bff, 0xff00e1ff, 0xffffffff],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Partículas en movimiento continuo: a 60 FPS el giro es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

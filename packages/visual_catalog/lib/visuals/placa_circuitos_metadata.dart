@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff060302, 0xffff9a1f, 0xffff3b0f, 0xfffff1c4],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Los paquetes corren sin parar: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff07070c, 0xffd7102a, 0xffffd400, 0xff1240ff],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Las gotas se abren y el peine se mueve con suavidad: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

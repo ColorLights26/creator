@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff000000, 0xffffffff, 0xffa874ff, 0xff3a1d6e],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Las filas avanzan sin parar: a 60 FPS el desplazamiento es suave.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

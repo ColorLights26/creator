@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff121212, 0xffffd400, 0xff1c1c1c, 0xffff3b1f],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Los discos se voltean en ondas continuas: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

@@ -106,6 +106,7 @@ class StudioView extends StatefulWidget {
     this.selectedVoteFilter,
     this.onVoteFilterChanged,
     this.onListEnd,
+    this.catalogSectionTitle = 'Visuales',
     super.key,
   });
 
@@ -166,6 +167,9 @@ class StudioView extends StatefulWidget {
   /// was voted). Null keeps it on the visual on screen.
   final VoidCallback? onListEnd;
 
+  /// The current catalog section, shown when opening its visual list.
+  final String catalogSectionTitle;
+
   @override
   State<StudioView> createState() => _StudioViewState();
 }
@@ -206,6 +210,12 @@ class _StudioViewState extends State<StudioView> {
             StudioBackgroundMode.checkerboard => Icons.texture_rounded,
             StudioBackgroundMode.light => Icons.light_mode_rounded,
           };
+
+  String get _bgModeLabel => switch (_bgMode) {
+    StudioBackgroundMode.dark => 'Fondo',
+    StudioBackgroundMode.checkerboard => 'Alpha',
+    StudioBackgroundMode.light => 'Claro',
+  };
 
   String get _bgModeTooltip => 'Fondo: ${_backdrop.label} (toca para elegir)';
 
@@ -526,7 +536,7 @@ class _StudioViewState extends State<StudioView> {
                     enabled: false,
                     height: 28,
                     child: Text(
-                      'VOTACIÓN',
+                      'CATÁLOGO Y VOTACIÓN',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
@@ -569,7 +579,7 @@ class _StudioViewState extends State<StudioView> {
             },
           ),
           IconButton(
-            key: const ValueKey('toggle-background-mode-button'),
+            key: const ValueKey('appbar-backdrop-button'),
             tooltip: _bgModeTooltip,
             onPressed: _pickBackdrop,
             icon: Icon(
@@ -955,6 +965,18 @@ class _StudioViewState extends State<StudioView> {
   void _selectVisualManual(String? id) => widget.onSelectVisual(id);
 
   Widget _buildEmptyView() {
+    if (widget.loading) {
+      return const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 12),
+            Text('Cargando catálogo…', style: TextStyle(color: Colors.white70)),
+          ],
+        ),
+      );
+    }
     return const Center(
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24),
@@ -1140,32 +1162,29 @@ class _StudioViewState extends State<StudioView> {
           ),
         ],
 
-        // Spec / Tech details pill chip (e.g. C++17 · Impeller Metal/Vulkan · Reactivo al audio)
+        // Spec / Tech details metadata (e.g. Borrador · Fondo · Reactivo)
         if (selected != null && selected.details.isNotEmpty) ...[
-          const SizedBox(height: 10),
-          // The background toggle lives in the app bar only.
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: const Color(0xFF73F572).withValues(alpha: 0.35),
-                  width: 1.2,
-                ),
-                color: const Color(0xFF162521).withValues(alpha: 0.65),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              const Icon(
+                Icons.tune_rounded,
+                size: 13,
+                color: Colors.white38,
               ),
-              child: Text(
-                selected.details,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                  color: Color(0xFF73F572),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  selected.details,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.3,
+                    color: Colors.white54,
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ],
 
@@ -1365,6 +1384,13 @@ class _StudioViewState extends State<StudioView> {
                   color: Colors.white54,
                 ),
               ),
+            ),
+            chip(
+              key: const ValueKey('toggle-background-mode-button'),
+              label: _bgModeLabel,
+              icon: _bgModeIcon,
+              selected: _backdrop != StudioBackdrop.dark,
+              onTap: _pickBackdrop,
             ),
             chip(
               key: const ValueKey('audio-chip-silence'),
@@ -1639,12 +1665,12 @@ class _StudioViewState extends State<StudioView> {
                       // Header
                       Row(
                         children: [
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Visuales',
+                                  widget.catalogSectionTitle,
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w900,
@@ -1652,8 +1678,8 @@ class _StudioViewState extends State<StudioView> {
                                     letterSpacing: 0.8,
                                   ),
                                 ),
-                                SizedBox(height: 4),
-                                Text(
+                                const SizedBox(height: 4),
+                                const Text(
                                   'Elige uno para verlo. Las notas del equipo están en el ranking.',
                                   style: TextStyle(
                                     fontSize: 13,

@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff1a0020, 0xffff2d95, 0xffff7a1a, 0xffffd400],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Capas que se desplazan sin parar: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

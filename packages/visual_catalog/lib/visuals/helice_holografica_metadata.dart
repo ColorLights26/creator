@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff00030a, 0xff2aa8ff, 0xffa8f0ff, 0xffff2a4a],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // La hélice gira sin parar: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

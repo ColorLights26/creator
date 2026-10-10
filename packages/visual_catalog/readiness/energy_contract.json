@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "revision": "scene-energy-budget-v1",
+  "semanticHash": "f8cd0d04940e0cf0a80d6861d073ea6c061f353e4c442708ba22a53499d3f012",
+  "source": "/Users/meee/Projects/colorlights26/.integration-qa/perf-thermal-energy/appkernel/tool/scene_energy_budget_v1.json",
+  "sourceFileSha256": "37c28b2876aba6626d1599c693caa7fda1dc307cb4a8dd690c1b923780ccdabe",
+  "importedAt": "2026-10-07T23:57:24.023578Z",
+  "values": {
+    "slotCeilings": {
+      "background": {
+        "gpuMsPerSecond": 839.4,
+        "efficiencyCorePercent": 40.97,
+        "basis": {
+          "gpu": "appGpuMsPerSecond",
+          "efficiencyCore": "efficiencyCorePercentOfCore"
+        }
+      },
+      "overlay": {
+        "gpuMsPerSecond": 184.54,
+        "efficiencyCorePercent": 46.23,
+        "basis": {
+          "gpu": "appGpuMsPerSecond",
+          "efficiencyCore": "efficiencyCorePercentOfCore"
+        }
+      }
+    },
+    "comparison": {
+      "gpuMarginPercent": 3,
+      "efficiencyCoreMarginPercent": 25,
+      "performanceCorePercentOfCoreBound": 3
+    },
+    "protocol": {
+      "measurementWarmupSeconds": 15,
+      "measurementCpuWindowSecondsMinimum": 15,
+      "measurementGpuWindowSeconds": 10,
+      "measurementSurfaceWidth": 664,
+      "measurementSurfaceHeight": 1440,
+      "measurementMsaaSamples": 4
+    },
+    "macEstimate": {
+      "measuredToMacEstimateRatioMinimum": 0.75,
+      "measuredToMacEstimateRatioMaximum": 1.85,
+      "macToReferenceFactor": 28.47
+    },
+    "creatorProgram": {
+      "feasibilityRule": "gpuMsPerFrame + cpuMsPerFrame <= 1000 / framesPerSecond",
+      "defaultFramesPerSecond": 30,
+      "maximumFramesPerSecond": 60,
+      "maximumIntermediatePassesAtReference": 35,
+      "maximumIntermediatePassesAtIpad": 28,
+      "runtimeMaximumPasses": 192,
+      "runtimeMaximumRetainedBytes": 134217728
+    },
+    "reference": {
+      "model": "iPhone 14 Pro",
+      "identifier": "iPhone15,2",
+      "operatingSystem": "iOS 27",
+      "surfaceWidth": 664,
+      "surfaceHeight": 1440,
+      "certificationSoakMinutes": 60
+    }
+  }
+}

@@ -1,0 +1,1177 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "description": "Atribución creativa histórica (quién creó cada visual), registrada antes de las migraciones de archivos. El primer commit Git de un archivo migrado no prueba el autor creativo; ese dato va aparte en origin.git del registro.",
+    "file": ".integration-qa/creator-energy/data/visual_authors.tsv (lista del responsable, 2026-10-04/05)",
+    "sha256": "d1327343e8e2770f7f29d88cbdb27c75444dfd4472212c7df7f2076c4b413e93",
+    "importedAt": "2026-10-07T23:28:37+00:00"
+  },
+  "visuals": {
+    "algoritmos_ordenacion": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "anillos_humo": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "arbol_fractal": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "arbol_fractal_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "arcos_sueno": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "arena_colores": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "arena_colores_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "art_deco": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "atractor_clifford": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "atractor_lorenz": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "atractor_lorenz_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "aura": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "aura_2": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "aura_2_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "aurora_ribbons": {
+      "author": "Pavel Rojas",
+      "date": "2026-09-24"
+    },
+    "avalancha_fractal": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "bauhaus": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "bokeh_luces": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "bokeh_luces_2": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "bokeh_luces_2_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "bokeh_luces_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "bola_discoteca": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "bola_discoteca_2": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "bola_discoteca_2_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "bola_discoteca_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "boreal_aurora": {
+      "author": "Franco david",
+      "date": "2026-09-28"
+    },
+    "caleidoscopio_infinito": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "caleidoscopio_infinito_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "campo_flujo": {
+      "author": "Franco david",
+      "date": "2026-09-28"
+    },
+    "campo_flujo_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "campo_plasma": {
+      "author": "Franco david",
+      "date": "2026-09-28"
+    },
+    "campo_plasma_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "capas_papel": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "cascada_codigo": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "cascada_codigo_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "catedral_luz": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "catedral_luz_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "causticas": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "celulas_voronoi": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "cimatica": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "cimatica_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "circulo_trap": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "circulos_infinitos": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "confeti": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "constelacion_viva": {
+      "author": "Franco david",
+      "date": "2026-09-28"
+    },
+    "constelacion_viva_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "corazon_matematico": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "corazon_matematico_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "cordillera_sonido": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "corredor_neon": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "cristal_bismuto": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "cristal_electrico": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "cristal_electrico_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "cristal_prismatico": {
+      "author": "Pavel Rojas",
+      "date": "2026-09-26"
+    },
+    "cristales_polarizados": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "cromo_liquido": {
+      "author": "Franco david",
+      "date": "2026-09-28"
+    },
+    "cromo_liquido_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "cubo_led": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "cubo_magico": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "cuerdas_vibrantes": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "curvas_fractales": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "deriva_julia": {
+      "author": "Franco david",
+      "date": "2026-09-28"
+    },
+    "deriva_julia_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "derretimiento": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "descarga_tesla": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "descarga_tesla_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "destellos_anamorficos": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "dona_ascii": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "dona_ascii_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-05"
+    },
+    "eco_infinito": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "eco_infinito_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "enjambre_metamorfo": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "enjambre_metamorfo_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "epiciclos": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "epiciclos_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "escalera_imposible": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "escena_demo": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "esfera_sonica": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "esfera_sonica_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "espectrograma": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "espiral_dominos": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "espiral_dominos_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "espiral_primos": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "estrella_neon": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "estrella_neon_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "ferrofluido": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "flor_cosmica": {
+      "author": "Pavel Rojas",
+      "date": "2026-09-26"
+    },
+    "flor_cosmica_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "flor_vida": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "flor_vida_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "fluido_colores": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "fuegos_artificiales": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "fuegos_artificiales_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "furia_estelar": {
+      "author": "Pavel Rojas",
+      "date": "2026-09-26"
+    },
+    "galaxy_scene": {
+      "author": "Pavel Rojas",
+      "date": "2026-09-25"
+    },
+    "geometria_islamica": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "globo_tesla": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "globo_tesla_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "golden_particles_scene": {
+      "author": "Pavel Rojas",
+      "date": "2026-09-25"
+    },
+    "goteo_pollock": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "goteo_pollock_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "haces_estadio": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "haces_estadio_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "helice_holografica": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "helice_holografica_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "hipervelocidad": {
+      "author": "Franco david",
+      "date": "2026-09-28"
+    },
+    "hipervelocidad_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "horizonte_sucesos": {
+      "author": "Franco david",
+      "date": "2026-09-28"
+    },
+    "horizonte_synthwave": {
+      "author": "Franco david",
+      "date": "2026-09-28"
+    },
+    "ilusion_optica": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "ilusion_optica_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "interferencia": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "interferencia_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "jardin_alucinante": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "jardin_alucinante_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "juego_vida": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "juego_vida_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "kandinsky": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "laberinto_truchet": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "laberinto_vivo": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "lampara_lava": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "llama_fractal": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "llamarada": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "llamarada_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "lluvia_chispas": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "lluvia_cinetica": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "lluvia_cinetica_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "lluvia_notas": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "lluvia_notas_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "luciernagas": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "luciernagas_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "luz_bordes": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "luz_bordes_2": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "luz_bordes_2_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "luz_bordes_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "magma": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "magma_2": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "magma_2_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "magma_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "magnetosfera": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "malla_ondas": {
+      "author": "Franco david",
+      "date": "2026-09-28"
+    },
+    "mancha_rorschach": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "mancha_rorschach_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "mandala_alucinante": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "mandala_alucinante_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "mandala_fuego": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "mandala_fuego_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "mapa_topografico": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "mapa_topografico_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "marmoleado": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "medidores_vu": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "mercurio_liquido": {
+      "author": "Pavel Rojas",
+      "date": "2026-09-26"
+    },
+    "mercurio_liquido_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "metal_tornasol": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "metal_tornasol_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "mil_relojes": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "moho_luminoso": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "moho_luminoso_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "monolitos_cromados": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "monstruo_maicena": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "murmuracion": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "murmuracion_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "muro_cinetico": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "muro_cinetico_2": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "muro_cinetico_2_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "muro_cinetico_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "nebulosa_viva": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "neon_lluvia": {
+      "author": "Franco david",
+      "date": "2026-09-28"
+    },
+    "nucleo_cristal": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "nucleo_cristal_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "nudo_toroidal": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "ojo_psicodelico": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "ojo_psicodelico_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "ola_pendulos": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "ola_pendulos_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "olas_cubos": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "ondas_voz": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "osciloscopio": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "osciloscopio_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "panal_energia": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "panel_discos": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "panel_discos_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "pantalla_led": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "pantalla_led_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "pasillo_geometrico": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "pasillo_geometrico_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "patrones_turing": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "pelicula_iridiscente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "pendulos_dobles": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "pendulos_dobles_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "pixel_sorting": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "placa_circuitos": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "placa_circuitos_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "planeta_anillado": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "plasma_scene": {
+      "author": "Pavel Rojas",
+      "date": "2026-09-26"
+    },
+    "plasma_scene_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "polvo_colores": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "pop_art": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "portal_cuantico": {
+      "author": "Pavel Rojas",
+      "date": "2026-09-26"
+    },
+    "portal_cuantico_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "prisma": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "prismatic_halo": {
+      "author": "Pavel Rojas",
+      "date": "2026-09-24"
+    },
+    "proyeccion_liquida": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "puerta_estelar": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "reaccion_bz": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_calavera": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_caleidoscopio": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_caleidoscopio_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_cosmico": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_demonio": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_estrobo": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_fractal": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_glitch": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_glitch_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_hipnotico": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_mercurio": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_neon": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_ojos": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_plegado": {
+      "author": "Franco david",
+      "date": "2026-10-05"
+    },
+    "rorschach_polilla_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_rayos_x": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_rayos_x_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_rostro": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_rostro_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_sangrante": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_sangrante_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_tentaculos": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "rorschach_tentaculos_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "sala_infinita": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "salto_hiperespacial": {
+      "author": "Franco david",
+      "date": "2026-09-28"
+    },
+    "seda_bioluminiscente": {
+      "author": "Pavel Rojas",
+      "date": "2026-09-26"
+    },
+    "selva_bioluminiscente": {
+      "author": "Franco david",
+      "date": "2026-09-28"
+    },
+    "show_laser": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "show_laser_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "synthwave_scene": {
+      "author": "Pavel Rojas",
+      "date": "2026-09-25"
+    },
+    "tablero_galton": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "tablero_galton_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "telar": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "teselado_hiperbolico": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "teselado_penrose": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "tinta_agua": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "tipografia_cinetica": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "torbellino_igneo": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "torbellino_igneo_ii": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "torbellino_igneo_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "tres_cuerpos": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "tuberias_3d": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "tubo_rubens": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "tunel_cibernetico": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "tunel_laser": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "tunel_laser_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "un_bit": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "v01_agujero_negro": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v02_red_neuronal": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v02_red_neuronal_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "v03_matriz_oceanica": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v04_tunel_warp": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v04_tunel_warp_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "v05_campo_curl": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v05_campo_curl_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "v06_tesseract_4d": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v06_tesseract_4d_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "v07_aurora_plasma": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v08_espectro_cosmico": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v08_espectro_cosmico_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "v09_espiral_aurea": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v09_espiral_aurea_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "v10_supernova": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v10_supernova_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "v11_archivo_corrupto": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v11_archivo_corrupto_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "v12_maquinaria_orbital": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v12_maquinaria_orbital_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "v13_nubes_volumetricas": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v13_nubes_volumetricas_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "v14_sismografo": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v14_sismografo_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "v15_lluvia_cristal": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v15_lluvia_cristal_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "v16_campo_magnetico": {
+      "author": "Franco david",
+      "date": "2026-09-30"
+    },
+    "v16_campo_magnetico_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "vidrio_liquido": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "vision_termica": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "vitral_estalla": {
+      "author": "Franco david",
+      "date": "2026-10-02"
+    },
+    "vortice_cosmico": {
+      "author": "Pavel Rojas",
+      "date": "2026-09-26"
+    },
+    "vortice_cosmico_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "vortice_hipnotico": {
+      "author": "Franco david",
+      "date": "2026-09-28"
+    },
+    "vortice_hipnotico_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-01"
+    },
+    "zoom_infinito": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    },
+    "zoom_infinito_transparente": {
+      "author": "Franco david",
+      "date": "2026-10-04"
+    }
+  },
+  "summary": {
+    "Franco david (native)": 273,
+    "Franco david (shader)": 4,
+    "Pavel Rojas (native)": 4,
+    "Pavel Rojas (shader)": 9
+  }
+}

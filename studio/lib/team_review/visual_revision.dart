@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:scene_compositor/scene_compositor.dart';
+// Pure Dart (authoring.dart has no Flutter): the readiness tool shares it.
+import 'package:scene_compositor/authoring.dart';
 
 /// Fingerprint of what a reviewer actually sees and hears react.
 ///

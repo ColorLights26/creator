@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff040306, 0xff2a5cff, 0xffff6a00, 0xffffd75a],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Las llamas parpadean rápido: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

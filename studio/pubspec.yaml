@@ -29,3 +29,5 @@ flutter:
   uses-material-design: true
   assets:
     - assets/recordings.json
+    - assets/accepted_visuals.json
+    - assets/measured_creator_build_manifest.json

@@ -1,0 +1,1190 @@
+{
+  "schemaVersion": 1,
+  "devices": {
+    "iPad13,4": {
+      "operatingSystem": "iPadOS 27",
+      "systemVersion": "27.0.1",
+      "surfaceWidth": 902,
+      "surfaceHeight": 1292,
+      "scope": "iPad Pro M1 (iPad13,4)",
+      "calibrationAnchors": [
+        {
+          "identity": {
+            "visualId": "cordillera_sonido",
+            "programHash": "4d0a5e2f97eb0cbe38d5b1417170ec13523a0a14d3c46070f502d1f6818f37c4",
+            "revision": "74bc0286e6c594c3",
+            "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "role": "background",
+            "native": true,
+            "controls": {
+              "detail": 1.0,
+              "glow": 1.0,
+              "intensity": 1.0,
+              "speed": 1.0
+            },
+            "modifiers": {}
+          },
+          "card": {
+            "visualId": "cordillera_sonido",
+            "profile": {
+              "controls": {
+                "detail": 1.0,
+                "glow": 1.0,
+                "intensity": 1.0,
+                "speed": 1.0
+              },
+              "modifiers": {},
+              "name": "default",
+              "variation": null
+            },
+            "programHash": "4d0a5e2f97eb0cbe38d5b1417170ec13523a0a14d3c46070f502d1f6818f37c4",
+            "revision": "74bc0286e6c594c3",
+            "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "signal": "synthetic_loud",
+            "role": "background",
+            "host": "studio",
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "viewport": {
+              "devicePixelRatio": 2.0,
+              "logicalHeight": 1194.0,
+              "logicalWidth": 834.0
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "row": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/energy_probe.jsonl",
+              "fileSha256": "b39c54a5ba27d09a0c4cb0d206c9ae1b560a4bd42ca75c66f241818e85a0b425",
+              "id": "cordillera_sonido",
+              "scheduleIndex": 0,
+              "utc": "2026-10-09T07:33:05+00:00",
+              "status": "measured"
+            },
+            "log": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/critical-measurements/logs/20261009T023202-000-cordillera_sonido-a1-console.log",
+              "sha256": "8db0e5153b218c097f86f1421d547afb21f4de8b22c76bf9d6278f76d5d2e582"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/critical-measurements/logs/20261009T023202-000-cordillera_sonido-probe.jsonl",
+              "sha256": "b54ab444513f5c9b92da17294aa6df03ef92c507e969c84623317749b31cd678"
+            },
+            "traceEvidence": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/critical-measurements/20261009T023202-000-cordillera_sonido-trace-samples.json",
+              "sha256": "000348b48122d2dff80f98c314dce2d59d2b474c659ff007cacd934b2692e7fb"
+            },
+            "protocol": {
+              "warmupSeconds": 15.0,
+              "cpuWindowSeconds": 21.047,
+              "gpuWindowSeconds": 21.046,
+              "startThermal": "nominal",
+              "thermalStates": [
+                "nominal"
+              ],
+              "energyLevel": "best",
+              "charging": true,
+              "lowPower": false,
+              "probeSamples": 10
+            },
+            "measured": {
+              "achievedFps": 30.0,
+              "gpuAppMsPerSecond": 409.83,
+              "gpuAppMsPerPublishedFrame": 13.661,
+              "efficiencyCorePercent": 28.28,
+              "performanceCorePercent": 11.37,
+              "renderThreadPercent": 33.84,
+              "memMb": 237.9
+            },
+            "warnings": [
+              "charging"
+            ],
+            "energyContract": {
+              "revision": "scene-energy-budget-v1",
+              "semanticHash": "f8cd0d04940e0cf0a80d6861d073ea6c061f353e4c442708ba22a53499d3f012"
+            }
+          },
+          "soak": {
+            "schemaVersion": 1,
+            "status": "recorded",
+            "detail": "",
+            "target": "cordillera_sonido",
+            "creator": {
+              "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+              "framesPerSecond": 30,
+              "kind": "native",
+              "profile": {
+                "controls": {
+                  "detail": 1.0,
+                  "glow": 1.0,
+                  "intensity": 1.0,
+                  "speed": 1.0
+                },
+                "modifiers": {},
+                "name": "default",
+                "variation": null
+              },
+              "programHash": "4d0a5e2f97eb0cbe38d5b1417170ec13523a0a14d3c46070f502d1f6818f37c4",
+              "programId": "creator_cordillera_sonido",
+              "reactive": true,
+              "reactivity": "optional",
+              "revision": "74bc0286e6c594c3",
+              "role": "background",
+              "seed": 42,
+              "signal": "synthetic_loud",
+              "visualId": "cordillera_sonido"
+            },
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "charging": true,
+            "durationSeconds": 3605.8542442321777,
+            "samples": 1804,
+            "minimumBrightness": 1.0,
+            "console": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/soaks/00-cordillera_sonido/logs/20261009T045549-000-cordillera_sonido-a1-console.log",
+              "sha256": "7fd44091adfe055be2530ade2453082f8cbb94924b69e26c1fa74923f4781ea0"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/soaks/00-cordillera_sonido/sustained-probe.jsonl",
+              "sha256": "397233662f003f42a9cb06b9243a25cafd82d7566f376291a58cf70a190a9bb8"
+            }
+          }
+        },
+        {
+          "identity": {
+            "visualId": "v13_nubes_volumetricas",
+            "programHash": "c51305291f3baeff9157cc144e249cfe8e4ebde65dbf28457a7f478b2e799c3d",
+            "revision": "536a95aeaa7f5ff1",
+            "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "role": "background",
+            "native": true,
+            "controls": {
+              "detail": 1.0,
+              "glow": 1.0,
+              "intensity": 1.0,
+              "speed": 1.0
+            },
+            "modifiers": {}
+          },
+          "card": {
+            "visualId": "v13_nubes_volumetricas",
+            "profile": {
+              "controls": {
+                "detail": 1.0,
+                "glow": 1.0,
+                "intensity": 1.0,
+                "speed": 1.0
+              },
+              "modifiers": {},
+              "name": "default",
+              "variation": null
+            },
+            "programHash": "c51305291f3baeff9157cc144e249cfe8e4ebde65dbf28457a7f478b2e799c3d",
+            "revision": "536a95aeaa7f5ff1",
+            "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "signal": "synthetic_loud",
+            "role": "background",
+            "host": "studio",
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "viewport": {
+              "devicePixelRatio": 2.0,
+              "logicalHeight": 1194.0,
+              "logicalWidth": 834.0
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "row": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/energy_probe.jsonl",
+              "fileSha256": "b39c54a5ba27d09a0c4cb0d206c9ae1b560a4bd42ca75c66f241818e85a0b425",
+              "id": "v13_nubes_volumetricas",
+              "scheduleIndex": 0,
+              "utc": "2026-10-09T04:22:15+00:00",
+              "status": "measured"
+            },
+            "log": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cloud-detail-budget-repair/measurements/logs/20261008T232113-000-v13_nubes_volumetricas-a1-console.log",
+              "sha256": "03dd68085430b319cd4f6e2ef9e19179acc15bfaa1ceb46c915a4d8075ee5507"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cloud-detail-budget-repair/measurements/logs/20261008T232113-000-v13_nubes_volumetricas-probe.jsonl",
+              "sha256": "02710b600437d24da6374bacd0ea9974d324124f20c856188110f733db3a444b"
+            },
+            "traceEvidence": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cloud-detail-budget-repair/measurements/20261008T232113-000-v13_nubes_volumetricas-trace-samples.json",
+              "sha256": "c994d328aa102dace476d3e120461b36d34bdfd1e6310f1f4a12c0165e939a94"
+            },
+            "protocol": {
+              "warmupSeconds": 15.0,
+              "cpuWindowSeconds": 20.772,
+              "gpuWindowSeconds": 20.763,
+              "startThermal": "nominal",
+              "thermalStates": [
+                "nominal"
+              ],
+              "energyLevel": "best",
+              "charging": true,
+              "lowPower": false,
+              "probeSamples": 10
+            },
+            "measured": {
+              "achievedFps": 29.99,
+              "gpuAppMsPerSecond": 406.17,
+              "gpuAppMsPerPublishedFrame": 13.544,
+              "efficiencyCorePercent": 30.88,
+              "performanceCorePercent": 0.0,
+              "renderThreadPercent": 20.43,
+              "memMb": 203.3
+            },
+            "warnings": [
+              "charging"
+            ],
+            "energyContract": {
+              "revision": "scene-energy-budget-v1",
+              "semanticHash": "f8cd0d04940e0cf0a80d6861d073ea6c061f353e4c442708ba22a53499d3f012"
+            }
+          },
+          "soak": {
+            "schemaVersion": 1,
+            "status": "recorded",
+            "detail": "",
+            "target": "v13_nubes_volumetricas",
+            "creator": {
+              "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+              "framesPerSecond": 30,
+              "kind": "native",
+              "profile": {
+                "controls": {
+                  "detail": 1.0,
+                  "glow": 1.0,
+                  "intensity": 1.0,
+                  "speed": 1.0
+                },
+                "modifiers": {},
+                "name": "default",
+                "variation": null
+              },
+              "programHash": "c51305291f3baeff9157cc144e249cfe8e4ebde65dbf28457a7f478b2e799c3d",
+              "programId": "creator_v13_nubes_volumetricas",
+              "reactive": true,
+              "reactivity": "optional",
+              "revision": "536a95aeaa7f5ff1",
+              "role": "background",
+              "seed": 42,
+              "signal": "synthetic_loud",
+              "visualId": "v13_nubes_volumetricas"
+            },
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "charging": true,
+            "durationSeconds": 3605.9073560237885,
+            "samples": 1804,
+            "minimumBrightness": 1.0,
+            "console": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cloud-detail-budget-repair/sustained-priority-delivery/soaks/00-v13_nubes_volumetricas/logs/20261008T233356-000-v13_nubes_volumetricas-a1-console.log",
+              "sha256": "3135d2e265d366f1de7ebf1057573fbaa2b61a6ab966d1650ffdb63ea13d95b1"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cloud-detail-budget-repair/sustained-priority-delivery/soaks/00-v13_nubes_volumetricas/sustained-probe.jsonl",
+              "sha256": "b52f2d51fcacca55eafaf4e703a3e50a3c97879648126820f924acafda7d838e"
+            }
+          }
+        },
+        {
+          "identity": {
+            "visualId": "v13_nubes_volumetricas_transparente",
+            "programHash": "8c7e7dbb1b579641a1e97783cd03c86fc3ba2dc37c244bfe4c621afda2123b42",
+            "revision": "6337bb5a2105e908",
+            "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "role": "overlay",
+            "native": true,
+            "controls": {
+              "detail": 1.0,
+              "glow": 1.0,
+              "intensity": 1.0,
+              "speed": 1.0
+            },
+            "modifiers": {}
+          },
+          "card": {
+            "visualId": "v13_nubes_volumetricas_transparente",
+            "profile": {
+              "controls": {
+                "detail": 1.0,
+                "glow": 1.0,
+                "intensity": 1.0,
+                "speed": 1.0
+              },
+              "modifiers": {},
+              "name": "default",
+              "variation": null
+            },
+            "programHash": "8c7e7dbb1b579641a1e97783cd03c86fc3ba2dc37c244bfe4c621afda2123b42",
+            "revision": "6337bb5a2105e908",
+            "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "signal": "synthetic_loud",
+            "role": "overlay",
+            "host": "studio",
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "viewport": {
+              "devicePixelRatio": 2.0,
+              "logicalHeight": 1194.0,
+              "logicalWidth": 834.0
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "row": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/energy_probe.jsonl",
+              "fileSha256": "b39c54a5ba27d09a0c4cb0d206c9ae1b560a4bd42ca75c66f241818e85a0b425",
+              "id": "v13_nubes_volumetricas_transparente",
+              "scheduleIndex": 1,
+              "utc": "2026-10-09T04:23:26+00:00",
+              "status": "measured"
+            },
+            "log": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cloud-detail-budget-repair/measurements/logs/20261008T232113-001-v13_nubes_volumetricas_transparente-a1-console.log",
+              "sha256": "0eb360d9adf0db2657831ff8b70418598d531399e073b6a7351b4981dcb5fd59"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cloud-detail-budget-repair/measurements/logs/20261008T232113-001-v13_nubes_volumetricas_transparente-probe.jsonl",
+              "sha256": "c8aef1858ddd523dee7108de03f4a02a8e351295f336fdbf50cd30c96d0365c3"
+            },
+            "traceEvidence": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cloud-detail-budget-repair/measurements/20261008T232113-001-v13_nubes_volumetricas_transparente-trace-samples.json",
+              "sha256": "e00b1e428f1e48ffbe1cd7e8f3ea7ab8cc4d523818c1a330ffce394b37699c48"
+            },
+            "protocol": {
+              "warmupSeconds": 15.0,
+              "cpuWindowSeconds": 20.518,
+              "gpuWindowSeconds": 20.515,
+              "startThermal": "nominal",
+              "thermalStates": [
+                "nominal"
+              ],
+              "energyLevel": "best",
+              "charging": true,
+              "lowPower": false,
+              "probeSamples": 10
+            },
+            "measured": {
+              "achievedFps": 30.0,
+              "gpuAppMsPerSecond": 407.72,
+              "gpuAppMsPerPublishedFrame": 13.591,
+              "efficiencyCorePercent": 30.41,
+              "performanceCorePercent": 0.0,
+              "renderThreadPercent": 20.21,
+              "memMb": 204.9
+            },
+            "warnings": [
+              "charging"
+            ],
+            "energyContract": {
+              "revision": "scene-energy-budget-v1",
+              "semanticHash": "f8cd0d04940e0cf0a80d6861d073ea6c061f353e4c442708ba22a53499d3f012"
+            }
+          },
+          "soak": {
+            "schemaVersion": 1,
+            "status": "recorded",
+            "detail": "",
+            "target": "v13_nubes_volumetricas_transparente",
+            "creator": {
+              "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+              "framesPerSecond": 30,
+              "kind": "native",
+              "profile": {
+                "controls": {
+                  "detail": 1.0,
+                  "glow": 1.0,
+                  "intensity": 1.0,
+                  "speed": 1.0
+                },
+                "modifiers": {},
+                "name": "default",
+                "variation": null
+              },
+              "programHash": "8c7e7dbb1b579641a1e97783cd03c86fc3ba2dc37c244bfe4c621afda2123b42",
+              "programId": "creator_v13_nubes_volumetricas_transparente",
+              "reactive": true,
+              "reactivity": "optional",
+              "revision": "6337bb5a2105e908",
+              "role": "overlay",
+              "seed": 42,
+              "signal": "synthetic_loud",
+              "visualId": "v13_nubes_volumetricas_transparente"
+            },
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "charging": true,
+            "durationSeconds": 3605.9021809101105,
+            "samples": 1804,
+            "minimumBrightness": 1.0,
+            "console": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cloud-detail-budget-repair/sustained-final-delivery/soaks/01-v13_nubes_volumetricas_transparente/logs/20261009T010331-000-v13_nubes_volumetricas_transparente-a1-console.log",
+              "sha256": "540b60716530b32df4b9a7a082203c5d89ec15a3b3ce9f1ff0fe3f9af703a169"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cloud-detail-budget-repair/sustained-final-delivery/soaks/01-v13_nubes_volumetricas_transparente/sustained-probe.jsonl",
+              "sha256": "6f12de7fdb4b7e47edb0267b0b21dda05bc28ae8c5fdf2168388a54c985bb1cd"
+            }
+          }
+        },
+        {
+          "identity": {
+            "visualId": "atractor_lorenz",
+            "programHash": "14f008f03af489c38043e68266406532dba3c07d227dddb41671513fcb9b54b9",
+            "revision": "07f91e1351402441",
+            "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "role": "background",
+            "native": true,
+            "controls": {
+              "detail": 1.0,
+              "glow": 1.0,
+              "intensity": 1.0,
+              "speed": 1.0
+            },
+            "modifiers": {}
+          },
+          "card": {
+            "visualId": "atractor_lorenz",
+            "profile": {
+              "controls": {
+                "detail": 1.0,
+                "glow": 1.0,
+                "intensity": 1.0,
+                "speed": 1.0
+              },
+              "modifiers": {},
+              "name": "default",
+              "variation": null
+            },
+            "programHash": "14f008f03af489c38043e68266406532dba3c07d227dddb41671513fcb9b54b9",
+            "revision": "07f91e1351402441",
+            "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "signal": "synthetic_loud",
+            "role": "background",
+            "host": "studio",
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "viewport": {
+              "devicePixelRatio": 2.0,
+              "logicalHeight": 1194.0,
+              "logicalWidth": 834.0
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "row": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/energy_probe.jsonl",
+              "fileSha256": "b39c54a5ba27d09a0c4cb0d206c9ae1b560a4bd42ca75c66f241818e85a0b425",
+              "id": "atractor_lorenz",
+              "scheduleIndex": 0,
+              "utc": "2026-10-09T07:41:50+00:00",
+              "status": "measured"
+            },
+            "log": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/measurements/logs/20261009T024044-000-atractor_lorenz-a1-console.log",
+              "sha256": "5bc463cf9fc9de73754fbf7062971245ea307643c0509a8ba393a606c22a774f"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/measurements/logs/20261009T024044-000-atractor_lorenz-probe.jsonl",
+              "sha256": "dff8c1cb3a4d6e741d752d424e6a1fe070636a39832e185d706b2744dc724dcf"
+            },
+            "traceEvidence": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/measurements/20261009T024044-000-atractor_lorenz-trace-samples.json",
+              "sha256": "39ba77e5729e5bb13fe97edc5655aef367d0691b0a0950caa33f910bda832b0f"
+            },
+            "protocol": {
+              "warmupSeconds": 15.0,
+              "cpuWindowSeconds": 20.522,
+              "gpuWindowSeconds": 20.514,
+              "startThermal": "nominal",
+              "thermalStates": [
+                "nominal"
+              ],
+              "energyLevel": "best",
+              "charging": true,
+              "lowPower": false,
+              "probeSamples": 10
+            },
+            "measured": {
+              "achievedFps": 30.0,
+              "gpuAppMsPerSecond": 309.81,
+              "gpuAppMsPerPublishedFrame": 10.327,
+              "efficiencyCorePercent": 0.09,
+              "performanceCorePercent": 39.57,
+              "renderThreadPercent": 36.25,
+              "memMb": 259.4
+            },
+            "warnings": [
+              "charging"
+            ],
+            "energyContract": {
+              "revision": "scene-energy-budget-v1",
+              "semanticHash": "f8cd0d04940e0cf0a80d6861d073ea6c061f353e4c442708ba22a53499d3f012"
+            }
+          },
+          "soak": {
+            "schemaVersion": 1,
+            "status": "recorded",
+            "detail": "",
+            "target": "atractor_lorenz",
+            "creator": {
+              "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+              "framesPerSecond": 30,
+              "kind": "native",
+              "profile": {
+                "controls": {
+                  "detail": 1.0,
+                  "glow": 1.0,
+                  "intensity": 1.0,
+                  "speed": 1.0
+                },
+                "modifiers": {},
+                "name": "default",
+                "variation": null
+              },
+              "programHash": "14f008f03af489c38043e68266406532dba3c07d227dddb41671513fcb9b54b9",
+              "programId": "creator_atractor_lorenz",
+              "reactive": true,
+              "reactivity": "optional",
+              "revision": "07f91e1351402441",
+              "role": "background",
+              "seed": 42,
+              "signal": "synthetic_loud",
+              "visualId": "atractor_lorenz"
+            },
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "charging": true,
+            "durationSeconds": 3604.0276761054993,
+            "samples": 1803,
+            "minimumBrightness": 1.0,
+            "console": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/soaks/03-atractor_lorenz/logs/20261009T055927-000-atractor_lorenz-a1-console.log",
+              "sha256": "0d87e22eb7b4691eb77ac3d243e36086bfaaf8533697c82c431c4a21a7b15a2a"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/soaks/03-atractor_lorenz/sustained-probe.jsonl",
+              "sha256": "52f626ec70b1632b7823bfefc25a9be4259a0f2a05c8f0fc61907f6982cb3dc2"
+            }
+          }
+        },
+        {
+          "identity": {
+            "visualId": "selva_bioluminiscente",
+            "programHash": "6888c8e78495170d9d27f1202837203ac2d8f9e6587a79a75e8b336a8c5c18fa",
+            "revision": "b70ec8a545e4b96b",
+            "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "role": "background",
+            "native": true,
+            "controls": {
+              "detail": 1.0,
+              "glow": 1.0,
+              "intensity": 1.0,
+              "speed": 0.6
+            },
+            "modifiers": {
+              "flora": 0.0,
+              "niebla": 0.45,
+              "pulso": 0.0,
+              "viento": 1.0
+            }
+          },
+          "card": {
+            "visualId": "selva_bioluminiscente",
+            "profile": {
+              "controls": {
+                "detail": 1.0,
+                "glow": 1.0,
+                "intensity": 1.0,
+                "speed": 0.6
+              },
+              "modifiers": {
+                "flora": 0.0,
+                "niebla": 0.45,
+                "pulso": 0.0,
+                "viento": 1.0
+              },
+              "name": "default",
+              "variation": null
+            },
+            "programHash": "6888c8e78495170d9d27f1202837203ac2d8f9e6587a79a75e8b336a8c5c18fa",
+            "revision": "b70ec8a545e4b96b",
+            "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "signal": "synthetic_loud",
+            "role": "background",
+            "host": "studio",
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "viewport": {
+              "devicePixelRatio": 2.0,
+              "logicalHeight": 1194.0,
+              "logicalWidth": 834.0
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "row": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/energy_probe.jsonl",
+              "fileSha256": "b39c54a5ba27d09a0c4cb0d206c9ae1b560a4bd42ca75c66f241818e85a0b425",
+              "id": "selva_bioluminiscente",
+              "scheduleIndex": 6,
+              "utc": "2026-10-08T16:12:56+00:00",
+              "status": "measured"
+            },
+            "log": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/active-delivery/measurements/logs/20261008T110343-006-selva_bioluminiscente-a1-console.log",
+              "sha256": "2bcde36eac41e09a8dd628b8551b7e99d0489b59a7ba3af51e5c5d5a676a0506"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/active-delivery/measurements/logs/20261008T110343-006-selva_bioluminiscente-probe.jsonl",
+              "sha256": "1d88734bd454e4214f300e116317dc1664095743c37a944f9485d8623f46f0c2"
+            },
+            "traceEvidence": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/active-delivery/measurements/20261008T110343-006-selva_bioluminiscente-trace-samples.json",
+              "sha256": "0377e08c4835f329fa1b297ef6fe5bb5cf4f7393b5b78a5e36089a21bee8c8c7"
+            },
+            "protocol": {
+              "warmupSeconds": 15.0,
+              "cpuWindowSeconds": 20.529,
+              "gpuWindowSeconds": 20.519,
+              "startThermal": "nominal",
+              "thermalStates": [
+                "nominal"
+              ],
+              "energyLevel": "best",
+              "charging": true,
+              "lowPower": false,
+              "probeSamples": 10
+            },
+            "measured": {
+              "achievedFps": 30.0,
+              "gpuAppMsPerSecond": 305.33,
+              "gpuAppMsPerPublishedFrame": 10.178,
+              "efficiencyCorePercent": 0.01,
+              "performanceCorePercent": 40.86,
+              "renderThreadPercent": 35.98,
+              "memMb": 297.9
+            },
+            "warnings": [
+              "charging"
+            ],
+            "energyContract": {
+              "revision": "scene-energy-budget-v1",
+              "semanticHash": "f8cd0d04940e0cf0a80d6861d073ea6c061f353e4c442708ba22a53499d3f012"
+            }
+          },
+          "soak": {
+            "schemaVersion": 1,
+            "status": "recorded",
+            "detail": "",
+            "target": "selva_bioluminiscente",
+            "creator": {
+              "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+              "framesPerSecond": 30,
+              "kind": "native",
+              "profile": {
+                "controls": {
+                  "detail": 1.0,
+                  "glow": 1.0,
+                  "intensity": 1.0,
+                  "speed": 0.6
+                },
+                "modifiers": {
+                  "flora": 0.0,
+                  "niebla": 0.45,
+                  "pulso": 0.0,
+                  "viento": 1.0
+                },
+                "name": "default",
+                "variation": null
+              },
+              "programHash": "6888c8e78495170d9d27f1202837203ac2d8f9e6587a79a75e8b336a8c5c18fa",
+              "programId": "creator_selva_bioluminiscente",
+              "reactive": true,
+              "reactivity": "optional",
+              "revision": "b70ec8a545e4b96b",
+              "role": "background",
+              "seed": 42,
+              "signal": "synthetic_loud",
+              "visualId": "selva_bioluminiscente"
+            },
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "charging": true,
+            "durationSeconds": 3605.8988559246063,
+            "samples": 1804,
+            "minimumBrightness": 1.0,
+            "console": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/soaks/04-selva_bioluminiscente/logs/20261009T070125-000-selva_bioluminiscente-a1-console.log",
+              "sha256": "199d89e56b108c39e2ee0728a5cd0e7b089be1bb8a3d1744cde1ae6fd63a17db"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/soaks/04-selva_bioluminiscente/sustained-probe.jsonl",
+              "sha256": "ea9b4871ccced578f3388048788e5760c22973d1f5344ab03b364fe10c8f3420"
+            }
+          }
+        },
+        {
+          "identity": {
+            "visualId": "pendulos_dobles",
+            "programHash": "dbb683943c71a4d0e152361db571a2953cee23d320298e6e65c7a8559cf0c150",
+            "revision": "c928a0caa0a74f86",
+            "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "role": "background",
+            "native": true,
+            "controls": {
+              "detail": 1.0,
+              "glow": 1.0,
+              "intensity": 1.0,
+              "speed": 1.0
+            },
+            "modifiers": {
+              "brazo": 1.0,
+              "ciclo": 20.0,
+              "estelas": 1.0,
+              "pendulos": 220.0,
+              "pulso": 0.0
+            }
+          },
+          "card": {
+            "visualId": "pendulos_dobles",
+            "profile": {
+              "controls": {
+                "detail": 1.0,
+                "glow": 1.0,
+                "intensity": 1.0,
+                "speed": 1.0
+              },
+              "modifiers": {
+                "brazo": 1.0,
+                "ciclo": 20.0,
+                "estelas": 1.0,
+                "pendulos": 220.0,
+                "pulso": 0.0
+              },
+              "name": "default",
+              "variation": null
+            },
+            "programHash": "dbb683943c71a4d0e152361db571a2953cee23d320298e6e65c7a8559cf0c150",
+            "revision": "c928a0caa0a74f86",
+            "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "signal": "synthetic_loud",
+            "role": "background",
+            "host": "studio",
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "viewport": {
+              "devicePixelRatio": 2.0,
+              "logicalHeight": 1194.0,
+              "logicalWidth": 834.0
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "row": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/energy_probe.jsonl",
+              "fileSha256": "b39c54a5ba27d09a0c4cb0d206c9ae1b560a4bd42ca75c66f241818e85a0b425",
+              "id": "pendulos_dobles",
+              "scheduleIndex": 7,
+              "utc": "2026-10-09T07:50:17+00:00",
+              "status": "measured"
+            },
+            "log": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/measurements/logs/20261009T024044-007-pendulos_dobles-a1-console.log",
+              "sha256": "b0f7d566973b30f34fbf2ff424066c856f5e480fd42e05d5f701b08406bc30dc"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/measurements/logs/20261009T024044-007-pendulos_dobles-probe.jsonl",
+              "sha256": "f8efe8d373a0d905cc0863743aff8db2a1e99cdcbd356d4664d7de7359b836b1"
+            },
+            "traceEvidence": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/measurements/20261009T024044-007-pendulos_dobles-trace-samples.json",
+              "sha256": "e1577af6f990f020c794a33590d30f80a6343c9f58e6104fc3bf4c3732dd2f0d"
+            },
+            "protocol": {
+              "warmupSeconds": 15.0,
+              "cpuWindowSeconds": 20.503,
+              "gpuWindowSeconds": 20.502,
+              "startThermal": "nominal",
+              "thermalStates": [
+                "nominal"
+              ],
+              "energyLevel": "best",
+              "charging": true,
+              "lowPower": false,
+              "probeSamples": 10
+            },
+            "measured": {
+              "achievedFps": 30.0,
+              "gpuAppMsPerSecond": 293.28,
+              "gpuAppMsPerPublishedFrame": 9.776,
+              "efficiencyCorePercent": 19.56,
+              "performanceCorePercent": 22.26,
+              "renderThreadPercent": 36.07,
+              "memMb": 263.7
+            },
+            "warnings": [
+              "charging"
+            ],
+            "energyContract": {
+              "revision": "scene-energy-budget-v1",
+              "semanticHash": "f8cd0d04940e0cf0a80d6861d073ea6c061f353e4c442708ba22a53499d3f012"
+            }
+          },
+          "soak": {
+            "schemaVersion": 1,
+            "status": "recorded",
+            "detail": "",
+            "target": "pendulos_dobles",
+            "creator": {
+              "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+              "framesPerSecond": 30,
+              "kind": "native",
+              "profile": {
+                "controls": {
+                  "detail": 1.0,
+                  "glow": 1.0,
+                  "intensity": 1.0,
+                  "speed": 1.0
+                },
+                "modifiers": {
+                  "brazo": 1.0,
+                  "ciclo": 20.0,
+                  "estelas": 1.0,
+                  "pendulos": 220.0,
+                  "pulso": 0.0
+                },
+                "name": "default",
+                "variation": null
+              },
+              "programHash": "dbb683943c71a4d0e152361db571a2953cee23d320298e6e65c7a8559cf0c150",
+              "programId": "creator_pendulos_dobles",
+              "reactive": true,
+              "reactivity": "optional",
+              "revision": "c928a0caa0a74f86",
+              "role": "background",
+              "seed": 42,
+              "signal": "synthetic_loud",
+              "visualId": "pendulos_dobles"
+            },
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "charging": true,
+            "durationSeconds": 3605.8511910438538,
+            "samples": 1804,
+            "minimumBrightness": 1.0,
+            "console": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/soaks/05-pendulos_dobles/logs/20261009T080323-000-pendulos_dobles-a1-console.log",
+              "sha256": "99f0f6a7f8514d3fdacdf9295894d9c457320c144a11d70621ced9d4fef85362"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/soaks/05-pendulos_dobles/sustained-probe.jsonl",
+              "sha256": "cf02750312edaf0418f46a964fd1af132ec23a21dd2c1332491d0293bb22c436"
+            }
+          }
+        },
+        {
+          "identity": {
+            "visualId": "destellos_anamorficos",
+            "programHash": "8b63250a5eb63e93aa8706521414add0c2d76455265789c55b4660d477631914",
+            "revision": "0b97d66adb3e4823",
+            "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "role": "overlay",
+            "native": true,
+            "controls": {
+              "detail": 1.0,
+              "glow": 1.0,
+              "intensity": 1.0,
+              "speed": 1.0
+            },
+            "modifiers": {
+              "lente": 0.0,
+              "pulso": 0.0,
+              "recorrido": 0.0,
+              "reflejos": 0.6
+            }
+          },
+          "card": {
+            "visualId": "destellos_anamorficos",
+            "profile": {
+              "controls": {
+                "detail": 1.0,
+                "glow": 1.0,
+                "intensity": 1.0,
+                "speed": 1.0
+              },
+              "modifiers": {
+                "lente": 0.0,
+                "pulso": 0.0,
+                "recorrido": 0.0,
+                "reflejos": 0.6
+              },
+              "name": "default",
+              "variation": null
+            },
+            "programHash": "8b63250a5eb63e93aa8706521414add0c2d76455265789c55b4660d477631914",
+            "revision": "0b97d66adb3e4823",
+            "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "signal": "synthetic_loud",
+            "role": "overlay",
+            "host": "studio",
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "viewport": {
+              "devicePixelRatio": 2.0,
+              "logicalHeight": 1194.0,
+              "logicalWidth": 834.0
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "row": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-detached-delivery/energy_probe.jsonl",
+              "fileSha256": "b39c54a5ba27d09a0c4cb0d206c9ae1b560a4bd42ca75c66f241818e85a0b425",
+              "id": "destellos_anamorficos",
+              "scheduleIndex": 33,
+              "utc": "2026-10-09T08:22:37+00:00",
+              "status": "measured"
+            },
+            "log": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/measurements/logs/20261009T024044-033-destellos_anamorficos-a1-console.log",
+              "sha256": "7342b176ca9d843eea0f3a7aeb456679bd7875ebee1225d3378d0f096aaf7a89"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/measurements/logs/20261009T024044-033-destellos_anamorficos-probe.jsonl",
+              "sha256": "34e879c7243e380fcfb05981eccc1afb41ddc4a5fa4aeda6e0e2fa2a1aedceb8"
+            },
+            "traceEvidence": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/measurements/20261009T024044-033-destellos_anamorficos-trace-samples.json",
+              "sha256": "9655f39d6489047e6d9b9d55ed6b9919dc9ee90f40845e1ef8f52d1d11e82b57"
+            },
+            "protocol": {
+              "warmupSeconds": 15.0,
+              "cpuWindowSeconds": 20.542,
+              "gpuWindowSeconds": 20.531,
+              "startThermal": "nominal",
+              "thermalStates": [
+                "nominal"
+              ],
+              "energyLevel": "best",
+              "charging": true,
+              "lowPower": false,
+              "probeSamples": 10
+            },
+            "measured": {
+              "achievedFps": 30.01,
+              "gpuAppMsPerSecond": 366.33,
+              "gpuAppMsPerPublishedFrame": 12.207,
+              "efficiencyCorePercent": 31.72,
+              "performanceCorePercent": 0.0,
+              "renderThreadPercent": 21.05,
+              "memMb": 199.8
+            },
+            "warnings": [
+              "charging"
+            ],
+            "energyContract": {
+              "revision": "scene-energy-budget-v1",
+              "semanticHash": "f8cd0d04940e0cf0a80d6861d073ea6c061f353e4c442708ba22a53499d3f012"
+            }
+          },
+          "soak": {
+            "schemaVersion": 1,
+            "status": "recorded",
+            "detail": "",
+            "target": "destellos_anamorficos",
+            "creator": {
+              "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+              "framesPerSecond": 30,
+              "kind": "native",
+              "profile": {
+                "controls": {
+                  "detail": 1.0,
+                  "glow": 1.0,
+                  "intensity": 1.0,
+                  "speed": 1.0
+                },
+                "modifiers": {
+                  "lente": 0.0,
+                  "pulso": 0.0,
+                  "recorrido": 0.0,
+                  "reflejos": 0.6
+                },
+                "name": "default",
+                "variation": null
+              },
+              "programHash": "8b63250a5eb63e93aa8706521414add0c2d76455265789c55b4660d477631914",
+              "programId": "creator_destellos_anamorficos",
+              "reactive": true,
+              "reactivity": "optional",
+              "revision": "0b97d66adb3e4823",
+              "role": "overlay",
+              "seed": 42,
+              "signal": "synthetic_loud",
+              "visualId": "destellos_anamorficos"
+            },
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "charging": true,
+            "durationSeconds": 3605.840056180954,
+            "samples": 1802,
+            "minimumBrightness": 1.0,
+            "console": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-detached-delivery/soaks/00-destellos_anamorficos/logs/20261009T103604-000-destellos_anamorficos-a1-console.log",
+              "sha256": "3fa222ba1d1645576327fe72cfa71d9739abe4c7402cb526efc8674f29e43b75"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-detached-delivery/soaks/00-destellos_anamorficos/receipt-group-probe.jsonl",
+              "sha256": "1e326fc481487ebee7f98d8e2da84b7b3c3ba7779ebb63439b6688fb7914ea7b"
+            },
+            "originalProbe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-detached-delivery/soaks/00-destellos_anamorficos/sustained-probe.jsonl",
+              "sha256": "0c774c4ca58c049da4d13908fbe55b82a43091088f14b8c8cdbe561d012f7c57"
+            },
+            "receiptGroupAudit": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-detached-delivery/soaks/00-destellos_anamorficos/receipt-group-audit.json",
+              "sha256": "36f07e46e8cc66273b00c062d5f84f6bf10766589e73075dadc85e5911b63601"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

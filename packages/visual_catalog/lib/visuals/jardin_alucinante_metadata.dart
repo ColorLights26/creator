@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff1a0010, 0xffff1f8f, 0xffff8a00, 0xff00d1c1],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Flores que giran y florecen: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

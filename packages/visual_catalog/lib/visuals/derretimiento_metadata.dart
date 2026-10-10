@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff0d0005, 0xffff2a1a, 0xffff9a00, 0xff00c8b4],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // La pintura fluye sin parar: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

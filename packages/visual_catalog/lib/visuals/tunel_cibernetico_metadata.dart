@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff01020a, 0xff2b3cff, 0xffff1f3d, 0xff3df2ff],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Avance continuo: a 60 FPS el túnel es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30, // energía: 60 no cabe; ver energy/frame_rate_record.json
 );

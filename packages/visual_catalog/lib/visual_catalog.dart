@@ -13,6 +13,24 @@ const creatorCatalogAssets = CreatorCatalogAssets(
   metadataAsset: 'packages/visual_catalog/assets/catalog_metadata.json',
 );
 
+/// Build manifest the generation hook writes next to the catalog
+/// (`scene_compositor/creator_build_manifest.dart`): the complete identity
+/// of SDK, runtime, material compiler, resources, checks and contract copy.
+/// Studio compares its `hash` with the readiness export's engine stamp.
+const creatorBuildManifestAsset =
+    'packages/visual_catalog/assets/creator_build_manifest.json';
+
+/// Technical readiness export for the studio (`studio/tool/readiness.dart`):
+/// id, revision, state and a plain-language detail; no hashes. The full
+/// registry stays in `readiness/registry.json`, outside the bundle.
+const creatorReadinessAsset =
+    'packages/visual_catalog/readiness/studio_readiness.json';
+
+/// Reviewed equivalences between revisions of a visual: the studio counts
+/// the votes of an earlier revision only through a reviewed link.
+const creatorRevisionLinksAsset =
+    'packages/visual_catalog/readiness/revision_links.json';
+
 List<CreatorVisualDefinition>? _visuals;
 Future<void>? _initializing;
 

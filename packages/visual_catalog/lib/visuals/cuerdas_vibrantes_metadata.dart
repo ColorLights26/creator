@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff070302, 0xffff2a12, 0xffffc04a, 0xfff4f4ff],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Las ondas corren por las cuerdas sin parar: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

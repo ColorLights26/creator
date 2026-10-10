@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff020105, 0xffff2a1a, 0xffffb000, 0xffffe9b0],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // La gravedad se calcula a 480 pasos por segundo.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

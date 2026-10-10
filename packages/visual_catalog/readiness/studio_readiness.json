@@ -1,0 +1,1752 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-09T17:32:04.606618Z",
+  "catalogCommit": "d602c58b846dd50c52b8e636db71b4fa6b756c03-dirty",
+  "engine": {
+    "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+    "sdkHash": "f7e3b26c2d074a5eb648d37f0cc4c5211fae5703cacc9ccedf5b145a85037c76",
+    "abi": 1
+  },
+  "visuals": {
+    "algoritmos_ordenacion": {
+      "revision": "fd7d9e266e68a72f",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "anillos_humo": {
+      "revision": "8bd8621c0d65e53d",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "arbol_fractal": {
+      "revision": "aedb36c844291c8f",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "arbol_fractal_transparente": {
+      "revision": "d37d4a58cdb9a05a",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "arcos_sueno": {
+      "revision": "3043365bd5d33ce6",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "arena_colores": {
+      "revision": "ddf518dc08ad1e7c",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "arena_colores_transparente": {
+      "revision": "23d97d7271433200",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "art_deco": {
+      "revision": "528369d0a7f94772",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "atractor_clifford": {
+      "revision": "9941b710f1504fc2",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "atractor_lorenz": {
+      "revision": "07f91e1351402441",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "atractor_lorenz_transparente": {
+      "revision": "5d940a3aa94770ce",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "aura": {
+      "revision": "e4aa59c999ca34a3",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "aura_2": {
+      "revision": "22f89367050bbcbb",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "aura_2_transparente": {
+      "revision": "ba84e2ce3e334b8d",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "aurora_ribbons": {
+      "revision": "613dff742cc5e889",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "avalancha_fractal": {
+      "revision": "e487f7c24ac1ad93",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "bauhaus": {
+      "revision": "fb6aa964eddac8de",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "bokeh_luces": {
+      "revision": "05f84d61f21138a7",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "bokeh_luces_2": {
+      "revision": "2390637a9948ab4d",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "bokeh_luces_2_transparente": {
+      "revision": "ce3a2a30401861fd",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "bokeh_luces_transparente": {
+      "revision": "578db02adc1cca8f",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "bola_discoteca": {
+      "revision": "85bee59eda009f39",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "bola_discoteca_2": {
+      "revision": "006fd0497cc4c309",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "bola_discoteca_2_transparente": {
+      "revision": "85ecb01b7a7e8479",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "bola_discoteca_transparente": {
+      "revision": "aac91f1b0ac8ab1d",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "boreal_aurora": {
+      "revision": "3773d6c839dbd289",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "caleidoscopio_infinito": {
+      "revision": "11916bee780d3521",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "caleidoscopio_infinito_transparente": {
+      "revision": "bee1039f5379b601",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "campo_flujo": {
+      "revision": "86abbfc332f055e9",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "campo_flujo_transparente": {
+      "revision": "4a647e288a0ca410",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "campo_plasma": {
+      "revision": "3368ffbfe9f58475",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "campo_plasma_transparente": {
+      "revision": "3d6d7ce1cd54e2b3",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "capas_papel": {
+      "revision": "3e4c4ef261175c1d",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "cascada_codigo": {
+      "revision": "2cfd3b327d01ca7b",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "cascada_codigo_transparente": {
+      "revision": "c6c1d751f7255344",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "catedral_luz": {
+      "revision": "78bea45211e850ae",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "catedral_luz_transparente": {
+      "revision": "2fd2ef1c60e6d695",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "causticas": {
+      "revision": "ae00438a726193a1",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "celulas_voronoi": {
+      "revision": "86e4cd2b78bb56f5",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "cimatica": {
+      "revision": "da7f1049260edbc1",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "cimatica_transparente": {
+      "revision": "ffa07708d954f531",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "circulo_trap": {
+      "revision": "4c28de9e0376b56c",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "circulos_infinitos": {
+      "revision": "48d83768631664e1",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "confeti": {
+      "revision": "07765ae2b94a3eac",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "constelacion_viva": {
+      "revision": "6b87a6c029f301c5",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "constelacion_viva_transparente": {
+      "revision": "5e3e083a080629ed",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "corazon_matematico": {
+      "revision": "d5b9ae4fca0e5feb",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "corazon_matematico_transparente": {
+      "revision": "d3efa81248865586",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "cordillera_sonido": {
+      "revision": "74bc0286e6c594c3",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "corredor_neon": {
+      "revision": "06096d8491072c06",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "cristal_bismuto": {
+      "revision": "fc096c1438879830",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "cristal_electrico": {
+      "revision": "de3998d00aea70e7",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "cristal_electrico_transparente": {
+      "revision": "bdb9f7a34d8eb063",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "cristal_prismatico": {
+      "revision": "5674622819622bca",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "cristales_polarizados": {
+      "revision": "23f58e6fdb3d1601",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "cromo_liquido": {
+      "revision": "5aa92934f30a2e21",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "cromo_liquido_transparente": {
+      "revision": "429329f16b5d757b",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "cubo_led": {
+      "revision": "b868a5bcea4ce3ad",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "cubo_magico": {
+      "revision": "15ca4a9dc018b9e8",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "cuerdas_vibrantes": {
+      "revision": "30bc62d50ba2728f",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "curvas_fractales": {
+      "revision": "28aece88b5bb23be",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "deriva_julia": {
+      "revision": "afa8a4aa913a61ea",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "deriva_julia_transparente": {
+      "revision": "c99b958ff8d82225",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "derretimiento": {
+      "revision": "d21afcbf38dacfc1",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "descarga_tesla": {
+      "revision": "1f876c724711d217",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "descarga_tesla_transparente": {
+      "revision": "37a142f0b3ce24c0",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "destellos_anamorficos": {
+      "revision": "0b97d66adb3e4823",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "dona_ascii": {
+      "revision": "23fcbbe94e4037b1",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "dona_ascii_transparente": {
+      "revision": "916f5615978b96c0",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "eco_infinito": {
+      "revision": "fa8025c763099514",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "eco_infinito_transparente": {
+      "revision": "8e2ed8d2e379d32c",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "enjambre_metamorfo": {
+      "revision": "8f1312671ec353f9",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "enjambre_metamorfo_transparente": {
+      "revision": "75cfc47d3222f8bb",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "epiciclos": {
+      "revision": "bcc2cc455b34e4c5",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "epiciclos_transparente": {
+      "revision": "74ee445c378fa4e0",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "escalera_imposible": {
+      "revision": "d01db8823cc09761",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "escena_demo": {
+      "revision": "d52e8d0d0e9d250a",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "esfera_sonica": {
+      "revision": "6380fb9197e24e67",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "esfera_sonica_transparente": {
+      "revision": "6cf1b59481b1ac33",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "espectrograma": {
+      "revision": "68022634aa5b2ffa",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "espiral_dominos": {
+      "revision": "980d81d574da34ee",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "espiral_dominos_transparente": {
+      "revision": "86939497431d2e48",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "espiral_primos": {
+      "revision": "1c27b02879a393ff",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "estrella_neon": {
+      "revision": "13fad43477a614ae",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "estrella_neon_transparente": {
+      "revision": "36511d147ab7be0e",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "ferrofluido": {
+      "revision": "94f5f70b191176dc",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "flor_cosmica": {
+      "revision": "2b478363b170943d",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "flor_cosmica_transparente": {
+      "revision": "980426ed26c544e2",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "flor_vida": {
+      "revision": "668749f69fc6ccea",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "flor_vida_transparente": {
+      "revision": "d2bd89192cdfd224",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "fluido_colores": {
+      "revision": "92f97951c7b8394d",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "fuegos_artificiales": {
+      "revision": "36bd66cedac0a2ed",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "fuegos_artificiales_transparente": {
+      "revision": "4a669bc39001e21b",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "furia_estelar": {
+      "revision": "2d1dd76d74259ad7",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "galaxy_scene": {
+      "revision": "7e5918bd8c033901",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "geometria_islamica": {
+      "revision": "8d3d406da62f514d",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "globo_tesla": {
+      "revision": "a4451ddf3176cd36",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "globo_tesla_transparente": {
+      "revision": "37d8f3e3abfea196",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "golden_particles_scene": {
+      "revision": "1c9a8682d81a7ba3",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "goteo_pollock": {
+      "revision": "3b8e8e6ce3520496",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "goteo_pollock_transparente": {
+      "revision": "8f875f9a48f9b3d4",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "haces_estadio": {
+      "revision": "da4c2dabde0396e4",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "haces_estadio_transparente": {
+      "revision": "6c77440ea4abea9c",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "helice_holografica": {
+      "revision": "442e20b99e471a58",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "helice_holografica_transparente": {
+      "revision": "ff31e9cb1a876867",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "hipervelocidad": {
+      "revision": "1ec3216876b8a5f0",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "hipervelocidad_transparente": {
+      "revision": "de3b440f4ac03fbb",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "horizonte_sucesos": {
+      "revision": "93266219ac4fab9f",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "horizonte_synthwave": {
+      "revision": "0ce2abb1d820ea5b",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "ilusion_optica": {
+      "revision": "5080446609f0f883",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "ilusion_optica_transparente": {
+      "revision": "8acfd62fe233a410",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "interferencia": {
+      "revision": "e18436a265404f4b",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "interferencia_transparente": {
+      "revision": "41f63b5a5e61c270",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "jardin_alucinante": {
+      "revision": "248578975eebb1d8",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "jardin_alucinante_transparente": {
+      "revision": "94a6f5e1290e4965",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "juego_vida": {
+      "revision": "c60adf40c0a55edb",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "juego_vida_transparente": {
+      "revision": "e01b198bc5b474da",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "kandinsky": {
+      "revision": "071c888f6ee2359f",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "laberinto_truchet": {
+      "revision": "3c454dfd0f211c28",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "laberinto_vivo": {
+      "revision": "715d5233ab38179f",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "lampara_lava": {
+      "revision": "e44b62d985ce070a",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "llama_fractal": {
+      "revision": "459ed95bc4cdaa61",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "llamarada": {
+      "revision": "3f6d81aadc4ad6cc",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "llamarada_transparente": {
+      "revision": "dcc2bf8646ee5f27",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "lluvia_chispas": {
+      "revision": "69d6bbd93a660321",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "lluvia_cinetica": {
+      "revision": "04a042e11b403cd9",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "lluvia_cinetica_transparente": {
+      "revision": "3ec1e0e5166b8ca5",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "lluvia_notas": {
+      "revision": "21f1fa967fa9c585",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "lluvia_notas_transparente": {
+      "revision": "ffe62ee82f6dc271",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "luciernagas": {
+      "revision": "086bc74cd7a26fb2",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "luciernagas_transparente": {
+      "revision": "23a11a1060a80740",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "luz_bordes": {
+      "revision": "b5a8a444f3e6fe1c",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "luz_bordes_2": {
+      "revision": "324f6f6e8af5d808",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "luz_bordes_2_transparente": {
+      "revision": "eb03d848f30a2a97",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "luz_bordes_transparente": {
+      "revision": "84a59c25f9d8712e",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "magma": {
+      "revision": "f860a9e46567a246",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "magma_2": {
+      "revision": "0d3a426f9b013628",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "magma_2_transparente": {
+      "revision": "d0130ee70fffd456",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "magma_transparente": {
+      "revision": "306988adce58ba5e",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "magnetosfera": {
+      "revision": "3383f27b6ddfa629",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "malla_ondas": {
+      "revision": "120d607ae2c7630c",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "mancha_rorschach": {
+      "revision": "e4658631c779c49c",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "mancha_rorschach_transparente": {
+      "revision": "8715fb6ed611a24d",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "mandala_alucinante": {
+      "revision": "898cbf076f9011a7",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "mandala_alucinante_transparente": {
+      "revision": "d37c0a27c0e19124",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "mandala_fuego": {
+      "revision": "23dd1a7b3884cc33",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "mandala_fuego_transparente": {
+      "revision": "2b6bc80327dabd37",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "mapa_topografico": {
+      "revision": "4f84c6ea119e2517",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "mapa_topografico_transparente": {
+      "revision": "503dc6b1e5fb4381",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "marmoleado": {
+      "revision": "b5e70a4918405daa",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "medidores_vu": {
+      "revision": "f5b29dd907ce9059",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "mercurio_liquido": {
+      "revision": "f8c256517a08837b",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "mercurio_liquido_transparente": {
+      "revision": "116cd803aa75e1e5",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "metal_tornasol": {
+      "revision": "2c8aa293ebe5198d",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "metal_tornasol_transparente": {
+      "revision": "bc603a5252492663",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "mil_relojes": {
+      "revision": "68c5d5ab194cfa8d",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "moho_luminoso": {
+      "revision": "96c7c45fa1c4f469",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "moho_luminoso_transparente": {
+      "revision": "d4dd9cd56a426cc5",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "monolitos_cromados": {
+      "revision": "a71b88bd748bc0f6",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "monstruo_maicena": {
+      "revision": "8f254f1fbbfbf554",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "murmuracion": {
+      "revision": "7ce4f30b768a31a5",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "murmuracion_transparente": {
+      "revision": "b3d59af1bdc71222",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "muro_cinetico": {
+      "revision": "780a9406d1dd79ca",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "muro_cinetico_2": {
+      "revision": "27b443b173e38512",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "muro_cinetico_2_transparente": {
+      "revision": "d1a8beba7b740ccb",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "muro_cinetico_transparente": {
+      "revision": "71ba7bd5d627c9a8",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "nebulosa_viva": {
+      "revision": "45399529678f0451",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "neon_lluvia": {
+      "revision": "a033c1512bff2170",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "nucleo_cristal": {
+      "revision": "da0d4cb067c26c74",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "nucleo_cristal_transparente": {
+      "revision": "6e22624012d5e941",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "nudo_toroidal": {
+      "revision": "be1d61ed1dd89a05",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "ojo_psicodelico": {
+      "revision": "2fe73d87080da22b",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "ojo_psicodelico_transparente": {
+      "revision": "79b1ee98826f559e",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "ola_pendulos": {
+      "revision": "3b87a0b81e4073a6",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "ola_pendulos_transparente": {
+      "revision": "7757f006d09c7ec5",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "olas_cubos": {
+      "revision": "a5d649d8de67d274",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "ondas_voz": {
+      "revision": "4cf90ce30b65d56e",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "osciloscopio": {
+      "revision": "712f450b5c2898d8",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "osciloscopio_transparente": {
+      "revision": "3b3cc1b777f809f2",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "panal_energia": {
+      "revision": "7a73e6c1e7cb98a3",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "panel_discos": {
+      "revision": "77d9e3ceb7ea960c",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "panel_discos_transparente": {
+      "revision": "99c3ec6f87eac68f",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "pantalla_led": {
+      "revision": "f2b11f140a3b01c1",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "pantalla_led_transparente": {
+      "revision": "eb18ae5f2902940f",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "pasillo_geometrico": {
+      "revision": "36bf92905db78eff",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "pasillo_geometrico_transparente": {
+      "revision": "e898b7feef6202ee",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "patrones_turing": {
+      "revision": "74b307db43ec5631",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "pelicula_iridiscente": {
+      "revision": "1d44e31fdd888b9c",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "pendulos_dobles": {
+      "revision": "c928a0caa0a74f86",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "pendulos_dobles_transparente": {
+      "revision": "d85f409fcd700a03",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "pixel_sorting": {
+      "revision": "2ec0645e6ff1782a",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "placa_circuitos": {
+      "revision": "66a0cca74cc7c4d4",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "placa_circuitos_transparente": {
+      "revision": "aefdc2b227f77691",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "planeta_anillado": {
+      "revision": "c41e6ee22ade6859",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "plasma_scene": {
+      "revision": "37ed6df326d85b69",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "plasma_scene_transparente": {
+      "revision": "13224826c4f69e35",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "polvo_colores": {
+      "revision": "43ccabdfa1a4157a",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "pop_art": {
+      "revision": "cdc148af198ca356",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "portal_cuantico": {
+      "revision": "7b537e4a9db985c2",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "portal_cuantico_transparente": {
+      "revision": "e082653d8b2f78b8",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "prisma": {
+      "revision": "bec1fe5d31110202",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "prismatic_halo": {
+      "revision": "32d1320b3fcae1ff",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "proyeccion_liquida": {
+      "revision": "97e9886af470766d",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "puerta_estelar": {
+      "revision": "8573488fff82af46",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "reaccion_bz": {
+      "revision": "bce77b3054875c3e",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_calavera": {
+      "revision": "1f97ea4ee71dfd1c",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_caleidoscopio": {
+      "revision": "dc3767cfaec2c452",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_caleidoscopio_transparente": {
+      "revision": "d4dd0e9506d092c7",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_cosmico": {
+      "revision": "fb3639bef5fa18ee",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_demonio": {
+      "revision": "a8b5c1afeb412da3",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_estrobo": {
+      "revision": "33e3a788abd47ed2",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_fractal": {
+      "revision": "44471f9f1e44bd1d",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_glitch": {
+      "revision": "264e1ad022e90aa5",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_glitch_transparente": {
+      "revision": "db8253ac54979176",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_hipnotico": {
+      "revision": "9172378fb4ebee45",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_mercurio": {
+      "revision": "3b19d40cb34cd6ad",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_neon": {
+      "revision": "28229bb007bfe15f",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_ojos": {
+      "revision": "22351f990f643c59",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_plegado": {
+      "revision": "5fd551a6588bcace",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_polilla_transparente": {
+      "revision": "166809c94ab051cd",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_rayos_x": {
+      "revision": "930f0967464428db",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_rayos_x_transparente": {
+      "revision": "33fa9b0d1708ce06",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_rostro": {
+      "revision": "d544b602e560701e",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_rostro_transparente": {
+      "revision": "c3badca02554afb0",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_sangrante": {
+      "revision": "6932eefeeb39c863",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_sangrante_transparente": {
+      "revision": "d57eb1601db6ab9c",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_tentaculos": {
+      "revision": "875b855c298da723",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "rorschach_tentaculos_transparente": {
+      "revision": "09972078d1cf26d2",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "sala_infinita": {
+      "revision": "e0d2fa286f1d949b",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "salto_hiperespacial": {
+      "revision": "373c7a2529a5021a",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "seda_bioluminiscente": {
+      "revision": "8a86f5cfe17f9695",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "selva_bioluminiscente": {
+      "revision": "b70ec8a545e4b96b",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "show_laser": {
+      "revision": "c54bf238eb9a3070",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "show_laser_transparente": {
+      "revision": "765dd5129e29293a",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "synthwave_scene": {
+      "revision": "fcd2a923f1e22865",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "tablero_galton": {
+      "revision": "d03a96516d7d5b44",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "tablero_galton_transparente": {
+      "revision": "cb93ae3f0b5033dd",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "telar": {
+      "revision": "ba4a793203db1ab2",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "teselado_hiperbolico": {
+      "revision": "e6c352745ada1b12",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "teselado_penrose": {
+      "revision": "5fd9dbf655818a4e",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "tinta_agua": {
+      "revision": "7b7292119d494309",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "tipografia_cinetica": {
+      "revision": "ef9c29ec7fdf02f6",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "torbellino_igneo": {
+      "revision": "e65580f70e800ae4",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "torbellino_igneo_ii": {
+      "revision": "598eec01b7c422f4",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "torbellino_igneo_transparente": {
+      "revision": "b6bc1137d75990eb",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "tres_cuerpos": {
+      "revision": "f540f4b2f76ae06e",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "tuberias_3d": {
+      "revision": "6d1ae00f8ee39a4f",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "tubo_rubens": {
+      "revision": "2e32542844aa15cb",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "tunel_cibernetico": {
+      "revision": "8e3509dafaf08131",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "tunel_laser": {
+      "revision": "007ebc23e7470833",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "tunel_laser_transparente": {
+      "revision": "0485fe920e4cf5e3",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "un_bit": {
+      "revision": "d22d1c701c4f66f3",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v01_agujero_negro": {
+      "revision": "e90f180d2e22fec0",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v02_red_neuronal": {
+      "revision": "b7add29414479f85",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v02_red_neuronal_transparente": {
+      "revision": "51646d0ca28e0cda",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v03_matriz_oceanica": {
+      "revision": "c02e538c05f85d13",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v04_tunel_warp": {
+      "revision": "4c7bba9e59b49f2e",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v04_tunel_warp_transparente": {
+      "revision": "a549bf876e4a2144",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v05_campo_curl": {
+      "revision": "746e8dd2a8c5ef22",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v05_campo_curl_transparente": {
+      "revision": "9df16f03474343e9",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v06_tesseract_4d": {
+      "revision": "4cf4294f0d9a3436",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v06_tesseract_4d_transparente": {
+      "revision": "90c7eec18d5edebf",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v07_aurora_plasma": {
+      "revision": "b90309224e413224",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v08_espectro_cosmico": {
+      "revision": "ec1668e3aea6f4b0",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v08_espectro_cosmico_transparente": {
+      "revision": "7ee289f934e3f571",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v09_espiral_aurea": {
+      "revision": "685eec1e8917f8ef",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v09_espiral_aurea_transparente": {
+      "revision": "5020d8c71d5d7c31",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v10_supernova": {
+      "revision": "2bc2ece0552d8b5f",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v10_supernova_transparente": {
+      "revision": "487ec42ca4d7bdfc",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v11_archivo_corrupto": {
+      "revision": "7a2d13809544cd71",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v11_archivo_corrupto_transparente": {
+      "revision": "df093edd6145d731",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v12_maquinaria_orbital": {
+      "revision": "970049aef024b03a",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v12_maquinaria_orbital_transparente": {
+      "revision": "e25023541773835b",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v13_nubes_volumetricas": {
+      "revision": "536a95aeaa7f5ff1",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v13_nubes_volumetricas_transparente": {
+      "revision": "6337bb5a2105e908",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v14_sismografo": {
+      "revision": "9583755c7083fa3b",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v14_sismografo_transparente": {
+      "revision": "4e824c090a8fa4f3",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v15_lluvia_cristal": {
+      "revision": "dc79c9bcb10a1c03",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v15_lluvia_cristal_transparente": {
+      "revision": "e8eceb656aef05a4",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v16_campo_magnetico": {
+      "revision": "9b28803413f4cd49",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "v16_campo_magnetico_transparente": {
+      "revision": "decb8f2c7cdf7989",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "vidrio_liquido": {
+      "revision": "d844018a8ee6cb70",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "vision_termica": {
+      "revision": "85112e5a3dadf1b6",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "vitral_estalla": {
+      "revision": "43b4942149f7da50",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "vortice_cosmico": {
+      "revision": "e9b1f49af431b971",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "vortice_cosmico_transparente": {
+      "revision": "5d04b48dd0383a96",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "vortice_hipnotico": {
+      "revision": "7ab63e448125f5c9",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "vortice_hipnotico_transparente": {
+      "revision": "7864a9eb81f8cd11",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "zoom_infinito": {
+      "revision": "f22c610ecb83c7b7",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    },
+    "zoom_infinito_transparente": {
+      "revision": "842807284fc57b1f",
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 100%, visual aislado: valores iniciales"
+    }
+  }
+}

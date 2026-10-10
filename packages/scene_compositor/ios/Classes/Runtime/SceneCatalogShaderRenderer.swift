@@ -78,7 +78,8 @@ final class SceneCatalogShaderRenderer {
   }
 
   func render(definition: SceneCatalogShaderDefinition, uniforms: [Float], images: [MTLTexture],
-              width: Int, height: Int, outputAllocator: SceneSurfaceNativeOutputAllocator? = nil) throws -> MTLTexture {
+              width: Int, height: Int, outputAllocator: SceneSurfaceNativeOutputAllocator? = nil,
+              frame: SceneCatalogFrameCommand? = nil) throws -> MTLTexture {
     let program = definition.program
     guard images.count == definition.samplers.count else { throw RendererError("catalog_shader_sampler_count") }
     guard uniforms.count == definition.floatCount,
@@ -94,11 +95,12 @@ final class SceneCatalogShaderRenderer {
     let pipeline = try pipeline(for: definition)
     guard let output = try SceneSurfaceNativeOutputAllocator.makeTexture(
       device: device, width: width, height: height, allocator: outputAllocator
-    ), let command = queue.makeCommandBuffer() else {
+    ), let command = frame?.command ?? queue.makeCommandBuffer() else {
       throw RendererError("catalog_shader_output_unavailable")
     }
     let pass = MTLRenderPassDescriptor()
     pass.colorAttachments[0].texture = try multisampleTexture(width: width, height: height)
+    if let texture = pass.colorAttachments[0].texture { try frame?.retain(texture) }
     pass.colorAttachments[0].resolveTexture = output
     pass.colorAttachments[0].loadAction = .clear
     pass.colorAttachments[0].storeAction = .multisampleResolve
@@ -134,10 +136,12 @@ final class SceneCatalogShaderRenderer {
     }
     encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
     encoder.endEncoding()
-    command.commit()
-    command.waitUntilCompleted()
-    guard command.status == .completed else {
-      throw command.error ?? RendererError("catalog_shader_command_failed")
+    if frame == nil {
+      command.commit()
+      command.waitUntilCompleted()
+      guard command.status == .completed else {
+        throw command.error ?? RendererError("catalog_shader_command_failed")
+      }
     }
     return output
   }

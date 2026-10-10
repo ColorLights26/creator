@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'revision_links.dart';
 import 'team_ranking.dart';
 import 'team_review_client.dart';
 
@@ -38,7 +39,8 @@ class TeamReviewController extends ChangeNotifier {
     required this.client,
     required this.store,
     this.liveInterval,
-  });
+    RevisionLinks links = const RevisionLinks.none(),
+  }) : _links = links;
 
   final TeamReviewClient client;
   final ReviewerKeyStore store;
@@ -61,6 +63,24 @@ class TeamReviewController extends ChangeNotifier {
   Timer? _liveTimer;
   String? _error;
 
+  RevisionLinks _links;
+
+  /// Reviewed equivalences between revisions. A vote stays stored on the
+  /// revision it was cast on; through a reviewed link the studio also
+  /// counts it for the optimized revision. Nothing is copied or sent.
+  RevisionLinks get links => _links;
+  set links(RevisionLinks value) {
+    _links = value;
+    _notify();
+  }
+
+  /// `visualId@revision` keys whose votes count for this revision: itself
+  /// first, then reviewed predecessors.
+  List<String> _keys(String visualId, String revision) => [
+    for (final equivalent in _links.equivalents(visualId, revision))
+      ratingKey(visualId, equivalent),
+  ];
+
   TeamReviewer? get reviewer => _reviewer;
   bool get signedIn => _reviewer != null;
   bool get loading => _loading;
@@ -81,17 +101,75 @@ class TeamReviewController extends ChangeNotifier {
   bool hasVoted(String visualId, String revision) =>
       myRating(visualId, revision) != null;
 
-  /// Every visible rating for the revision, including the reviewer's own.
-  List<TeamRating> ratingsFor(String visualId, String revision) =>
-      _visible[ratingKey(visualId, revision)] ?? const [];
+  /// The reviewer's vote when it was cast on an earlier equivalent
+  /// revision; null when there is none or it belongs to this revision.
+  TeamRating? inheritedRating(String visualId, String revision) {
+    final mine = myRating(visualId, revision);
+    return mine != null && mine.revision != revision ? mine : null;
+  }
 
+  /// Visible votes counted from earlier equivalent revisions.
+  int inheritedVoteCount(String visualId, String revision) =>
+      ratingsFor(
+        visualId,
+        revision,
+      ).where((rating) => rating.revision != revision).length;
+
+  /// Every visible rating for the revision, including the reviewer's own.
+  ///
+  /// With a reviewed link, the votes stored on the earlier revision count
+  /// too; one person counts once, their vote on the newest revision wins.
+  List<TeamRating> ratingsFor(String visualId, String revision) {
+    final keys = _keys(visualId, revision);
+    if (keys.length == 1) return _visible[keys.single] ?? const [];
+    final seen = <String>{};
+    return [
+      for (final key in keys)
+        for (final rating in _visible[key] ?? const <TeamRating>[])
+          if (seen.add(rating.reviewerId)) rating,
+    ];
+  }
+
+  /// Whether anyone the reviewer cannot see voted on this revision or a
+  /// reviewed equivalent. Used only to keep the row locked until the reviewer
+  /// votes; it never becomes a displayed exact count (a person who voted two
+  /// linked revisions would count twice), so it answers "someone voted", not
+  /// "how many".
+  bool hasHiddenVotes(String visualId, String revision) {
+    for (final key in _keys(visualId, revision)) {
+      if ((_hidden[key] ?? 0) > 0) return true;
+    }
+    return false;
+  }
+
+  /// Hidden votes on THIS exact revision (not its equivalents): the votes on
+  /// the version on screen that the reviewer has not unlocked yet. Exact and
+  /// never double-counted (an inherited visible vote lives on another
+  /// revision); this is what makes an inherited, unlocked average partial.
   int hiddenCount(String visualId, String revision) =>
       _hidden[ratingKey(visualId, revision)] ?? 0;
 
   /// The team already left this revision as "Descarte total": enough votes
   /// and an average below [teamPotentialThreshold].
   bool isTeamDiscarded(String visualId, String revision) {
-    if (_hiddenDiscarded.contains(ratingKey(visualId, revision))) return true;
+    final selfKey = ratingKey(visualId, revision);
+    final ownVisible = _visible[selfKey] ?? const <TeamRating>[];
+    final ownHidden = _hidden[selfKey] ?? 0;
+    // The revision on screen has its own evolving verdict as soon as it
+    // gathers its own votes: fresh votes replace an older equivalent's
+    // discard; they are never overridden by it.
+    if (ownVisible.length + ownHidden >= teamMinimumVotes) {
+      if (_hiddenDiscarded.contains(selfKey)) return true;
+      if (ownVisible.length < teamMinimumVotes) return false; // hidden: unknown
+      final average =
+          ownVisible.fold<int>(0, (sum, rating) => sum + rating.score) /
+          ownVisible.length;
+      return average < teamPotentialThreshold;
+    }
+    // Too few own votes: honor a reviewed-equivalent discard (inherited).
+    for (final key in _keys(visualId, revision)) {
+      if (_hiddenDiscarded.contains(key)) return true;
+    }
     final ratings = ratingsFor(visualId, revision);
     if (ratings.length < teamMinimumVotes) return false;
     final average =
@@ -212,6 +290,11 @@ class TeamReviewController extends ChangeNotifier {
     if (key == null || reviewer == null) return 'Primero pega tu clave.';
     final slot = ratingKey(visualId, revision);
     final previous = List<TeamRating>.of(_visible[slot] ?? const []);
+    // The hidden gesture replaces a vote cast on this exact revision. A vote
+    // inherited from an earlier revision stays where it is: this is the
+    // first vote on the new revision, so the server must not see `change`.
+    final replacing =
+        change && previous.any((r) => r.reviewerId == reviewer.id);
     final mine = TeamRating(
       visualId: visualId,
       revision: revision,
@@ -238,7 +321,7 @@ class TeamReviewController extends ChangeNotifier {
         revision: revision,
         score: score,
         comment: comment,
-        change: change,
+        change: replacing,
       );
       _saving.remove(slot);
       _error = null;

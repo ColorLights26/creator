@@ -3,6 +3,8 @@ import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:visual_catalog/visual_catalog.dart';
 
+import 'probe/energy_probe_launch.dart';
+import 'probe/energy_probe_screen.dart';
 import 'studio/creator_studio.dart';
 import 'team_review/team_review_client.dart';
 import 'team_review/team_review_controller.dart';
@@ -20,6 +22,14 @@ Future<void> main() async {
       stackTrace: stack,
     );
     failure = error.toString();
+  }
+
+  // `--colorlights-qa-scene energy-probe=<spec>` (devicectl on a phone) opens
+  // the energy probe instead of the studio: one visual alone, measured.
+  final probe = await readEnergyProbeSpec();
+  if (probe != null) {
+    runApp(EnergyProbeApp(specText: probe, catalogError: failure));
+    return;
   }
 
   runApp(VisualStudioApp(

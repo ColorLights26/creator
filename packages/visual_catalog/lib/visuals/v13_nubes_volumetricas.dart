@@ -47,6 +47,7 @@ class Visual final : public Scene {
     u.push_back(smoothEnergy * 0.12f);
     u.push_back(smoothSpark * f.intensity);
     u.push_back(f.reducedMotion ? 1.0f : 0.0f);
+    u.push_back(f.detail);
 
     c.material("nubes", {0.0f, 0.0f, w, h}, u);
   }
@@ -64,6 +65,7 @@ uniform float uWarpShift;
 uniform float uDensityAdd;
 uniform float uSparkExp;
 uniform float uReduced;
+uniform float uDetail;
 
 out vec4 fragColor;
 
@@ -90,11 +92,15 @@ float cloudDensity(vec3 p) {
   vec3 q = p + vec3(uTime * 0.18 + uWarpShift, 0.0, -uTime * 0.12);
   float f = 0.0;
   float amp = 0.52;
+  int octaves = uDetail > 1.5 ? 4 : 3;
   for (int i = 0; i < 4; i++) {
+    if (i >= octaves) break;
     f += amp * valueNoise3D(q);
     q = q * 2.03 + vec3(2.1, -1.7, 3.3);
     amp *= 0.5;
   }
+  // Preserve mean cloud density when omitting the finest noise octave.
+  if (octaves == 3) f += 0.0325;
   float d = f - (0.42 - uDensityAdd) - (abs(p.y) / 1.45) * 0.42;
   return clamp(d * 2.4, 0.0, 1.0);
 }
@@ -113,10 +119,13 @@ void main() {
   vec3 rd = normalize(vec3(p * 0.85, 1.4));
   vec3 lightDir = normalize(vec3(-0.65, 0.72, -0.25));
 
-  float maxSteps = uReduced > 0.5 ? 12.0 : 24.0;
+  // Detail now sets a bounded integration budget. At detail 2 the original
+  // twenty-four samples and all four noise octaves remain available.
+  float maxSteps = uReduced > 0.5 ? 12.0 : clamp(floor(12.0 * uDetail + 0.5), 6.0, 24.0);
   float stepSize = 4.3 / maxSteps;
   float jitter = fract(sin(dot(px, vec2(12.9898, 78.233))) * 43758.5453);
-  float t = 1.1 + jitter * stepSize;
+  float referenceStep = 4.3 / (uReduced > 0.5 ? 12.0 : 24.0);
+  float t = 1.1 + (stepSize - referenceStep) * 0.5 + jitter * referenceStep;
 
   vec3 accumCol = vec3(0.0);
   float accumDens = 0.0;

@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff0b0503, 0xffd4141c, 0xffff7a00, 0xffffe2b0],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Las agujas barren rápido: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

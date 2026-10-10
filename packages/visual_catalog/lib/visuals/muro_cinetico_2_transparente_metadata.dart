@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0x00000000, 0xffc4260a, 0xffff6400, 0xffffb238],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // El viento mueve la pared sin parar: a 60 FPS el brillo es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff14001f, 0xffff2a00, 0xffff8a00, 0xffffe066],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // La cera se mueve despacio pero sin saltos: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

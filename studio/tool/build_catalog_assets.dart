@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:scene_compositor/authoring.dart';
+import 'package:scene_compositor/creator_build_manifest.dart';
 import 'package:scene_compositor/creator_lint.dart';
 import 'package:scene_compositor/native_compiler.dart';
 import 'package:visual_contract/visual_contract.dart';
@@ -43,9 +44,21 @@ void main() {
       catalog: catalogRoot,
       visuals: visuals,
     );
+    final catalogJson =
+        '${const JsonEncoder.withIndent('  ').convert(nativeManifest)}\n';
+    // Complete build identity next to the catalog: Studio, the readiness
+    // registry and the app approval compare its hash (SDK, runtime Swift,
+    // material compiler, resources, checks, surfaces, contract copy).
+    final buildManifest = creatorBuildManifest(
+      repo: root.parent,
+      host: root,
+      catalog: catalogRoot,
+      catalogJson: catalogJson,
+    );
     final outputs = {
-      '${catalogRoot.path}/assets/creator_catalog.json':
-          '${const JsonEncoder.withIndent('  ').convert(nativeManifest)}\n',
+      '${catalogRoot.path}/assets/creator_catalog.json': catalogJson,
+      '${catalogRoot.path}/assets/$creatorBuildManifestFileName':
+          '${const JsonEncoder.withIndent('  ').convert(buildManifest)}\n',
       '${catalogRoot.path}/shaders/creator_programs.frag':
           compilePortableShader(visuals),
       '${catalogRoot.path}/assets/catalog_metadata.json':

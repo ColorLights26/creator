@@ -184,15 +184,25 @@ class _TeamRankingScreenState extends State<TeamRankingScreen> {
   /// Phone row: name, state and who voted on the left; average on the right.
   Widget _rowTile(TeamRankingRow row) {
     final (label, color) = _verdictStyle(row.verdict);
-    final detail = switch (row) {
-      TeamRankingRow(votes: 0) => null,
-      TeamRankingRow(locked: true) =>
-        '${_votesLabel(row.votes)} · vota para ver las notas',
-      _ =>
-        '${_votesLabel(row.votes)} · '
-            '${row.scores.entries.map((e) => '${e.key} ${e.value}').join(' · ')}'
-            '${row.comments.isEmpty ? '' : ' · 💬 ${row.comments.length}'}',
-    };
+    final String? detail;
+    if (row.locked) {
+      detail =
+          row.hiddenHere > 0
+              ? '${_votesLabel(row.hiddenHere)} del equipo · vota para ver las notas'
+              : 'votos del equipo ocultos · vota para ver las notas';
+    } else if (row.votes == 0 && row.hiddenHere == 0) {
+      detail = null;
+    } else {
+      detail = [
+        _votesLabel(row.votes),
+        if (row.hiddenHere > 0) '≥${row.hiddenHere} en esta versión sin ver',
+        if (row.incomplete) 'media parcial',
+        row.scores.entries.map((e) => '${e.key} ${e.value}').join(' · '),
+        if (row.inherited > 0) '${row.inherited} de la versión anterior',
+        if (row.comments.isNotEmpty) '💬 ${row.comments.length}',
+      ].where((part) => part.isNotEmpty).join(' · ');
+    }
+    final technical = row.entry.technical;
     return InkWell(
       key: ValueKey('team-ranking-tile-${row.entry.id}'),
       onTap: () => widget.onOpenVisual(row.entry.id),
@@ -245,6 +255,17 @@ class _TeamRankingScreenState extends State<TeamRankingScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.white.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  if (technical != null)
+                    Text(
+                      'Técnico: $technical',
+                      key: ValueKey('team-ranking-technical-${row.entry.id}'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white.withValues(alpha: 0.45),
                       ),
                     ),
                 ],
@@ -309,7 +330,12 @@ class _TeamRankingScreenState extends State<TeamRankingScreen> {
                   DataCell(_visualCell(row)),
                   for (final voter in ranking.voters)
                     DataCell(_scoreCell(row, voter)),
-                  DataCell(Text('${row.votes}')),
+                  DataCell(
+                    Text(
+                      '${row.votes}'
+                      '${row.hiddenHere > 0 ? ' (+${row.hiddenHere}?)' : ''}',
+                    ),
+                  ),
                   DataCell(_averageCell(row)),
                   DataCell(_verdictCell(row.verdict)),
                   DataCell(_commentsCell(row)),
@@ -337,6 +363,32 @@ class _TeamRankingScreenState extends State<TeamRankingScreen> {
             color: Colors.white.withValues(alpha: 0.5),
           ),
         ),
+        if (row.entry.technical case final String technical)
+          Text(
+            'Técnico: $technical',
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.white.withValues(alpha: 0.45),
+            ),
+          ),
+        if (row.inherited > 0)
+          Text(
+            '${row.inherited} ${row.inherited == 1 ? 'voto' : 'votos'} de la versión anterior',
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.white.withValues(alpha: 0.45),
+            ),
+          ),
+        if (row.incomplete)
+          Text(
+            'Media parcial: faltan ${row.hiddenHere} '
+            '${row.hiddenHere == 1 ? 'voto' : 'votos'} de esta versión (* en la media)',
+            key: ValueKey('team-ranking-partial-${row.entry.id}'),
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.amber.withValues(alpha: 0.75),
+            ),
+          ),
       ],
     );
   }
@@ -380,7 +432,9 @@ class _TeamRankingScreenState extends State<TeamRankingScreen> {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
-        average.toStringAsFixed(1),
+        row.incomplete
+            ? '${average.toStringAsFixed(1)}*'
+            : average.toStringAsFixed(1),
         textAlign: TextAlign.center,
         style: const TextStyle(
           color: Colors.black,

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audiovisual_creator/studio/creator_studio.dart';
+import 'package:audiovisual_creator/team_review/accepted_visuals.dart';
 import 'package:audiovisual_creator/studio/studio_backdrop.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -167,6 +168,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: CreatorStudio(
+            acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
             catalogBuilder: () => [_aurora],
             controllerFactory: () => controller,
             recordingsLoader: () async => [],
@@ -207,6 +209,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: CreatorStudio(
+          acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
           catalogBuilder: () => [_aurora, _plasma],
           controllerFactory: () {
             creations++;
@@ -248,6 +251,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: CreatorStudio(
+          acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
           catalogBuilder: () => definitions,
           controllerFactory: () => controller,
           recordingsLoader: () async => [],
@@ -278,6 +282,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: CreatorStudio(
+          acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
           catalogBuilder: () => [_aurora, _plasma],
           controllerFactory: () => controller,
           recordingsLoader: () async => [],
@@ -316,6 +321,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: CreatorStudio(
+          acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
           catalogBuilder: () => [_aurora],
           controllerFactory: () => controller,
           recordingsLoader: () async => [],
@@ -350,6 +356,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: CreatorStudio(
+          acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
           catalogBuilder: () => [_aurora, _aurora],
           controllerFactory: () => controller,
           recordingsLoader: () async => [],
@@ -374,6 +381,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: CreatorStudio(
+          acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
           catalogBuilder: () => [_aurora],
           controllerFactory: () => controller,
           recordingsLoader: () async => [],
@@ -402,6 +410,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: CreatorStudio(
+            acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
             catalogBuilder: () => [_aurora],
             controllerFactory: () => controller,
             recordingsLoader: () async => [],
@@ -426,6 +435,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: CreatorStudio(
+            acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
             catalogBuilder: () => [_quiet],
             controllerFactory: () => controller,
             recordingsLoader: () async => [],
@@ -460,6 +470,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: CreatorStudio(
+            acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
             catalogBuilder: () => [_aurora],
             controllerFactory: () => controller,
             recordingsLoader: () async => [],
@@ -500,6 +511,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: CreatorStudio(
+            acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
             catalogBuilder: () => [_aurora],
             controllerFactory: () => controller,
             recordingsLoader: () async => [],
@@ -535,6 +547,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: CreatorStudio(
+            acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
             catalogBuilder: () => [_aurora, _plasma],
             controllerFactory: () => controller,
             recordingsLoader: () async => [],
@@ -560,6 +573,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: CreatorStudio(
+          acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
           catalogBuilder: () => [_aurora, _plasma, _quiet],
           controllerFactory: () => controller,
           recordingsLoader: () async => [],
@@ -618,6 +632,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: CreatorStudio(
+            acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
             catalogBuilder: () => [_aurora, _plasma],
             controllerFactory: () => controller,
             recordingsLoader: () async => [],
@@ -705,6 +720,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: CreatorStudio(
+          acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
           catalogBuilder: () => [_galaxy, _aurora],
           controllerFactory: () => controller,
           recordingsLoader: () async => [],

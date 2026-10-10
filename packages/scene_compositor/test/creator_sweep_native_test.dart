@@ -4,10 +4,9 @@ import 'package:scene_compositor/authoring.dart';
 import 'package:scene_compositor/creator_lint.dart';
 import 'package:scene_compositor/native_compiler.dart';
 
-/// Runs the real authored probe (ASan/UBSan) over visuals made to pass or
-/// fail the modifier sweep: a dead modifier warns (fails when strict), one
-/// that breaks the budget at its maximum fails, and one that only changes
-/// the response to music passes. Needs clang++.
+/// Runs real authored programs under ASan/UBSan. Covers live modifiers,
+/// bounded texture reuse for many interleaved vectors/points, and genuine
+/// memory failures from masks. Initial failures reject; extreme profiles warn.
 void main() {
   if (Process.runSync('which', ['clang++']).exitCode != 0) {
     stdout.writeln('scene_compositor: sweep checks skipped (no clang++).');
@@ -60,7 +59,9 @@ void main() {
       final output = '${result.stdout}${result.stderr}';
       if (result.exitCode != expectedExit) {
         stderr.writeln(output);
-        throw StateError('Probe exit ${result.exitCode}, expected $expectedExit');
+        throw StateError(
+          'Probe exit ${result.exitCode}, expected $expectedExit',
+        );
       }
       return output;
     }
@@ -91,6 +92,29 @@ void main() {
     expectLine(relaxed, 'Copia cada línea FAIL');
     final strict = run([signals.path, '--strict-modifiers'], 1);
     expectLine(strict, 'FAIL muerto: el modificador nada no cambia nada');
+    // Many draw calls fit through reuse; retained masks still exhaust memory.
+    for (final id in ['puntos_sueltos', 'puntos_ipad', 'puntos_lote']) {
+      expectLine(relaxed, 'PASS passes creator_$id:');
+      if (relaxed.contains('FAIL $id:'))
+        throw StateError('Draw calls lost texture reuse');
+    }
+    expectLine(relaxed, 'FAIL recortes_sueltos:');
+    expectLine(relaxed, 'FAIL recortes_ipad:');
+    expectLine(relaxed, 'El iPhone cumple:');
+    expectLine(relaxed, 'máscaras de recorte');
+    expectLine(relaxed, 'un lote de puntos');
+    for (final output in [relaxed, strict]) {
+      expectLine(output, 'WARN passes creator_capas:');
+      expectLine(output, 'con todos los ajustes al máximo');
+      expectLine(output, 'con la variación Densa');
+      expectLine(output, 'PASS passes creator_capas:');
+      if (output.contains('FAIL capas') ||
+          output.contains('variación Ligera')) {
+        throw StateError(
+          'Extreme profile memory failures must warn, initial profile must pass',
+        );
+      }
+    }
     final missing = run(const [], 1);
     expectLine(missing, 'faltan las señales de música');
   } finally {
@@ -100,6 +124,117 @@ void main() {
 }
 
 const _fixtures = [
+  CreatorVisualDefinition(
+    id: 'puntos_sueltos',
+    name: 'Puntos sueltos',
+    reactivity: CreatorReactivity.none,
+    nativeSource: r'''
+class Visual final : public Scene {
+ public:
+  void reset(uint32_t) override {} void update(const Frame&) override {}
+  void render(const Frame& f, Canvas& c) const override {
+    Paint p; p.color = f.colors[1];
+    for (int i = 0; i < 40; i++) { c.rect({10.f + i * 8, 90, 4, 4}, p); c.points({Vec2{10.f + i * 8, 100}}, 2, p); }
+  }
+};
+''',
+  ),
+  CreatorVisualDefinition(
+    id: 'puntos_ipad',
+    name: 'Puntos en iPad',
+    reactivity: CreatorReactivity.none,
+    nativeSource: r'''
+class Visual final : public Scene {
+ public:
+  void reset(uint32_t) override {} void update(const Frame&) override {}
+  void render(const Frame& f, Canvas& c) const override {
+    Paint p; p.color = f.colors[1];
+    for (int i = 0; i < 30; i++) { c.rect({10.f + i * 8, 90, 4, 4}, p); c.points({Vec2{10.f + i * 8, 100}}, 2, p); }
+  }
+};
+''',
+  ),
+  CreatorVisualDefinition(
+    id: 'recortes_sueltos',
+    name: 'Recortes',
+    reactivity: CreatorReactivity.none,
+    nativeSource: r'''
+class Visual final : public Scene {
+ public:
+  void reset(uint32_t) override {} void update(const Frame&) override {}
+  void render(const Frame& f, Canvas& c) const override {
+    Paint p; p.color = f.colors[1];
+    for (int i = 0; i < 40; i++) {
+      c.save(); Path clip; clip.rect({0, 0, f.width, f.height}); c.clip(clip);
+      c.rect({10.f + i * 8, 90, 4, 4}, p); c.restore();
+    }
+  }
+};
+''',
+  ),
+  CreatorVisualDefinition(
+    id: 'recortes_ipad',
+    name: 'Recortes',
+    reactivity: CreatorReactivity.none,
+    nativeSource: r'''
+class Visual final : public Scene {
+ public:
+  void reset(uint32_t) override {} void update(const Frame&) override {}
+  void render(const Frame& f, Canvas& c) const override {
+    Paint p; p.color = f.colors[1];
+    for (int i = 0; i < 22; i++) {
+      c.save(); Path clip; clip.rect({0, 0, f.width, f.height}); c.clip(clip);
+      c.rect({10.f + i * 8, 90, 4, 4}, p); c.restore();
+    }
+  }
+};
+''',
+  ),
+  CreatorVisualDefinition(
+    id: 'capas',
+    name: 'Capas',
+    reactivity: CreatorReactivity.none,
+    nativeSource: r'''
+class Visual final : public Scene {
+ public:
+  void reset(uint32_t) override {} void update(const Frame&) override {}
+  void render(const Frame& f, Canvas& c) const override {
+    auto m = modifiers(f);
+    Paint p; p.color = f.colors[1];
+    for (int i = 0; i < m.capas; i++) { c.save(); Path clip; clip.rect({0, 0, f.width, f.height}); c.clip(clip); c.rect({10.f + i * 8, 90, 4, 4}, p); c.restore(); }
+  }
+};
+''',
+    modifiers: [
+      CreatorModifier.steps('capas', 'Capas', min: 1, max: 40, value: 5),
+    ],
+    variations: [
+      CreatorVariation('Densa', {'capas': 30}),
+      CreatorVariation('Ligera', {'capas': 2}),
+    ],
+  ),
+  CreatorVisualDefinition(
+    id: 'puntos_lote',
+    name: 'Puntos en lote',
+    reactivity: CreatorReactivity.none,
+    nativeSource: r'''
+class Visual final : public Scene {
+  std::vector<Vec2> points;
+ public:
+  void reset(uint32_t) override {
+    points.clear();
+    for (int i = 0; i < 40; i++) points.push_back({10.f + i * 8, 100});
+  }
+  void update(const Frame&) override {}
+  void render(const Frame& f, Canvas& c) const override {
+    Paint p; p.color = f.colors[1];
+    c.rect({0, 90, 320, 4}, p);
+    // Forty separate draws reuse bounded texture batches.
+    for (int i = 0; i < 40; i++) c.points({points[size_t(i)]}, 2, p);
+  }
+};
+''',
+  ),
   CreatorVisualDefinition(
     id: 'golpe',
     name: 'Golpe',

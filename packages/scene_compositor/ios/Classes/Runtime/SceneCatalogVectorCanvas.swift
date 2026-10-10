@@ -214,6 +214,37 @@ final class SceneCatalogVectorPaint {
   var blendMode = SceneCatalogVectorBlendMode.srcOver
 }
 final class SceneCatalogVectorCanvas {
+  final class StrokeGeometryCache {
+    private struct Key: Hashable {
+      let x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat
+      let lineWidth: Double
+      let cap: Int32, join: Int32
+    }
+    struct Geometry {
+      let source: CGPath
+      let outline: CGPath
+    }
+    private var entries: [Key: [Geometry]] = [:]
+    private var count = 0
+    func geometry(_ source: CGPath, width: Double, cap: CGLineCap, join: CGLineJoin) -> Geometry {
+      let bounds = source.boundingBox
+      let key = Key(x: bounds.minX, y: bounds.minY, width: bounds.width, height: bounds.height,
+        lineWidth: width, cap: cap.rawValue, join: join.rawValue)
+      if let cached = entries[key]?.first(where: { $0.source == source }) { return cached }
+      // Immutable copies make mutation and equal-bounds collisions safe. The
+      // cache spans one frame and keeps at most 256 distinct stroke geometries.
+      if count == 256 { entries.removeAll(keepingCapacity: true); count = 0 }
+      let snapshot = source.copy()!
+      let result = Geometry(source: snapshot, outline: snapshot.copy(strokingWithWidth: width,
+        lineCap: cap, lineJoin: join, miterLimit: 4))
+      entries[key, default: []].append(result); count += 1
+      return result
+    }
+  }
+  private let strokeGeometry: StrokeGeometryCache
+  init(strokeGeometry: StrokeGeometryCache = StrokeGeometryCache()) {
+    self.strokeGeometry = strokeGeometry
+  }
   struct RoundedBlurShape {
     let rect: CGRect
     let radius: Double
@@ -249,7 +280,7 @@ final class SceneCatalogVectorCanvas {
       let adjusted = stroke.path.copy(strokingWithWidth: 1 / Double(effectiveScale),
         lineCap: stroke.cap, lineJoin: stroke.join, miterLimit: 4)
       var matrix = transform
-      return Draw(path: adjusted.copy(using: &matrix)!, color: color, gradient: gradient, sigma: sigma,
+      return Draw(path: matrix.isIdentity ? adjusted : adjusted.copy(using: &matrix)!, color: color, gradient: gradient, sigma: sigma,
                   additive: additive, clip: clip, stroke: nil,
                   alphaScale: stroke.width == 0 ? 1 : min(1, Float(stroke.width) * effectiveScale * 2),
                   transform: transform, localBlurPath: localBlurPath == nil ? nil : adjusted, screen: screen, evenOdd: evenOdd,
@@ -312,11 +343,12 @@ final class SceneCatalogVectorCanvas {
     if forceStroke || paint.style == .stroke {
       let cap: CGLineCap = paint.strokeCap == .round ? .round : paint.strokeCap == .square ? .square : .butt
       let join: CGLineJoin = paint.strokeJoin == .round ? .round : paint.strokeJoin == .bevel ? .bevel : .miter
-      path = source.copy(strokingWithWidth: max(paint.strokeWidth, 0.0001), lineCap: cap, lineJoin: join, miterLimit: 4)
-      stroke = Stroke(path: source.copy()!, width: paint.strokeWidth, cap: cap, join: join)
+      let geometry = strokeGeometry.geometry(source, width: max(paint.strokeWidth, 0.0001), cap: cap, join: join)
+      path = geometry.outline
+      stroke = Stroke(path: geometry.source, width: paint.strokeWidth, cap: cap, join: join)
     } else { path = source.copy()! }
     var transform = transforms.last!
-    draws.append(.init(path: path.copy(using: &transform)!, color: paint.color, gradient: paint.shader,
+    draws.append(.init(path: transform.isIdentity ? path : path.copy(using: &transform)!, color: paint.color, gradient: paint.shader,
                        sigma: paint.maskFilter?.sigma ?? 0, additive: paint.blendMode == .plus, clip: clips.last!, stroke: stroke,
                        roundedBlur: transform.isIdentity && stroke == nil && paint.shader == nil && (paint.maskFilter?.sigma ?? 0) > 0.5 + 0.001 / sqrt(3)
                          ? roundedBlur : nil,
@@ -326,7 +358,7 @@ final class SceneCatalogVectorCanvas {
                        transform: transform,
                        localBlurPath: !transform.isIdentity && paint.maskFilter != nil ? path : nil,
                        screen: paint.blendMode == .screen, evenOdd: evenOdd && stroke == nil,
-                       sourceBounds: source.boundingBox.insetBy(
+                       sourceBounds: paint.maskFilter == nil ? nil : source.boundingBox.insetBy(
                          dx: stroke == nil ? 0 : -max(paint.strokeWidth, 1) * (paint.strokeJoin == .miter ? 2 : paint.strokeCap == .square ? sqrt(2) / 2 : 0.5),
                          dy: stroke == nil ? 0 : -max(paint.strokeWidth, 1) * (paint.strokeJoin == .miter ? 2 : paint.strokeCap == .square ? sqrt(2) / 2 : 0.5)),
                        ambientBlurPath: stroke == nil && paint.shader == nil && (paint.maskFilter?.sigma ?? 0) > 0.5 + 0.001 / sqrt(3)
@@ -380,13 +412,16 @@ final class SceneCatalogVectorRenderer {
   private let verticalBlur: MTLComputePipelineState
   private let downsamplePipeline: MTLComputePipelineState
   private let directWindingPipeline: MTLRenderPipelineState
-  private let clearStencilPipeline: MTLRenderPipelineState
-  private let clearStencilState: MTLDepthStencilState
+  private let backgroundPipeline: MTLRenderPipelineState
+  private let directMaskState: MTLDepthStencilState
   private let noStencilState: MTLDepthStencilState
   private var colorTarget: ColorTarget?
   private var sourceScratch: Scratch?
   private var scratch: [String: Scratch] = [:]
   private var targetSize = SIMD2<Int>(0, 0)
+  private var directVertices: [SIMD2<Float>] = []
+  private var contourScratch: [CGPoint] = []
+  private var activeFrame: SceneCatalogFrameCommand?
   private struct Scratch {
     let mask: MTLTexture
     let multisample: MTLTexture
@@ -537,7 +572,9 @@ final class SceneCatalogVectorRenderer {
     shadowPlusPipeline = try pipeline(vertex: "vectorShadowVertex", fragment: "vectorShadowFragment", additive: true)
     shadowScreenPipeline = try pipeline(vertex: "vectorShadowVertex", fragment: "vectorShadowFragment", screen: true)
     directWindingPipeline = try pipeline(vertex: "vectorPathVertex", fragment: "vectorColorFragment", writes: false)
-    clearStencilPipeline = try pipeline(vertex: "vectorColorVertex", fragment: "vectorColorFragment", writes: false)
+    // Copies the live output into the multisample target before the draws
+    // (one texel per pixel, every sample equal: the resolve returns it exactly).
+    backgroundPipeline = try pipeline(vertex: "vectorMaskVertex", fragment: "vectorBackgroundFragment", mask: true)
     let winding = MTLDepthStencilDescriptor()
     winding.frontFaceStencil.stencilCompareFunction = .always
     winding.frontFaceStencil.depthStencilPassOperation = .incrementWrap
@@ -560,12 +597,16 @@ final class SceneCatalogVectorRenderer {
     parity.backFaceStencil.writeMask = 1
     guard let evenOddState = device.makeDepthStencilState(descriptor: parity) else { throw Failure("vector_even_odd_state") }
     self.evenOddState = evenOddState
-    let clear = MTLDepthStencilDescriptor()
-    clear.frontFaceStencil.depthStencilPassOperation = .replace
-    clear.backFaceStencil.depthStencilPassOperation = .replace
-    guard let clearState = device.makeDepthStencilState(descriptor: clear),
-          let none = device.makeDepthStencilState(descriptor: MTLDepthStencilDescriptor()) else { throw Failure("vector_stencil_clear") }
-    clearStencilState = clearState; noStencilState = none
+    let consume = MTLDepthStencilDescriptor()
+    consume.frontFaceStencil.stencilCompareFunction = .notEqual
+    consume.frontFaceStencil.depthStencilPassOperation = .zero
+    consume.frontFaceStencil.writeMask = 0xff
+    consume.backFaceStencil.stencilCompareFunction = .notEqual
+    consume.backFaceStencil.depthStencilPassOperation = .zero
+    consume.backFaceStencil.writeMask = 0xff
+    guard let consumeState = device.makeDepthStencilState(descriptor: consume),
+          let none = device.makeDepthStencilState(descriptor: MTLDepthStencilDescriptor()) else { throw Failure("vector_stencil_consume") }
+    directMaskState = consumeState; noStencilState = none
     let sampling = MTLSamplerDescriptor()
     sampling.minFilter = .linear; sampling.magFilter = .linear
     sampling.sAddressMode = .clampToZero; sampling.tAddressMode = .clampToZero
@@ -573,15 +614,25 @@ final class SceneCatalogVectorRenderer {
     self.sampler = sampler
   }
 
+  /// Draws [canvas] into a new texture. With [background], the pass starts
+  /// from that texture (same size) and every draw blends over it with its
+  /// own mode, so one pass can hold sourceOver, plus and screen figures in
+  /// order; otherwise it starts from [clearColor] (transparent by default).
   func render(canvas: SceneCatalogVectorCanvas, logicalWidth: Double, logicalHeight: Double,
-              width: Int, height: Int, outputAllocator: SceneSurfaceNativeOutputAllocator?) throws -> MTLTexture {
+              width: Int, height: Int, outputAllocator: SceneSurfaceNativeOutputAllocator?,
+              background: MTLTexture? = nil, clearColor: MTLClearColor? = nil,
+              into target: MTLTexture? = nil, frame: SceneCatalogFrameCommand? = nil) throws -> MTLTexture {
     guard logicalWidth.isFinite, logicalHeight.isFinite, logicalWidth > 0, logicalHeight > 0,
           width > 0, height > 0, width <= 8192, height <= 8192 else { throw Failure("vector_dimensions") }
+    if let background, background.width != width || background.height != height { throw Failure("vector_background_size") }
+    if let target, target.width != width || target.height != height || target.pixelFormat != .bgra8Unorm { throw Failure("vector_target_size") }
+    activeFrame = frame
+    defer { activeFrame = nil }
     if targetSize != SIMD2(width, height) { scratch.removeAll(); sourceScratch = nil; colorTarget = nil; targetSize = SIMD2(width, height) }
     allocationBytes = retainedIntermediateBytes
-    guard let output = try SceneSurfaceNativeOutputAllocator.makeTexture(
+    guard let output = try target ?? SceneSurfaceNativeOutputAllocator.makeTexture(
       device: device, width: width, height: height, allocator: outputAllocator
-    ), let command = queue.makeCommandBuffer() else { throw Failure("vector_output") }
+    ), let command = frame?.command ?? queue.makeCommandBuffer() else { throw Failure("vector_output") }
     let scale = SIMD2<Float>(Float(Double(width) / logicalWidth), Float(Double(height) / logicalHeight))
     let draws = canvas.draws.map { $0.atScale(max(scale.x, scale.y)) }
     let roundedBlurs = draws.map { Self.roundedBlur($0, scale: scale) }
@@ -608,10 +659,11 @@ final class SceneCatalogVectorRenderer {
     }
     if colorTarget == nil { colorTarget = try makeColorTarget(width: width, height: height) }
     guard let colorTarget else { throw Failure("vector_color_target") }
+    for texture in [colorTarget.multisample, colorTarget.stencil, colorTarget.fallbackMask] { try frame?.retain(texture) }
     var tiles: [Tile] = []
-    var drawTiles: [(Int, Int?)] = []
+    var drawTiles: [(Int, Int?, Tile?)] = []
     var directRanges: [Range<Int>] = []
-    var directVertices: [SIMD2<Float>] = []
+    directVertices.removeAll(keepingCapacity: true)
     var clipTiles: [ObjectIdentifier: Int] = [:]
     for (drawIndex, draw) in draws.enumerated() {
       let analyticTile = roundedBlurs[drawIndex].map {
@@ -630,9 +682,10 @@ final class SceneCatalogVectorRenderer {
         width: Double(width), height: Double(height))
       guard var tile = analyticTile ?? shadowTile ?? Self.tile(path: draw.localBlurPath ?? draw.path, sigma: draw.sigma,
           scale: filterScale, width: width, height: height, bounded: draw.localBlurPath == nil,
-          sourceBounds: draw.sourceBounds, sourceClip: sourceClip) else {
+          sourceBounds: draw.sourceBounds, sourceClip: sourceClip,
+          directBounds: draw.sigma == 0) else {
         directRanges.append(0..<0)
-        drawTiles.append((-1, nil)); continue
+        drawTiles.append((-1, nil, nil)); continue
       }
       tile.sourceScale = filterScale
       if draw.gradient == nil {
@@ -647,8 +700,9 @@ final class SceneCatalogVectorRenderer {
         maskIndex = -3
       } else if draw.sigma == 0 {
         maskIndex = -2
-        directVertices.append(contentsOf: Self.triangles(path: draw.path,
-          tolerance: 0.08 / Double(max(scale.x, scale.y))).map { $0 * scale })
+        let tolerance = 0.08 / Double(max(scale.x, scale.y))
+        Self.appendTriangles(path: draw.path, tolerance: tolerance, scale: scale,
+          into: &directVertices, contour: &contourScratch)
       } else { maskIndex = tiles.count; tiles.append(tile) }
       directRanges.append(first..<directVertices.count)
       var clipIndex: Int?
@@ -657,9 +711,9 @@ final class SceneCatalogVectorRenderer {
         if let existing = clipTiles[key] { clipIndex = existing }
         else if let clip = Self.tile(path: path, sigma: 0, scale: scale, width: width, height: height) {
           clipIndex = tiles.count; clipTiles[key] = tiles.count; tiles.append(clip)
-        } else { drawTiles.append((-1, nil)); continue }
+        } else { drawTiles.append((-1, nil, nil)); continue }
       }
-      drawTiles.append((maskIndex, clipIndex))
+      drawTiles.append((maskIndex, clipIndex, maskIndex == -2 ? tile : nil))
     }
     let pages = Self.pack(&tiles)
     for index in tiles.indices { tiles[index].identifier = index }
@@ -687,6 +741,7 @@ final class SceneCatalogVectorRenderer {
     var atlases: [Scratch] = []
     for (page, size) in pages.enumerated() {
       let atlas = try makeScratch(width: size.x, height: size.y, retained: false, page: page)
+      for texture in [atlas.mask, atlas.horizontal, atlas.blurred] { try frame?.retain(texture) }
       atlases.append(atlas)
     }
     if !physicalPages.isEmpty {
@@ -694,6 +749,7 @@ final class SceneCatalogVectorRenderer {
         sourceScratch = try makeSourceScratch(width: sourceWidth, height: sourceHeight)
       }
       guard let sourceScratch else { throw Failure("vector_source_scratch") }
+      for texture in [sourceScratch.mask, sourceScratch.multisample, sourceScratch.stencil] { try frame?.retain(texture) }
       for page in physicalPages.indices {
         let sources = physicalTiles.filter { $0.page == page }
         try encodeCoverage(tiles: sources, atlas: sourceScratch, scale: scale, command: command)
@@ -712,21 +768,37 @@ final class SceneCatalogVectorRenderer {
     pass.colorAttachments[0].resolveTexture = output
     pass.colorAttachments[0].loadAction = .clear
     pass.colorAttachments[0].storeAction = .multisampleResolve
-    pass.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0)
+    pass.colorAttachments[0].clearColor = clearColor ?? MTLClearColorMake(0, 0, 0, 0)
     pass.stencilAttachment.texture = colorTarget.stencil
     pass.stencilAttachment.loadAction = .clear
     pass.stencilAttachment.storeAction = .dontCare
     guard let encoder = command.makeRenderCommandEncoder(descriptor: pass) else { throw Failure("vector_color_encoder") }
+    var encoding = true
+    defer { if encoding { encoder.endEncoding() } }
+    if let background {
+      encoder.setRenderPipelineState(backgroundPipeline)
+      encoder.setDepthStencilState(noStencilState)
+      encoder.setFragmentTexture(background, index: 0)
+      encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
+    }
     let directBuffer = directVertices.withUnsafeBytes { bytes in
       bytes.isEmpty ? nil : device.makeBuffer(bytes: bytes.baseAddress!, length: bytes.count, options: .storageModeShared)
     }
     let shadowBuffer = shadowVertices.withUnsafeBytes { bytes in
       bytes.isEmpty ? nil : device.makeBuffer(bytes: bytes.baseAddress!, length: bytes.count, options: .storageModeShared)
     }
+    if let directBuffer { try frame?.retain(directBuffer) }
+    if let shadowBuffer { try frame?.retain(shadowBuffer) }
     // A valid fallback is bound even when the direct fragment branch does not sample it.
     let fallbackMask = atlases.first?.blurred ?? colorTarget.fallbackMask
+    // Solid paints do not read gradient buffers. Bind valid storage once;
+    // only a gradient needs to replace its colors and stops.
+    var colors = [SIMD4<Float>](repeating: .zero, count: 8)
+    var stops = [Float](repeating: 0, count: 8)
+    colors.withUnsafeBytes { encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 1) }
+    stops.withUnsafeBytes { encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 2) }
     for (drawIndex, draw) in draws.enumerated() {
-      let (maskIndex, clipIndex) = drawTiles[drawIndex]
+      let (maskIndex, clipIndex, directTile) = drawTiles[drawIndex]
       if maskIndex == -1 { continue }
       let direct = maskIndex == -2
       let shadow = maskIndex == -4
@@ -738,7 +810,7 @@ final class SceneCatalogVectorRenderer {
         mask = Tile(path: draw.path, region: CGRect(x: 0, y: 0, width: width, height: height),
           sigma: .zero, radii: .zero, filterScale: 1)
       } else {
-        mask = direct ? Self.tile(path: draw.path, sigma: 0, scale: scale, width: width, height: height)! : tiles[maskIndex]
+        mask = direct ? directTile! : tiles[maskIndex]
       }
       let clip = clipIndex.map { tiles[$0] }
       let maskTexture = direct || shadow || roundedBlur != nil ? fallbackMask : atlases[mask.page].blurred
@@ -793,15 +865,13 @@ final class SceneCatalogVectorRenderer {
       )
       encoder.setVertexBytes(&parameters, length: MemoryLayout<Parameters>.stride, index: 0)
       encoder.setFragmentBytes(&parameters, length: MemoryLayout<Parameters>.stride, index: 0)
-      var colors = [SIMD4<Float>](repeating: .zero, count: 8)
-      var stops = [Float](repeating: 0, count: 8)
       if let gradient {
         guard gradient.colors.count <= 8, gradient.colors.count >= 2,
               gradient.stops.count == gradient.colors.count else { throw Failure("vector_gradient_contract") }
         for index in gradient.colors.indices { colors[index] = gradient.colors[index].rgba; stops[index] = Float(gradient.stops[index]) }
+        colors.withUnsafeBytes { encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 1) }
+        stops.withUnsafeBytes { encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 2) }
       }
-      colors.withUnsafeBytes { encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 1) }
-      stops.withUnsafeBytes { encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 2) }
       encoder.setFragmentTexture(maskTexture, index: 0)
       encoder.setFragmentTexture(clipTexture, index: 1)
       encoder.setFragmentSamplerState(sampler, index: 0)
@@ -814,11 +884,9 @@ final class SceneCatalogVectorRenderer {
         continue
       }
       if direct {
-        // Reset only this draw's bounded stencil, then accumulate its winding.
-        encoder.setRenderPipelineState(clearStencilPipeline)
-        encoder.setDepthStencilState(clearStencilState)
+        // The previous cover consumed every nonzero sample inside its bounds.
+        // Accumulate this path, then paint and clear its stencil in one draw.
         encoder.setStencilReferenceValue(0)
-        encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         encoder.setRenderPipelineState(directWindingPipeline)
         encoder.setDepthStencilState(draw.evenOdd ? evenOddState : windingState)
         encoder.setVertexBuffer(directBuffer, offset: 0, index: 0)
@@ -828,13 +896,16 @@ final class SceneCatalogVectorRenderer {
         encoder.drawPrimitives(type: .triangle, vertexStart: range.lowerBound, vertexCount: range.count)
         encoder.setVertexBytes(&parameters, length: MemoryLayout<Parameters>.stride, index: 0)
         encoder.setRenderPipelineState(draw.additive ? plusPipeline : draw.screen ? screenPipeline : sourceOverPipeline)
-        encoder.setDepthStencilState(maskState)
+        encoder.setDepthStencilState(directMaskState)
       } else { encoder.setDepthStencilState(noStencilState) }
       encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
     }
     encoder.endEncoding()
-    command.commit(); command.waitUntilCompleted()
-    guard command.status == .completed else { throw command.error ?? Failure("vector_command_failed") }
+    encoding = false
+    if frame == nil {
+      command.commit(); command.waitUntilCompleted()
+      guard command.status == .completed else { throw command.error ?? Failure("vector_command_failed") }
+    }
     lastStatistics = Statistics(
       drawCount: canvas.draws.count, analyticBlurCount: roundedBlurs.compactMap { $0 }.filter { $0.kind == 1 }.count + ambientMeshes.compactMap { $0 }.count, atlasCount: atlases.count,
       rasterPassCount: physicalPages.count + 1, computePassCount: atlases.count * 2 + downsamplePasses,
@@ -864,6 +935,7 @@ final class SceneCatalogVectorRenderer {
     let fallbackMask = try makeIntermediateTexture(descriptor)
     descriptor.width = width; descriptor.height = height
     descriptor.textureType = .type2DMultisample; descriptor.sampleCount = 4; descriptor.usage = [.renderTarget]
+    descriptor.storageMode = device.supportsFamily(.apple1) ? .memoryless : .private
     let multisample = try makeIntermediateTexture(descriptor)
     descriptor.pixelFormat = .stencil8
     let stencil = try makeIntermediateTexture(descriptor)
@@ -889,6 +961,7 @@ final class SceneCatalogVectorRenderer {
     let mask = try makeIntermediateTexture(descriptor)
     descriptor.textureType = .type2DMultisample; descriptor.sampleCount = 4
     descriptor.usage = [.renderTarget]
+    descriptor.storageMode = device.supportsFamily(.apple1) ? .memoryless : .private
     let multisample = try makeIntermediateTexture(descriptor)
     descriptor.pixelFormat = .stencil8
     let stencil = try makeIntermediateTexture(descriptor)
@@ -897,12 +970,16 @@ final class SceneCatalogVectorRenderer {
 
   private static func tile(path: CGPath, sigma: Double, scale: SIMD2<Float>, width: Int, height: Int,
                            bounded: Bool = true, sourceBounds: CGRect? = nil,
-                           sourceClip: CGRect? = nil) -> Tile? {
+                           sourceClip: CGRect? = nil, directBounds: Bool = false) -> Tile? {
     let scaledSigma = Self.impellerScaleSigma(Float(sigma))
     let physicalSigma = scaledSigma * scale
     let sourceRadius = simd_max((physicalSigma - SIMD2(repeating: 0.5)) * Float(3).squareRoot(), .zero)
     let padding = Double(max(sourceRadius.x, sourceRadius.y) + 2)
-    let bounds = path.boundingBoxOfPath
+    // Direct coverage comes from the unchanged winding mesh. A conservative
+    // control-point box bounds its stencil clear/color quad just as safely,
+    // without solving every stroke curve's extrema. Blur/clip masks retain
+    // their exact coordinate system.
+    let bounds = directBounds ? path.boundingBox : path.boundingBoxOfPath
     guard !bounds.isEmpty, !bounds.isNull, !bounds.isInfinite else { return nil }
     if sigma > 0 {
       // Contents::RenderToSnapshot retains a fractional coverage origin and a
@@ -1007,6 +1084,7 @@ final class SceneCatalogVectorRenderer {
     }
     let buffer = vertices.withUnsafeBytes { device.makeBuffer(bytes: $0.baseAddress!, length: $0.count, options: .storageModeShared) }
     guard let buffer else { throw Failure("vector_vertex_buffer") }
+    try activeFrame?.retain(buffer)
     let pass = MTLRenderPassDescriptor()
     pass.colorAttachments[0].texture = atlas.multisample
     pass.colorAttachments[0].resolveTexture = atlas.mask
@@ -1017,6 +1095,7 @@ final class SceneCatalogVectorRenderer {
     pass.stencilAttachment.loadAction = .clear
     pass.stencilAttachment.storeAction = .dontCare
     guard let encoder = command.makeRenderCommandEncoder(descriptor: pass) else { throw Failure("vector_mask_encoder") }
+    defer { encoder.endEncoding() }
     var transform = SIMD4<Float>(0, 0, Float(atlas.blurred.width), Float(atlas.blurred.height))
     encoder.setRenderPipelineState(windingPipeline)
     encoder.setDepthStencilState(windingState)
@@ -1031,9 +1110,9 @@ final class SceneCatalogVectorRenderer {
       color: tile.color) }
     let paintBuffer = paints.withUnsafeBytes { device.makeBuffer(bytes: $0.baseAddress!, length: $0.count, options: .storageModeShared) }
     guard let paintBuffer else { throw Failure("vector_mask_paints") }
+    try activeFrame?.retain(paintBuffer)
     encoder.setVertexBuffer(paintBuffer, offset: 0, index: 0)
     encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: tiles.count * 6)
-    encoder.endEncoding()
   }
 
   private func encodeDownsample(sources: [Tile], targets: [Tile], source: MTLTexture,
@@ -1051,7 +1130,9 @@ final class SceneCatalogVectorRenderer {
       pixelCount += UInt32(target.rasterWidth * target.rasterHeight)
     }
     let buffer = cells.withUnsafeBytes { device.makeBuffer(bytes: $0.baseAddress!, length: $0.count, options: .storageModeShared) }
-    guard let buffer, let encoder = command.makeComputeCommandEncoder() else { throw Failure("vector_downsample_encoder") }
+    guard let buffer else { throw Failure("vector_downsample_buffer") }
+    try activeFrame?.retain(buffer)
+    guard let encoder = command.makeComputeCommandEncoder() else { throw Failure("vector_downsample_encoder") }
     encoder.setComputePipelineState(downsamplePipeline)
     encoder.setTexture(source, index: 0); encoder.setTexture(destination, index: 1)
     encoder.setSamplerState(sampler, index: 0)
@@ -1099,6 +1180,7 @@ final class SceneCatalogVectorRenderer {
     let cellBuffer = cells.withUnsafeBytes { device.makeBuffer(bytes: $0.baseAddress!, length: $0.count, options: .storageModeShared) }
     let weightBuffer = weights.withUnsafeBytes { device.makeBuffer(bytes: $0.baseAddress!, length: $0.count, options: .storageModeShared) }
     guard let cellBuffer, let weightBuffer else { throw Failure("vector_atlas_buffers") }
+    try activeFrame?.retain(cellBuffer); try activeFrame?.retain(weightBuffer)
     // The installed Impeller evaluates Y, then X (quantization is observable).
     for horizontal in [false, true] {
       guard let encoder = command.makeComputeCommandEncoder() else { throw Failure("vector_blur_encoder") }
@@ -1157,48 +1239,111 @@ final class SceneCatalogVectorRenderer {
   }
 
   static func triangles(path: CGPath, tolerance: Double) -> [SIMD2<Float>] {
-    var polygons: [[CGPoint]] = []
-    var current: [CGPoint] = []
-    func flush() { if current.count > 2 { polygons.append(current) }; current.removeAll(keepingCapacity: true) }
-    func distance(_ p: CGPoint, _ a: CGPoint, _ b: CGPoint) -> Double {
-      let dx = b.x - a.x, dy = b.y - a.y
-      let length = hypot(dx, dy)
-      return length < 1e-12 ? hypot(p.x - a.x, p.y - a.y) : abs(dy * p.x - dx * p.y + b.x * a.y - b.y * a.x) / length
-    }
-    func midpoint(_ a: CGPoint, _ b: CGPoint) -> CGPoint { CGPoint(x: (a.x + b.x) / 2, y: (a.y + b.y) / 2) }
-    func cubic(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint, _ d: CGPoint, _ depth: Int) {
-      if depth >= 16 || max(distance(b, a, d), distance(c, a, d)) <= tolerance {
-        current.append(d); return
-      }
-      let ab = midpoint(a, b), bc = midpoint(b, c), cd = midpoint(c, d)
-      let abc = midpoint(ab, bc), bcd = midpoint(bc, cd), middle = midpoint(abc, bcd)
-      cubic(a, ab, abc, middle, depth + 1); cubic(middle, bcd, cd, d, depth + 1)
-    }
-    path.applyWithBlock { pointer in
-      let element = pointer.pointee
-      switch element.type {
-      case .moveToPoint: flush(); current.append(element.points[0])
-      case .addLineToPoint: current.append(element.points[0])
-      case .addQuadCurveToPoint:
-        let a = current.last ?? .zero, b = element.points[0], c = element.points[1]
-        cubic(a, CGPoint(x: a.x + (b.x - a.x) * 2 / 3, y: a.y + (b.y - a.y) * 2 / 3),
-              CGPoint(x: c.x + (b.x - c.x) * 2 / 3, y: c.y + (b.y - c.y) * 2 / 3), c, 0)
-      case .addCurveToPoint: cubic(current.last ?? .zero, element.points[0], element.points[1], element.points[2], 0)
-      case .closeSubpath: flush()
-      @unknown default: preconditionFailure("Unrepresented CGPath element")
-      }
-    }
-    flush()
     var result: [SIMD2<Float>] = []
-    for polygon in polygons {
-      let origin = polygon[0]
-      for index in 1..<(polygon.count - 1) {
-        for point in [origin, polygon[index], polygon[index + 1]] {
-          result.append(SIMD2(Float(point.x), Float(point.y)))
+    appendTriangles(path: path, tolerance: tolerance, scale: SIMD2(repeating: 1), into: &result)
+    return result
+  }
+
+  private struct PathTriangulation {
+    var contour: [CGPoint] = []
+    let tolerance: Double
+    let scale: SIMD2<Float>
+    let output: UnsafeMutablePointer<[SIMD2<Float>]>
+  }
+
+  static func appendTriangles(path: CGPath, tolerance: Double, scale: SIMD2<Float>,
+                              into result: inout [SIMD2<Float>]) {
+    var contour: [CGPoint] = []
+    appendTriangles(path: path, tolerance: tolerance, scale: scale, into: &result, contour: &contour)
+  }
+
+  static func appendTriangles(path: CGPath, tolerance: Double, scale: SIMD2<Float>,
+                              into result: inout [SIMD2<Float>], contour: inout [CGPoint]) {
+    contour.removeAll(keepingCapacity: true)
+    // CGPath.apply visits synchronously. Borrow one state for the entire path
+    // instead of retaining a Swift closure and its mutable captures per element.
+    withUnsafeMutablePointer(to: &result) { output in
+      var state = PathTriangulation(tolerance: tolerance, scale: scale, output: output)
+      swap(&state.contour, &contour)
+      withUnsafeMutablePointer(to: &state) { pointer in
+        path.apply(info: pointer) { info, element in
+          SceneCatalogVectorRenderer.visitPathElement(info!, element)
+        }
+      }
+      flushContour(&state)
+      swap(&state.contour, &contour)
+    }
+  }
+
+  private static func visitPathElement(_ info: UnsafeMutableRawPointer,
+                                        _ pointer: UnsafePointer<CGPathElement>) {
+    let state = info.assumingMemoryBound(to: PathTriangulation.self)
+    let element = pointer.pointee
+    switch element.type {
+    case .moveToPoint: flushContour(&state.pointee); state.pointee.contour.append(element.points[0])
+    case .addLineToPoint: state.pointee.contour.append(element.points[0])
+    case .addQuadCurveToPoint:
+      let a = state.pointee.contour.last ?? .zero, b = element.points[0], c = element.points[1]
+      appendCubic(a, CGPoint(x: a.x + (b.x - a.x) * 2 / 3, y: a.y + (b.y - a.y) * 2 / 3),
+        CGPoint(x: c.x + (b.x - c.x) * 2 / 3, y: c.y + (b.y - c.y) * 2 / 3), c,
+        depth: 0, tolerance: state.pointee.tolerance, into: &state.pointee.contour)
+    case .addCurveToPoint:
+      appendCubic(state.pointee.contour.last ?? .zero, element.points[0], element.points[1], element.points[2],
+        depth: 0, tolerance: state.pointee.tolerance, into: &state.pointee.contour)
+    case .closeSubpath: flushContour(&state.pointee)
+    @unknown default: preconditionFailure("Unrepresented CGPath element")
+    }
+  }
+
+  private static func flushContour(_ state: inout PathTriangulation) {
+    if state.contour.count > 2 {
+      let origin = SIMD2<Float>(Float(state.contour[0].x), Float(state.contour[0].y)) * state.scale
+      let start = state.output.pointee.count
+      let count = (state.contour.count - 2) * 3
+      state.output.pointee.append(contentsOf: repeatElement(.zero, count: count))
+      state.contour.withUnsafeBufferPointer { points in
+        state.output.pointee.withUnsafeMutableBufferPointer { buffer in
+          var output = buffer.baseAddress!.advanced(by: start)
+          var previous = SIMD2(Float(points[1].x), Float(points[1].y)) * state.scale
+          for index in 2..<points.count {
+            let point = points[index]
+            let vertex = SIMD2(Float(point.x), Float(point.y)) * state.scale
+            output[0] = origin
+            output[1] = previous
+            output[2] = vertex
+            output = output.advanced(by: 3)
+            previous = vertex
+          }
         }
       }
     }
-    return result
+    state.contour.removeAll(keepingCapacity: true)
+  }
+
+  private static func appendCubic(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint, _ d: CGPoint,
+                                  depth: Int, tolerance: Double, into contour: inout [CGPoint]) {
+    var a = a, b = b, c = c, depth = depth
+    while true {
+      if depth >= 16 { contour.append(d); return }
+      let dx = d.x - a.x, dy = d.y - a.y
+      let length = hypot(dx, dy)
+      let flatness: Double
+      if length < 1e-12 {
+        flatness = max(hypot(b.x - a.x, b.y - a.y), hypot(c.x - a.x, c.y - a.y))
+      } else {
+        flatness = max(abs(dy * b.x - dx * b.y + d.x * a.y - d.y * a.x) / length,
+                       abs(dy * c.x - dx * c.y + d.x * a.y - d.y * a.x) / length)
+      }
+      if flatness <= tolerance { contour.append(d); return }
+      let ab = CGPoint(x: (a.x + b.x) / 2, y: (a.y + b.y) / 2)
+      let bc = CGPoint(x: (b.x + c.x) / 2, y: (b.y + c.y) / 2)
+      let cd = CGPoint(x: (c.x + d.x) / 2, y: (c.y + d.y) / 2)
+      let abc = CGPoint(x: (ab.x + bc.x) / 2, y: (ab.y + bc.y) / 2)
+      let bcd = CGPoint(x: (bc.x + cd.x) / 2, y: (bc.y + cd.y) / 2)
+      let middle = CGPoint(x: (abc.x + bcd.x) / 2, y: (abc.y + bcd.y) / 2)
+      Self.appendCubic(a, ab, abc, middle, depth: depth + 1, tolerance: tolerance, into: &contour)
+      a = middle; b = bcd; c = cd; depth += 1
+    }
   }
 
   private struct Failure: LocalizedError {
@@ -1244,6 +1389,9 @@ final class SceneCatalogVectorRenderer {
       return { float4(uv[id].x * 2 - 1, 1 - uv[id].y * 2, 0, 1) };
     }
     fragment half4 vectorMaskFragment() { return 1; }
+    fragment float4 vectorBackgroundFragment(V in [[stage_in]], texture2d<float> background [[texture(0)]]) {
+      return background.read(uint2(in.position.xy));
+    }
     struct TilePaint { float4 region, color; };
     struct TileVertex { float4 position [[position]]; half4 color [[flat]]; };
     vertex TileVertex vectorTileVertex(uint id [[vertex_id]], constant TilePaint* paints [[buffer(0)]],
@@ -1311,7 +1459,8 @@ final class SceneCatalogVectorRenderer {
       float2 maskHalfPixel = 0.5f / float2(mask.get_width(), mask.get_height());
       float2 maskSample = clamp(p.maskUV.xy + maskPosition * p.maskUV.zw,
         p.maskUV.xy + maskHalfPixel, p.maskUV.xy + p.maskUV.zw - maskHalfPixel);
-      float4 filtered = all(maskPosition >= 0) && all(maskPosition <= 1) ? mask.sample(s, maskSample) : float4(0);
+      float4 filtered = p.flags.y <= 0 && all(maskPosition >= 0) && all(maskPosition <= 1)
+        ? mask.sample(s, maskSample) : float4(0);
       float coverage = p.flags.y > 0 ? 1.0f : filtered.a;
       if (p.flags.z > 1.5f) {
         // Flutter circle.frag: local-space SDF with a one-physical-pixel fade.

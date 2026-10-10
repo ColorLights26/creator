@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xff07060d, 0xffffb15c, 0xffff7aa8, 0xff6fa8ff],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Las luces flotan sin parar: a 60 FPS la deriva es suave.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

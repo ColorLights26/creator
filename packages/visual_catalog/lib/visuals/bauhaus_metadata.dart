@@ -16,5 +16,5 @@ const metadata = CreatorVisualMetadata(
   colors: [0xfff2e8d5, 0xffe63312, 0xfff5b700, 0xff1d3fbb],
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
   // Las piezas giran y saltan con rebote: a 60 FPS es fluido.
-  framesPerSecond: 60,
+  framesPerSecond: 30,
 );

@@ -245,7 +245,7 @@ class Visual final : public Scene {
       c.path(p, core);
     }
 
-    if (m.hojas) {
+    if (m.hojas && generations > 0) {
       // Brotes en las puntas: tres grupos que parpadean desfasados.
       int first = (1 << (generations - 1)) - 1;
       std::array<std::vector<Vec2>, 3> groups;
