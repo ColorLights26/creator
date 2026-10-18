@@ -1010,6 +1010,161 @@
       ]
     },
     {
+      "id": "brasas_azules_premium",
+      "name": "Brasas Azules Premium",
+      "description": "Chispas de fuego frío que suben con una estela larga desde una bruma azul que respira, con núcleo casi blanco y halo azul; las cercanas, desenfocadas. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "cool",
+        "mysterious",
+        "cinematic"
+      ],
+      "concepts": [
+        "blue embers",
+        "sparks",
+        "mist",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Fuego Frío",
+          "values": {
+            "vuelo": "Ráfagas",
+            "estela": 1,
+            "bruma": 1,
+            "detail": 1.6
+          }
+        },
+        {
+          "name": "Ascuas Azules",
+          "values": {
+            "vuelo": "Remolino",
+            "estela": 0.2,
+            "bruma": 0.3,
+            "speed": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "brasas_cinematicas",
+      "name": "Brasas Cinemáticas",
+      "description": "Fondo de cine oscuro: humo que se arremolina iluminado por un foco de brasas encendidas en el centro, y brasas sueltas que flotan por todo el plano, algunas cerca y desenfocadas. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "cinematic",
+        "dark",
+        "epic"
+      ],
+      "concepts": [
+        "embers",
+        "smoke",
+        "fire",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Tráiler",
+          "values": {
+            "humo": 1,
+            "foco": 1,
+            "tamano": 1.2
+          }
+        },
+        {
+          "name": "Ascuas Sueltas",
+          "values": {
+            "humo": 0.2,
+            "foco": 0,
+            "detail": 1.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "brasas_premium",
+      "name": "Brasas Premium",
+      "description": "Brasas de fuego de cine: chispas con núcleo caliente y estela naranja que suben desde un resplandor de fuego, se enroscan en el aire caliente y se apagan; las cercanas, grandes y desenfocadas. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "cinematic",
+        "warm",
+        "epic"
+      ],
+      "concepts": [
+        "embers",
+        "fire",
+        "sparks",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Hoguera",
+          "values": {
+            "vuelo": "Ráfagas",
+            "estela": 0.8,
+            "fuego": 1,
+            "detail": 1.6
+          }
+        },
+        {
+          "name": "Rescoldo",
+          "values": {
+            "vuelo": "Suave",
+            "estela": 0.1,
+            "fuego": 0.2,
+            "tamano": 0.8,
+            "speed": 0.6
+          }
+        }
+      ]
+    },
+    {
       "id": "brasas_remolino",
       "name": "Brasas en Remolino",
       "description": "Capa transparente de brasas en remolino: chispas de fuego que suben girando alrededor del centro como en un torbellino de aire caliente, encima de cualquier visual.",
@@ -1056,6 +1211,58 @@
             "giro": -0.5,
             "apertura": 1,
             "estela": 0.2,
+            "speed": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "brasas_remolino_premium",
+      "name": "Brasas en Remolino Premium",
+      "description": "Un torbellino de aire caliente: brasas con núcleo caliente y estela naranja que suben girando en un embudo que se abre, entre un humo rojizo. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "intense",
+        "hypnotic",
+        "warm"
+      ],
+      "concepts": [
+        "embers",
+        "vortex",
+        "smoke",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Tornado de Fuego",
+          "values": {
+            "giro": 1.5,
+            "estela": 1,
+            "humo": 0.8,
+            "detail": 1.6
+          }
+        },
+        {
+          "name": "Torbellino Lento",
+          "values": {
+            "giro": -0.6,
+            "estela": 0.2,
+            "humo": 0.2,
             "speed": 0.7
           }
         }
@@ -1543,6 +1750,57 @@
       ]
     },
     {
+      "id": "ceniza_premium",
+      "name": "Ceniza Premium",
+      "description": "Ceniza que cae lenta y aletea entre un humo tenue, con motas que todavía arden en naranja y parpadean con su halo. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "dark",
+        "cinematic",
+        "melancholic"
+      ],
+      "concepts": [
+        "ash",
+        "embers",
+        "smoke",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Incendio",
+          "values": {
+            "brasas": 1,
+            "vuelo": "Viento",
+            "tamano": 1.2
+          }
+        },
+        {
+          "name": "Después del Fuego",
+          "values": {
+            "brasas": 0,
+            "vuelo": "Calma",
+            "speed": 0.6,
+            "detail": 1.6
+          }
+        }
+      ]
+    },
+    {
       "id": "chispas",
       "name": "Chispas",
       "description": "Capa transparente de chispas: pocas chispas finas y rápidas que saltan hacia arriba en abanico con su estela y caen en arco, encima de cualquier visual.",
@@ -1641,6 +1899,109 @@
             "bordes": "Laterales",
             "alcance": 1.6,
             "estela": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "chispas_bordes_premium",
+      "name": "Chispas desde los Bordes Premium",
+      "description": "Chispas de núcleo caliente y estela de color que entran desde los bordes de la pantalla, se frenan y se apagan antes de llegar al centro, dejando libre la imagen. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "energetic",
+        "intense",
+        "dynamic"
+      ],
+      "concepts": [
+        "sparks",
+        "frame",
+        "light trails",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Marco de Fuego",
+          "values": {
+            "bordes": "Todos",
+            "alcance": 0.3,
+            "estela": 0.8,
+            "detail": 1.6
+          }
+        },
+        {
+          "name": "Cruce",
+          "values": {
+            "bordes": "Laterales",
+            "alcance": 1,
+            "estela": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "chispas_premium",
+      "name": "Chispas Premium",
+      "description": "Chispas finas y rapidísimas de núcleo blanco y estela naranja que saltan de fuentes de fuego en abanico y caen en arco por su peso; con cada golpe, una fuente nueva. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "energetic",
+        "intense",
+        "cinematic"
+      ],
+      "concepts": [
+        "sparks",
+        "fire",
+        "streaks",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Soldadura",
+          "values": {
+            "abanico": 1,
+            "caida": 1,
+            "estela": 1,
+            "tamano": 0.8
+          }
+        },
+        {
+          "name": "Bengala",
+          "values": {
+            "abanico": 0.15,
+            "caida": 0.1,
+            "estela": 0.4,
+            "tamano": 1.3
           }
         }
       ]
@@ -2700,6 +3061,57 @@
       ]
     },
     {
+      "id": "destellos_dorados_premium",
+      "name": "Destellos Dorados Premium",
+      "description": "Estrellas doradas que aparecen, titilan con rayos finos de luz y se apagan sobre un polvo de oro que flota y unas luces doradas desenfocadas. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "magical",
+        "glamorous",
+        "festive"
+      ],
+      "concepts": [
+        "sparkles",
+        "stars",
+        "gold",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Purpurina",
+          "values": {
+            "titileo": "Chispeante",
+            "rayos": 0.25,
+            "tamano": 0.8,
+            "detail": 1.8
+          }
+        },
+        {
+          "name": "Estrellas",
+          "values": {
+            "titileo": "Lento",
+            "rayos": 1,
+            "tamano": 1.3
+          }
+        }
+      ]
+    },
+    {
       "id": "dona_ascii",
       "name": "Dona ASCII",
       "description": "La famosa rosquilla 3D hecha sólo con caracteres de texto, girando en ámbar de monitor antiguo; con la música late, se acelera y cambia a esfera, cubo y octaedro.",
@@ -3409,6 +3821,58 @@
       ]
     },
     {
+      "id": "estrellas_fugaces_premium",
+      "name": "Estrellas Fugaces Premium",
+      "description": "Estrellas fugaces de verdad: una cabeza blanca con resplandor y una cola larga que se afina y se apaga cruzan en diagonal sobre un cielo de estrellas que titilan; con cada golpe cruza otra. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "magical",
+        "dreamy",
+        "calm"
+      ],
+      "concepts": [
+        "shooting stars",
+        "meteors",
+        "night sky",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Lluvia de Meteoros",
+          "values": {
+            "angulo": 0.9,
+            "estela": 1,
+            "detail": 2,
+            "speed": 1.3
+          }
+        },
+        {
+          "name": "Deseo",
+          "values": {
+            "angulo": -0.4,
+            "estela": 0.5,
+            "tamano": 1.4,
+            "speed": 0.7
+          }
+        }
+      ]
+    },
+    {
       "id": "ferrofluido",
       "name": "Ferrofluido",
       "description": "Charco de líquido magnético negro cuyas púas se levantan con los graves y el espectro bajo luz de estudio.",
@@ -3602,6 +4066,57 @@
       "publication": "draft",
       "role": "background",
       "reactivity": "optional"
+    },
+    {
+      "id": "fuego_azul",
+      "name": "Fuego Azul",
+      "description": "Llamas de fuego azul hechas de partículas que suben, se retuercen y se enfrían de blanco a azul (abajo, en dos filas o por toda la pantalla), con chispas que suben. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "mysterious",
+        "intense",
+        "cinematic"
+      ],
+      "concepts": [
+        "blue fire",
+        "flames",
+        "sparks",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Muro de Fuego",
+          "values": {
+            "filas": "Pantalla",
+            "altura": 0.8,
+            "viento": 0.3
+          }
+        },
+        {
+          "name": "Fuego Fatuo",
+          "values": {
+            "filas": "Abajo",
+            "altura": 0.25,
+            "viento": -0.5,
+            "speed": 0.6
+          }
+        }
+      ]
     },
     {
       "id": "fuegos_artificiales",
@@ -4151,6 +4666,57 @@
           "values": {
             "giro": 1,
             "estela": 0.3,
+            "tamano": 1.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "hiperespacio_premium",
+      "name": "Hiperespacio Premium",
+      "description": "Salto al hiperespacio: estrellas que nacen tenues en el centro y salen disparadas hacia los bordes, acelerando y estirándose en rayos de luz. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "epic",
+        "futuristic",
+        "energetic"
+      ],
+      "concepts": [
+        "hyperspace",
+        "warp",
+        "light speed",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Salto a la Luz",
+          "values": {
+            "estela": 1,
+            "giro": 0,
+            "detail": 1.8,
+            "speed": 1.5
+          }
+        },
+        {
+          "name": "Espiral",
+          "values": {
+            "giro": 1,
+            "estela": 0.35,
             "tamano": 1.2
           }
         }
@@ -4999,6 +5565,57 @@
       ]
     },
     {
+      "id": "lluvia_colores_premium",
+      "name": "Lluvia de Colores Premium",
+      "description": "Lluvia de luces de colores: partículas rojas, doradas y azules con núcleo brillante y estela que caen meciéndose, con luces de colores desenfocadas cerca. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "festive",
+        "joyful",
+        "playful"
+      ],
+      "concepts": [
+        "colorful lights",
+        "party",
+        "falling particles",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Carnaval",
+          "values": {
+            "vaiven": 1,
+            "estela": 0.1,
+            "tamano": 1.3,
+            "detail": 1.7
+          }
+        },
+        {
+          "name": "Lluvia de Neón",
+          "values": {
+            "vaiven": 0.1,
+            "estela": 1,
+            "speed": 1.4
+          }
+        }
+      ]
+    },
+    {
       "id": "lluvia_dorada",
       "name": "Lluvia Dorada",
       "description": "Capa transparente de lluvia dorada: purpurina de oro que cae despacio girando y destella cuando le da la luz, encima de cualquier visual.",
@@ -5043,6 +5660,57 @@
           "values": {
             "destellos": 0.1,
             "vaiven": 1.2,
+            "tamano": 0.7,
+            "detail": 1.9
+          }
+        }
+      ]
+    },
+    {
+      "id": "lluvia_dorada_premium",
+      "name": "Lluvia Dorada Premium",
+      "description": "Purpurina de oro que cae girando: casi siempre tenue y, al darle la luz, destella con rayos finos, con luces de oro desenfocadas. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "glamorous",
+        "festive",
+        "elegant"
+      ],
+      "concepts": [
+        "glitter",
+        "gold",
+        "sparkles",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Gala",
+          "values": {
+            "destellos": 1,
+            "tamano": 1.3,
+            "detail": 1.6
+          }
+        },
+        {
+          "name": "Polvo de Oro",
+          "values": {
+            "destellos": 0.15,
+            "vaiven": 1,
             "tamano": 0.7,
             "detail": 1.9
           }
@@ -5166,6 +5834,58 @@
       ]
     },
     {
+      "id": "lluvia_particulas_premium",
+      "name": "Lluvia de Partículas Premium",
+      "description": "Lluvia de luz de cine: gotas brillantes con estela que caen a distinta distancia, las cercanas rápidas y grandes, inclinadas por el viento. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "cinematic",
+        "calm",
+        "melancholic"
+      ],
+      "concepts": [
+        "rain",
+        "light streaks",
+        "falling particles",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Tormenta de Luz",
+          "values": {
+            "inclinacion": 0.8,
+            "estela": 1,
+            "detail": 1.8,
+            "speed": 1.4
+          }
+        },
+        {
+          "name": "Llovizna",
+          "values": {
+            "inclinacion": 0,
+            "estela": 0.15,
+            "tamano": 0.7,
+            "speed": 0.6
+          }
+        }
+      ]
+    },
+    {
       "id": "luces_flotantes",
       "name": "Luces Flotantes",
       "description": "Capa transparente de luces flotantes: puntos de luz rojos y rosados, suaves y desenfocados, que suben o flotan despacio y se encienden y se apagan, encima de cualquier visual.",
@@ -5212,6 +5932,58 @@
             "tamano": 0.8,
             "deriva": "Subir",
             "detail": 1.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "luces_flotantes_premium",
+      "name": "Luces Flotantes Premium",
+      "description": "Bokeh de cine: lucecitas rojas y rosadas con el centro brillante y luces cercanas grandes y desenfocadas que flotan despacio, con un resplandor que entra por una esquina. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "romantic",
+        "dreamy",
+        "elegant"
+      ],
+      "concepts": [
+        "bokeh",
+        "floating lights",
+        "depth of field",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Bokeh",
+          "values": {
+            "desenfoque": 1,
+            "tamano": 1.5,
+            "deriva": "Flotar",
+            "luz": 0.6
+          }
+        },
+        {
+          "name": "Lounge",
+          "values": {
+            "desenfoque": 0.2,
+            "tamano": 0.8,
+            "deriva": "Subir",
+            "luz": 0
           }
         }
       ]
@@ -5285,6 +6057,56 @@
           "values": {
             "parpadeo": "Lento",
             "profundidad": 0.8,
+            "detail": 1.6
+          }
+        },
+        {
+          "name": "Señales",
+          "values": {
+            "parpadeo": "A la vez",
+            "profundidad": 0.1,
+            "tamano": 1.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "luciernagas_simples_premium",
+      "name": "Luciérnagas Premium",
+      "description": "Luciérnagas en la noche: lucecitas verde amarillo con un halo cálido que vagan despacio y se encienden y se apagan, algunas cerca y desenfocadas. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "calm",
+        "magical",
+        "romantic"
+      ],
+      "concepts": [
+        "fireflies",
+        "glow",
+        "night",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Noche de Verano",
+          "values": {
+            "parpadeo": "Lento",
+            "profundidad": 0.9,
             "detail": 1.6
           }
         },
@@ -6679,6 +7501,110 @@
       ]
     },
     {
+      "id": "nieve_premium",
+      "name": "Nieve Premium",
+      "description": "Nieve de cine: copos suaves que caen meciéndose, los lejanos diminutos y nítidos, los cercanos grandes y desenfocados, con un brillo frío. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "calm",
+        "dreamy",
+        "cozy"
+      ],
+      "concepts": [
+        "snow",
+        "depth of field",
+        "winter",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Nevada",
+          "values": {
+            "vaiven": 1,
+            "profundidad": 0.9,
+            "tamano": 1.3,
+            "detail": 1.7
+          }
+        },
+        {
+          "name": "Copos Lentos",
+          "values": {
+            "vaiven": 0.2,
+            "profundidad": 0.15,
+            "tamano": 0.8,
+            "speed": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "nubes_azules",
+      "name": "Nubes Azules",
+      "description": "Nubes de humo azul que se mueven despacio, iluminadas por un foco de luz, con relámpagos de luz dentro con cada golpe. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "mysterious",
+        "dreamy",
+        "dark"
+      ],
+      "concepts": [
+        "clouds",
+        "smoke",
+        "blue light",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Tormenta Azul",
+          "values": {
+            "espesor": 1,
+            "foco": 0.6,
+            "deriva": "Izquierda",
+            "speed": 1.4
+          }
+        },
+        {
+          "name": "Bruma",
+          "values": {
+            "espesor": 0.2,
+            "foco": 0,
+            "deriva": "Subir",
+            "speed": 0.6
+          }
+        }
+      ]
+    },
+    {
       "id": "nucleo_cristal",
       "name": "Núcleo de Cristal",
       "description": "Un cristal de luz en espejo late en el centro y lanza hacia fuera contornos de neón azul, naranja, rojo y blanco que cambian de forma con cada golpe.",
@@ -7229,6 +8155,58 @@
       "reactivity": "optional"
     },
     {
+      "id": "particulas_fuego",
+      "name": "Partículas de Fuego",
+      "description": "Partículas de fuego que vuelan en diagonal con estelas de movimiento entre un humo frío, con bokeh rojo desenfocado y un resplandor cálido abajo. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "cinematic",
+        "epic",
+        "intense"
+      ],
+      "concepts": [
+        "fire particles",
+        "bokeh",
+        "smoke",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Incendio",
+          "values": {
+            "angulo": 0.9,
+            "estela": 1,
+            "humo": 0.8,
+            "detail": 1.6
+          }
+        },
+        {
+          "name": "Chispas al Aire",
+          "values": {
+            "angulo": 0.1,
+            "estela": 0.3,
+            "humo": 0.1,
+            "speed": 0.7
+          }
+        }
+      ]
+    },
+    {
       "id": "particulas_viento",
       "name": "Partículas al Viento",
       "description": "Capa transparente de partículas que cruzan la pantalla de un lado a otro llevadas por el viento, ondulando con una estela corta, encima de cualquier visual.",
@@ -7274,6 +8252,58 @@
           "values": {
             "ondulacion": 1,
             "estela": 0.1,
+            "sentido": "Cruzadas",
+            "speed": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "particulas_viento_premium",
+      "name": "Partículas al Viento Premium",
+      "description": "Partículas de luz que cruzan la pantalla llevadas por el viento, ondulando, con núcleo brillante y estela que se apaga, a distinta distancia. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "dynamic",
+        "elegant",
+        "cinematic"
+      ],
+      "concepts": [
+        "wind",
+        "light trails",
+        "drifting particles",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Vendaval",
+          "values": {
+            "ondulacion": 0.1,
+            "estela": 1,
+            "speed": 1.6,
+            "detail": 1.6
+          }
+        },
+        {
+          "name": "Brisa",
+          "values": {
+            "ondulacion": 1,
+            "estela": 0.15,
             "sentido": "Cruzadas",
             "speed": 0.6
           }
@@ -7596,6 +8626,57 @@
       ]
     },
     {
+      "id": "pixeles_premium",
+      "name": "Píxeles Premium",
+      "description": "Píxeles de luz: cuadraditos nítidos con un resplandor suave que flotan, suben o caen, se encienden a escalones y parpadean como una pantalla. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "digital",
+        "retro",
+        "energetic"
+      ],
+      "concepts": [
+        "pixels",
+        "digital",
+        "glow",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Código",
+          "values": {
+            "deriva": "Caer",
+            "rejilla": 1,
+            "tamano": 0.8,
+            "detail": 1.8
+          }
+        },
+        {
+          "name": "Polvo Digital",
+          "values": {
+            "deriva": "Flotar",
+            "rejilla": 0,
+            "tamano": 1.3
+          }
+        }
+      ]
+    },
+    {
       "id": "placa_circuitos",
       "name": "Placa de Circuitos",
       "description": "Una placa de circuitos ámbar vista de cerca: paquetes de datos corren por las pistas y con cada golpe el chip central dispara una onda de energía que recorre toda la placa.",
@@ -7863,6 +8944,56 @@
             "deriva": "Remolino",
             "profundidad": 0.9,
             "tamano": 0.8,
+            "detail": 1.8
+          }
+        },
+        {
+          "name": "Motas al Sol",
+          "values": {
+            "deriva": "Subir",
+            "profundidad": 0.2,
+            "tamano": 1.4
+          }
+        }
+      ]
+    },
+    {
+      "id": "polvo_flotante_premium",
+      "name": "Polvo Flotante Premium",
+      "description": "Polvo de luz en el espacio: miles de motas diminutas que flotan en corrientes de aire, titilan y se apagan, con alguna mota cercana grande y desenfocada. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "calm",
+        "dreamy",
+        "elegant"
+      ],
+      "concepts": [
+        "dust",
+        "floating particles",
+        "depth of field",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Polvo de Estrellas",
+          "values": {
+            "deriva": "Remolino",
+            "profundidad": 0.9,
             "detail": 1.8
           }
         },
