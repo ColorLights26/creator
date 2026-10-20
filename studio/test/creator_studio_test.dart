@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audiovisual_creator/studio/creator_studio.dart';
+import 'package:audiovisual_creator/studio/visual_collections.dart';
 import 'package:audiovisual_creator/team_review/accepted_visuals.dart';
 import 'package:audiovisual_creator/studio/studio_backdrop.dart';
 import 'package:flutter/gestures.dart';
@@ -565,6 +566,89 @@ void main() {
       await _flush(tester);
     },
   );
+
+  testWidgets('collections scope the list and can be cleared from search', (
+    tester,
+  ) async {
+    final controller = _Controller();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CreatorStudio(
+          collections: const [
+            StudioVisualCollection(
+              id: 'upload',
+              label: 'Entrega nueva',
+              visualIds: {'plasma', 'quiet'},
+            ),
+            StudioVisualCollection(
+              id: 'premium',
+              label: 'Premium',
+              visualIds: {'quiet'},
+            ),
+          ],
+          acceptedVisualsLoader: () async => const AcceptedVisuals.none(),
+          catalogBuilder: () => [_aurora, _plasma, _quiet],
+          controllerFactory: () => controller,
+          recordingsLoader: () async => [],
+          thumbnailBuilder: (_, _) => const SizedBox(),
+        ),
+      ),
+    );
+    await _flush(tester);
+    await tester.tap(find.byKey(const ValueKey('collection-selector')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.tap(find.byKey(const ValueKey('collection-upload')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await _flush(tester);
+    expect(controller.visuals.last, 'plasma');
+    expect(find.text('01 / 02'), findsOneWidget);
+    await tester.flingFrom(const Offset(200, 250), const Offset(-150, 0), 800);
+    await _flush(tester);
+    expect(controller.visuals.last, 'quiet');
+    await tester.flingFrom(const Offset(200, 250), const Offset(-150, 0), 800);
+    await _flush(tester);
+    expect(controller.visuals.last, 'plasma');
+
+    await tester.tap(find.byKey(const ValueKey('visual-search-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    final list = find.byType(ListView);
+    Finder listed(String name) =>
+        find.descendant(of: list, matching: find.text(name));
+    expect(listed('Aurora'), findsNothing);
+    expect(listed('Plasma'), findsOneWidget);
+    expect(listed('Sin música'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('collection-selector-sheet')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.tap(find.byKey(const ValueKey('collection-premium')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await _flush(tester);
+    expect(controller.visuals.last, 'quiet');
+    expect(listed('Plasma'), findsNothing);
+    expect(listed('Sin música'), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('visual-search-field')),
+      'plas',
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('visual-search-all')));
+    await _flush(tester);
+    expect(listed('Plasma'), findsOneWidget);
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await _flush(tester);
+    expect(controller.visuals.last, 'plasma');
+    expect(find.text('02 / 03'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    await _flush(tester);
+  });
 
   testWidgets('the list searches by name, ignoring accents and case', (
     tester,

@@ -28,6 +28,7 @@ import 'adjustments/adjustments_button.dart';
 import 'adjustments/adjustments_sheet.dart';
 import 'adjustments/personal_variations.dart';
 import 'studio_view.dart';
+import 'visual_collections.dart';
 
 export 'studio_view.dart'
     show
@@ -72,6 +73,7 @@ class CreatorStudio extends StatefulWidget {
     this.acceptedVisualsLoader = loadAcceptedVisuals,
     this.teamReview,
     this.personalVariations,
+    this.collections = studioVisualCollections,
     super.key,
   });
 
@@ -91,6 +93,7 @@ class CreatorStudio extends StatefulWidget {
 
   /// Where saved looks ("Mía 1") live; on-device preferences by default.
   final PersonalVariations? personalVariations;
+  final List<StudioVisualCollection> collections;
 
   /// Shared 1-10 team voting. Null hides it (tests, offline kits).
   final TeamReviewController? teamReview;
@@ -127,6 +130,30 @@ class _CreatorStudioState extends State<CreatorStudio>
   /// every technical label falls back to "unknown" until it is regenerated.
   CreatorEngineMismatch _readinessEngine = CreatorEngineMismatch.none;
   TeamVoteFilter _voteFilter = TeamVoteFilter.all;
+  String _collectionId = 'all';
+
+  StudioVisualCollection? get _collection =>
+      widget.collections
+          .where((collection) => collection.id == _collectionId)
+          .firstOrNull;
+
+  bool _matchesCollection(CreatorVisualDefinition visual) =>
+      _collection?.visualIds.contains(visual.id) ?? true;
+
+  Iterable<CreatorVisualDefinition> get _collectionVisuals =>
+      _catalog.where(_matchesCollection);
+
+  void _setCollection(String id) {
+    if (id != 'all' && !widget.collections.any((group) => group.id == id))
+      return;
+    setState(() {
+      _collectionId = id;
+      _voteFilter = TeamVoteFilter.all;
+      _alignSelection();
+    });
+    _prepareSelected();
+  }
+
   late final List<StudioRecording> _recordings;
   late SceneSignalReplay _replay;
   String? _selectedId;
@@ -329,11 +356,14 @@ class _CreatorStudioState extends State<CreatorStudio>
   AcceptedVisualEntry? _acceptance(CreatorVisualDefinition visual) =>
       _accepted.entryFor(visual.id, _revisions[visual.id]!);
 
-  bool _inCurrentSection(CreatorVisualDefinition visual) =>
+  bool _inVoteSection(CreatorVisualDefinition visual) =>
       !_acceptedLoading &&
       (_voteFilter == TeamVoteFilter.accepted
           ? _acceptance(visual) != null
           : _acceptance(visual) == null);
+
+  bool _inCurrentSection(CreatorVisualDefinition visual) =>
+      _matchesCollection(visual) && _inVoteSection(visual);
 
   void _alignSelection() {
     final current = _selected;
@@ -396,6 +426,7 @@ class _CreatorStudioState extends State<CreatorStudio>
     CreatorVisualDefinition visual,
     TeamVoteFilter filter,
   ) {
+    if (!_matchesCollection(visual)) return false;
     if (_acceptedLoading) return false;
     final accepted = _acceptance(visual) != null;
     if (filter == TeamVoteFilter.accepted) return accepted;
@@ -508,7 +539,7 @@ class _CreatorStudioState extends State<CreatorStudio>
       revision: revision,
       // A visual the team already discarded doesn't need more votes.
       queue: [
-        for (final item in _catalog)
+        for (final item in _collectionVisuals)
           if (_acceptance(item) == null &&
               !review.isTeamDiscarded(item.id, _revisions[item.id]!))
             (id: item.id, revision: _revisions[item.id]!),
@@ -520,7 +551,7 @@ class _CreatorStudioState extends State<CreatorStudio>
   }
 
   List<TeamRankingEntry> get _rankingEntries => [
-    for (final visual in _catalog)
+    for (final visual in _collectionVisuals)
       TeamRankingEntry(
         id: visual.id,
         name: visual.name,
@@ -564,7 +595,10 @@ class _CreatorStudioState extends State<CreatorStudio>
         _acceptance(visual) == null
             ? TeamVoteFilter.all
             : TeamVoteFilter.accepted;
-    setState(() => _voteFilter = filter);
+    setState(() {
+      if (!_matchesCollection(visual)) _collectionId = 'all';
+      _voteFilter = filter;
+    });
     _selectVisual(id);
   }
 
@@ -1096,6 +1130,30 @@ class _CreatorStudioState extends State<CreatorStudio>
           index,
     ];
     return StudioView(
+      collectionFilters: [
+        StudioFilterOption(
+          id: 'all',
+          label: 'Todos los grupos',
+          count: _catalog.where(_inVoteSection).length,
+        ),
+        for (final collection in widget.collections)
+          if (_catalog.any(
+            (visual) => collection.visualIds.contains(visual.id),
+          ))
+            StudioFilterOption(
+              id: collection.id,
+              label: collection.label,
+              count:
+                  _catalog
+                      .where(_inVoteSection)
+                      .where(
+                        (visual) => collection.visualIds.contains(visual.id),
+                      )
+                      .length,
+            ),
+      ],
+      selectedCollection: _collectionId,
+      onCollectionChanged: _setCollection,
       catalogSectionTitle:
           _voteFilter == TeamVoteFilter.accepted
               ? 'Ya aceptados'

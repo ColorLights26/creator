@@ -281,6 +281,11 @@ Te la da el responsable.
 7. Para ir a un visual por su nombre, toca la **lupa** de arriba y escribe parte
    del nombre (sin importar tildes ni mayúsculas). Enter abre el primero.
 
+En **Colección**, debajo de la barra superior, puedes elegir una entrega o grupo:
+por ejemplo **Nuevos de Franco · 18 oct**, **Premium** o **Simples**. La búsqueda,
+el recorrido al deslizar y la cola de votos se limitan al grupo elegido.
+**Todos los grupos** vuelve al catálogo completo de la sección actual.
+
 El estado sale solo del promedio:
 
 | Promedio | Estado |
