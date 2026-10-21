@@ -490,196 +490,268 @@ import '../visuals/puerta_estelar.dart' as visual_243;
 import '../visuals/puerta_estelar_metadata.dart' as metadata_243;
 import '../visuals/reaccion_bz.dart' as visual_244;
 import '../visuals/reaccion_bz_metadata.dart' as metadata_244;
-import '../visuals/reactiva_borde_luz.dart' as visual_245;
-import '../visuals/reactiva_borde_luz_metadata.dart' as metadata_245;
-import '../visuals/reactiva_destello_drop.dart' as visual_246;
-import '../visuals/reactiva_destello_drop_metadata.dart' as metadata_246;
-import '../visuals/reactiva_estrobo_entrada.dart' as visual_247;
-import '../visuals/reactiva_estrobo_entrada_metadata.dart' as metadata_247;
-import '../visuals/reactiva_flash_palmada.dart' as visual_248;
-import '../visuals/reactiva_flash_palmada_metadata.dart' as metadata_248;
-import '../visuals/reactiva_golpe_cine.dart' as visual_249;
-import '../visuals/reactiva_golpe_cine_metadata.dart' as metadata_249;
-import '../visuals/reactiva_latido_completo.dart' as visual_250;
-import '../visuals/reactiva_latido_completo_metadata.dart' as metadata_250;
-import '../visuals/reactiva_latido_oscuro.dart' as visual_251;
-import '../visuals/reactiva_latido_oscuro_metadata.dart' as metadata_251;
-import '../visuals/reactiva_primer_tiempo.dart' as visual_252;
-import '../visuals/reactiva_primer_tiempo_metadata.dart' as metadata_252;
-import '../visuals/reactiva_reflejo_cruza.dart' as visual_253;
-import '../visuals/reactiva_reflejo_cruza_metadata.dart' as metadata_253;
-import '../visuals/reactiva_vineta_late.dart' as visual_254;
-import '../visuals/reactiva_vineta_late_metadata.dart' as metadata_254;
-import '../visuals/rorschach_calavera.dart' as visual_255;
-import '../visuals/rorschach_calavera_metadata.dart' as metadata_255;
-import '../visuals/rorschach_caleidoscopio.dart' as visual_256;
-import '../visuals/rorschach_caleidoscopio_metadata.dart' as metadata_256;
-import '../visuals/rorschach_caleidoscopio_transparente.dart' as visual_257;
-import '../visuals/rorschach_caleidoscopio_transparente_metadata.dart' as metadata_257;
-import '../visuals/rorschach_cosmico.dart' as visual_258;
-import '../visuals/rorschach_cosmico_metadata.dart' as metadata_258;
-import '../visuals/rorschach_demonio.dart' as visual_259;
-import '../visuals/rorschach_demonio_metadata.dart' as metadata_259;
-import '../visuals/rorschach_estrobo.dart' as visual_260;
-import '../visuals/rorschach_estrobo_metadata.dart' as metadata_260;
-import '../visuals/rorschach_fractal.dart' as visual_261;
-import '../visuals/rorschach_fractal_metadata.dart' as metadata_261;
-import '../visuals/rorschach_glitch.dart' as visual_262;
-import '../visuals/rorschach_glitch_metadata.dart' as metadata_262;
-import '../visuals/rorschach_glitch_transparente.dart' as visual_263;
-import '../visuals/rorschach_glitch_transparente_metadata.dart' as metadata_263;
-import '../visuals/rorschach_hipnotico.dart' as visual_264;
-import '../visuals/rorschach_hipnotico_metadata.dart' as metadata_264;
-import '../visuals/rorschach_mercurio.dart' as visual_265;
-import '../visuals/rorschach_mercurio_metadata.dart' as metadata_265;
-import '../visuals/rorschach_neon.dart' as visual_266;
-import '../visuals/rorschach_neon_metadata.dart' as metadata_266;
-import '../visuals/rorschach_ojos.dart' as visual_267;
-import '../visuals/rorschach_ojos_metadata.dart' as metadata_267;
-import '../visuals/rorschach_plegado.dart' as visual_268;
-import '../visuals/rorschach_plegado_metadata.dart' as metadata_268;
-import '../visuals/rorschach_polilla_transparente.dart' as visual_269;
-import '../visuals/rorschach_polilla_transparente_metadata.dart' as metadata_269;
-import '../visuals/rorschach_rayos_x.dart' as visual_270;
-import '../visuals/rorschach_rayos_x_metadata.dart' as metadata_270;
-import '../visuals/rorschach_rayos_x_transparente.dart' as visual_271;
-import '../visuals/rorschach_rayos_x_transparente_metadata.dart' as metadata_271;
-import '../visuals/rorschach_rostro.dart' as visual_272;
-import '../visuals/rorschach_rostro_metadata.dart' as metadata_272;
-import '../visuals/rorschach_rostro_transparente.dart' as visual_273;
-import '../visuals/rorschach_rostro_transparente_metadata.dart' as metadata_273;
-import '../visuals/rorschach_sangrante.dart' as visual_274;
-import '../visuals/rorschach_sangrante_metadata.dart' as metadata_274;
-import '../visuals/rorschach_sangrante_transparente.dart' as visual_275;
-import '../visuals/rorschach_sangrante_transparente_metadata.dart' as metadata_275;
-import '../visuals/rorschach_tentaculos.dart' as visual_276;
-import '../visuals/rorschach_tentaculos_metadata.dart' as metadata_276;
-import '../visuals/rorschach_tentaculos_transparente.dart' as visual_277;
-import '../visuals/rorschach_tentaculos_transparente_metadata.dart' as metadata_277;
-import '../visuals/sala_infinita.dart' as visual_278;
-import '../visuals/sala_infinita_metadata.dart' as metadata_278;
-import '../visuals/salto_hiperespacial.dart' as visual_279;
-import '../visuals/salto_hiperespacial_metadata.dart' as metadata_279;
-import '../visuals/seda_bioluminiscente.dart' as visual_280;
-import '../visuals/seda_bioluminiscente_metadata.dart' as metadata_280;
-import '../visuals/selva_bioluminiscente.dart' as visual_281;
-import '../visuals/selva_bioluminiscente_metadata.dart' as metadata_281;
-import '../visuals/show_laser.dart' as visual_282;
-import '../visuals/show_laser_metadata.dart' as metadata_282;
-import '../visuals/show_laser_transparente.dart' as visual_283;
-import '../visuals/show_laser_transparente_metadata.dart' as metadata_283;
-import '../visuals/synthwave_scene.dart' as visual_284;
-import '../visuals/synthwave_scene_metadata.dart' as metadata_284;
-import '../visuals/tablero_galton.dart' as visual_285;
-import '../visuals/tablero_galton_metadata.dart' as metadata_285;
-import '../visuals/tablero_galton_transparente.dart' as visual_286;
-import '../visuals/tablero_galton_transparente_metadata.dart' as metadata_286;
-import '../visuals/telar.dart' as visual_287;
-import '../visuals/telar_metadata.dart' as metadata_287;
-import '../visuals/teselado_hiperbolico.dart' as visual_288;
-import '../visuals/teselado_hiperbolico_metadata.dart' as metadata_288;
-import '../visuals/teselado_penrose.dart' as visual_289;
-import '../visuals/teselado_penrose_metadata.dart' as metadata_289;
-import '../visuals/tinta_agua.dart' as visual_290;
-import '../visuals/tinta_agua_metadata.dart' as metadata_290;
-import '../visuals/tipografia_cinetica.dart' as visual_291;
-import '../visuals/tipografia_cinetica_metadata.dart' as metadata_291;
-import '../visuals/torbellino_igneo.dart' as visual_292;
-import '../visuals/torbellino_igneo_metadata.dart' as metadata_292;
-import '../visuals/torbellino_igneo_ii.dart' as visual_293;
-import '../visuals/torbellino_igneo_ii_metadata.dart' as metadata_293;
-import '../visuals/torbellino_igneo_transparente.dart' as visual_294;
-import '../visuals/torbellino_igneo_transparente_metadata.dart' as metadata_294;
-import '../visuals/tres_cuerpos.dart' as visual_295;
-import '../visuals/tres_cuerpos_metadata.dart' as metadata_295;
-import '../visuals/tuberias_3d.dart' as visual_296;
-import '../visuals/tuberias_3d_metadata.dart' as metadata_296;
-import '../visuals/tubo_rubens.dart' as visual_297;
-import '../visuals/tubo_rubens_metadata.dart' as metadata_297;
-import '../visuals/tunel_cibernetico.dart' as visual_298;
-import '../visuals/tunel_cibernetico_metadata.dart' as metadata_298;
-import '../visuals/tunel_laser.dart' as visual_299;
-import '../visuals/tunel_laser_metadata.dart' as metadata_299;
-import '../visuals/tunel_laser_transparente.dart' as visual_300;
-import '../visuals/tunel_laser_transparente_metadata.dart' as metadata_300;
-import '../visuals/un_bit.dart' as visual_301;
-import '../visuals/un_bit_metadata.dart' as metadata_301;
-import '../visuals/v01_agujero_negro.dart' as visual_302;
-import '../visuals/v01_agujero_negro_metadata.dart' as metadata_302;
-import '../visuals/v02_red_neuronal.dart' as visual_303;
-import '../visuals/v02_red_neuronal_metadata.dart' as metadata_303;
-import '../visuals/v02_red_neuronal_transparente.dart' as visual_304;
-import '../visuals/v02_red_neuronal_transparente_metadata.dart' as metadata_304;
-import '../visuals/v03_matriz_oceanica.dart' as visual_305;
-import '../visuals/v03_matriz_oceanica_metadata.dart' as metadata_305;
-import '../visuals/v04_tunel_warp.dart' as visual_306;
-import '../visuals/v04_tunel_warp_metadata.dart' as metadata_306;
-import '../visuals/v04_tunel_warp_transparente.dart' as visual_307;
-import '../visuals/v04_tunel_warp_transparente_metadata.dart' as metadata_307;
-import '../visuals/v05_campo_curl.dart' as visual_308;
-import '../visuals/v05_campo_curl_metadata.dart' as metadata_308;
-import '../visuals/v05_campo_curl_transparente.dart' as visual_309;
-import '../visuals/v05_campo_curl_transparente_metadata.dart' as metadata_309;
-import '../visuals/v06_tesseract_4d.dart' as visual_310;
-import '../visuals/v06_tesseract_4d_metadata.dart' as metadata_310;
-import '../visuals/v06_tesseract_4d_transparente.dart' as visual_311;
-import '../visuals/v06_tesseract_4d_transparente_metadata.dart' as metadata_311;
-import '../visuals/v07_aurora_plasma.dart' as visual_312;
-import '../visuals/v07_aurora_plasma_metadata.dart' as metadata_312;
-import '../visuals/v08_espectro_cosmico.dart' as visual_313;
-import '../visuals/v08_espectro_cosmico_metadata.dart' as metadata_313;
-import '../visuals/v08_espectro_cosmico_transparente.dart' as visual_314;
-import '../visuals/v08_espectro_cosmico_transparente_metadata.dart' as metadata_314;
-import '../visuals/v09_espiral_aurea.dart' as visual_315;
-import '../visuals/v09_espiral_aurea_metadata.dart' as metadata_315;
-import '../visuals/v09_espiral_aurea_transparente.dart' as visual_316;
-import '../visuals/v09_espiral_aurea_transparente_metadata.dart' as metadata_316;
-import '../visuals/v10_supernova.dart' as visual_317;
-import '../visuals/v10_supernova_metadata.dart' as metadata_317;
-import '../visuals/v10_supernova_transparente.dart' as visual_318;
-import '../visuals/v10_supernova_transparente_metadata.dart' as metadata_318;
-import '../visuals/v11_archivo_corrupto.dart' as visual_319;
-import '../visuals/v11_archivo_corrupto_metadata.dart' as metadata_319;
-import '../visuals/v11_archivo_corrupto_transparente.dart' as visual_320;
-import '../visuals/v11_archivo_corrupto_transparente_metadata.dart' as metadata_320;
-import '../visuals/v12_maquinaria_orbital.dart' as visual_321;
-import '../visuals/v12_maquinaria_orbital_metadata.dart' as metadata_321;
-import '../visuals/v12_maquinaria_orbital_transparente.dart' as visual_322;
-import '../visuals/v12_maquinaria_orbital_transparente_metadata.dart' as metadata_322;
-import '../visuals/v13_nubes_volumetricas.dart' as visual_323;
-import '../visuals/v13_nubes_volumetricas_metadata.dart' as metadata_323;
-import '../visuals/v13_nubes_volumetricas_transparente.dart' as visual_324;
-import '../visuals/v13_nubes_volumetricas_transparente_metadata.dart' as metadata_324;
-import '../visuals/v14_sismografo.dart' as visual_325;
-import '../visuals/v14_sismografo_metadata.dart' as metadata_325;
-import '../visuals/v14_sismografo_transparente.dart' as visual_326;
-import '../visuals/v14_sismografo_transparente_metadata.dart' as metadata_326;
-import '../visuals/v15_lluvia_cristal.dart' as visual_327;
-import '../visuals/v15_lluvia_cristal_metadata.dart' as metadata_327;
-import '../visuals/v15_lluvia_cristal_transparente.dart' as visual_328;
-import '../visuals/v15_lluvia_cristal_transparente_metadata.dart' as metadata_328;
-import '../visuals/v16_campo_magnetico.dart' as visual_329;
-import '../visuals/v16_campo_magnetico_metadata.dart' as metadata_329;
-import '../visuals/v16_campo_magnetico_transparente.dart' as visual_330;
-import '../visuals/v16_campo_magnetico_transparente_metadata.dart' as metadata_330;
-import '../visuals/vidrio_liquido.dart' as visual_331;
-import '../visuals/vidrio_liquido_metadata.dart' as metadata_331;
-import '../visuals/vision_termica.dart' as visual_332;
-import '../visuals/vision_termica_metadata.dart' as metadata_332;
-import '../visuals/vitral_estalla.dart' as visual_333;
-import '../visuals/vitral_estalla_metadata.dart' as metadata_333;
-import '../visuals/vortice_cosmico.dart' as visual_334;
-import '../visuals/vortice_cosmico_metadata.dart' as metadata_334;
-import '../visuals/vortice_cosmico_transparente.dart' as visual_335;
-import '../visuals/vortice_cosmico_transparente_metadata.dart' as metadata_335;
-import '../visuals/vortice_hipnotico.dart' as visual_336;
-import '../visuals/vortice_hipnotico_metadata.dart' as metadata_336;
-import '../visuals/vortice_hipnotico_transparente.dart' as visual_337;
-import '../visuals/vortice_hipnotico_transparente_metadata.dart' as metadata_337;
-import '../visuals/zoom_infinito.dart' as visual_338;
-import '../visuals/zoom_infinito_metadata.dart' as metadata_338;
-import '../visuals/zoom_infinito_transparente.dart' as visual_339;
-import '../visuals/zoom_infinito_transparente_metadata.dart' as metadata_339;
+import '../visuals/reactiva_aurora_enciende.dart' as visual_245;
+import '../visuals/reactiva_aurora_enciende_metadata.dart' as metadata_245;
+import '../visuals/reactiva_banda_obturador.dart' as visual_246;
+import '../visuals/reactiva_banda_obturador_metadata.dart' as metadata_246;
+import '../visuals/reactiva_barrido_holografico.dart' as visual_247;
+import '../visuals/reactiva_barrido_holografico_metadata.dart' as metadata_247;
+import '../visuals/reactiva_bokeh_luces_2_transparente.dart' as visual_248;
+import '../visuals/reactiva_bokeh_luces_2_transparente_metadata.dart' as metadata_248;
+import '../visuals/reactiva_borde_luz.dart' as visual_249;
+import '../visuals/reactiva_borde_luz_metadata.dart' as metadata_249;
+import '../visuals/reactiva_cabezas_moviles.dart' as visual_250;
+import '../visuals/reactiva_cabezas_moviles_metadata.dart' as metadata_250;
+import '../visuals/reactiva_cadena_iris.dart' as visual_251;
+import '../visuals/reactiva_cadena_iris_metadata.dart' as metadata_251;
+import '../visuals/reactiva_candilejas_ascenso.dart' as visual_252;
+import '../visuals/reactiva_candilejas_ascenso_metadata.dart' as metadata_252;
+import '../visuals/reactiva_canon_seguimiento.dart' as visual_253;
+import '../visuals/reactiva_canon_seguimiento_metadata.dart' as metadata_253;
+import '../visuals/reactiva_causticas_fugaces.dart' as visual_254;
+import '../visuals/reactiva_causticas_fugaces_metadata.dart' as metadata_254;
+import '../visuals/reactiva_cegadoras_cadena.dart' as visual_255;
+import '../visuals/reactiva_cegadoras_cadena_metadata.dart' as metadata_255;
+import '../visuals/reactiva_celuloide_quemado.dart' as visual_256;
+import '../visuals/reactiva_celuloide_quemado_metadata.dart' as metadata_256;
+import '../visuals/reactiva_chispas_bordes_premium.dart' as visual_257;
+import '../visuals/reactiva_chispas_bordes_premium_metadata.dart' as metadata_257;
+import '../visuals/reactiva_chispas_premium.dart' as visual_258;
+import '../visuals/reactiva_chispas_premium_metadata.dart' as metadata_258;
+import '../visuals/reactiva_cortina_svoboda.dart' as visual_259;
+import '../visuals/reactiva_cortina_svoboda_metadata.dart' as metadata_259;
+import '../visuals/reactiva_cristal_electrico_transparente.dart' as visual_260;
+import '../visuals/reactiva_cristal_electrico_transparente_metadata.dart' as metadata_260;
+import '../visuals/reactiva_descarga_tesla_transparente.dart' as visual_261;
+import '../visuals/reactiva_descarga_tesla_transparente_metadata.dart' as metadata_261;
+import '../visuals/reactiva_destello_drop.dart' as visual_262;
+import '../visuals/reactiva_destello_drop_metadata.dart' as metadata_262;
+import '../visuals/reactiva_destellos_anamorficos.dart' as visual_263;
+import '../visuals/reactiva_destellos_anamorficos_metadata.dart' as metadata_263;
+import '../visuals/reactiva_destellos_dorados_premium.dart' as visual_264;
+import '../visuals/reactiva_destellos_dorados_premium_metadata.dart' as metadata_264;
+import '../visuals/reactiva_estrella_difraccion.dart' as visual_265;
+import '../visuals/reactiva_estrella_difraccion_metadata.dart' as metadata_265;
+import '../visuals/reactiva_estrellas_fugaces_premium.dart' as visual_266;
+import '../visuals/reactiva_estrellas_fugaces_premium_metadata.dart' as metadata_266;
+import '../visuals/reactiva_estrobo_entrada.dart' as visual_267;
+import '../visuals/reactiva_estrobo_entrada_metadata.dart' as metadata_267;
+import '../visuals/reactiva_flash_palmada.dart' as visual_268;
+import '../visuals/reactiva_flash_palmada_metadata.dart' as metadata_268;
+import '../visuals/reactiva_fotograma_impacto.dart' as visual_269;
+import '../visuals/reactiva_fotograma_impacto_metadata.dart' as metadata_269;
+import '../visuals/reactiva_fuegos_artificiales_transparente.dart' as visual_270;
+import '../visuals/reactiva_fuegos_artificiales_transparente_metadata.dart' as metadata_270;
+import '../visuals/reactiva_fuga_carrete.dart' as visual_271;
+import '../visuals/reactiva_fuga_carrete_metadata.dart' as metadata_271;
+import '../visuals/reactiva_golpe_cine.dart' as visual_272;
+import '../visuals/reactiva_golpe_cine_metadata.dart' as metadata_272;
+import '../visuals/reactiva_haces_estadio_transparente.dart' as visual_273;
+import '../visuals/reactiva_haces_estadio_transparente_metadata.dart' as metadata_273;
+import '../visuals/reactiva_halo_hielo.dart' as visual_274;
+import '../visuals/reactiva_halo_hielo_metadata.dart' as metadata_274;
+import '../visuals/reactiva_hiperespacio_premium.dart' as visual_275;
+import '../visuals/reactiva_hiperespacio_premium_metadata.dart' as metadata_275;
+import '../visuals/reactiva_latido_completo.dart' as visual_276;
+import '../visuals/reactiva_latido_completo_metadata.dart' as metadata_276;
+import '../visuals/reactiva_latido_oscuro.dart' as visual_277;
+import '../visuals/reactiva_latido_oscuro_metadata.dart' as metadata_277;
+import '../visuals/reactiva_luciernagas_transparente.dart' as visual_278;
+import '../visuals/reactiva_luciernagas_transparente_metadata.dart' as metadata_278;
+import '../visuals/reactiva_luz_bordes_transparente.dart' as visual_279;
+import '../visuals/reactiva_luz_bordes_transparente_metadata.dart' as metadata_279;
+import '../visuals/reactiva_onda_choque_espectral.dart' as visual_280;
+import '../visuals/reactiva_onda_choque_espectral_metadata.dart' as metadata_280;
+import '../visuals/reactiva_onda_cristal.dart' as visual_281;
+import '../visuals/reactiva_onda_cristal_metadata.dart' as metadata_281;
+import '../visuals/reactiva_polvo_lente.dart' as visual_282;
+import '../visuals/reactiva_polvo_lente_metadata.dart' as metadata_282;
+import '../visuals/reactiva_primer_tiempo.dart' as visual_283;
+import '../visuals/reactiva_primer_tiempo_metadata.dart' as metadata_283;
+import '../visuals/reactiva_purpurina_rafaga.dart' as visual_284;
+import '../visuals/reactiva_purpurina_rafaga_metadata.dart' as metadata_284;
+import '../visuals/reactiva_reflejo_cruza.dart' as visual_285;
+import '../visuals/reactiva_reflejo_cruza_metadata.dart' as metadata_285;
+import '../visuals/reactiva_relampago_campo.dart' as visual_286;
+import '../visuals/reactiva_relampago_campo_metadata.dart' as metadata_286;
+import '../visuals/reactiva_show_laser_transparente.dart' as visual_287;
+import '../visuals/reactiva_show_laser_transparente_metadata.dart' as metadata_287;
+import '../visuals/reactiva_v10_supernova_transparente.dart' as visual_288;
+import '../visuals/reactiva_v10_supernova_transparente_metadata.dart' as metadata_288;
+import '../visuals/reactiva_v11_archivo_corrupto_transparente.dart' as visual_289;
+import '../visuals/reactiva_v11_archivo_corrupto_transparente_metadata.dart' as metadata_289;
+import '../visuals/reactiva_vineta_late.dart' as visual_290;
+import '../visuals/reactiva_vineta_late_metadata.dart' as metadata_290;
+import '../visuals/rorschach_calavera.dart' as visual_291;
+import '../visuals/rorschach_calavera_metadata.dart' as metadata_291;
+import '../visuals/rorschach_caleidoscopio.dart' as visual_292;
+import '../visuals/rorschach_caleidoscopio_metadata.dart' as metadata_292;
+import '../visuals/rorschach_caleidoscopio_transparente.dart' as visual_293;
+import '../visuals/rorschach_caleidoscopio_transparente_metadata.dart' as metadata_293;
+import '../visuals/rorschach_cosmico.dart' as visual_294;
+import '../visuals/rorschach_cosmico_metadata.dart' as metadata_294;
+import '../visuals/rorschach_demonio.dart' as visual_295;
+import '../visuals/rorschach_demonio_metadata.dart' as metadata_295;
+import '../visuals/rorschach_estrobo.dart' as visual_296;
+import '../visuals/rorschach_estrobo_metadata.dart' as metadata_296;
+import '../visuals/rorschach_fractal.dart' as visual_297;
+import '../visuals/rorschach_fractal_metadata.dart' as metadata_297;
+import '../visuals/rorschach_glitch.dart' as visual_298;
+import '../visuals/rorschach_glitch_metadata.dart' as metadata_298;
+import '../visuals/rorschach_glitch_transparente.dart' as visual_299;
+import '../visuals/rorschach_glitch_transparente_metadata.dart' as metadata_299;
+import '../visuals/rorschach_hipnotico.dart' as visual_300;
+import '../visuals/rorschach_hipnotico_metadata.dart' as metadata_300;
+import '../visuals/rorschach_mercurio.dart' as visual_301;
+import '../visuals/rorschach_mercurio_metadata.dart' as metadata_301;
+import '../visuals/rorschach_neon.dart' as visual_302;
+import '../visuals/rorschach_neon_metadata.dart' as metadata_302;
+import '../visuals/rorschach_ojos.dart' as visual_303;
+import '../visuals/rorschach_ojos_metadata.dart' as metadata_303;
+import '../visuals/rorschach_plegado.dart' as visual_304;
+import '../visuals/rorschach_plegado_metadata.dart' as metadata_304;
+import '../visuals/rorschach_polilla_transparente.dart' as visual_305;
+import '../visuals/rorschach_polilla_transparente_metadata.dart' as metadata_305;
+import '../visuals/rorschach_rayos_x.dart' as visual_306;
+import '../visuals/rorschach_rayos_x_metadata.dart' as metadata_306;
+import '../visuals/rorschach_rayos_x_transparente.dart' as visual_307;
+import '../visuals/rorschach_rayos_x_transparente_metadata.dart' as metadata_307;
+import '../visuals/rorschach_rostro.dart' as visual_308;
+import '../visuals/rorschach_rostro_metadata.dart' as metadata_308;
+import '../visuals/rorschach_rostro_transparente.dart' as visual_309;
+import '../visuals/rorschach_rostro_transparente_metadata.dart' as metadata_309;
+import '../visuals/rorschach_sangrante.dart' as visual_310;
+import '../visuals/rorschach_sangrante_metadata.dart' as metadata_310;
+import '../visuals/rorschach_sangrante_transparente.dart' as visual_311;
+import '../visuals/rorschach_sangrante_transparente_metadata.dart' as metadata_311;
+import '../visuals/rorschach_tentaculos.dart' as visual_312;
+import '../visuals/rorschach_tentaculos_metadata.dart' as metadata_312;
+import '../visuals/rorschach_tentaculos_transparente.dart' as visual_313;
+import '../visuals/rorschach_tentaculos_transparente_metadata.dart' as metadata_313;
+import '../visuals/sala_infinita.dart' as visual_314;
+import '../visuals/sala_infinita_metadata.dart' as metadata_314;
+import '../visuals/salto_hiperespacial.dart' as visual_315;
+import '../visuals/salto_hiperespacial_metadata.dart' as metadata_315;
+import '../visuals/seda_bioluminiscente.dart' as visual_316;
+import '../visuals/seda_bioluminiscente_metadata.dart' as metadata_316;
+import '../visuals/selva_bioluminiscente.dart' as visual_317;
+import '../visuals/selva_bioluminiscente_metadata.dart' as metadata_317;
+import '../visuals/show_laser.dart' as visual_318;
+import '../visuals/show_laser_metadata.dart' as metadata_318;
+import '../visuals/show_laser_transparente.dart' as visual_319;
+import '../visuals/show_laser_transparente_metadata.dart' as metadata_319;
+import '../visuals/synthwave_scene.dart' as visual_320;
+import '../visuals/synthwave_scene_metadata.dart' as metadata_320;
+import '../visuals/tablero_galton.dart' as visual_321;
+import '../visuals/tablero_galton_metadata.dart' as metadata_321;
+import '../visuals/tablero_galton_transparente.dart' as visual_322;
+import '../visuals/tablero_galton_transparente_metadata.dart' as metadata_322;
+import '../visuals/telar.dart' as visual_323;
+import '../visuals/telar_metadata.dart' as metadata_323;
+import '../visuals/teselado_hiperbolico.dart' as visual_324;
+import '../visuals/teselado_hiperbolico_metadata.dart' as metadata_324;
+import '../visuals/teselado_penrose.dart' as visual_325;
+import '../visuals/teselado_penrose_metadata.dart' as metadata_325;
+import '../visuals/tinta_agua.dart' as visual_326;
+import '../visuals/tinta_agua_metadata.dart' as metadata_326;
+import '../visuals/tipografia_cinetica.dart' as visual_327;
+import '../visuals/tipografia_cinetica_metadata.dart' as metadata_327;
+import '../visuals/torbellino_igneo.dart' as visual_328;
+import '../visuals/torbellino_igneo_metadata.dart' as metadata_328;
+import '../visuals/torbellino_igneo_ii.dart' as visual_329;
+import '../visuals/torbellino_igneo_ii_metadata.dart' as metadata_329;
+import '../visuals/torbellino_igneo_transparente.dart' as visual_330;
+import '../visuals/torbellino_igneo_transparente_metadata.dart' as metadata_330;
+import '../visuals/tres_cuerpos.dart' as visual_331;
+import '../visuals/tres_cuerpos_metadata.dart' as metadata_331;
+import '../visuals/tuberias_3d.dart' as visual_332;
+import '../visuals/tuberias_3d_metadata.dart' as metadata_332;
+import '../visuals/tubo_rubens.dart' as visual_333;
+import '../visuals/tubo_rubens_metadata.dart' as metadata_333;
+import '../visuals/tunel_cibernetico.dart' as visual_334;
+import '../visuals/tunel_cibernetico_metadata.dart' as metadata_334;
+import '../visuals/tunel_laser.dart' as visual_335;
+import '../visuals/tunel_laser_metadata.dart' as metadata_335;
+import '../visuals/tunel_laser_transparente.dart' as visual_336;
+import '../visuals/tunel_laser_transparente_metadata.dart' as metadata_336;
+import '../visuals/un_bit.dart' as visual_337;
+import '../visuals/un_bit_metadata.dart' as metadata_337;
+import '../visuals/v01_agujero_negro.dart' as visual_338;
+import '../visuals/v01_agujero_negro_metadata.dart' as metadata_338;
+import '../visuals/v02_red_neuronal.dart' as visual_339;
+import '../visuals/v02_red_neuronal_metadata.dart' as metadata_339;
+import '../visuals/v02_red_neuronal_transparente.dart' as visual_340;
+import '../visuals/v02_red_neuronal_transparente_metadata.dart' as metadata_340;
+import '../visuals/v03_matriz_oceanica.dart' as visual_341;
+import '../visuals/v03_matriz_oceanica_metadata.dart' as metadata_341;
+import '../visuals/v04_tunel_warp.dart' as visual_342;
+import '../visuals/v04_tunel_warp_metadata.dart' as metadata_342;
+import '../visuals/v04_tunel_warp_transparente.dart' as visual_343;
+import '../visuals/v04_tunel_warp_transparente_metadata.dart' as metadata_343;
+import '../visuals/v05_campo_curl.dart' as visual_344;
+import '../visuals/v05_campo_curl_metadata.dart' as metadata_344;
+import '../visuals/v05_campo_curl_transparente.dart' as visual_345;
+import '../visuals/v05_campo_curl_transparente_metadata.dart' as metadata_345;
+import '../visuals/v06_tesseract_4d.dart' as visual_346;
+import '../visuals/v06_tesseract_4d_metadata.dart' as metadata_346;
+import '../visuals/v06_tesseract_4d_transparente.dart' as visual_347;
+import '../visuals/v06_tesseract_4d_transparente_metadata.dart' as metadata_347;
+import '../visuals/v07_aurora_plasma.dart' as visual_348;
+import '../visuals/v07_aurora_plasma_metadata.dart' as metadata_348;
+import '../visuals/v08_espectro_cosmico.dart' as visual_349;
+import '../visuals/v08_espectro_cosmico_metadata.dart' as metadata_349;
+import '../visuals/v08_espectro_cosmico_transparente.dart' as visual_350;
+import '../visuals/v08_espectro_cosmico_transparente_metadata.dart' as metadata_350;
+import '../visuals/v09_espiral_aurea.dart' as visual_351;
+import '../visuals/v09_espiral_aurea_metadata.dart' as metadata_351;
+import '../visuals/v09_espiral_aurea_transparente.dart' as visual_352;
+import '../visuals/v09_espiral_aurea_transparente_metadata.dart' as metadata_352;
+import '../visuals/v10_supernova.dart' as visual_353;
+import '../visuals/v10_supernova_metadata.dart' as metadata_353;
+import '../visuals/v10_supernova_transparente.dart' as visual_354;
+import '../visuals/v10_supernova_transparente_metadata.dart' as metadata_354;
+import '../visuals/v11_archivo_corrupto.dart' as visual_355;
+import '../visuals/v11_archivo_corrupto_metadata.dart' as metadata_355;
+import '../visuals/v11_archivo_corrupto_transparente.dart' as visual_356;
+import '../visuals/v11_archivo_corrupto_transparente_metadata.dart' as metadata_356;
+import '../visuals/v12_maquinaria_orbital.dart' as visual_357;
+import '../visuals/v12_maquinaria_orbital_metadata.dart' as metadata_357;
+import '../visuals/v12_maquinaria_orbital_transparente.dart' as visual_358;
+import '../visuals/v12_maquinaria_orbital_transparente_metadata.dart' as metadata_358;
+import '../visuals/v13_nubes_volumetricas.dart' as visual_359;
+import '../visuals/v13_nubes_volumetricas_metadata.dart' as metadata_359;
+import '../visuals/v13_nubes_volumetricas_transparente.dart' as visual_360;
+import '../visuals/v13_nubes_volumetricas_transparente_metadata.dart' as metadata_360;
+import '../visuals/v14_sismografo.dart' as visual_361;
+import '../visuals/v14_sismografo_metadata.dart' as metadata_361;
+import '../visuals/v14_sismografo_transparente.dart' as visual_362;
+import '../visuals/v14_sismografo_transparente_metadata.dart' as metadata_362;
+import '../visuals/v15_lluvia_cristal.dart' as visual_363;
+import '../visuals/v15_lluvia_cristal_metadata.dart' as metadata_363;
+import '../visuals/v15_lluvia_cristal_transparente.dart' as visual_364;
+import '../visuals/v15_lluvia_cristal_transparente_metadata.dart' as metadata_364;
+import '../visuals/v16_campo_magnetico.dart' as visual_365;
+import '../visuals/v16_campo_magnetico_metadata.dart' as metadata_365;
+import '../visuals/v16_campo_magnetico_transparente.dart' as visual_366;
+import '../visuals/v16_campo_magnetico_transparente_metadata.dart' as metadata_366;
+import '../visuals/vidrio_liquido.dart' as visual_367;
+import '../visuals/vidrio_liquido_metadata.dart' as metadata_367;
+import '../visuals/vision_termica.dart' as visual_368;
+import '../visuals/vision_termica_metadata.dart' as metadata_368;
+import '../visuals/vitral_estalla.dart' as visual_369;
+import '../visuals/vitral_estalla_metadata.dart' as metadata_369;
+import '../visuals/vortice_cosmico.dart' as visual_370;
+import '../visuals/vortice_cosmico_metadata.dart' as metadata_370;
+import '../visuals/vortice_cosmico_transparente.dart' as visual_371;
+import '../visuals/vortice_cosmico_transparente_metadata.dart' as metadata_371;
+import '../visuals/vortice_hipnotico.dart' as visual_372;
+import '../visuals/vortice_hipnotico_metadata.dart' as metadata_372;
+import '../visuals/vortice_hipnotico_transparente.dart' as visual_373;
+import '../visuals/vortice_hipnotico_transparente_metadata.dart' as metadata_373;
+import '../visuals/zoom_infinito.dart' as visual_374;
+import '../visuals/zoom_infinito_metadata.dart' as metadata_374;
+import '../visuals/zoom_infinito_transparente.dart' as visual_375;
+import '../visuals/zoom_infinito_transparente_metadata.dart' as metadata_375;
 
 final creatorSourceVisuals = <CreatorVisualDefinition>[
   metadata_0.metadata.withNative(visual_0.nativeSource, shaderSources: const {}, modifiers: visual_0.modifiers, sourceFile: 'algoritmos_ordenacion.dart', sourceLine: 30),
@@ -927,99 +999,135 @@ final creatorSourceVisuals = <CreatorVisualDefinition>[
   metadata_242.metadata.withNative(visual_242.nativeSource, shaderSources: visual_242.shaderSources, sourceFile: 'proyeccion_liquida.dart', sourceLine: 6),
   metadata_243.metadata.withNative(visual_243.nativeSource, shaderSources: visual_243.shaderSources, modifiers: visual_243.modifiers, sourceFile: 'puerta_estelar.dart', sourceLine: 18),
   metadata_244.metadata.withNative(visual_244.nativeSource, shaderSources: visual_244.shaderSources, modifiers: visual_244.modifiers, variations: visual_244.variations, sourceFile: 'reaccion_bz.dart', sourceLine: 50),
-  metadata_245.metadata.withNative(visual_245.nativeSource, shaderSources: const {}, modifiers: visual_245.modifiers, variations: visual_245.variations, sourceFile: 'reactiva_borde_luz.dart', sourceLine: 27),
-  metadata_246.metadata.withNative(visual_246.nativeSource, shaderSources: const {}, modifiers: visual_246.modifiers, variations: visual_246.variations, sourceFile: 'reactiva_destello_drop.dart', sourceLine: 27),
-  metadata_247.metadata.withNative(visual_247.nativeSource, shaderSources: const {}, modifiers: visual_247.modifiers, variations: visual_247.variations, sourceFile: 'reactiva_estrobo_entrada.dart', sourceLine: 26),
-  metadata_248.metadata.withNative(visual_248.nativeSource, shaderSources: const {}, modifiers: visual_248.modifiers, variations: visual_248.variations, sourceFile: 'reactiva_flash_palmada.dart', sourceLine: 25),
-  metadata_249.metadata.withNative(visual_249.nativeSource, shaderSources: const {}, modifiers: visual_249.modifiers, variations: visual_249.variations, sourceFile: 'reactiva_golpe_cine.dart', sourceLine: 27),
-  metadata_250.metadata.withNative(visual_250.nativeSource, shaderSources: const {}, modifiers: visual_250.modifiers, variations: visual_250.variations, sourceFile: 'reactiva_latido_completo.dart', sourceLine: 25),
-  metadata_251.metadata.withNative(visual_251.nativeSource, shaderSources: const {}, modifiers: visual_251.modifiers, variations: visual_251.variations, sourceFile: 'reactiva_latido_oscuro.dart', sourceLine: 25),
-  metadata_252.metadata.withNative(visual_252.nativeSource, shaderSources: const {}, modifiers: visual_252.modifiers, variations: visual_252.variations, sourceFile: 'reactiva_primer_tiempo.dart', sourceLine: 26),
-  metadata_253.metadata.withNative(visual_253.nativeSource, shaderSources: const {}, modifiers: visual_253.modifiers, variations: visual_253.variations, sourceFile: 'reactiva_reflejo_cruza.dart', sourceLine: 28),
-  metadata_254.metadata.withNative(visual_254.nativeSource, shaderSources: const {}, modifiers: visual_254.modifiers, variations: visual_254.variations, sourceFile: 'reactiva_vineta_late.dart', sourceLine: 26),
-  metadata_255.metadata.withNative(visual_255.nativeSource, shaderSources: visual_255.shaderSources, modifiers: visual_255.modifiers, variations: visual_255.variations, sourceFile: 'rorschach_calavera.dart', sourceLine: 29),
-  metadata_256.metadata.withNative(visual_256.nativeSource, shaderSources: visual_256.shaderSources, modifiers: visual_256.modifiers, sourceFile: 'rorschach_caleidoscopio.dart', sourceLine: 17),
-  metadata_257.metadata.withNative(visual_257.nativeSource, shaderSources: visual_257.shaderSources, modifiers: visual_257.modifiers, sourceFile: 'rorschach_caleidoscopio_transparente.dart', sourceLine: 18),
-  metadata_258.metadata.withNative(visual_258.nativeSource, shaderSources: visual_258.shaderSources, modifiers: visual_258.modifiers, variations: visual_258.variations, sourceFile: 'rorschach_cosmico.dart', sourceLine: 29),
-  metadata_259.metadata.withNative(visual_259.nativeSource, shaderSources: visual_259.shaderSources, modifiers: visual_259.modifiers, variations: visual_259.variations, sourceFile: 'rorschach_demonio.dart', sourceLine: 28),
-  metadata_260.metadata.withNative(visual_260.nativeSource, shaderSources: visual_260.shaderSources, modifiers: visual_260.modifiers, variations: visual_260.variations, sourceFile: 'rorschach_estrobo.dart', sourceLine: 25),
-  metadata_261.metadata.withNative(visual_261.nativeSource, shaderSources: visual_261.shaderSources, modifiers: visual_261.modifiers, variations: visual_261.variations, sourceFile: 'rorschach_fractal.dart', sourceLine: 28),
-  metadata_262.metadata.withNative(visual_262.nativeSource, shaderSources: visual_262.shaderSources, modifiers: visual_262.modifiers, sourceFile: 'rorschach_glitch.dart', sourceLine: 17),
-  metadata_263.metadata.withNative(visual_263.nativeSource, shaderSources: visual_263.shaderSources, modifiers: visual_263.modifiers, sourceFile: 'rorschach_glitch_transparente.dart', sourceLine: 18),
-  metadata_264.metadata.withNative(visual_264.nativeSource, shaderSources: visual_264.shaderSources, modifiers: visual_264.modifiers, variations: visual_264.variations, sourceFile: 'rorschach_hipnotico.dart', sourceLine: 29),
-  metadata_265.metadata.withNative(visual_265.nativeSource, shaderSources: visual_265.shaderSources, modifiers: visual_265.modifiers, variations: visual_265.variations, sourceFile: 'rorschach_mercurio.dart', sourceLine: 29),
-  metadata_266.metadata.withNative(visual_266.nativeSource, shaderSources: visual_266.shaderSources, modifiers: visual_266.modifiers, variations: visual_266.variations, sourceFile: 'rorschach_neon.dart', sourceLine: 29),
-  metadata_267.metadata.withNative(visual_267.nativeSource, shaderSources: visual_267.shaderSources, modifiers: visual_267.modifiers, variations: visual_267.variations, sourceFile: 'rorschach_ojos.dart', sourceLine: 28),
-  metadata_268.metadata.withNative(visual_268.nativeSource, shaderSources: visual_268.shaderSources, modifiers: visual_268.modifiers, variations: visual_268.variations, sourceFile: 'rorschach_plegado.dart', sourceLine: 28),
-  metadata_269.metadata.withNative(visual_269.nativeSource, shaderSources: visual_269.shaderSources, modifiers: visual_269.modifiers, sourceFile: 'rorschach_polilla_transparente.dart', sourceLine: 19),
-  metadata_270.metadata.withNative(visual_270.nativeSource, shaderSources: visual_270.shaderSources, modifiers: visual_270.modifiers, variations: visual_270.variations, sourceFile: 'rorschach_rayos_x.dart', sourceLine: 28),
-  metadata_271.metadata.withNative(visual_271.nativeSource, shaderSources: visual_271.shaderSources, modifiers: visual_271.modifiers, sourceFile: 'rorschach_rayos_x_transparente.dart', sourceLine: 18),
-  metadata_272.metadata.withNative(visual_272.nativeSource, shaderSources: visual_272.shaderSources, modifiers: visual_272.modifiers, variations: visual_272.variations, sourceFile: 'rorschach_rostro.dart', sourceLine: 28),
-  metadata_273.metadata.withNative(visual_273.nativeSource, shaderSources: visual_273.shaderSources, modifiers: visual_273.modifiers, sourceFile: 'rorschach_rostro_transparente.dart', sourceLine: 23),
-  metadata_274.metadata.withNative(visual_274.nativeSource, shaderSources: visual_274.shaderSources, modifiers: visual_274.modifiers, variations: visual_274.variations, sourceFile: 'rorschach_sangrante.dart', sourceLine: 29),
-  metadata_275.metadata.withNative(visual_275.nativeSource, shaderSources: visual_275.shaderSources, modifiers: visual_275.modifiers, sourceFile: 'rorschach_sangrante_transparente.dart', sourceLine: 19),
-  metadata_276.metadata.withNative(visual_276.nativeSource, shaderSources: visual_276.shaderSources, modifiers: visual_276.modifiers, variations: visual_276.variations, sourceFile: 'rorschach_tentaculos.dart', sourceLine: 28),
-  metadata_277.metadata.withNative(visual_277.nativeSource, shaderSources: visual_277.shaderSources, modifiers: visual_277.modifiers, sourceFile: 'rorschach_tentaculos_transparente.dart', sourceLine: 18),
-  metadata_278.metadata.withNative(visual_278.nativeSource, shaderSources: visual_278.shaderSources, modifiers: visual_278.modifiers, variations: visual_278.variations, sourceFile: 'sala_infinita.dart', sourceLine: 44),
-  metadata_279.metadata.withNative(visual_279.nativeSource, shaderSources: const {}, sourceFile: 'salto_hiperespacial.dart', sourceLine: 4),
-  metadata_280.metadata.withShader(visual_280.shaderSource),
-  metadata_281.metadata.withNative(visual_281.nativeSource, shaderSources: visual_281.shaderSources, modifiers: visual_281.modifiers, variations: visual_281.variations, sourceFile: 'selva_bioluminiscente.dart', sourceLine: 54),
-  metadata_282.metadata.withNative(visual_282.nativeSource, shaderSources: visual_282.shaderSources, sourceFile: 'show_laser.dart', sourceLine: 6),
-  metadata_283.metadata.withNative(visual_283.nativeSource, shaderSources: visual_283.shaderSources, sourceFile: 'show_laser_transparente.dart', sourceLine: 7),
-  metadata_284.metadata.withNative(visual_284.nativeSource, shaderSources: const {}, modifiers: visual_284.modifiers, variations: visual_284.variations, sourceFile: 'synthwave_scene.dart', sourceLine: 47),
-  metadata_285.metadata.withNative(visual_285.nativeSource, shaderSources: const {}, modifiers: visual_285.modifiers, variations: visual_285.variations, sourceFile: 'tablero_galton.dart', sourceLine: 50),
-  metadata_286.metadata.withNative(visual_286.nativeSource, shaderSources: const {}, modifiers: visual_286.modifiers, variations: visual_286.variations, sourceFile: 'tablero_galton_transparente.dart', sourceLine: 51),
-  metadata_287.metadata.withNative(visual_287.nativeSource, shaderSources: visual_287.shaderSources, modifiers: visual_287.modifiers, sourceFile: 'telar.dart', sourceLine: 19),
-  metadata_288.metadata.withNative(visual_288.nativeSource, shaderSources: visual_288.shaderSources, modifiers: visual_288.modifiers, sourceFile: 'teselado_hiperbolico.dart', sourceLine: 18),
-  metadata_289.metadata.withNative(visual_289.nativeSource, shaderSources: visual_289.shaderSources, modifiers: visual_289.modifiers, sourceFile: 'teselado_penrose.dart', sourceLine: 22),
-  metadata_290.metadata.withNative(visual_290.nativeSource, shaderSources: visual_290.shaderSources, modifiers: visual_290.modifiers, variations: visual_290.variations, sourceFile: 'tinta_agua.dart', sourceLine: 45),
-  metadata_291.metadata.withNative(visual_291.nativeSource, shaderSources: const {}, modifiers: visual_291.modifiers, variations: visual_291.variations, sourceFile: 'tipografia_cinetica.dart', sourceLine: 55),
-  metadata_292.metadata.withNative(visual_292.nativeSource, shaderSources: visual_292.shaderSources, sourceFile: 'torbellino_igneo.dart', sourceLine: 7),
-  metadata_293.metadata.withNative(visual_293.nativeSource, shaderSources: visual_293.shaderSources, sourceFile: 'torbellino_igneo_ii.dart', sourceLine: 8),
-  metadata_294.metadata.withNative(visual_294.nativeSource, shaderSources: visual_294.shaderSources, sourceFile: 'torbellino_igneo_transparente.dart', sourceLine: 8),
-  metadata_295.metadata.withNative(visual_295.nativeSource, shaderSources: const {}, modifiers: visual_295.modifiers, variations: visual_295.variations, sourceFile: 'tres_cuerpos.dart', sourceLine: 46),
-  metadata_296.metadata.withNative(visual_296.nativeSource, shaderSources: const {}, modifiers: visual_296.modifiers, sourceFile: 'tuberias_3d.dart', sourceLine: 19),
-  metadata_297.metadata.withNative(visual_297.nativeSource, shaderSources: visual_297.shaderSources, modifiers: visual_297.modifiers, variations: visual_297.variations, sourceFile: 'tubo_rubens.dart', sourceLine: 54),
-  metadata_298.metadata.withNative(visual_298.nativeSource, shaderSources: visual_298.shaderSources, sourceFile: 'tunel_cibernetico.dart', sourceLine: 8),
-  metadata_299.metadata.withNative(visual_299.nativeSource, shaderSources: visual_299.shaderSources, sourceFile: 'tunel_laser.dart', sourceLine: 8),
-  metadata_300.metadata.withNative(visual_300.nativeSource, shaderSources: visual_300.shaderSources, sourceFile: 'tunel_laser_transparente.dart', sourceLine: 9),
-  metadata_301.metadata.withNative(visual_301.nativeSource, shaderSources: visual_301.shaderSources, modifiers: visual_301.modifiers, sourceFile: 'un_bit.dart', sourceLine: 20),
-  metadata_302.metadata.withNative(visual_302.nativeSource, shaderSources: const {}, modifiers: visual_302.modifiers, variations: visual_302.variations, sourceFile: 'v01_agujero_negro.dart', sourceLine: 45),
-  metadata_303.metadata.withNative(visual_303.nativeSource, shaderSources: const {}, modifiers: visual_303.modifiers, variations: visual_303.variations, sourceFile: 'v02_red_neuronal.dart', sourceLine: 45),
-  metadata_304.metadata.withNative(visual_304.nativeSource, shaderSources: const {}, modifiers: visual_304.modifiers, variations: visual_304.variations, sourceFile: 'v02_red_neuronal_transparente.dart', sourceLine: 45),
-  metadata_305.metadata.withNative(visual_305.nativeSource, shaderSources: visual_305.shaderSources, modifiers: visual_305.modifiers, variations: visual_305.variations, sourceFile: 'v03_matriz_oceanica.dart', sourceLine: 52),
-  metadata_306.metadata.withNative(visual_306.nativeSource, shaderSources: const {}, modifiers: visual_306.modifiers, variations: visual_306.variations, sourceFile: 'v04_tunel_warp.dart', sourceLine: 45),
-  metadata_307.metadata.withNative(visual_307.nativeSource, shaderSources: const {}, modifiers: visual_307.modifiers, variations: visual_307.variations, sourceFile: 'v04_tunel_warp_transparente.dart', sourceLine: 43),
-  metadata_308.metadata.withNative(visual_308.nativeSource, shaderSources: const {}, modifiers: visual_308.modifiers, variations: visual_308.variations, sourceFile: 'v05_campo_curl.dart', sourceLine: 45),
-  metadata_309.metadata.withNative(visual_309.nativeSource, shaderSources: const {}, modifiers: visual_309.modifiers, variations: visual_309.variations, sourceFile: 'v05_campo_curl_transparente.dart', sourceLine: 43),
-  metadata_310.metadata.withNative(visual_310.nativeSource, shaderSources: const {}, modifiers: visual_310.modifiers, variations: visual_310.variations, sourceFile: 'v06_tesseract_4d.dart', sourceLine: 42),
-  metadata_311.metadata.withNative(visual_311.nativeSource, shaderSources: const {}, modifiers: visual_311.modifiers, variations: visual_311.variations, sourceFile: 'v06_tesseract_4d_transparente.dart', sourceLine: 42),
-  metadata_312.metadata.withNative(visual_312.nativeSource, shaderSources: const {}, sourceFile: 'v07_aurora_plasma.dart', sourceLine: 4),
-  metadata_313.metadata.withNative(visual_313.nativeSource, shaderSources: const {}, modifiers: visual_313.modifiers, variations: visual_313.variations, sourceFile: 'v08_espectro_cosmico.dart', sourceLine: 45),
-  metadata_314.metadata.withNative(visual_314.nativeSource, shaderSources: const {}, modifiers: visual_314.modifiers, variations: visual_314.variations, sourceFile: 'v08_espectro_cosmico_transparente.dart', sourceLine: 45),
-  metadata_315.metadata.withNative(visual_315.nativeSource, shaderSources: const {}, modifiers: visual_315.modifiers, variations: visual_315.variations, sourceFile: 'v09_espiral_aurea.dart', sourceLine: 44),
-  metadata_316.metadata.withNative(visual_316.nativeSource, shaderSources: const {}, modifiers: visual_316.modifiers, variations: visual_316.variations, sourceFile: 'v09_espiral_aurea_transparente.dart', sourceLine: 45),
-  metadata_317.metadata.withNative(visual_317.nativeSource, shaderSources: const {}, modifiers: visual_317.modifiers, variations: visual_317.variations, sourceFile: 'v10_supernova.dart', sourceLine: 42),
-  metadata_318.metadata.withNative(visual_318.nativeSource, shaderSources: const {}, modifiers: visual_318.modifiers, variations: visual_318.variations, sourceFile: 'v10_supernova_transparente.dart', sourceLine: 40),
-  metadata_319.metadata.withNative(visual_319.nativeSource, shaderSources: const {}, modifiers: visual_319.modifiers, variations: visual_319.variations, sourceFile: 'v11_archivo_corrupto.dart', sourceLine: 49),
-  metadata_320.metadata.withNative(visual_320.nativeSource, shaderSources: const {}, modifiers: visual_320.modifiers, variations: visual_320.variations, sourceFile: 'v11_archivo_corrupto_transparente.dart', sourceLine: 49),
-  metadata_321.metadata.withNative(visual_321.nativeSource, shaderSources: const {}, modifiers: visual_321.modifiers, variations: visual_321.variations, sourceFile: 'v12_maquinaria_orbital.dart', sourceLine: 43),
-  metadata_322.metadata.withNative(visual_322.nativeSource, shaderSources: const {}, modifiers: visual_322.modifiers, variations: visual_322.variations, sourceFile: 'v12_maquinaria_orbital_transparente.dart', sourceLine: 43),
-  metadata_323.metadata.withNative(visual_323.nativeSource, shaderSources: visual_323.shaderSources, sourceFile: 'v13_nubes_volumetricas.dart', sourceLine: 4),
-  metadata_324.metadata.withNative(visual_324.nativeSource, shaderSources: visual_324.shaderSources, sourceFile: 'v13_nubes_volumetricas_transparente.dart', sourceLine: 2),
-  metadata_325.metadata.withNative(visual_325.nativeSource, shaderSources: const {}, modifiers: visual_325.modifiers, variations: visual_325.variations, sourceFile: 'v14_sismografo.dart', sourceLine: 43),
-  metadata_326.metadata.withNative(visual_326.nativeSource, shaderSources: const {}, modifiers: visual_326.modifiers, variations: visual_326.variations, sourceFile: 'v14_sismografo_transparente.dart', sourceLine: 42),
-  metadata_327.metadata.withNative(visual_327.nativeSource, shaderSources: visual_327.shaderSources, sourceFile: 'v15_lluvia_cristal.dart', sourceLine: 4),
-  metadata_328.metadata.withNative(visual_328.nativeSource, shaderSources: visual_328.shaderSources, sourceFile: 'v15_lluvia_cristal_transparente.dart', sourceLine: 4),
-  metadata_329.metadata.withNative(visual_329.nativeSource, shaderSources: const {}, modifiers: visual_329.modifiers, variations: visual_329.variations, sourceFile: 'v16_campo_magnetico.dart', sourceLine: 50),
-  metadata_330.metadata.withNative(visual_330.nativeSource, shaderSources: const {}, modifiers: visual_330.modifiers, variations: visual_330.variations, sourceFile: 'v16_campo_magnetico_transparente.dart', sourceLine: 49),
-  metadata_331.metadata.withNative(visual_331.nativeSource, shaderSources: visual_331.shaderSources, sourceFile: 'vidrio_liquido.dart', sourceLine: 7),
-  metadata_332.metadata.withNative(visual_332.nativeSource, shaderSources: visual_332.shaderSources, modifiers: visual_332.modifiers, variations: visual_332.variations, sourceFile: 'vision_termica.dart', sourceLine: 48),
-  metadata_333.metadata.withNative(visual_333.nativeSource, shaderSources: visual_333.shaderSources, sourceFile: 'vitral_estalla.dart', sourceLine: 7),
-  metadata_334.metadata.withShader(visual_334.shaderSource),
-  metadata_335.metadata.withShader(visual_335.shaderSource),
-  metadata_336.metadata.withNative(visual_336.nativeSource, shaderSources: const {}, modifiers: visual_336.modifiers, variations: visual_336.variations, sourceFile: 'vortice_hipnotico.dart', sourceLine: 43),
-  metadata_337.metadata.withNative(visual_337.nativeSource, shaderSources: const {}, modifiers: visual_337.modifiers, variations: visual_337.variations, sourceFile: 'vortice_hipnotico_transparente.dart', sourceLine: 42),
-  metadata_338.metadata.withNative(visual_338.nativeSource, shaderSources: visual_338.shaderSources, sourceFile: 'zoom_infinito.dart', sourceLine: 7),
-  metadata_339.metadata.withNative(visual_339.nativeSource, shaderSources: visual_339.shaderSources, sourceFile: 'zoom_infinito_transparente.dart', sourceLine: 8),
+  metadata_245.metadata.withNative(visual_245.nativeSource, shaderSources: const {}, modifiers: visual_245.modifiers, variations: visual_245.variations, sourceFile: 'reactiva_aurora_enciende.dart', sourceLine: 30),
+  metadata_246.metadata.withNative(visual_246.nativeSource, shaderSources: const {}, modifiers: visual_246.modifiers, variations: visual_246.variations, sourceFile: 'reactiva_banda_obturador.dart', sourceLine: 29),
+  metadata_247.metadata.withNative(visual_247.nativeSource, shaderSources: const {}, modifiers: visual_247.modifiers, variations: visual_247.variations, sourceFile: 'reactiva_barrido_holografico.dart', sourceLine: 30),
+  metadata_248.metadata.withNative(visual_248.nativeSource, shaderSources: visual_248.shaderSources, modifiers: visual_248.modifiers, sourceFile: 'reactiva_bokeh_luces_2_transparente.dart', sourceLine: 22),
+  metadata_249.metadata.withNative(visual_249.nativeSource, shaderSources: const {}, modifiers: visual_249.modifiers, variations: visual_249.variations, sourceFile: 'reactiva_borde_luz.dart', sourceLine: 27),
+  metadata_250.metadata.withNative(visual_250.nativeSource, shaderSources: const {}, modifiers: visual_250.modifiers, variations: visual_250.variations, sourceFile: 'reactiva_cabezas_moviles.dart', sourceLine: 28),
+  metadata_251.metadata.withNative(visual_251.nativeSource, shaderSources: const {}, modifiers: visual_251.modifiers, variations: visual_251.variations, sourceFile: 'reactiva_cadena_iris.dart', sourceLine: 30),
+  metadata_252.metadata.withNative(visual_252.nativeSource, shaderSources: const {}, modifiers: visual_252.modifiers, variations: visual_252.variations, sourceFile: 'reactiva_candilejas_ascenso.dart', sourceLine: 30),
+  metadata_253.metadata.withNative(visual_253.nativeSource, shaderSources: const {}, modifiers: visual_253.modifiers, variations: visual_253.variations, sourceFile: 'reactiva_canon_seguimiento.dart', sourceLine: 30),
+  metadata_254.metadata.withNative(visual_254.nativeSource, shaderSources: const {}, modifiers: visual_254.modifiers, variations: visual_254.variations, sourceFile: 'reactiva_causticas_fugaces.dart', sourceLine: 30),
+  metadata_255.metadata.withNative(visual_255.nativeSource, shaderSources: const {}, modifiers: visual_255.modifiers, variations: visual_255.variations, sourceFile: 'reactiva_cegadoras_cadena.dart', sourceLine: 30),
+  metadata_256.metadata.withNative(visual_256.nativeSource, shaderSources: const {}, modifiers: visual_256.modifiers, variations: visual_256.variations, sourceFile: 'reactiva_celuloide_quemado.dart', sourceLine: 30),
+  metadata_257.metadata.withNative(visual_257.nativeSource, shaderSources: const {}, modifiers: visual_257.modifiers, variations: visual_257.variations, sourceFile: 'reactiva_chispas_bordes_premium.dart', sourceLine: 41),
+  metadata_258.metadata.withNative(visual_258.nativeSource, shaderSources: const {}, modifiers: visual_258.modifiers, variations: visual_258.variations, sourceFile: 'reactiva_chispas_premium.dart', sourceLine: 40),
+  metadata_259.metadata.withNative(visual_259.nativeSource, shaderSources: const {}, modifiers: visual_259.modifiers, variations: visual_259.variations, sourceFile: 'reactiva_cortina_svoboda.dart', sourceLine: 30),
+  metadata_260.metadata.withNative(visual_260.nativeSource, shaderSources: const {}, modifiers: visual_260.modifiers, variations: visual_260.variations, sourceFile: 'reactiva_cristal_electrico_transparente.dart', sourceLine: 55),
+  metadata_261.metadata.withNative(visual_261.nativeSource, shaderSources: visual_261.shaderSources, modifiers: visual_261.modifiers, sourceFile: 'reactiva_descarga_tesla_transparente.dart', sourceLine: 22),
+  metadata_262.metadata.withNative(visual_262.nativeSource, shaderSources: const {}, modifiers: visual_262.modifiers, variations: visual_262.variations, sourceFile: 'reactiva_destello_drop.dart', sourceLine: 27),
+  metadata_263.metadata.withNative(visual_263.nativeSource, shaderSources: visual_263.shaderSources, modifiers: visual_263.modifiers, variations: visual_263.variations, sourceFile: 'reactiva_destellos_anamorficos.dart', sourceLine: 69),
+  metadata_264.metadata.withNative(visual_264.nativeSource, shaderSources: const {}, modifiers: visual_264.modifiers, variations: visual_264.variations, sourceFile: 'reactiva_destellos_dorados_premium.dart', sourceLine: 39),
+  metadata_265.metadata.withNative(visual_265.nativeSource, shaderSources: const {}, modifiers: visual_265.modifiers, variations: visual_265.variations, sourceFile: 'reactiva_estrella_difraccion.dart', sourceLine: 30),
+  metadata_266.metadata.withNative(visual_266.nativeSource, shaderSources: const {}, modifiers: visual_266.modifiers, variations: visual_266.variations, sourceFile: 'reactiva_estrellas_fugaces_premium.dart', sourceLine: 39),
+  metadata_267.metadata.withNative(visual_267.nativeSource, shaderSources: const {}, modifiers: visual_267.modifiers, variations: visual_267.variations, sourceFile: 'reactiva_estrobo_entrada.dart', sourceLine: 26),
+  metadata_268.metadata.withNative(visual_268.nativeSource, shaderSources: const {}, modifiers: visual_268.modifiers, variations: visual_268.variations, sourceFile: 'reactiva_flash_palmada.dart', sourceLine: 25),
+  metadata_269.metadata.withNative(visual_269.nativeSource, shaderSources: const {}, modifiers: visual_269.modifiers, variations: visual_269.variations, sourceFile: 'reactiva_fotograma_impacto.dart', sourceLine: 30),
+  metadata_270.metadata.withNative(visual_270.nativeSource, shaderSources: visual_270.shaderSources, modifiers: visual_270.modifiers, variations: visual_270.variations, sourceFile: 'reactiva_fuegos_artificiales_transparente.dart', sourceLine: 60),
+  metadata_271.metadata.withNative(visual_271.nativeSource, shaderSources: const {}, modifiers: visual_271.modifiers, variations: visual_271.variations, sourceFile: 'reactiva_fuga_carrete.dart', sourceLine: 30),
+  metadata_272.metadata.withNative(visual_272.nativeSource, shaderSources: const {}, modifiers: visual_272.modifiers, variations: visual_272.variations, sourceFile: 'reactiva_golpe_cine.dart', sourceLine: 27),
+  metadata_273.metadata.withNative(visual_273.nativeSource, shaderSources: visual_273.shaderSources, modifiers: visual_273.modifiers, sourceFile: 'reactiva_haces_estadio_transparente.dart', sourceLine: 23),
+  metadata_274.metadata.withNative(visual_274.nativeSource, shaderSources: const {}, modifiers: visual_274.modifiers, variations: visual_274.variations, sourceFile: 'reactiva_halo_hielo.dart', sourceLine: 30),
+  metadata_275.metadata.withNative(visual_275.nativeSource, shaderSources: const {}, modifiers: visual_275.modifiers, variations: visual_275.variations, sourceFile: 'reactiva_hiperespacio_premium.dart', sourceLine: 38),
+  metadata_276.metadata.withNative(visual_276.nativeSource, shaderSources: const {}, modifiers: visual_276.modifiers, variations: visual_276.variations, sourceFile: 'reactiva_latido_completo.dart', sourceLine: 25),
+  metadata_277.metadata.withNative(visual_277.nativeSource, shaderSources: const {}, modifiers: visual_277.modifiers, variations: visual_277.variations, sourceFile: 'reactiva_latido_oscuro.dart', sourceLine: 25),
+  metadata_278.metadata.withNative(visual_278.nativeSource, shaderSources: const {}, modifiers: visual_278.modifiers, sourceFile: 'reactiva_luciernagas_transparente.dart', sourceLine: 30),
+  metadata_279.metadata.withNative(visual_279.nativeSource, shaderSources: visual_279.shaderSources, modifiers: visual_279.modifiers, sourceFile: 'reactiva_luz_bordes_transparente.dart', sourceLine: 23),
+  metadata_280.metadata.withNative(visual_280.nativeSource, shaderSources: const {}, modifiers: visual_280.modifiers, variations: visual_280.variations, sourceFile: 'reactiva_onda_choque_espectral.dart', sourceLine: 30),
+  metadata_281.metadata.withNative(visual_281.nativeSource, shaderSources: const {}, modifiers: visual_281.modifiers, variations: visual_281.variations, sourceFile: 'reactiva_onda_cristal.dart', sourceLine: 30),
+  metadata_282.metadata.withNative(visual_282.nativeSource, shaderSources: const {}, modifiers: visual_282.modifiers, variations: visual_282.variations, sourceFile: 'reactiva_polvo_lente.dart', sourceLine: 30),
+  metadata_283.metadata.withNative(visual_283.nativeSource, shaderSources: const {}, modifiers: visual_283.modifiers, variations: visual_283.variations, sourceFile: 'reactiva_primer_tiempo.dart', sourceLine: 26),
+  metadata_284.metadata.withNative(visual_284.nativeSource, shaderSources: const {}, modifiers: visual_284.modifiers, variations: visual_284.variations, sourceFile: 'reactiva_purpurina_rafaga.dart', sourceLine: 30),
+  metadata_285.metadata.withNative(visual_285.nativeSource, shaderSources: const {}, modifiers: visual_285.modifiers, variations: visual_285.variations, sourceFile: 'reactiva_reflejo_cruza.dart', sourceLine: 28),
+  metadata_286.metadata.withNative(visual_286.nativeSource, shaderSources: const {}, modifiers: visual_286.modifiers, variations: visual_286.variations, sourceFile: 'reactiva_relampago_campo.dart', sourceLine: 30),
+  metadata_287.metadata.withNative(visual_287.nativeSource, shaderSources: visual_287.shaderSources, modifiers: visual_287.modifiers, sourceFile: 'reactiva_show_laser_transparente.dart', sourceLine: 22),
+  metadata_288.metadata.withNative(visual_288.nativeSource, shaderSources: const {}, modifiers: visual_288.modifiers, variations: visual_288.variations, sourceFile: 'reactiva_v10_supernova_transparente.dart', sourceLine: 49),
+  metadata_289.metadata.withNative(visual_289.nativeSource, shaderSources: const {}, modifiers: visual_289.modifiers, variations: visual_289.variations, sourceFile: 'reactiva_v11_archivo_corrupto_transparente.dart', sourceLine: 58),
+  metadata_290.metadata.withNative(visual_290.nativeSource, shaderSources: const {}, modifiers: visual_290.modifiers, variations: visual_290.variations, sourceFile: 'reactiva_vineta_late.dart', sourceLine: 26),
+  metadata_291.metadata.withNative(visual_291.nativeSource, shaderSources: visual_291.shaderSources, modifiers: visual_291.modifiers, variations: visual_291.variations, sourceFile: 'rorschach_calavera.dart', sourceLine: 29),
+  metadata_292.metadata.withNative(visual_292.nativeSource, shaderSources: visual_292.shaderSources, modifiers: visual_292.modifiers, sourceFile: 'rorschach_caleidoscopio.dart', sourceLine: 17),
+  metadata_293.metadata.withNative(visual_293.nativeSource, shaderSources: visual_293.shaderSources, modifiers: visual_293.modifiers, sourceFile: 'rorschach_caleidoscopio_transparente.dart', sourceLine: 18),
+  metadata_294.metadata.withNative(visual_294.nativeSource, shaderSources: visual_294.shaderSources, modifiers: visual_294.modifiers, variations: visual_294.variations, sourceFile: 'rorschach_cosmico.dart', sourceLine: 29),
+  metadata_295.metadata.withNative(visual_295.nativeSource, shaderSources: visual_295.shaderSources, modifiers: visual_295.modifiers, variations: visual_295.variations, sourceFile: 'rorschach_demonio.dart', sourceLine: 28),
+  metadata_296.metadata.withNative(visual_296.nativeSource, shaderSources: visual_296.shaderSources, modifiers: visual_296.modifiers, variations: visual_296.variations, sourceFile: 'rorschach_estrobo.dart', sourceLine: 25),
+  metadata_297.metadata.withNative(visual_297.nativeSource, shaderSources: visual_297.shaderSources, modifiers: visual_297.modifiers, variations: visual_297.variations, sourceFile: 'rorschach_fractal.dart', sourceLine: 28),
+  metadata_298.metadata.withNative(visual_298.nativeSource, shaderSources: visual_298.shaderSources, modifiers: visual_298.modifiers, sourceFile: 'rorschach_glitch.dart', sourceLine: 17),
+  metadata_299.metadata.withNative(visual_299.nativeSource, shaderSources: visual_299.shaderSources, modifiers: visual_299.modifiers, sourceFile: 'rorschach_glitch_transparente.dart', sourceLine: 18),
+  metadata_300.metadata.withNative(visual_300.nativeSource, shaderSources: visual_300.shaderSources, modifiers: visual_300.modifiers, variations: visual_300.variations, sourceFile: 'rorschach_hipnotico.dart', sourceLine: 29),
+  metadata_301.metadata.withNative(visual_301.nativeSource, shaderSources: visual_301.shaderSources, modifiers: visual_301.modifiers, variations: visual_301.variations, sourceFile: 'rorschach_mercurio.dart', sourceLine: 29),
+  metadata_302.metadata.withNative(visual_302.nativeSource, shaderSources: visual_302.shaderSources, modifiers: visual_302.modifiers, variations: visual_302.variations, sourceFile: 'rorschach_neon.dart', sourceLine: 29),
+  metadata_303.metadata.withNative(visual_303.nativeSource, shaderSources: visual_303.shaderSources, modifiers: visual_303.modifiers, variations: visual_303.variations, sourceFile: 'rorschach_ojos.dart', sourceLine: 28),
+  metadata_304.metadata.withNative(visual_304.nativeSource, shaderSources: visual_304.shaderSources, modifiers: visual_304.modifiers, variations: visual_304.variations, sourceFile: 'rorschach_plegado.dart', sourceLine: 28),
+  metadata_305.metadata.withNative(visual_305.nativeSource, shaderSources: visual_305.shaderSources, modifiers: visual_305.modifiers, sourceFile: 'rorschach_polilla_transparente.dart', sourceLine: 19),
+  metadata_306.metadata.withNative(visual_306.nativeSource, shaderSources: visual_306.shaderSources, modifiers: visual_306.modifiers, variations: visual_306.variations, sourceFile: 'rorschach_rayos_x.dart', sourceLine: 28),
+  metadata_307.metadata.withNative(visual_307.nativeSource, shaderSources: visual_307.shaderSources, modifiers: visual_307.modifiers, sourceFile: 'rorschach_rayos_x_transparente.dart', sourceLine: 18),
+  metadata_308.metadata.withNative(visual_308.nativeSource, shaderSources: visual_308.shaderSources, modifiers: visual_308.modifiers, variations: visual_308.variations, sourceFile: 'rorschach_rostro.dart', sourceLine: 28),
+  metadata_309.metadata.withNative(visual_309.nativeSource, shaderSources: visual_309.shaderSources, modifiers: visual_309.modifiers, sourceFile: 'rorschach_rostro_transparente.dart', sourceLine: 23),
+  metadata_310.metadata.withNative(visual_310.nativeSource, shaderSources: visual_310.shaderSources, modifiers: visual_310.modifiers, variations: visual_310.variations, sourceFile: 'rorschach_sangrante.dart', sourceLine: 29),
+  metadata_311.metadata.withNative(visual_311.nativeSource, shaderSources: visual_311.shaderSources, modifiers: visual_311.modifiers, sourceFile: 'rorschach_sangrante_transparente.dart', sourceLine: 19),
+  metadata_312.metadata.withNative(visual_312.nativeSource, shaderSources: visual_312.shaderSources, modifiers: visual_312.modifiers, variations: visual_312.variations, sourceFile: 'rorschach_tentaculos.dart', sourceLine: 28),
+  metadata_313.metadata.withNative(visual_313.nativeSource, shaderSources: visual_313.shaderSources, modifiers: visual_313.modifiers, sourceFile: 'rorschach_tentaculos_transparente.dart', sourceLine: 18),
+  metadata_314.metadata.withNative(visual_314.nativeSource, shaderSources: visual_314.shaderSources, modifiers: visual_314.modifiers, variations: visual_314.variations, sourceFile: 'sala_infinita.dart', sourceLine: 44),
+  metadata_315.metadata.withNative(visual_315.nativeSource, shaderSources: const {}, sourceFile: 'salto_hiperespacial.dart', sourceLine: 4),
+  metadata_316.metadata.withShader(visual_316.shaderSource),
+  metadata_317.metadata.withNative(visual_317.nativeSource, shaderSources: visual_317.shaderSources, modifiers: visual_317.modifiers, variations: visual_317.variations, sourceFile: 'selva_bioluminiscente.dart', sourceLine: 54),
+  metadata_318.metadata.withNative(visual_318.nativeSource, shaderSources: visual_318.shaderSources, sourceFile: 'show_laser.dart', sourceLine: 6),
+  metadata_319.metadata.withNative(visual_319.nativeSource, shaderSources: visual_319.shaderSources, sourceFile: 'show_laser_transparente.dart', sourceLine: 7),
+  metadata_320.metadata.withNative(visual_320.nativeSource, shaderSources: const {}, modifiers: visual_320.modifiers, variations: visual_320.variations, sourceFile: 'synthwave_scene.dart', sourceLine: 47),
+  metadata_321.metadata.withNative(visual_321.nativeSource, shaderSources: const {}, modifiers: visual_321.modifiers, variations: visual_321.variations, sourceFile: 'tablero_galton.dart', sourceLine: 50),
+  metadata_322.metadata.withNative(visual_322.nativeSource, shaderSources: const {}, modifiers: visual_322.modifiers, variations: visual_322.variations, sourceFile: 'tablero_galton_transparente.dart', sourceLine: 51),
+  metadata_323.metadata.withNative(visual_323.nativeSource, shaderSources: visual_323.shaderSources, modifiers: visual_323.modifiers, sourceFile: 'telar.dart', sourceLine: 19),
+  metadata_324.metadata.withNative(visual_324.nativeSource, shaderSources: visual_324.shaderSources, modifiers: visual_324.modifiers, sourceFile: 'teselado_hiperbolico.dart', sourceLine: 18),
+  metadata_325.metadata.withNative(visual_325.nativeSource, shaderSources: visual_325.shaderSources, modifiers: visual_325.modifiers, sourceFile: 'teselado_penrose.dart', sourceLine: 22),
+  metadata_326.metadata.withNative(visual_326.nativeSource, shaderSources: visual_326.shaderSources, modifiers: visual_326.modifiers, variations: visual_326.variations, sourceFile: 'tinta_agua.dart', sourceLine: 45),
+  metadata_327.metadata.withNative(visual_327.nativeSource, shaderSources: const {}, modifiers: visual_327.modifiers, variations: visual_327.variations, sourceFile: 'tipografia_cinetica.dart', sourceLine: 55),
+  metadata_328.metadata.withNative(visual_328.nativeSource, shaderSources: visual_328.shaderSources, sourceFile: 'torbellino_igneo.dart', sourceLine: 7),
+  metadata_329.metadata.withNative(visual_329.nativeSource, shaderSources: visual_329.shaderSources, sourceFile: 'torbellino_igneo_ii.dart', sourceLine: 8),
+  metadata_330.metadata.withNative(visual_330.nativeSource, shaderSources: visual_330.shaderSources, sourceFile: 'torbellino_igneo_transparente.dart', sourceLine: 8),
+  metadata_331.metadata.withNative(visual_331.nativeSource, shaderSources: const {}, modifiers: visual_331.modifiers, variations: visual_331.variations, sourceFile: 'tres_cuerpos.dart', sourceLine: 46),
+  metadata_332.metadata.withNative(visual_332.nativeSource, shaderSources: const {}, modifiers: visual_332.modifiers, sourceFile: 'tuberias_3d.dart', sourceLine: 19),
+  metadata_333.metadata.withNative(visual_333.nativeSource, shaderSources: visual_333.shaderSources, modifiers: visual_333.modifiers, variations: visual_333.variations, sourceFile: 'tubo_rubens.dart', sourceLine: 54),
+  metadata_334.metadata.withNative(visual_334.nativeSource, shaderSources: visual_334.shaderSources, sourceFile: 'tunel_cibernetico.dart', sourceLine: 8),
+  metadata_335.metadata.withNative(visual_335.nativeSource, shaderSources: visual_335.shaderSources, sourceFile: 'tunel_laser.dart', sourceLine: 8),
+  metadata_336.metadata.withNative(visual_336.nativeSource, shaderSources: visual_336.shaderSources, sourceFile: 'tunel_laser_transparente.dart', sourceLine: 9),
+  metadata_337.metadata.withNative(visual_337.nativeSource, shaderSources: visual_337.shaderSources, modifiers: visual_337.modifiers, sourceFile: 'un_bit.dart', sourceLine: 20),
+  metadata_338.metadata.withNative(visual_338.nativeSource, shaderSources: const {}, modifiers: visual_338.modifiers, variations: visual_338.variations, sourceFile: 'v01_agujero_negro.dart', sourceLine: 45),
+  metadata_339.metadata.withNative(visual_339.nativeSource, shaderSources: const {}, modifiers: visual_339.modifiers, variations: visual_339.variations, sourceFile: 'v02_red_neuronal.dart', sourceLine: 45),
+  metadata_340.metadata.withNative(visual_340.nativeSource, shaderSources: const {}, modifiers: visual_340.modifiers, variations: visual_340.variations, sourceFile: 'v02_red_neuronal_transparente.dart', sourceLine: 45),
+  metadata_341.metadata.withNative(visual_341.nativeSource, shaderSources: visual_341.shaderSources, modifiers: visual_341.modifiers, variations: visual_341.variations, sourceFile: 'v03_matriz_oceanica.dart', sourceLine: 52),
+  metadata_342.metadata.withNative(visual_342.nativeSource, shaderSources: const {}, modifiers: visual_342.modifiers, variations: visual_342.variations, sourceFile: 'v04_tunel_warp.dart', sourceLine: 45),
+  metadata_343.metadata.withNative(visual_343.nativeSource, shaderSources: const {}, modifiers: visual_343.modifiers, variations: visual_343.variations, sourceFile: 'v04_tunel_warp_transparente.dart', sourceLine: 43),
+  metadata_344.metadata.withNative(visual_344.nativeSource, shaderSources: const {}, modifiers: visual_344.modifiers, variations: visual_344.variations, sourceFile: 'v05_campo_curl.dart', sourceLine: 45),
+  metadata_345.metadata.withNative(visual_345.nativeSource, shaderSources: const {}, modifiers: visual_345.modifiers, variations: visual_345.variations, sourceFile: 'v05_campo_curl_transparente.dart', sourceLine: 43),
+  metadata_346.metadata.withNative(visual_346.nativeSource, shaderSources: const {}, modifiers: visual_346.modifiers, variations: visual_346.variations, sourceFile: 'v06_tesseract_4d.dart', sourceLine: 42),
+  metadata_347.metadata.withNative(visual_347.nativeSource, shaderSources: const {}, modifiers: visual_347.modifiers, variations: visual_347.variations, sourceFile: 'v06_tesseract_4d_transparente.dart', sourceLine: 42),
+  metadata_348.metadata.withNative(visual_348.nativeSource, shaderSources: const {}, sourceFile: 'v07_aurora_plasma.dart', sourceLine: 4),
+  metadata_349.metadata.withNative(visual_349.nativeSource, shaderSources: const {}, modifiers: visual_349.modifiers, variations: visual_349.variations, sourceFile: 'v08_espectro_cosmico.dart', sourceLine: 45),
+  metadata_350.metadata.withNative(visual_350.nativeSource, shaderSources: const {}, modifiers: visual_350.modifiers, variations: visual_350.variations, sourceFile: 'v08_espectro_cosmico_transparente.dart', sourceLine: 45),
+  metadata_351.metadata.withNative(visual_351.nativeSource, shaderSources: const {}, modifiers: visual_351.modifiers, variations: visual_351.variations, sourceFile: 'v09_espiral_aurea.dart', sourceLine: 44),
+  metadata_352.metadata.withNative(visual_352.nativeSource, shaderSources: const {}, modifiers: visual_352.modifiers, variations: visual_352.variations, sourceFile: 'v09_espiral_aurea_transparente.dart', sourceLine: 45),
+  metadata_353.metadata.withNative(visual_353.nativeSource, shaderSources: const {}, modifiers: visual_353.modifiers, variations: visual_353.variations, sourceFile: 'v10_supernova.dart', sourceLine: 42),
+  metadata_354.metadata.withNative(visual_354.nativeSource, shaderSources: const {}, modifiers: visual_354.modifiers, variations: visual_354.variations, sourceFile: 'v10_supernova_transparente.dart', sourceLine: 40),
+  metadata_355.metadata.withNative(visual_355.nativeSource, shaderSources: const {}, modifiers: visual_355.modifiers, variations: visual_355.variations, sourceFile: 'v11_archivo_corrupto.dart', sourceLine: 49),
+  metadata_356.metadata.withNative(visual_356.nativeSource, shaderSources: const {}, modifiers: visual_356.modifiers, variations: visual_356.variations, sourceFile: 'v11_archivo_corrupto_transparente.dart', sourceLine: 49),
+  metadata_357.metadata.withNative(visual_357.nativeSource, shaderSources: const {}, modifiers: visual_357.modifiers, variations: visual_357.variations, sourceFile: 'v12_maquinaria_orbital.dart', sourceLine: 43),
+  metadata_358.metadata.withNative(visual_358.nativeSource, shaderSources: const {}, modifiers: visual_358.modifiers, variations: visual_358.variations, sourceFile: 'v12_maquinaria_orbital_transparente.dart', sourceLine: 43),
+  metadata_359.metadata.withNative(visual_359.nativeSource, shaderSources: visual_359.shaderSources, sourceFile: 'v13_nubes_volumetricas.dart', sourceLine: 4),
+  metadata_360.metadata.withNative(visual_360.nativeSource, shaderSources: visual_360.shaderSources, sourceFile: 'v13_nubes_volumetricas_transparente.dart', sourceLine: 2),
+  metadata_361.metadata.withNative(visual_361.nativeSource, shaderSources: const {}, modifiers: visual_361.modifiers, variations: visual_361.variations, sourceFile: 'v14_sismografo.dart', sourceLine: 43),
+  metadata_362.metadata.withNative(visual_362.nativeSource, shaderSources: const {}, modifiers: visual_362.modifiers, variations: visual_362.variations, sourceFile: 'v14_sismografo_transparente.dart', sourceLine: 42),
+  metadata_363.metadata.withNative(visual_363.nativeSource, shaderSources: visual_363.shaderSources, sourceFile: 'v15_lluvia_cristal.dart', sourceLine: 4),
+  metadata_364.metadata.withNative(visual_364.nativeSource, shaderSources: visual_364.shaderSources, sourceFile: 'v15_lluvia_cristal_transparente.dart', sourceLine: 4),
+  metadata_365.metadata.withNative(visual_365.nativeSource, shaderSources: const {}, modifiers: visual_365.modifiers, variations: visual_365.variations, sourceFile: 'v16_campo_magnetico.dart', sourceLine: 50),
+  metadata_366.metadata.withNative(visual_366.nativeSource, shaderSources: const {}, modifiers: visual_366.modifiers, variations: visual_366.variations, sourceFile: 'v16_campo_magnetico_transparente.dart', sourceLine: 49),
+  metadata_367.metadata.withNative(visual_367.nativeSource, shaderSources: visual_367.shaderSources, sourceFile: 'vidrio_liquido.dart', sourceLine: 7),
+  metadata_368.metadata.withNative(visual_368.nativeSource, shaderSources: visual_368.shaderSources, modifiers: visual_368.modifiers, variations: visual_368.variations, sourceFile: 'vision_termica.dart', sourceLine: 48),
+  metadata_369.metadata.withNative(visual_369.nativeSource, shaderSources: visual_369.shaderSources, sourceFile: 'vitral_estalla.dart', sourceLine: 7),
+  metadata_370.metadata.withShader(visual_370.shaderSource),
+  metadata_371.metadata.withShader(visual_371.shaderSource),
+  metadata_372.metadata.withNative(visual_372.nativeSource, shaderSources: const {}, modifiers: visual_372.modifiers, variations: visual_372.variations, sourceFile: 'vortice_hipnotico.dart', sourceLine: 43),
+  metadata_373.metadata.withNative(visual_373.nativeSource, shaderSources: const {}, modifiers: visual_373.modifiers, variations: visual_373.variations, sourceFile: 'vortice_hipnotico_transparente.dart', sourceLine: 42),
+  metadata_374.metadata.withNative(visual_374.nativeSource, shaderSources: visual_374.shaderSources, sourceFile: 'zoom_infinito.dart', sourceLine: 7),
+  metadata_375.metadata.withNative(visual_375.nativeSource, shaderSources: visual_375.shaderSources, sourceFile: 'zoom_infinito_transparente.dart', sourceLine: 8),
 ];
