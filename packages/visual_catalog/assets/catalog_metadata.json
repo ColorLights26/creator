@@ -9302,6 +9302,505 @@
       ]
     },
     {
+      "id": "reactiva_borde_luz",
+      "name": "Reactiva · Borde de Luz",
+      "description": "Con los platillos, los bordes de la escena se aclaran un instante con una luz cálida y el centro no se toca. En modo Alterno la luz entra por un lado y luego por el otro. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "rhythmic",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "edge light",
+        "hi-hat",
+        "light pulse"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.36
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Destello Lateral",
+          "values": {
+            "marco": "Alterno",
+            "disparo": "Caja"
+          }
+        },
+        {
+          "name": "Halo de Escenario",
+          "values": {
+            "marco": "Óvalo",
+            "apertura": 0.35,
+            "caida": 0.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_destello_drop",
+      "name": "Reactiva · Destello de Drop",
+      "description": "Sólo en el golpe grande (el primero tras una pausa o uno mucho más fuerte que los anteriores) se abre desde el centro una luz suave que se apaga enseguida. Aparece muy de vez en cuando. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "dramatic",
+        "bright"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "drop",
+        "light burst",
+        "impact"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.12
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Amanecer",
+          "values": {
+            "forma": "Desde abajo",
+            "nucleo": 1,
+            "caida": 0.7
+          }
+        },
+        {
+          "name": "Fogonazo",
+          "values": {
+            "forma": "Toda la pantalla",
+            "caida": 0.25,
+            "nucleo": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_estrobo_entrada",
+      "name": "Reactiva · Estrobo de Entrada",
+      "description": "En el golpe grande, de uno a tres parpadeos tenues de luz o de sombra y nada más: la versión suave del estroboscopio, nunca más de tres por segundo. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "energetic",
+        "bright"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "strobe",
+        "drop",
+        "flash"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.04
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Relámpago",
+          "values": {
+            "rafaga": 2,
+            "caida": 0.05,
+            "tono": "Luz"
+          }
+        },
+        {
+          "name": "Pulso Negro",
+          "values": {
+            "tono": "Sombra",
+            "rafaga": 3,
+            "caida": 0.12
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_flash_palmada",
+      "name": "Reactiva · Flash de Palmada",
+      "description": "Sólo con la caja o la palmada, un velo de luz muy tenue cubre la escena y se apaga en un parpadeo, como el flash de una cámara a lo lejos. El bombo no lo activa. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "rhythmic",
+        "bright"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "flash",
+        "clap",
+        "light veil"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.6
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Cámara Lejana",
+          "values": {
+            "origen": "Desde el centro",
+            "caida": 0.06
+          }
+        },
+        {
+          "name": "Foco Cenital",
+          "values": {
+            "origen": "Desde arriba",
+            "caida": 0.16,
+            "disparo": "Golpe grande"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_golpe_cine",
+      "name": "Reactiva · Golpe de Cine",
+      "description": "En el golpe grande, unas franjas negras finas entran desde arriba y desde abajo, como en una película, y se retiran enseguida. Encuadra la escena un instante sin tocar su contenido. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "cinematic",
+        "dramatic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "letterbox",
+        "cinema bars",
+        "impact"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.1
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Cinemascope",
+          "values": {
+            "barras": "Arriba y abajo",
+            "cierre": 0.14,
+            "caida": 0.5
+          }
+        },
+        {
+          "name": "Marco",
+          "values": {
+            "barras": "Las cuatro",
+            "cierre": 0.05,
+            "disparo": "Bombo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_latido_completo",
+      "name": "Reactiva · Latido Completo",
+      "description": "Una reacción por sonido: el bombo oscurece un instante, la caja aclara un instante y el golpe grande lanza un reflejo que cruza la escena. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "rhythmic",
+        "cinematic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "sidechain",
+        "flash",
+        "light sweep"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.05
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Club",
+          "values": {
+            "reacciones": "Con reflejo",
+            "caida": 0.1,
+            "borde": 0.15
+          }
+        },
+        {
+          "name": "Respiro",
+          "values": {
+            "reacciones": "Sombra y reflejo",
+            "caida": 0.3,
+            "borde": 0.8
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_latido_oscuro",
+      "name": "Reactiva · Latido Oscuro",
+      "description": "Con cada bombo toda la escena se oscurece un poco durante una décima de segundo y vuelve, como el sidechain de la música electrónica. No añade nada: sólo baja la luz de lo que haya detrás. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "rhythmic",
+        "dark"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "sidechain",
+        "pump",
+        "shadow pulse"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.05
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Sidechain",
+          "values": {
+            "disparo": "Bombo",
+            "borde": 0,
+            "caida": 0.1
+          }
+        },
+        {
+          "name": "Túnel",
+          "values": {
+            "disparo": "Bombo y caja",
+            "borde": 1,
+            "caida": 0.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_primer_tiempo",
+      "name": "Reactiva · Primer Tiempo",
+      "description": "Sólo en el primer pulso de cada compás la escena se oscurece o se aclara un instante y vuelve: marca el ritmo sin parpadear en cada golpe. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "rhythmic",
+        "minimal"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "downbeat",
+        "bar",
+        "pulse"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.08
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Compás de Luz",
+          "values": {
+            "tono": "Luz",
+            "cada": 4,
+            "borde": 0
+          }
+        },
+        {
+          "name": "Frase",
+          "values": {
+            "cada": 8,
+            "caida": 0.5,
+            "borde": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_reflejo_cruza",
+      "name": "Reactiva · Reflejo que Cruza",
+      "description": "Al empezar un compás o una frase, una franja de luz suave atraviesa la escena una sola vez, como el reflejo de un vidrio que se mueve, y desaparece. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "elegant",
+        "bright"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "light sweep",
+        "glass reflection",
+        "phrase"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.35
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Vitrina",
+          "values": {
+            "angulo": -35,
+            "ancho": 0.12,
+            "paso": "Doble"
+          }
+        },
+        {
+          "name": "Faro",
+          "values": {
+            "paso": "Ida y vuelta",
+            "ancho": 0.35,
+            "disparo": "Cada frase",
+            "cruce": 1.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_vineta_late",
+      "name": "Reactiva · Viñeta que Late",
+      "description": "Con el golpe, los bordes de la escena se oscurecen un instante, como si se mirara por un túnel, y el centro no se toca. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "rhythmic",
+        "cinematic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "vignette",
+        "tunnel",
+        "shadow pulse"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.08
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Túnel",
+          "values": {
+            "marco": "Óvalo",
+            "apertura": 0.25,
+            "caida": 0.35
+          }
+        },
+        {
+          "name": "Pantalla Ancha",
+          "values": {
+            "marco": "Arriba y abajo",
+            "apertura": 0.6,
+            "disparo": "Cada pulso"
+          }
+        }
+      ]
+    },
+    {
       "id": "rorschach_calavera",
       "name": "Rorschach Calavera",
       "description": "Una lámina de Rorschach en la que, a veces, el hueco de papel parece una calavera: nunca está dibujada, aparece y se disuelve con la tinta, y llora regueros de tinta con cada golpe.",

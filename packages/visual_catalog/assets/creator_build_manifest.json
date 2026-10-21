@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "hash": "27deac618c4a250a44683778c46e202bb32548923c9ff25daf1073666836e848",
+  "hash": "ef39d957efdde5271284a0c32dc7d430e448e4df49c5a543a57025ddbf9f66bb",
   "engine": {
     "sdkHash": "f7e3b26c2d074a5eb648d37f0cc4c5211fae5703cacc9ccedf5b145a85037c76",
     "abi": 1,
@@ -46,7 +46,7 @@
     },
     "checks": {
       "files": {
-        "authored_probe.cpp": "8b9b1ff8ffa819446c9df7e71fc3a48d7d00c32474cd181ffae2025396a47f69",
+        "authored_probe.cpp": "0b5442345af6f6447a96bf042b158afb49e59941c9d04c461eb0f6ffba0e2410",
         "check_native.py": "b722f1d4e9bc95fbd97ba722961c32502a5ba79ab9f7f5d323ceb76b14bef873",
         "runtime_test.cpp": "cbccca01e96b9c579c7ac300bedb38c56434c7a6de9b6da87c46f22f3be039d3",
         "creator_scene_tests.swift": "fb78b2d88b269c152988d9ab4c918abf15bd0c61cf5d05dd3daad3bf3d77d000",
@@ -54,11 +54,11 @@
         "creator_catalog_tests.swift": "be5d2ece6ed826b275ce2d86b9bfce8a5a969c62e16de53e15a790de596a501b",
         "check_creator_catalog.rb": "8a4f097dea74fe2599deae634f561c867a06ce0da58d88156817625af629ec0e"
       },
-      "hash": "306d9ae38b9d64b2741aeeba44c166b6ee52fc0f96367ce7e52142517ee9de27"
+      "hash": "1e15822860deb903aade47e4b7e65c046c90c5386a15b030cdd1e6d9466ffc15"
     },
     "buildInputs": {
       "files": {
-        "packages/scene_compositor/lib/native_compiler.dart": "4ac5b5ce447165b808539f58624bb884660a9ca124abdd1ddaf6c9a04a23dccf",
+        "packages/scene_compositor/lib/native_compiler.dart": "3afcb17a2eda9855574ecdb0057be9762f24a02a7e190d158cd29fcb6abcb5ec",
         "packages/scene_compositor/lib/authoring.dart": "d2e00379194dface5bd4dc468294cead8e1aa5f9eaddd4d70e3c8bfbe63409f4",
         "packages/scene_compositor/lib/scene_compositor.dart": "5dd0a7b59ef36ecf9fba16674a598a350b6b291e9caca81a40273d3c2efea2f0",
         "packages/scene_compositor/lib/shader_compiler.dart": "358bc0a78529459fb4bf6540185f26c400e8aac4c78b91153da8067001d6b28b",
@@ -83,7 +83,7 @@
         "packages/scene_compositor_host/ios/scene_compositor_host.podspec": "98660d4410670fe780413ba27b5e38ef43a19f501b8c3b461cccbfa8a66724fe",
         "studio/tool/compile_visuals.dart": "3b0b96ef5352935ff81bc6e2e9fff1d30ead030f40f40df8344cc4417e76dde9",
         "studio/tool/build_catalog_assets.dart": "d63b21bd01d0802a16c2d0a98f9225b0bce6a82be5c6edb663ce07d174b1b943",
-        "studio/tool/readiness.dart": "729f30c7e5fff90b9536178378cf5c65bf0b3d517500d5e25313da1416274251",
+        "studio/tool/readiness.dart": "92049fd87f3665f72eca90619c58e2722486fcf152ec85138626f18c29d01d52",
         "studio/lib/probe/energy_probe_record.dart": "0eb3bb22905f6c5fa4688edc0c366f671e86fd9fbd6135c6b67b1c1d7260f906",
         "studio/lib/probe/energy_probe_screen.dart": "dc482168f5d99b02136b919391fba73d79d21a0d28b9d3b66e80c009716aa444",
         "studio/lib/probe/energy_probe_identity.dart": "c01900590ef8267474383aeb4d4af6b56099a2ab20eb339992b563a4ca87ce64",
@@ -91,7 +91,7 @@
         "studio/lib/probe/energy_probe_profile.dart": "7b47040ce59d1ddca4d57484a87cea52b25746241dbe8390f21bc7f25c6095ba",
         "studio/lib/probe/energy_probe_spec.dart": "e59416b9b36b5093dc7aec6a7c99718ae10336eac8a89570a0ef837e11441a4e"
       },
-      "hash": "9952ef7af93ca50602b4d86515ac6bfb89544c755f49e05d452607f7ebcc8de1"
+      "hash": "475e130cf9626927a97e407f52658c9960dd59f0daf2b5c4c630ca293c6257cc"
     },
     "surfaces": {
       "iPhone": {
@@ -115,5 +115,5 @@
       "valuesHash": "2ea928927b705de186d7816d11650e4f6bd2cced1e4cff0a1942a57fe6eac9e7"
     }
   },
-  "catalogSha256": "77a25edf7673abf646a1f13f297bdf5f989d1528c4db8cf43d6164782793188e"
+  "catalogSha256": "2fc2cd53335b29dd752925fe59a40b25c82230ceddc7e6f5c66f9f3994f488fb"
 }
