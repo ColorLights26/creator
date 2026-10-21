@@ -179,7 +179,7 @@ Map<String, Object> prepareCreatorNative({
       'inline const std::vector<CreatorProbeCase>& creatorProbeCases() {\n'
       '  static const std::vector<CreatorProbeCase> cases = {${probeCases.join(',\n')}};\n'
       '  return cases;\n}\n'
-      'struct CreatorPassCase { const char* program; int fps; bool reactive; uint32_t seed; std::array<double, 4> controls; std::array<uint32_t, 4> colors; };\n'
+      'struct CreatorPassCase { const char* program; int fps; bool reactive; uint32_t seed; std::array<double, 4> controls; std::array<uint32_t, 4> colors; bool musicOnly; };\n'
       'inline const std::vector<CreatorPassCase>& creatorPassCases() {\n'
       '  static const std::vector<CreatorPassCase> cases = {${passCases.join(',\n')}};\n'
       '  return cases;\n}\n',
@@ -250,7 +250,8 @@ String _passCase(CreatorVisualDefinition visual) {
   final colors = visual.colors.map((color) => '${color}u');
   return '{${jsonEncode(visual.programId)}, ${visual.framesPerSecond}, '
       '${visual.reactivity != CreatorReactivity.none}, ${visual.seed}u, '
-      '{${controls.join(', ')}}, {${colors.join(', ')}}}';
+      '{${controls.join(', ')}}, {${colors.join(', ')}}, '
+      '${visual.reactivity == CreatorReactivity.music}}';
 }
 
 /// Bump when the generated reader or transition code changes behavior, so a

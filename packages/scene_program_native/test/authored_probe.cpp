@@ -51,6 +51,7 @@ struct Music {
 struct Clip {
   std::vector<float> last;
   std::vector<uint64_t> frames;
+  bool drew = false;  // some frame emitted commands
   bool operator!=(const Clip& other) const { return frames != other.frames; }
 };
 
@@ -124,10 +125,23 @@ void checkInitialFrames(const creator::Program& program) {
   }
 }
 
+/// A layer whose metadata says it only plays with music (reactivity music)
+/// may stay empty in silence: it appears only when the music calls it. The
+/// sweep then requires it to draw with loud music.
+bool musicOnly(const creator::Program& program) {
+#ifdef CREATOR_PROBE_CASES
+  for (const auto& visual : creatorPassCases())
+    if (std::strcmp(visual.program, program.id) == 0) return visual.musicOnly;
+#endif
+  (void)program;
+  return false;
+}
+
 void checkProgram(const creator::Program& program) {
   checkInitialFrames(program);
+  const bool quiet = musicOnly(program);
   auto a = replay(program, 30), b = replay(program, 30), c = replay(program, 60);
-  if (a.empty() || a != b || c.empty())
+  if ((a.empty() && !quiet) || a != b || (c.empty() && !quiet))
     throw Failure("no dibuja nada o no repite el mismo dibujo con la misma semilla "
                   "(usa Random(seed) sólo en reset; nada de relojes ni estado global).");
   if (a != replay(program, 30, true))
@@ -182,6 +196,7 @@ Clip play(const creator::Program& program, bool reactive, const std::array<float
     p.check(cp_update(p.handle, 320, 568, double(i) / fps, 0));
     p.check(cp_draw(p.handle));
     clip.last = p.commands();
+    clip.drew |= !clip.last.empty();
     clip.frames.push_back(digest(clip.last));
   }
   return clip;
@@ -199,6 +214,8 @@ std::vector<std::string> sweep(const creator::Program& program, const CreatorPro
   for (const auto& modifier : probe.modifiers) initial.push_back(modifier.value);
   const auto base = play(program, reactive, loud, initial, music);
   if (base != play(program, reactive, loud, initial, music)) throw Failure("con música, no repite el mismo dibujo.");
+  if (musicOnly(program) && !base.drew)
+    throw Failure("sólo aparece con música, pero ni con música fuerte dibuja nada.");
   std::vector<std::string> dead;
   for (size_t i = 0; i < probe.modifiers.size(); i++) {
     const auto& modifier = probe.modifiers[i];

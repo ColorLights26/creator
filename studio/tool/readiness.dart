@@ -442,7 +442,9 @@ const _proves = {
     'nada sobre coste, calor ni calidad',
   ),
   'nativeReplay': (
-    'ASan/UBSan sin errores; dibuja algo; mismo dibujo con la misma semilla; '
+    'ASan/UBSan sin errores; dibuja algo (una capa que sólo aparece con '
+        'música puede quedar vacía en silencio, pero debe dibujar al sonar); '
+        'mismo dibujo con la misma semilla; '
         'dos instancias no comparten estado; sin música, la misma cantidad de '
         'figuras y el mismo movimiento a 30 y a 60 fps; los valores iniciales '
         'de los modificadores no cambian el dibujo',
