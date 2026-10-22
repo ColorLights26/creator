@@ -118,13 +118,15 @@ vec4 creator_62_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_63_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_64_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_65_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec2 creator_66_rotate2D(vec2 p, float a) {
+vec4 creator_66_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_67_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec2 creator_68_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-float creator_66_crystalFacet(vec2 p, float size, float t, float bass) {
+float creator_68_crystalFacet(vec2 p, float size, float t, float bass) {
   vec2 q = abs(p);
   
   float d1 = dot(q, normalize(vec2(1.0, 1.0))) - size;
@@ -134,7 +136,7 @@ float creator_66_crystalFacet(vec2 p, float size, float t, float bass) {
   return max(max(d1, d2), max(d3, d4));
 }
 
-vec4 creator_66_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_68_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;
 
@@ -154,19 +156,19 @@ vec4 creator_66_paintVisual(vec2 uv, CreatorFrame f) {
     vec2 cp = p * (1.0 + dispersion);
 
     
-    vec2 rotP = creator_66_rotate2D(cp, t * 0.35 + bass * 0.25);
+    vec2 rotP = creator_68_rotate2D(cp, t * 0.35 + bass * 0.25);
 
     
-    float dExt = creator_66_crystalFacet(rotP, crystalBaseSize, t, bass);
+    float dExt = creator_68_crystalFacet(rotP, crystalBaseSize, t, bass);
     float edgeGlow = (0.018 + 0.025 * spark) / (abs(dExt) * 18.0 + 0.008);
 
     
-    vec2 innerP1 = creator_66_rotate2D(rotP * 1.55, -t * 0.55 + float(ch) * 0.2);
-    float dInt1 = creator_66_crystalFacet(innerP1, crystalBaseSize * 0.85, t, bass);
+    vec2 innerP1 = creator_68_rotate2D(rotP * 1.55, -t * 0.55 + float(ch) * 0.2);
+    float dInt1 = creator_68_crystalFacet(innerP1, crystalBaseSize * 0.85, t, bass);
     float innerGlow1 = (0.012 + 0.02 * bass) / (abs(dInt1) * 22.0 + 0.012);
 
-    vec2 innerP2 = creator_66_rotate2D(rotP * 2.4, t * 0.75 + float(ch) * 0.4);
-    float dInt2 = creator_66_crystalFacet(innerP2, crystalBaseSize * 0.7, t, bass);
+    vec2 innerP2 = creator_68_rotate2D(rotP * 2.4, t * 0.75 + float(ch) * 0.4);
+    float dInt2 = creator_68_crystalFacet(innerP2, crystalBaseSize * 0.7, t, bass);
     float innerGlow2 = (0.008 + 0.015 * energy) / (abs(dInt2) * 28.0 + 0.015);
 
     
@@ -194,7 +196,7 @@ vec4 creator_66_paintVisual(vec2 uv, CreatorFrame f) {
   }
 
   
-  vec2 flareP = creator_66_rotate2D(p, t * 0.35);
+  vec2 flareP = creator_68_rotate2D(p, t * 0.35);
   float starX = exp(-abs(flareP.x) * 45.0) * exp(-abs(flareP.y) * 4.0);
   float starY = exp(-abs(flareP.y) * 45.0) * exp(-abs(flareP.x) * 4.0);
   float diamondFlare = (starX + starY) * (0.2 + 1.8 * spark);
@@ -212,8 +214,6 @@ vec4 creator_66_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);
 }
 
-vec4 creator_67_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_68_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_69_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_70_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_71_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
@@ -248,13 +248,17 @@ vec4 creator_99_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_100_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_101_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_102_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec2 creator_103_rotate2D(vec2 p, float a) {
+vec4 creator_103_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_104_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_105_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_106_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec2 creator_107_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-float creator_103_getAngle(vec2 p) {
+float creator_107_getAngle(vec2 p) {
   float r = length(p);
   if (r < 0.00001) { return 0.0; }
   float a = asin(clamp(p.y / r, -1.0, 1.0));
@@ -267,12 +271,12 @@ float creator_103_getAngle(vec2 p) {
   return a;
 }
 
-vec4 creator_103_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_107_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;
 
   float r = length(p);
-  float a = creator_103_getAngle(p);
+  float a = creator_107_getAngle(p);
 
   float beat = clamp(f.pulse, 0.0, 1.0);
   float bass = clamp(f.bass, 0.0, 1.0);
@@ -354,13 +358,13 @@ vec4 creator_103_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(col, 0.0, 1.0), 1.0);
 }
 
-vec2 creator_104_rotate2D(vec2 p, float a) {
+vec2 creator_108_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-float creator_104_getAngle(vec2 p) {
+float creator_108_getAngle(vec2 p) {
   float r = length(p);
   if (r < 0.00001) { return 0.0; }
   float a = asin(clamp(p.y / r, -1.0, 1.0));
@@ -373,12 +377,12 @@ float creator_104_getAngle(vec2 p) {
   return a;
 }
 
-vec4 creator_104_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_108_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;
 
   float r = length(p);
-  float a = creator_104_getAngle(p);
+  float a = creator_108_getAngle(p);
 
   float beat = clamp(f.pulse, 0.0, 1.0);
   float bass = clamp(f.bass, 0.0, 1.0);
@@ -458,19 +462,19 @@ vec4 creator_104_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(col, 0.0, 1.0), alpha);
 }
 
-vec4 creator_105_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_106_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_107_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_108_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_109_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_110_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec2 creator_111_rotate2D(vec2 p, float a) {
+vec4 creator_111_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_112_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_113_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_114_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec2 creator_115_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-float creator_111_getAngle(vec2 p) {
+float creator_115_getAngle(vec2 p) {
   float r = length(p);
   if (r < 0.00001) { return 0.0; }
   float a = asin(clamp(p.y / r, -1.0, 1.0));
@@ -484,7 +488,7 @@ float creator_111_getAngle(vec2 p) {
 }
 
 
-float creator_111_solarNoise(vec2 p, float t) {
+float creator_115_solarNoise(vec2 p, float t) {
   float n = 0.0;
   n = n + sin(p.x * 6.0 + t * 1.2) * cos(p.y * 6.0 - t * 0.9);
   n = n + sin(p.x * 14.0 - t * 1.8 + p.y * 5.0) * 0.5;
@@ -494,7 +498,7 @@ float creator_111_solarNoise(vec2 p, float t) {
 }
 
 
-vec3 creator_111_blackbody(float heat) {
+vec3 creator_115_blackbody(float heat) {
   vec3 col = vec3(0.0);
   col = mix(col, vec3(0.65, 0.03, 0.0), smoothstep(0.0, 0.32, heat));
   col = mix(col, vec3(1.0, 0.32, 0.02), smoothstep(0.24, 0.62, heat));
@@ -503,7 +507,7 @@ vec3 creator_111_blackbody(float heat) {
   return col;
 }
 
-vec4 creator_111_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_115_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;
 
@@ -513,7 +517,7 @@ vec4 creator_111_paintVisual(vec2 uv, CreatorFrame f) {
   float spark = clamp(f.spark, 0.0, 1.0);
 
   float r = length(p);
-  float a = creator_111_getAngle(p);
+  float a = creator_115_getAngle(p);
 
   
   float coreRadius = 0.34 + bass * 0.09 + beat * 0.04;
@@ -556,13 +560,13 @@ vec4 creator_111_paintVisual(vec2 uv, CreatorFrame f) {
 
   
   if (r < coreRadius * 1.25) {
-    vec2 surfCoord = creator_111_rotate2D(p, t * 0.18);
-    float granulation = creator_111_solarNoise(surfCoord * 5.0, t * 1.5);
+    vec2 surfCoord = creator_115_rotate2D(p, t * 0.18);
+    float granulation = creator_115_solarNoise(surfCoord * 5.0, t * 1.5);
     
     
     float radialFactor = clamp((coreRadius - r) / coreRadius, 0.0, 1.0);
     float heat = radialFactor * 0.92 + granulation * 0.32 + bass * 0.35;
-    vec3 sunSurface = creator_111_blackbody(clamp(heat, 0.0, 1.25));
+    vec3 sunSurface = creator_115_blackbody(clamp(heat, 0.0, 1.25));
 
     
     float diskAlpha = smoothstep(coreRadius + 0.02, coreRadius - 0.02, r);
@@ -592,10 +596,6 @@ vec4 creator_111_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(col, 0.0, 1.0), 1.0);
 }
 
-vec4 creator_112_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_113_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_114_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_115_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_116_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_117_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_118_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
@@ -661,7 +661,11 @@ vec4 creator_177_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_178_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_179_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_180_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-float creator_181_liquidField(vec2 p, float t, float bass, float spark, float flow) {
+vec4 creator_181_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_182_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_183_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_184_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+float creator_185_liquidField(vec2 p, float t, float bass, float spark, float flow) {
   float r = length(p);
   
   float ripple = sin(r * (14.0 + 3.0 * flow) - t * 3.8) * (0.035 + 0.055 * bass);
@@ -681,7 +685,7 @@ float creator_181_liquidField(vec2 p, float t, float bass, float spark, float fl
   return dome + ripple + wave1 + wave2 + sizzle;
 }
 
-vec4 creator_181_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_185_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.1;
 
@@ -694,9 +698,9 @@ vec4 creator_181_paintVisual(vec2 uv, CreatorFrame f) {
 
   
   float eps = 0.0035;
-  float hC = creator_181_liquidField(p, t, bass, spark, flow);
-  float hR = creator_181_liquidField(p + vec2(eps, 0.0), t, bass, spark, flow);
-  float hU = creator_181_liquidField(p + vec2(0.0, eps), t, bass, spark, flow);
+  float hC = creator_185_liquidField(p, t, bass, spark, flow);
+  float hR = creator_185_liquidField(p + vec2(eps, 0.0), t, bass, spark, flow);
+  float hU = creator_185_liquidField(p + vec2(0.0, eps), t, bass, spark, flow);
 
   vec3 normal = normalize(vec3((hC - hR) / eps, (hC - hU) / eps, 0.32));
 
@@ -737,7 +741,7 @@ vec4 creator_181_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(finalColor * f.intensity * f.glow, 0.0, 1.0), 1.0);
 }
 
-float creator_182_liquidField(vec2 p, float t, float bass, float spark, float flow) {
+float creator_186_liquidField(vec2 p, float t, float bass, float spark, float flow) {
   float r = length(p);
   
   float ripple = sin(r * (14.0 + 3.0 * flow) - t * 3.8) * (0.035 + 0.055 * bass);
@@ -757,7 +761,7 @@ float creator_182_liquidField(vec2 p, float t, float bass, float spark, float fl
   return dome + ripple + wave1 + wave2 + sizzle;
 }
 
-vec4 creator_182_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_186_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.1;
 
@@ -770,9 +774,9 @@ vec4 creator_182_paintVisual(vec2 uv, CreatorFrame f) {
 
   
   float eps = 0.0035;
-  float hC = creator_182_liquidField(p, t, bass, spark, flow);
-  float hR = creator_182_liquidField(p + vec2(eps, 0.0), t, bass, spark, flow);
-  float hU = creator_182_liquidField(p + vec2(0.0, eps), t, bass, spark, flow);
+  float hC = creator_186_liquidField(p, t, bass, spark, flow);
+  float hR = creator_186_liquidField(p + vec2(eps, 0.0), t, bass, spark, flow);
+  float hU = creator_186_liquidField(p + vec2(0.0, eps), t, bass, spark, flow);
 
   vec3 normal = normalize(vec3((hC - hR) / eps, (hC - hU) / eps, 0.32));
 
@@ -813,10 +817,6 @@ vec4 creator_182_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(surface * f.intensity * f.glow, 0.0, 1.0), alpha);
 }
 
-vec4 creator_183_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_184_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_185_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_186_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_187_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_188_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_189_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
@@ -868,17 +868,21 @@ vec4 creator_234_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_235_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_236_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_237_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec2 creator_238_rotate2D(vec2 p, float a) {
+vec4 creator_238_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_239_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_240_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_241_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec2 creator_242_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-vec3 creator_238_paletteCos(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
+vec3 creator_242_paletteCos(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
   return a + b * cos(6.28318 * (c * t + d));
 }
 
-vec4 creator_238_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_242_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;
 
@@ -901,7 +905,7 @@ vec4 creator_238_paintVisual(vec2 uv, CreatorFrame f) {
     float tunnelDepth = z * 0.55 - t * (1.1 + 0.9 * energy);
 
     
-    vec2 q = creator_238_rotate2D(cp, t * 0.25 + z * 0.12 + bass * 0.35);
+    vec2 q = creator_242_rotate2D(cp, t * 0.25 + z * 0.12 + bass * 0.35);
 
     
     float accum = 0.0;
@@ -909,7 +913,7 @@ vec4 creator_238_paintVisual(vec2 uv, CreatorFrame f) {
     for (int i = 0; i < 4; i++) {
       float fi = float(i);
       k = abs(k) - vec2(0.32 + 0.12 * sin(t * 0.6 + fi * 1.3), 0.22 + 0.08 * cos(t * 0.45));
-      k = creator_238_rotate2D(k, 0.785398 + 0.25 * bass + fi * 0.3);
+      k = creator_242_rotate2D(k, 0.785398 + 0.25 * bass + fi * 0.3);
       accum += 1.0 / (length(k) * 22.0 + 1.0);
     }
 
@@ -921,7 +925,7 @@ vec4 creator_238_paintVisual(vec2 uv, CreatorFrame f) {
     float core = (0.10 + 0.35 * bass) / (r * r * 18.0 + 0.12);
 
     
-    vec3 pal = creator_238_paletteCos(
+    vec3 pal = creator_242_paletteCos(
       tunnelDepth * 0.16 + float(ch) * 0.06 + t * 0.05,
       vec3(0.5, 0.5, 0.5),
       vec3(0.5, 0.5, 0.5),
@@ -944,17 +948,17 @@ vec4 creator_238_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(col, 1.0);
 }
 
-vec2 creator_239_rotate2D(vec2 p, float a) {
+vec2 creator_243_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-vec3 creator_239_paletteCos(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
+vec3 creator_243_paletteCos(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
   return a + b * cos(6.28318 * (c * t + d));
 }
 
-vec4 creator_239_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_243_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;
 
@@ -977,7 +981,7 @@ vec4 creator_239_paintVisual(vec2 uv, CreatorFrame f) {
     float tunnelDepth = z * 0.55 - t * (1.1 + 0.9 * energy);
 
     
-    vec2 q = creator_239_rotate2D(cp, t * 0.25 + z * 0.12 + bass * 0.35);
+    vec2 q = creator_243_rotate2D(cp, t * 0.25 + z * 0.12 + bass * 0.35);
 
     
     float accum = 0.0;
@@ -985,7 +989,7 @@ vec4 creator_239_paintVisual(vec2 uv, CreatorFrame f) {
     for (int i = 0; i < 4; i++) {
       float fi = float(i);
       k = abs(k) - vec2(0.32 + 0.12 * sin(t * 0.6 + fi * 1.3), 0.22 + 0.08 * cos(t * 0.45));
-      k = creator_239_rotate2D(k, 0.785398 + 0.25 * bass + fi * 0.3);
+      k = creator_243_rotate2D(k, 0.785398 + 0.25 * bass + fi * 0.3);
       accum += 1.0 / (length(k) * 22.0 + 1.0);
     }
 
@@ -997,7 +1001,7 @@ vec4 creator_239_paintVisual(vec2 uv, CreatorFrame f) {
     float core = (0.10 + 0.35 * bass) / (r * r * 18.0 + 0.12);
 
     
-    vec3 pal = creator_239_paletteCos(
+    vec3 pal = creator_243_paletteCos(
       tunnelDepth * 0.16 + float(ch) * 0.06 + t * 0.05,
       vec3(0.5, 0.5, 0.5),
       vec3(0.5, 0.5, 0.5),
@@ -1022,8 +1026,8 @@ vec4 creator_239_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(col, 0.0, 1.0), alpha);
 }
 
-vec4 creator_240_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_241_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_244_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_245_paintVisual(vec2 uv, CreatorFrame f) {
   vec2 p = (uv - 0.5) * vec2(f.size.x / max(f.size.y, 1.0), 1.0);
   float radius = 0.27 + 0.015 * sin(f.time * f.speed) + 0.025 * f.bass;
   float distance = abs(length(p) - radius);
@@ -1034,10 +1038,6 @@ vec4 creator_241_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(ink, alpha);
 }
 
-vec4 creator_242_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_243_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_244_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_245_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_246_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_247_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_248_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
@@ -1154,13 +1154,19 @@ vec4 creator_358_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_359_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_360_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_361_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec2 creator_362_rotate2D(vec2 p, float a) {
+vec4 creator_362_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_363_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_364_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_365_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_366_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_367_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec2 creator_368_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-vec4 creator_362_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_368_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;
 
@@ -1184,7 +1190,7 @@ vec4 creator_362_paintVisual(vec2 uv, CreatorFrame f) {
 
   
   vec2 warpedP = p + r * (0.35 + 0.15 * flow);
-  warpedP = creator_362_rotate2D(warpedP, t * 0.12 + bass * 0.2);
+  warpedP = creator_368_rotate2D(warpedP, t * 0.12 + bass * 0.2);
 
   float ribbon1 = sin(warpedP.y * 4.2 + warpedP.x * 2.1 + t * 1.2);
   float ribbon2 = cos(warpedP.y * 5.6 - warpedP.x * 2.8 - t * 0.95);
@@ -1224,12 +1230,6 @@ vec4 creator_362_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);
 }
 
-vec4 creator_363_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_364_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_365_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_366_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_367_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_368_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_369_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_370_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_371_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
@@ -1277,17 +1277,23 @@ vec4 creator_412_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_413_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_414_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_415_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec2 creator_416_rotate2D(vec2 p, float a) {
+vec4 creator_416_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_417_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_418_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_419_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_420_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_421_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec2 creator_422_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-float creator_416_hash21(vec2 p) {
+float creator_422_hash21(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 }
 
-vec4 creator_416_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_422_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.3;
 
@@ -1311,7 +1317,7 @@ vec4 creator_416_paintVisual(vec2 uv, CreatorFrame f) {
   
   vec2 diskP = lensP;
   diskP.y *= 2.35; 
-  diskP = creator_416_rotate2D(diskP, 0.38);
+  diskP = creator_422_rotate2D(diskP, 0.38);
 
   float diskR = length(diskP);
   
@@ -1347,7 +1353,7 @@ vec4 creator_416_paintVisual(vec2 uv, CreatorFrame f) {
 
   
   vec2 starGrid = floor(lensP * 28.0);
-  float starHash = creator_416_hash21(starGrid);
+  float starHash = creator_422_hash21(starGrid);
   if (starHash > 0.962) {
     if (r > eventHorizon * 1.15) {
       vec2 starFrac = fract(lensP * 28.0) - 0.5;
@@ -1376,17 +1382,17 @@ vec4 creator_416_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);
 }
 
-vec2 creator_417_rotate2D(vec2 p, float a) {
+vec2 creator_423_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-float creator_417_hash21(vec2 p) {
+float creator_423_hash21(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 }
 
-vec4 creator_417_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_423_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.3;
 
@@ -1410,7 +1416,7 @@ vec4 creator_417_paintVisual(vec2 uv, CreatorFrame f) {
   
   vec2 diskP = lensP;
   diskP.y *= 2.35; 
-  diskP = creator_417_rotate2D(diskP, 0.38);
+  diskP = creator_423_rotate2D(diskP, 0.38);
 
   float diskR = length(diskP);
   
@@ -1446,7 +1452,7 @@ vec4 creator_417_paintVisual(vec2 uv, CreatorFrame f) {
 
   
   vec2 starGrid = floor(lensP * 28.0);
-  float starHash = creator_417_hash21(starGrid);
+  float starHash = creator_423_hash21(starGrid);
   if (starHash > 0.962) {
     if (r > eventHorizon * 1.15) {
       vec2 starFrac = fract(lensP * 28.0) - 0.5;
@@ -1477,10 +1483,10 @@ vec4 creator_417_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), alpha);
 }
 
-vec4 creator_418_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_419_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_420_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_421_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_424_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_425_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_426_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_427_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 void main() {
   CreatorFrame f;
   f.size=uSize; f.time=uTime; f.seedLow=uSeedLow; f.seedHigh=uSeedHigh;
@@ -1912,6 +1918,12 @@ void main() {
   if (abs(uVisualIndex - 419.0) < 0.5) color=creator_419_paintVisual(uv,f);
   if (abs(uVisualIndex - 420.0) < 0.5) color=creator_420_paintVisual(uv,f);
   if (abs(uVisualIndex - 421.0) < 0.5) color=creator_421_paintVisual(uv,f);
+  if (abs(uVisualIndex - 422.0) < 0.5) color=creator_422_paintVisual(uv,f);
+  if (abs(uVisualIndex - 423.0) < 0.5) color=creator_423_paintVisual(uv,f);
+  if (abs(uVisualIndex - 424.0) < 0.5) color=creator_424_paintVisual(uv,f);
+  if (abs(uVisualIndex - 425.0) < 0.5) color=creator_425_paintVisual(uv,f);
+  if (abs(uVisualIndex - 426.0) < 0.5) color=creator_426_paintVisual(uv,f);
+  if (abs(uVisualIndex - 427.0) < 0.5) color=creator_427_paintVisual(uv,f);
   if (any(isnan(color)) || any(isinf(color))) color=vec4(0.0);
   color=clamp(color,0.0,1.0);
   fragColor=vec4(color.rgb*color.a,color.a);

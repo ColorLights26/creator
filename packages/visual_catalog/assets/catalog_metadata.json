@@ -601,6 +601,57 @@
       "reactivity": "optional"
     },
     {
+      "id": "bengala",
+      "name": "Bengala",
+      "description": "Bengalas que dibujan en el aire: dejan un trazo de luz que se apaga despacio, como en una foto de larga exposición, y su punta escupe chispas que se parten en dos al volar. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "festive",
+        "magical",
+        "warm"
+      ],
+      "concepts": [
+        "sparkler",
+        "light painting",
+        "sparks",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Firma de Luz",
+          "values": {
+            "trazos": 1,
+            "dibujo": "Bucles",
+            "persistencia": 4
+          }
+        },
+        {
+          "name": "Fiesta",
+          "values": {
+            "trazos": 3,
+            "dibujo": "Ola",
+            "persistencia": 1.2,
+            "speed": 1.4
+          }
+        }
+      ]
+    },
+    {
       "id": "bokeh_luces",
       "name": "Bokeh",
       "description": "Luces desenfocadas ámbar, rosa y azul que flotan a distintas profundidades y laten suavemente con la música.",
@@ -1950,6 +2001,57 @@
             "bordes": "Laterales",
             "alcance": 1,
             "estela": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "chispas_electricas",
+      "name": "Chispas Eléctricas",
+      "description": "Descargas eléctricas que chasquean por la pantalla: arcos en zigzag que se rehacen sin parar, con ramas, un halo violeta, un fogonazo donde golpean y una lluvia de chispas. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "energetic",
+        "intense",
+        "futuristic"
+      ],
+      "concepts": [
+        "electricity",
+        "lightning",
+        "sparks",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Tormenta",
+          "values": {
+            "descargas": 2,
+            "ramas": 1,
+            "origen": "Libre"
+          }
+        },
+        {
+          "name": "Bobina de Tesla",
+          "values": {
+            "origen": "Centro",
+            "descargas": 1.6,
+            "ramas": 0.7,
+            "tamano": 1.2
           }
         }
       ]
@@ -3703,6 +3805,109 @@
       "publication": "draft",
       "role": "background",
       "reactivity": "optional"
+    },
+    {
+      "id": "estallido_polvo",
+      "name": "Estallido de Polvo",
+      "description": "Estallidos de polvo de colores en cámara lenta: con cada golpe, una nube de polvo finísimo rojo, naranja o amarillo sale en chorros, se frena y queda flotando. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "explosive",
+        "festive",
+        "intense"
+      ],
+      "concepts": [
+        "powder explosion",
+        "holi",
+        "slow motion",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Festival",
+          "values": {
+            "fuerza": 1.6,
+            "nube": 0.8,
+            "deriva": "Subir",
+            "detail": 1.6
+          }
+        },
+        {
+          "name": "Humo Fino",
+          "values": {
+            "fuerza": 0.7,
+            "nube": 0.2,
+            "deriva": "Flotar"
+          }
+        }
+      ]
+    },
+    {
+      "id": "estela_magica",
+      "name": "Estela Mágica",
+      "description": "Luces mágicas que vuelan haciendo espirales y ondas y dejan una cinta brillante con hebras que se enroscan y un rastro de polvo de estrellas que titila y cae. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "magical",
+        "dreamy",
+        "festive"
+      ],
+      "concepts": [
+        "magic trail",
+        "sparkles",
+        "light ribbon",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Hada",
+          "values": {
+            "estelas": 1,
+            "vuelo": "Libre",
+            "polvo": 1,
+            "tamano": 1.2
+          }
+        },
+        {
+          "name": "Torbellino",
+          "values": {
+            "estelas": 4,
+            "vuelo": "Espiral",
+            "polvo": 0.5,
+            "speed": 1.3
+          }
+        }
+      ]
     },
     {
       "id": "estrella_neon",
@@ -9249,6 +9454,56 @@
       "reactivity": "optional"
     },
     {
+      "id": "rayos_polvo_dorado",
+      "name": "Rayos de Luz con Polvo Dorado",
+      "description": "Haces de luz dorada que entran en diagonal y polvo de oro que flota en el aire: fuera de la luz casi no se ve y, al cruzar un haz, brilla y destella. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "cinematic",
+        "dreamy",
+        "elegant"
+      ],
+      "concepts": [
+        "god rays",
+        "golden dust",
+        "light beams",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Catedral",
+          "values": {
+            "haces": 6,
+            "corriente": "Calma",
+            "profundidad": 0.8
+          }
+        },
+        {
+          "name": "Ventana",
+          "values": {
+            "haces": 2,
+            "corriente": "Brisa",
+            "tamano": 1.3
+          }
+        }
+      ]
+    },
+    {
       "id": "reaccion_bz",
       "name": "Reacción BZ",
       "description": "La reacción química de Belousov-Zhabotinsky: espirales y anillos de color que avanzan, chocan y se anulan; con la música nacen focos nuevos y la química se acelera.",
@@ -13723,6 +13978,58 @@
             "marco": "Arriba y abajo",
             "apertura": 0.6,
             "disparo": "Cada pulso"
+          }
+        }
+      ]
+    },
+    {
+      "id": "rio_particulas",
+      "name": "Río de Partículas",
+      "description": "Un río de miles de partículas plateadas y carmesí que fluye serpenteando por la pantalla, con su resplandor, partículas que se escapan en remolinos y olas de luz que lo recorren con la música. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "hypnotic",
+        "elegant",
+        "cosmic"
+      ],
+      "concepts": [
+        "particle stream",
+        "river of light",
+        "flow",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 3.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "optional",
+      "variations": [
+        {
+          "name": "Galaxia",
+          "values": {
+            "curso": "Serpiente",
+            "turbulencia": 0.7,
+            "estela": 1,
+            "detail": 1.7
+          }
+        },
+        {
+          "name": "Arteria",
+          "values": {
+            "curso": "Vertical",
+            "turbulencia": 0.1,
+            "estela": 0.3,
+            "tamano": 1.3
           }
         }
       ]
