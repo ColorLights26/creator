@@ -9789,7 +9789,7 @@
     {
       "id": "reactiva_cabezas_moviles",
       "name": "Reactiva · Mirada de Cabezas Móviles",
-      "description": "Con la caja, varios haces de cabezas móviles giran y apuntan a cámara: cada uno se vuelve un disco cegador con estrella de seis puntas, la escena se vela un instante y los haces se retiran. Sin música no dibuja nada.",
+      "description": "Con la caja, cabezas móviles de haz estrecho escondidas abajo barren el humo con haces de núcleo blanco y halo de color y giran hasta mirar a cámara: la lente se vuelve un disco nítido con estrella de seis puntas y florece dos cuadros; luego se retiran. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -9798,13 +9798,14 @@
       "moods": [
         "energetic",
         "dramatic",
-        "warm"
+        "vivid"
       ],
       "concepts": [
         "aparición momentánea",
         "moving heads",
         "beam",
-        "concert lighting"
+        "concert lighting",
+        "lens glare"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -9812,7 +9813,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.68
+        "timeSeconds": 1.2
       },
       "publication": "draft",
       "role": "overlay",
@@ -11571,7 +11572,7 @@
     {
       "id": "reactiva_mejorada_cabezas_moviles",
       "name": "Reactiva Mejorada · Mirada de Cabezas Móviles",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con la caja, varios haces de cabezas móviles giran y apuntan a cámara: cada uno se vuelve un disco cegador con estrella de seis puntas, la escena se vela un instante y los haces se retiran. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con la caja, cabezas móviles de haz estrecho escondidas abajo barren el humo con haces de núcleo blanco y halo de color y giran hasta mirar a cámara: la lente se vuelve un disco nítido con estrella de seis puntas y florece dos cuadros; luego se retiran. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -11580,13 +11581,14 @@
       "moods": [
         "energetic",
         "dramatic",
-        "warm"
+        "vivid"
       ],
       "concepts": [
         "aparición momentánea",
         "moving heads",
         "beam",
-        "concert lighting"
+        "concert lighting",
+        "lens glare"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -11594,7 +11596,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.68
+        "timeSeconds": 1.2
       },
       "publication": "draft",
       "role": "overlay",
