@@ -390,7 +390,6 @@ void main() {
   float off = 0.11 * unit;   // del centro del módulo a cada lámpara
   float Rc = 0.085 * unit;   // radio de cada lámpara
   float halfSize = off + Rc * 1.2;
-  float aa = 1.0 / uSize.x;
   // Sensor según la temperatura del filamento: caliente, ámbar que quema a
   // blanco; frío, rojo brasa saturado.
   vec3 m = mix(uOrange, uWhite, 0.3);
@@ -403,7 +402,6 @@ void main() {
   vec3 lo3 = mix(uEmber, uOrange, 0.35);
   lo3 /= max(lo3.r, 0.01);
   vec3 light = vec3(0.0);
-  float shade = 0.0;
   for (int i = 0; i < 6; i++) {
     float age = ages[i];
     float amp = amps[i];
@@ -420,7 +418,6 @@ void main() {
     float r2 = dot(d, d);
     float L = 0.0;
     // Las cuatro lámparas, cada una con su desfase (±40 ms) y su brillo (±15 %).
-    float hottest = 0.0;
     if (r2 < 0.2) {
       for (int c = 0; c < 4; c++) {
         vec2 o = vec2(c == 0 || c == 2 ? -off : off, c < 2 ? -off : off);
@@ -429,7 +426,6 @@ void main() {
         float gain = amp * (0.85 + 0.3 * hash(float(i * 4 + c) + 9.1));
         float e = env(a, 0.02, uCool * (0.7 + 0.6 * jit)) * gain;
         float h = env(a, 0.015, uFlash) * gain;
-        hottest = max(hottest, max(e, h));
         vec2 dc = d - o;
         float q2 = dot(dc, dc) / (Rc * Rc);
         float q = sqrt(q2);
@@ -469,12 +465,6 @@ void main() {
         light += rc * lr;
       }
     }
-    // Carcasa del módulo: rectángulo de esquinas de 6 px y borde de 1 px que
-    // oscurece un 40 % sin color; se va cuando su filamento más caliente baja
-    // del 30 %.
-    vec2 bq = abs(d) - vec2(halfSize - 0.0167);
-    float box = length(max(bq, 0.0)) + min(max(bq.x, bq.y), 0.0) - 0.0167;
-    shade = max(shade, 0.4 * smoothstep(aa, -aa, box) * hottest * hottest * hottest * hottest * smoothstep(0.48, 0.52, hottest));
     // Cono de bruma suave hacia abajo, sólo en el destello.
     if (d.y > 0.0 && uSmoke > 0.0) {
       float cone = clamp(1.0 - abs(d.x) / (d.y * 0.8 + 0.06), 0.0, 1.0);
@@ -487,8 +477,7 @@ void main() {
   }
   light *= smoothstep(uSize.y, uSize.y * 0.6, px.y);  // nada llega al borde de la zona pintada
   vec3 tone = vec3(1.0) - exp(-light);
-  shade *= smoothstep(uSize.y, uSize.y * 0.6, px.y);
-  fragColor = vec4(tone, max(shade, 0.1 * max(tone.r, max(tone.g, tone.b))));
+  fragColor = vec4(tone, 0.1 * max(tone.r, max(tone.g, tone.b)));
 }
 ''',
 

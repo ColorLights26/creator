@@ -2,7 +2,7 @@ import 'package:scene_compositor/authoring.dart';
 
 const metadata = CreatorVisualMetadata(
   id: 'reactiva_mejorada_celuloide_quemado',
-  name: 'Reactiva Mejorada · Celuloide Quemado',
+  name: 'Reactiva Mejorada · Celuloide Quemado (pasada por la crítica)',
   publication: CreatorPublication.draft,
   description:
       'Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. La película se quema desde una esquina o un borde, con varios focos que se unen: un frente de lóbulos y dedos finos quema a blanco y pasa a amarillo, naranja y rojo, con ampollas que destellan y chispas; lo quemado se aclara enseguida y queda un anillo de fuego que avanza. Sin música no dibuja nada.',

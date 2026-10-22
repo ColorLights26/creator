@@ -2,7 +2,7 @@ import 'package:scene_compositor/authoring.dart';
 
 const metadata = CreatorVisualMetadata(
   id: 'reactiva_mejorada_polvo_lente',
-  name: 'Reactiva Mejorada · Polvo de Lente Revelado',
+  name: 'Reactiva Mejorada · Polvo de Lente Revelado (pasada por la crítica)',
   publication: CreatorPublication.draft,
   description:
       'Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Una luz cálida e intensa cruza la lente en un arco y revela a su alrededor la suciedad real del cristal: manchas, huellas, vetas de grasa, fibras y motas con borde cromático, con una estela anamórfica azul y fantasmas suaves del diafragma que se mueven al revés que la luz. Sin música no dibuja nada.',

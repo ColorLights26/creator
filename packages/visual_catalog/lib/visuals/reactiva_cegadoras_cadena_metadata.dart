@@ -2,7 +2,7 @@ import 'package:scene_compositor/authoring.dart';
 
 const metadata = CreatorVisualMetadata(
   id: 'reactiva_cegadoras_cadena',
-  name: 'Reactiva · Cegadoras en Cadena',
+  name: 'Reactiva · Cegadoras en Cadena (pasada por la crítica)',
   publication: CreatorPublication.draft,
   description:
       'Módulos grandes de cuatro cegadoras en dos filas se encienden en cadena: cada lámpara quema a blanco en su centro con resplandores suaves y una estrella de seis puntas; el brillo cae en unos cuadros y queda el filamento, que se enfría de ámbar a naranja y rojo brasa. Sin música no dibuja nada.',
