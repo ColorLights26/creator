@@ -9559,22 +9559,22 @@
     {
       "id": "reactiva_aurora_enciende",
       "name": "Reactiva · Aurora que se Enciende",
-      "description": "Durante la subida de energía baja desde arriba una cortina de rayos de aurora, esmeralda con borde rosado y cresta carmesí; en el drop brilla el doble y se retira hacia arriba. Sin música no dibuja nada.",
+      "description": "Durante la subida de energía baja desde arriba la cortina de una aurora boreal: cinta ondulada con pliegues que brillan de canto, rayos verticales finos, borde verde intenso con franja magenta debajo y carmesí arriba; en el pico brilla el doble y se retira. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "magical",
-        "building",
+        "dreamy",
+        "cosmic",
         "vivid"
       ],
       "concepts": [
         "aparición momentánea",
-        "aurora",
-        "build-up",
-        "curtain of light"
+        "aurora borealis",
+        "curtain",
+        "rays"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -9582,7 +9582,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.2
+        "timeSeconds": 1.4
       },
       "publication": "draft",
       "role": "overlay",
@@ -9938,21 +9938,22 @@
     {
       "id": "reactiva_canon_seguimiento",
       "name": "Reactiva · Cañón de Seguimiento",
-      "description": "Tras una pausa, en el primer golpe se abre de golpe el iris de un cañón de seguimiento: luz cálida dentro, la escena algo más oscura fuera, y se cierra al poco. Sin música no dibuja nada.",
+      "description": "Tras una pausa, en el primer golpe se abre en cuatro cuadros el iris de doce láminas de un cañón de seguimiento: círculo de luz blanca cálida con caída suave, filo azul de la lente, polvo en la luz y el haz entre el humo; fuera la escena se oscurece y el iris se cierra. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "cinematic",
         "dramatic",
+        "theatrical",
         "warm"
       ],
       "concepts": [
         "aparición momentánea",
-        "followspot",
+        "follow spot",
         "iris",
+        "stage lighting",
         "spotlight"
       ],
       "credits": {
@@ -9961,7 +9962,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.3
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -11339,22 +11340,22 @@
     {
       "id": "reactiva_mejorada_aurora_enciende",
       "name": "Reactiva Mejorada · Aurora que se Enciende",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Durante la subida de energía baja desde arriba una cortina de rayos de aurora, esmeralda con borde rosado y cresta carmesí; en el drop brilla el doble y se retira hacia arriba. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Durante la subida de energía baja desde arriba la cortina de una aurora boreal: cinta ondulada con pliegues que brillan de canto, rayos verticales finos, borde verde intenso con franja magenta debajo y carmesí arriba; en el pico brilla el doble y se retira. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "magical",
-        "building",
+        "dreamy",
+        "cosmic",
         "vivid"
       ],
       "concepts": [
         "aparición momentánea",
-        "aurora",
-        "build-up",
-        "curtain of light"
+        "aurora borealis",
+        "curtain",
+        "rays"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -11362,7 +11363,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.2
+        "timeSeconds": 1.4
       },
       "publication": "draft",
       "role": "overlay",
@@ -11719,21 +11720,22 @@
     {
       "id": "reactiva_mejorada_canon_seguimiento",
       "name": "Reactiva Mejorada · Cañón de Seguimiento",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Tras una pausa, en el primer golpe se abre de golpe el iris de un cañón de seguimiento: luz cálida dentro, la escena algo más oscura fuera, y se cierra al poco. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Tras una pausa, en el primer golpe se abre en cuatro cuadros el iris de doce láminas de un cañón de seguimiento: círculo de luz blanca cálida con caída suave, filo azul de la lente, polvo en la luz y el haz entre el humo; fuera la escena se oscurece y el iris se cierra. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "cinematic",
         "dramatic",
+        "theatrical",
         "warm"
       ],
       "concepts": [
         "aparición momentánea",
-        "followspot",
+        "follow spot",
         "iris",
+        "stage lighting",
         "spotlight"
       ],
       "credits": {
@@ -11742,7 +11744,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.3
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",

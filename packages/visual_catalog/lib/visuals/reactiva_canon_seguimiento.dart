@@ -1,12 +1,15 @@
 // Reactiva · Cañón de Seguimiento — transparencia momentánea. Tras una pausa, en el primer
-// golpe se abre de golpe el iris de un cañón de seguimiento sobre la escena:
-// dentro, luz cálida suave y un aro algo más frío; fuera, la escena se oscurece
-// un poco. Se mantiene un instante y se cierra. Es la que de verdad «saca algo»
-// de la escena sin leer sus píxeles: aísla el centro. Referente: Robert Juliat
-// Cyrano (iris con cierre al 100 %).
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// golpe el iris de un cañón de seguimiento se abre en cuatro cuadros: doce
+// láminas rectas que giran unos 10° y dejan un círculo de luz blanca cálida
+// con el centro quemado y una caída suave hasta el borde, que se apaga en
+// 3 px con un filo azul de la lente en parte de su contorno. El operador lo
+// sigue con un vaivén de unos 10 px y un pequeño rebote al abrir; flota polvo
+// en la luz y el haz baja desde arriba entre el humo. Fuera, la escena se
+// oscurece sin color, más lejos del círculo. El iris se cierra en cinco
+// cuadros. Referente: el follow spot de un concierto sobre el solista.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -16,7 +19,7 @@ const modifiers = [
   // FORMA: tamaño del círculo de luz.
   CreatorModifier.slider('tamano', 'Tamaño del círculo', min: .2, max: .45, value: .3),
   // ATMÓSFERA: cuánto se oscurece fuera.
-  CreatorModifier.slider('oscuridad', 'Oscuridad fuera', min: .2, max: .6, value: .42),
+  CreatorModifier.slider('oscuridad', 'Oscuridad fuera', min: .2, max: .6, value: .4),
   // MOVIMIENTO: dónde se abre.
   CreatorModifier.choice('posicion', 'Posición', options: ['Centro', 'Tercio superior']),
 ];
@@ -240,40 +243,114 @@ class Visual final : public Scene {
   }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
-    const float W = f.width, H = f.height, S = std::min(W, H), D = std::sqrt(W * W + H * H);
-    const Color ink = f.colors[0], rim = f.colors[2], warm = f.colors[3];
-    // Sólo cuenta el último: un cañón nuevo sustituye al anterior.
-    const Pulse* last = nullptr;
-    for (const Pulse& p : slots)
-      if (now >= p.start && (!last || p.start > last->start)) last = &p;
-    if (!last) return;
-    const double age = (now - last->start) * double(pace(f));
-    const float hold = last->kind == 1 ? 0.5f : 0.9f;
-    if (age > double(hold) + 0.5) return;
-    const float open = easeOut(float(age / 0.12));
-    const float q = age < double(hold) ? 0.0f : float((age - double(hold)) / 0.5);
-    const float k = std::min(amount(last->power) * f.intensity, 1.4f) * (1.0f - q);
-    if (k < kMin) return;
-    const Vec2 o = {W * 0.5f, H * (0.45f - 0.12f * g.posicion.weight(1))};
-    const float R = std::max(1.0f, g.tamano * S * 1.15f * open * (1.0f - 0.35f * q));
-    const float dark = std::min(g.oscuridad * k, 0.65f);
-    Paint shadow = Paint::radial(o, D, {tint(ink, 0.0f), tint(ink, 0.0f), tint(ink, dark), tint(ink, dark)}, {0.0f, 0.93f * R / D, R / D, 1.0f});
-    c.rect({0.0f, 0.0f, W, H}, shadow);
-    glow(c, o, R * 1.05f, warm, warm, 0.12f * k);
-    Paint rimPaint;
-    rimPaint.color = tint(rim, 0.25f * k);
-    rimPaint.blend = Blend::plus;
-    rimPaint.strokeWidth = S * 0.004f;
-    Path rp;
-    rp.circle(o, R);
-    c.path(rp, rimPaint);
-    Path cone;
-    // El haz desde la cabina se desvanece antes de llegar al círculo.
-    const float topY = o.y + R * 0.75f;
-    cone.moveTo(W * 0.47f, H * 1.02f).lineTo(W * 0.53f, H * 1.02f).lineTo(o.x + R * 0.66f, topY).lineTo(o.x - R * 0.66f, topY).close();
-    Paint cp = Paint::linear({W * 0.5f, H}, {o.x, topY}, {tint(warm, 0.07f * k), tint(warm, 0.03f * k), tint(warm, 0.0f)}, {0.0f, 0.6f, 1.0f});
-    cp.blend = Blend::plus;
-    c.path(cone, cp);
+    const auto m = modifiers(f);
+    const float W = f.width, H = f.height;
+    // La apertura más reciente.
+    float age = 100.0f, amp = 0.0f;
+    for (const Pulse& p : slots) {
+      const float a = float(now - p.start) * pace(f);
+      if (a < 0.0f || a > 1.0f || a >= age) continue;
+      age = a;
+      amp = std::min(amount(p.power) * f.intensity, 1.2f);
+    }
+    if (amp <= 0.0f) return;
+    const Color shadow = f.colors[1], cool = f.colors[2], warm = f.colors[3];
+    c.material("spot", {0.0f, 0.0f, W, H},
+               {age, amp, 0.5f * W, (m.posicion == 1 ? 0.33f : 0.5f) * H, g.tamano * W, g.oscuridad,
+                shadow.r, shadow.g, shadow.b, cool.r, cool.g, cool.b, warm.r, warm.g, warm.b},
+               {"smoke"});
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'spot': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform float uAge;
+uniform float uAmp;
+uniform vec2 uCenter;
+uniform float uRadius;
+uniform float uDark;
+uniform vec3 uShadow;
+uniform vec3 uCool;
+uniform vec3 uWarm;
+uniform sampler2D uTex;
+out vec4 fragColor;
+
+float hash(float n) {
+  return fract(sin(n * 12.9898) * 43758.5453);
+}
+float hash2(vec2 p) {
+  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+// Perfil del círculo por radio relativo: centro quemado (+255) y caída
+// suave hasta +200 junto al borde.
+float pool(float rn) {
+  if (rn < 0.23) return 1.0;
+  if (rn < 0.46) return mix(1.0, 0.92, smoothstep(0.23, 0.46, rn));
+  if (rn < 0.74) return mix(0.92, 0.84, (rn - 0.46) / 0.28);
+  return mix(0.84, 0.78, clamp((rn - 0.74) / 0.19, 0.0, 1.0));
+}
+
+void main() {
+  vec2 px = FlutterFragCoord().xy;
+  float W = uSize.x;
+  float px1 = W / 360.0;
+  float a = uAge;
+  // Abre en cuatro cuadros con un leve rebote; cierra en cinco.
+  float ko = 1.0 - clamp(a / 0.133, 0.0, 1.0);
+  float open = 1.0 - ko * ko * ko;
+  open *= 1.0 + 0.06 * sin(3.14159 * clamp((a - 0.133) / 0.15, 0.0, 1.0));
+  float close = 1.0 - smoothstep(0.8, 0.967, a);
+  float R = uRadius * open * close;
+  float vis = smoothstep(0.0, 0.03, a) * step(0.01, close);
+  // Láminas rectas al abrir y al cerrar, girando unos 10°.
+  float poly = clamp(1.0 - smoothstep(0.133, 0.23, a) + smoothstep(0.8, 0.85, a), 0.0, 1.0);
+  float rot = 0.17 * max(1.0 - open, 1.0 - close);
+  // Vaivén del operador (unos 10 px) y rebote al abrir.
+  vec2 c = uCenter + vec2(sin(6.2832 * a / 1.5) * 10.0 + 6.0 * exp(-a / 0.15) * sin(a * 25.0), cos(6.2832 * a / 2.33) * 8.0) * px1;
+  vec2 q = px - c;
+  float d = length(q);
+  float ang = atan(q.y, q.x) + rot;
+  float seg = 6.28318 / 12.0;
+  float pf = cos(seg * 0.5) / cos(mod(ang, seg) - seg * 0.5);
+  float dd = mix(d, d / pf, poly);
+  float rn = dd / max(R, 1.0);
+  float edge = smoothstep(R + 1.5 * px1, R - 1.5 * px1, dd);
+  float edgeSoft = smoothstep(R + 2.0 * px1, R - 2.0 * px1, dd);
+  // Polvo que flota en la luz.
+  vec2 drift = vec2(a * 9.0, -a * 16.0) * px1;
+  vec2 cell = floor((px + drift) / (7.0 * px1));
+  vec2 cp = (cell + vec2(hash2(cell), hash2(cell + 4.1))) * 7.0 * px1 - drift;
+  float dust = step(0.975, hash2(cell + 9.3)) * exp(-dot(px - cp, px - cp) / (px1 * px1 * 0.8)) * 0.35
+             * (1.0 - edge) * step(px.y, c.y - R * 0.3);
+  // Haz que baja desde arriba entre el humo, que deriva.
+  vec2 apex = vec2(c.x + 0.12 * W, -0.35 * uSize.y);
+  vec2 ax = normalize(c - apex);
+  float tt = clamp(dot(px - apex, ax) / length(c - apex), 0.0, 1.0);
+  float off = abs((px.x - apex.x) * ax.y - (px.y - apex.y) * ax.x);
+  float shaft = smoothstep(R * tt * 1.05, R * tt * 0.6, off) * smoothstep(0.0, 0.8, tt) * (1.0 - edge) * step(px.y, c.y);
+  float haze = texture(uTex, fract(px / W * vec2(0.5, 0.25) + vec2(0.3, -a * 0.12))).r;
+  // Luz blanca cálida (azul = 0,85 del rojo) y filo azul de 1,5 px fuera del
+  // borde en parte del contorno.
+  vec3 warm = vec3(1.0, 0.94, 0.85) * mix(vec3(1.0), uWarm, 0.3);
+  // Filo azul: los últimos 2 px de la caída del propio círculo se tiñen de
+  // azul en un tercio del contorno, apagándose en los extremos.
+  float arc = smoothstep(0.4, 0.8, cos(ang - 0.8));
+  float zone = smoothstep(R - 2.0 * px1, R, dd) * arc;
+  vec3 blue = vec3(0.47, 0.67, 1.0) * mix(vec3(1.0), uCool / max(max(uCool.r, uCool.g), uCool.b), 0.3);
+  vec3 poolCol = mix(warm, blue, zone);
+  vec3 light = poolCol * pool(rn) * edgeSoft + warm * (shaft * (0.05 + 0.1 * haze) + dust);
+  light *= min(uAmp, 1.0) * vis;
+  // Fuera, la escena se oscurece sin color: x0,70 junto al círculo y x0,60 a 250 px.
+  float shade = (0.3 + 0.1 * smoothstep(0.0, 250.0 * px1, dd - R)) * (1.0 - edge) * vis * (uDark / 0.4);
+  vec3 tone = min(light, vec3(1.0));
+  float m = max(tone.r, max(tone.g, tone.b));
+  fragColor = vec4(tone + uShadow * shade, clamp(max(shade * (1.0 - m), 0.1 * m), 0.0, 1.0));
+}
+''',
+
+};

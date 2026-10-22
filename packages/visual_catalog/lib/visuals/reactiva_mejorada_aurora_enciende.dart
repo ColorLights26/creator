@@ -1,15 +1,17 @@
-// Reactiva Mejorada · Aurora que se Enciende — transparencia momentánea. Durante la subida de energía
-// baja desde el borde superior una cortina plegada de rayos de aurora: base
-// esmeralda, borde inferior rosado nítido y cresta carmesí, más brillante cuanto
-// más sube la energía. En el drop brilla el doble, los rayos titilan y se
-// retira hacia arriba. Sólo luz de cielo pegada al borde. Referente:
-// «Auroras» de nimitz (Shadertoy), rehecho en 2D para el móvil.
+// Reactiva Mejorada · Aurora que se Enciende — transparencia momentánea. Durante la subida de
+// energía baja desde arriba, en unos veinte cuadros, la cortina de una aurora
+// boreal: una cinta de borde suave que ondula en dos o tres olas y se pliega,
+// con rayos verticales finos que bailan despacio y que en los pliegues (donde
+// la lámina se ve de canto) se apiñan y brillan el doble. El borde es verde
+// intenso que se desvanece hacia arriba, con una franja magenta debajo y el
+// carmesí de la gran altura sólo arriba del todo. En el pico brilla el doble y
+// se retira hacia arriba en medio segundo. La luz se suma a la escena.
+// Referente: fotografías de aurora boreal (Tromsø, Islandia).
 // Versión mejorada: sigue el ritmo (cada golpe o cada tiempo) y su fuerza
-// depende del volumen de la música; los pulsos son cortos para que se
-// vean con el compás. La original («Reactiva · Aurora que se Enciende») no se toca.
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// depende del volumen de la música.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -249,7 +251,6 @@ class Visual final : public Scene {
   void update(const Frame& f) override {
     const Hits h = listen(f);
     const int d = modifiers(f).disparo;
-    // Con la subida, la cortina sigue a la energía que crece.
     // Con el volumen: la cortina sube y baja con lo fuerte que suena.
     const float target = d == 0 ? clamp01(loud * 0.9f + 0.4f * build) : 0.0f;
     level += (target - level) * clamp01(float(f.delta) * 3.0f);
@@ -260,50 +261,113 @@ class Visual final : public Scene {
   }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
+    const auto m = modifiers(f);
     const float W = f.width, H = f.height;
-    float L = modifiers(f).disparo == 0 ? level : 0.0f;
-    float lift = 1.0f, flicker = 0.0f;
+    // Brillo y bajada: la subida (o el volumen), los golpes y el pico, que la
+    // dobla y la retira hacia arriba en medio segundo.
+    float glow = level * f.intensity, reach = level, lift = 0.0f;
     for (const Pulse& p : slots) {
       const double age = now - p.start;
+      if (age < 0.0 || age > 1.6) continue;
+      const float k = std::min(amount(p.power) * f.intensity, 1.3f);
       if (p.kind == 1) {
-        if (age >= 0.0 && age < 0.4) {
-          const float q = float(age / 0.4);
-          L = std::max(L, 1.6f * (1.0f - q));
-          lift = std::min(lift, 1.0f - q);
-          flicker = 1.0f;
-        }
+        glow = std::max(glow, 2.0f * env(age, 0.05f, 0.5f / pace(f)) * k);
+        lift = std::max(lift, easeInOut(float(age) * pace(f) / 0.45f));
       } else {
-        L = std::max(L, arc(age, 1.4f / pace(f)) * amount(p.power));
+        const float e = env(age, 0.6f / pace(f), 1.0f / pace(f)) * k;
+        glow = std::max(glow, e);
+        reach = std::max(reach, age * pace(f) < 0.6 ? e : 1.0f);
       }
     }
-    const float a0 = L * 0.3f * f.intensity;
-    if (a0 < kMin) return;
-    const float wr = g.tono.weight(1);
-    const Color top = f.colors[1], base = mixc(f.colors[2], f.colors[1], wr), edge = mixc(f.colors[3], f.colors[1], 0.5f * wr);
-    const float t = float(now);
-    Paint sky = Paint::linear({0.0f, 0.0f}, {0.0f, H * g.altura * 0.8f}, {tint(top, 0.07f * a0), tint(top, 0.0f)}, {0.0f, 1.0f});
-    sky.blend = Blend::plus;
-    c.rect({0.0f, 0.0f, W, H * g.altura * 0.8f}, sky);
-    // Muchas franjas estrechas y muy solapadas sobre una curva suave: la
-    // cortina se lee continua, con pliegues anchos, rayos finos y un borde
-    // inferior que brilla y se difumina.
-    const int N = 72;
-    const float skirt = H * 0.03f;
-    for (int i = 0; i < N; i++) {
-      const float u = (float(i) + 0.5f) / float(N);
-      const float xc = W * u + g.pliegues * 0.03f * W * std::sin(t * 0.6f + u * 9.0f);
-      const float y0 = H * g.altura * lift * (0.78f + 0.12f * std::sin(u * 6.3f + t * 0.7f) + 0.07f * std::sin(u * 13.0f - t * 1.1f) + 0.03f * std::sin(u * 31.0f + t * 2.0f));
-      if (y0 < 2.0f * skirt) continue;
-      const float w = W / float(N) * 3.0f;
-      const float fold = 0.55f + 0.45f * std::sin(u * 11.0f - t * 0.8f);
-      const float ray = 0.6f + 0.4f * std::sin(u * 97.0f + t * (1.2f + 6.0f * flicker));
-      const float a = a0 * fold * ray * 0.55f;
-      const float y1 = y0 + skirt, k0 = skirt / y1;
-      Paint q = Paint::linear({0.0f, y1}, {0.0f, 0.0f}, {tint(edge, 0.0f), tint(edge, 0.9f * a), tint(base, 0.6f * a), tint(base, 0.22f * a), tint(top, 0.14f * a), tint(top, 0.0f)},
-                              {0.0f, k0, k0 + 0.06f, 0.42f, 0.75f, 1.0f});
-      q.blend = Blend::plus;
-      c.rect({xc - 0.5f * w, 0.0f, w, y1}, q);
-    }
+    if (glow < kMin) return;
+    const Color red = f.colors[1], green = f.colors[2], pink = f.colors[3];
+    // Sólo la parte de arriba, hasta un poco por debajo de la cortina.
+    const float band = std::min(H, H * g.altura * 1.1f + 0.2f * W);
+    c.material("aurora", {0.0f, 0.0f, W, band},
+               {float(now) * pace(f), glow, easeOut(clamp01(reach / 0.7f)), lift, g.altura, g.pliegues, m.tono == 1 ? 1.0f : 0.0f, H / W,
+                red.r, red.g, red.b, green.r, green.g, green.b, pink.r, pink.g, pink.b},
+               {"noise"});
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'aurora': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform float uTime;
+uniform float uGlow;
+uniform float uDescent;
+uniform float uLift;
+uniform float uHeight;
+uniform float uFolds;
+uniform float uAllRed;
+uniform float uAspect;
+uniform vec3 uRed;
+uniform vec3 uGreen;
+uniform vec3 uPink;
+uniform sampler2D uTex;
+out vec4 fragColor;
+
+// Sensor: el color se satura en lo tenue y se quema a blanco en lo intenso.
+vec3 sensor(vec3 c) {
+  return pow(c / max(max(c.r, c.g), max(c.b, 0.01)), vec3(1.5)) * 0.95 + 0.05;
+}
+
+void main() {
+  vec2 px = FlutterFragCoord().xy;
+  vec2 uv = px / uSize.x;
+  float t = uTime;
+  float fk = 0.4 + 0.6 * uFolds;
+  // Cinta de borde suave: dos olas largas (unos 215 y 130 px) que derivan
+  // 1-2 px por cuadro.
+  float k1 = 6.2832 / 0.6;
+  float k2 = 6.2832 / 0.36;
+  float k3 = 6.2832 / 0.167;
+  float wave = (0.07 * sin(uv.x * k1 + t * 1.4) + 0.035 * sin(uv.x * k2 - t * 1.0 + 1.3) + 0.014 * sin(uv.x * k3 + t * 2.2)) * fk;
+  float slope = (0.07 * k1 * cos(uv.x * k1 + t * 1.4) + 0.035 * k2 * cos(uv.x * k2 - t * 1.0 + 1.3)) * fk;
+  // Donde el borde se inclina, la lámina se ve de canto: más rayos y el doble de brillo.
+  float steep = smoothstep(0.3, 1.2, abs(slope));
+  float target = uHeight * uAspect * 0.85;
+  float rx = uv.x * (1.0 + 0.6 * steep) + wave * 0.5;
+  float r = texture(uTex, fract(vec2(rx * 6.0 + t * 0.04, uv.y * 0.12 - t * 0.015))).r;
+  float r2 = texture(uTex, fract(vec2(rx * 2.3 - t * 0.02, uv.y * 0.08 + 0.4))).g;
+  float rays = (0.3 + 1.5 * r * r) * (0.6 + 0.8 * r2);
+  // Baja desde arriba con la energía (y en el pico sube y se va); cada rayo
+  // acaba a su altura, con no más de 2 px de diferencia.
+  float yE = mix(-0.11, target, uDescent) + wave + (r - 0.5) * 0.0055 - uLift * (target + 0.2);
+  float d = yE - uv.y;  // > 0 dentro de la cortina
+  float dd = max(d, 0.0);
+  float inside = smoothstep(-0.007, 0.0, d);
+  float base = 0.8 + 0.2 * steep;
+  float boost = 1.0 + 1.2 * steep * exp(-dd / 0.035);
+  // Verde intenso en todo el borde (el doble en los pliegues) y una cola que
+  // sube 120-150 px hasta el carmesí, con la mitad de la energía abajo.
+  float hem = 1.5 * boost * rays * base;
+  float greenL = (hem * exp(-dd / 0.03) + 0.45 * exp(-dd / 0.15) * rays * base) * inside;
+  // Un pliegue en S: la cinta vuelve sobre sí misma 30-50 px más arriba en
+  // una zona que deriva despacio, y las dos capas se suman.
+  float x0 = fract(0.35 + t * 0.02);
+  float fold = exp(-(uv.x - x0) * (uv.x - x0) / 0.0049);
+  // La capa de arriba tiene su propio borde (60 % del verde) y su franja.
+  float d2 = yE - 0.035 - 0.02 * sin((uv.x - x0) * 40.0) - uv.y;
+  float hem2 = 0.6 * hem * fold;
+  greenL += hem2 * exp(-max(d2, 0.0) / 0.03) * smoothstep(-0.007, 0.0, d2);
+  float fz2 = (d2 + 0.0055) / 0.011;
+  float pink2 = 0.45 * hem2 * exp(-fz2 * fz2);
+  // Carmesí arriba, que baja fundiéndose con la cola verde unos 60 px.
+  float redL = 0.4 * smoothstep(0.25 * max(yE, 0.01) + 0.25, 0.0, uv.y) * (0.5 + 0.5 * rays) * inside;
+  // Franja magenta: el 45 % del verde del borde, 2 px por debajo, rota por
+  // los mismos rayos.
+  float fz = (d + 0.0055) / 0.011;
+  float pinkL = 0.45 * hem * exp(-fz * fz) + pink2;
+  vec3 light = greenL * sensor(mix(uGreen, uRed, uAllRed)) + redL * sensor(uRed)
+             + pinkL * sensor(mix(uPink, uRed, uAllRed * 0.5));
+  light *= uGlow * 1.4 * smoothstep(uSize.y, uSize.y * 0.85, px.y);
+  vec3 tone = vec3(1.0) - exp(-light);
+  fragColor = vec4(tone, 0.1 * max(tone.r, max(tone.g, tone.b)));
+}
+''',
+
+};
