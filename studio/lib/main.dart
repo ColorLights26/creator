@@ -6,6 +6,7 @@ import 'package:visual_catalog/visual_catalog.dart';
 import 'probe/energy_probe_launch.dart';
 import 'probe/energy_probe_screen.dart';
 import 'studio/creator_studio.dart';
+import 'studio/visual_collections.dart';
 import 'team_review/team_review_client.dart';
 import 'team_review/team_review_controller.dart';
 
@@ -32,14 +33,32 @@ Future<void> main() async {
     return;
   }
 
-  runApp(VisualStudioApp(
-    initializationError: failure,
-    teamReview: TeamReviewController(
-      client: HttpTeamReviewClient(),
-      store: PreferencesReviewerKeyStore(),
-      liveInterval: const Duration(seconds: 5),
+  List<StudioVisualCollection> collections = const [];
+  if (failure == null) {
+    try {
+      collections = await loadStudioVisualCollections();
+    } on Object catch (error, stack) {
+      developer.log(
+        'Creator delivery collections initialization failed',
+        name: 'creator',
+        error: error,
+        stackTrace: stack,
+      );
+      failure = error.toString();
+    }
+  }
+
+  runApp(
+    VisualStudioApp(
+      initializationError: failure,
+      collections: collections,
+      teamReview: TeamReviewController(
+        client: HttpTeamReviewClient(),
+        store: PreferencesReviewerKeyStore(),
+        liveInterval: const Duration(seconds: 5),
+      ),
     ),
-  ));
+  );
 }
 
 class VisualStudioApp extends StatelessWidget {
@@ -47,10 +66,12 @@ class VisualStudioApp extends StatelessWidget {
     super.key,
     this.initializationError,
     this.teamReview,
+    this.collections = const [],
   });
 
   final String? initializationError;
   final TeamReviewController? teamReview;
+  final List<StudioVisualCollection> collections;
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +96,7 @@ class VisualStudioApp extends StatelessWidget {
       ),
       home:
           initializationError == null
-              ? CreatorStudio(teamReview: teamReview)
+              ? CreatorStudio(teamReview: teamReview, collections: collections)
               : Scaffold(
                 appBar: AppBar(title: const Text('Revisa el catálogo')),
                 body: Center(

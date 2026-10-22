@@ -73,7 +73,7 @@ class CreatorStudio extends StatefulWidget {
     this.acceptedVisualsLoader = loadAcceptedVisuals,
     this.teamReview,
     this.personalVariations,
-    this.collections = studioVisualCollections,
+    this.collections = const [],
     super.key,
   });
 
@@ -130,7 +130,7 @@ class _CreatorStudioState extends State<CreatorStudio>
   /// every technical label falls back to "unknown" until it is regenerated.
   CreatorEngineMismatch _readinessEngine = CreatorEngineMismatch.none;
   TeamVoteFilter _voteFilter = TeamVoteFilter.all;
-  String _collectionId = 'all';
+  late String _collectionId = widget.collections.firstOrNull?.id ?? 'all';
 
   StudioVisualCollection? get _collection =>
       widget.collections

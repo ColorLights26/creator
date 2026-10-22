@@ -1,3 +1,9 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
+
+import 'visual_uploads.dart';
+
 /// Editorial groups for reviewing an upload without changing visual revisions.
 class StudioVisualCollection {
   const StudioVisualCollection({
@@ -11,54 +17,85 @@ class StudioVisualCollection {
   final Set<String> visualIds;
 }
 
-// Keep upload membership explicit: names and credit labels can change.
-const studioVisualCollections = <StudioVisualCollection>[
-  StudioVisualCollection(
-    id: 'franco_20261018',
-    label: 'Nuevos de Franco · 18 oct',
-    visualIds: {
-      'brasas_azules_premium',
-      'brasas_cinematicas',
-      'brasas_premium',
-      'brasas_remolino_premium',
-      'ceniza_premium',
-      'chispas_premium',
-      'chispas_bordes_premium',
-      'destellos_dorados_premium',
-      'estrellas_fugaces_premium',
-      'fuego_azul',
-      'hiperespacio_premium',
-      'lluvia_dorada_premium',
-      'lluvia_colores_premium',
-      'lluvia_particulas_premium',
-      'luces_flotantes_premium',
-      'luciernagas_simples_premium',
-      'nieve_premium',
-      'nubes_azules',
-      'particulas_viento_premium',
-      'particulas_fuego',
-      'polvo_flotante_premium',
-      'pixeles_premium',
-      'brasas',
-      'brasas_azules',
-      'brasas_remolino',
-      'ceniza',
-      'chispas',
-      'chispas_bordes',
-      'destellos_dorados',
-      'estrellas_fugaces',
-      'hiperespacio',
-      'lluvia_dorada',
-      'lluvia_colores',
-      'lluvia_particulas',
-      'luces_flotantes',
-      'luciernagas_simples',
-      'nieve',
-      'particulas_viento',
-      'polvo_flotante',
-      'pixeles',
-    },
+Future<List<StudioVisualCollection>> loadStudioVisualCollections({
+  AssetBundle? bundle,
+}) async => buildStudioVisualCollections(
+  decodeStudioVisualUploads(
+    await (bundle ?? rootBundle).loadString('assets/visual_uploads.json'),
   ),
+);
+
+List<StudioVisualCollection> buildStudioVisualCollections(
+  Iterable<StudioVisualUpload> uploads,
+) {
+  final groups = <String, List<StudioVisualUpload>>{};
+  final pending = <String>{};
+  for (final upload in uploads) {
+    if (upload.date == null) {
+      pending.add(upload.visualId);
+      continue;
+    }
+    final author = base64Url
+        .encode(utf8.encode(upload.author!.trim().toLowerCase()))
+        .replaceAll('=', '');
+    final id = 'upload_${author}_${upload.date!.replaceAll('-', '')}';
+    (groups[id] ??= []).add(upload);
+  }
+  final ordered =
+      groups.entries.toList()..sort((a, b) {
+        final byDate = b.value.first.date!.compareTo(a.value.first.date!);
+        return byDate != 0 ? byDate : a.key.compareTo(b.key);
+      });
+  const months = [
+    'ene',
+    'feb',
+    'mar',
+    'abr',
+    'may',
+    'jun',
+    'jul',
+    'ago',
+    'sep',
+    'oct',
+    'nov',
+    'dic',
+  ];
+  String deliveryLabel(StudioVisualUpload upload) =>
+      '${upload.author} · '
+      '${int.parse(upload.date!.substring(8))} '
+      '${months[int.parse(upload.date!.substring(5, 7)) - 1]} '
+      '${upload.date!.substring(0, 4)}';
+  return List.unmodifiable([
+    for (final group in ordered) ...[
+      StudioVisualCollection(
+        id: group.key,
+        label: 'Nuevos de ${deliveryLabel(group.value.first)}',
+        visualIds: Set.unmodifiable(group.value.map((item) => item.visualId)),
+      ),
+      for (final family in StudioReactiveFamily.values)
+        if (group.value.any((item) => item.reactiveFamily == family))
+          StudioVisualCollection(
+            id: '${group.key}_${family.name}',
+            label: '${family.label} · ${deliveryLabel(group.value.first)}',
+            visualIds: Set.unmodifiable(
+              group.value
+                  .where((item) => item.reactiveFamily == family)
+                  .map((item) => item.visualId),
+            ),
+          ),
+    ],
+    if (pending.isNotEmpty)
+      StudioVisualCollection(
+        id: 'uploads_in_preparation',
+        label: 'En preparación',
+        visualIds: Set.unmodifiable(pending),
+      ),
+    ..._legacyStudioVisualCollections,
+  ]);
+}
+
+// Historical editorial subsets remain available alongside automatic deliveries.
+const _legacyStudioVisualCollections = <StudioVisualCollection>[
   StudioVisualCollection(
     id: 'franco_20261018_premium',
     label: 'Premium de Franco · 18 oct',

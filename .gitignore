@@ -13,6 +13,9 @@ __pycache__/
 .pub/
 build/
 coverage/
+# Delivery provenance is regenerated from Git after pulls and native builds.
+# Keep it in portable exports, without dirtying the checkout after every pull.
+/studio/assets/visual_uploads.json
 .gradle/
 .kotlin/
 .cxx/

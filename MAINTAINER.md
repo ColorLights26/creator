@@ -55,6 +55,32 @@ conserva autor, licencia y origen. Los controles `intensity`, `speed` y `glow`
 admiten 0–2; `detail`, 0.25–2. Mantener cuatro colores ARGB. La publicación es
 una etiqueta editorial: ninguna de sus opciones concede aprobación.
 
+## Lotes automáticos de entregas
+
+El selector de Studio agrupa automáticamente por autor y fecha de primera
+incorporación del par de archivos en Git, con las entregas recientes primero.
+No se mantiene una lista manual por fecha. Editar o renombrar el mismo ID no
+cambia su lote; los pares todavía sin una entrega confirmada aparecen en
+«En preparación», sin inventar una fecha a partir del reloj o del archivo.
+
+El build nativo normal usa `studio/tool/compile_creator.dart`, que prepara el
+catálogo y ejecuta `generate_visual_collections.dart`. Este último también
+instala hooks locales de `post-merge`, `post-checkout` y `post-rewrite`: el
+siguiente pull o cambio de rama refresca la información antes de transferir
+el proyecto a una Mac remota. Los hooks existentes de otras herramientas se
+conservan. La configuración afecta sólo a este repositorio.
+
+`studio/assets/visual_uploads.json` es una caché editorial regenerable y
+deliberadamente ignorada por Git para que refrescarla no bloquee futuros pulls.
+El exportador la prepara y la incluye en el kit; los builds sin `.git` conservan
+esa copia. Un historial superficial nunca se usa para asignar fechas falsas.
+CI obtiene el historial completo y prepara las entregas antes de probar Studio.
+Las revisiones de visuales, los votos y las aprobaciones no incluyen estos lotes.
+Las familias existentes con IDs `reactiva_` y `reactiva_mejorada_` ofrecen además
+subgrupos automáticos dentro de cada entrega. La familia mejorada se resuelve
+primero y no se mezcla con la original; los demás visuales conservan el lote
+completo y no reciben una clasificación reactiva por su aspecto.
+
 ## Modificadores
 
 Un visual nativo declara sus propios ajustes y variaciones en el archivo del

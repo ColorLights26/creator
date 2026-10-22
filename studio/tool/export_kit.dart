@@ -5,7 +5,7 @@ Future<void> main() async {
   final audiovisual = creator.parent;
   final compile = await Process.run(Platform.resolvedExecutable, [
     'run',
-    'tool/compile_visuals.dart',
+    'tool/compile_creator.dart',
   ], workingDirectory: creator.path);
   if (compile.exitCode != 0) {
     stderr.write(compile.stderr);

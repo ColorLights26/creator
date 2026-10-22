@@ -58,6 +58,15 @@ No edites a mano los productos generados: `lib/src/registry.g.dart`,
 Regenera desde `studio/` con `dart run tool/compile_visuals.dart`. Los hooks
 nativos lo hacen antes de empaquetar Flutter; mantén ese orden.
 
+Los lotes de Studio se generan automáticamente por autor y fecha de primera
+incorporación en Git. No añadas listas de IDs por fecha a la interfaz.
+`studio/tool/compile_creator.dart` prepara también
+`studio/assets/visual_uploads.json`; es una caché editorial ignorada por Git que
+debe viajar en los exports y builds remotos. El generador instala únicamente en
+este repositorio los hooks de pull/cambio de rama que la refrescan, conservando
+cualquier hook ajeno. El catálogo sin historial usa la copia portable; los pares
+sin fecha confirmada aparecen en «En preparación».
+
 ## Contratos que deben conservarse
 
 - Usa el mismo programa C++ y los mismos materiales GLSL en ambas plataformas.

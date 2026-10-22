@@ -26,6 +26,8 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Keep local dependencies inside the repository
         run: |
           python3 - <<'PY'
@@ -49,7 +51,7 @@ jobs:
         run: flutter pub get
       - name: Generate the canonical catalog
         working-directory: studio
-        run: dart run tool/compile_visuals.dart
+        run: dart run tool/compile_creator.dart
       - name: Frame rates match the energy record
         working-directory: studio
         run: dart run tool/frame_rate.dart check
