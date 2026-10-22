@@ -7,7 +7,9 @@ import 'package:scene_compositor/src/creator_command_canvas.dart';
 import 'package:visual_catalog/visual_catalog.dart';
 import 'package:visual_contract/visual_contract.dart';
 
-SceneRenderSignalFrameV2 signal(int sequence, bool music) {
+/// [accents] adds a cymbal (3 frames after each kick) and a snare (6 frames
+/// after it) for layers that only appear with music, some on those hits.
+SceneRenderSignalFrameV2 signal(int sequence, bool music, {bool accents = false}) {
   final zero = SceneRenderSignalEventV2(
     serial: 0,
     active: false,
@@ -21,6 +23,15 @@ SceneRenderSignalFrameV2 signal(int sequence, bool music) {
     timestampMicros: sequence * 33333,
     strength: music ? .8 : 0,
     band: SceneRenderSignalEventBandV2.low,
+  );
+  final accent = SceneRenderSignalEventV2(
+    serial: sequence ~/ 3 + 1,
+    active: music && (sequence % 12 == 3 || sequence % 12 == 6),
+    timestampMicros: sequence * 33333,
+    strength: music ? .8 : 0,
+    band: sequence % 12 == 6
+        ? SceneRenderSignalEventBandV2.body
+        : SceneRenderSignalEventBandV2.high,
   );
   return SceneRenderSignalFrameV2(
     sessionId: 2,
@@ -40,7 +51,7 @@ SceneRenderSignalFrameV2 signal(int sequence, bool music) {
     tonalAvailable: false,
     tonal: List.filled(3, 0),
     impact: hit,
-    accent: zero,
+    accent: accents ? accent : zero,
     beat: hit,
     flash: zero,
   );
@@ -64,9 +75,70 @@ void main() {
         for (final visual in creatorVisuals.where((v) => v.isNative)) {
           final scene = CreatorNativeProgram(visual, libraryPath: library);
           final renderer = await CreatorCommandCanvas.prepare(visual);
-          final shaders = <ui.Shader>[];
-          ui.Picture? picture;
-          ui.Image? image;
+          // A layer that only plays with music (reactivity music) appears for
+          // an instant after its hit and may be empty at any single frame. It
+          // is drawn at every frame of the two seconds of kicks, cymbals and
+          // snares: it must be visible in one and leave the scene visible in
+          // one.
+          final musicOnly = visual.reactivity == CreatorReactivity.music;
+          var visible = false, transparent = false, opaque = true;
+          Future<void> look({required bool last}) async {
+            final shaders = <ui.Shader>[];
+            ui.Picture? picture;
+            ui.Image? image;
+            try {
+              final recorder = ui.PictureRecorder(),
+                  canvas = ui.Canvas(recorder);
+              if (visual.role == CreatorRole.background)
+                canvas.drawColor(
+                  ui.Color(visual.colors.first),
+                  ui.BlendMode.src,
+                );
+              shaders.addAll(renderer.paint(canvas, scene.draw()));
+              picture = recorder.endRecording();
+              image = await picture.toImage(320, 568);
+              if (last) {
+                final png =
+                    (await image.toByteData(format: ui.ImageByteFormat.png))!;
+                File(
+                  '$output/${visual.programId}.png',
+                ).writeAsBytesSync(png.buffer.asUint8List());
+              }
+              final pixels =
+                  (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!;
+              if (last && visual.id == 'composition_probe') {
+                final samples =
+                    jsonDecode(
+                          File(
+                            'test/fixtures/native_composition/pixels.json',
+                          ).readAsStringSync(),
+                        )
+                        as List;
+                for (final sample in samples) {
+                  final offset =
+                      ((sample[1] as int) * 320 + (sample[0] as int)) * 4;
+                  for (var channel = 0; channel < 4; channel++) {
+                    expect(
+                      pixels.getUint8(offset + channel),
+                      closeTo(sample[2][channel] as num, 2),
+                      reason: 'composition $sample channel $channel',
+                    );
+                  }
+                }
+              }
+              for (var i = 3; i < pixels.lengthInBytes; i += 4) {
+                final a = pixels.getUint8(i);
+                if (a > 16) visible = true;
+                if (a < 16) transparent = true;
+                if (a != 255) opaque = false;
+              }
+            } finally {
+              image?.dispose();
+              picture?.dispose();
+              for (final shader in shaders) shader.dispose();
+            }
+          }
+
           try {
             scene.configure(
               reactive: visual.reactivity != CreatorReactivity.none,
@@ -74,65 +146,32 @@ void main() {
               hostTime: 0,
             );
             for (var i = 0; i <= 60; i++) {
-              scene.consume(signal(i, true));
+              scene.consume(signal(i, true, accents: musicOnly));
               scene.update(
                 width: 320,
                 height: 568,
                 hostTime: i / 30,
                 reducedMotion: false,
               );
+              if (musicOnly && i < 60) await look(last: false);
             }
-            final recorder = ui.PictureRecorder(), canvas = ui.Canvas(recorder);
-            if (visual.role == CreatorRole.background)
-              canvas.drawColor(ui.Color(visual.colors.first), ui.BlendMode.src);
-            shaders.addAll(renderer.paint(canvas, scene.draw()));
-            picture = recorder.endRecording();
-            image = await picture.toImage(320, 568);
-            final png =
-                (await image.toByteData(format: ui.ImageByteFormat.png))!;
-            File(
-              '$output/${visual.programId}.png',
-            ).writeAsBytesSync(png.buffer.asUint8List());
-            final pixels =
-                (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!;
-            if (visual.id == 'composition_probe') {
-              final samples =
-                  jsonDecode(
-                        File(
-                          'test/fixtures/native_composition/pixels.json',
-                        ).readAsStringSync(),
-                      )
-                      as List;
-              for (final sample in samples) {
-                final offset =
-                    ((sample[1] as int) * 320 + (sample[0] as int)) * 4;
-                for (var channel = 0; channel < 4; channel++) {
-                  expect(
-                    pixels.getUint8(offset + channel),
-                    closeTo(sample[2][channel] as num, 2),
-                    reason: 'composition $sample channel $channel',
-                  );
-                }
-              }
-            }
-            final alpha = [
-              for (var i = 3; i < pixels.lengthInBytes; i += 4)
-                pixels.getUint8(i),
-            ];
+            await look(last: true);
             expect(
-              alpha.any((a) => a > 16),
+              visible,
               isTrue,
-              reason: '${visual.id} must draw visible pixels (alpha > 16)',
+              reason: musicOnly
+                  ? '${visual.id} must draw visible pixels after a hit (alpha > 16)'
+                  : '${visual.id} must draw visible pixels (alpha > 16)',
             );
             if (visual.role == CreatorRole.background) {
               expect(
-                alpha.every((a) => a == 255),
+                opaque,
                 isTrue,
                 reason: '${visual.id} background must be fully opaque',
               );
             } else {
               expect(
-                alpha.any((a) => a < 16),
+                transparent,
                 isTrue,
                 reason:
                     '${visual.id} overlay must leave transparent areas (alpha < 16)',
@@ -140,9 +179,6 @@ void main() {
             }
             stdout.writeln('PASS pixel: ${visual.id}');
           } finally {
-            image?.dispose();
-            picture?.dispose();
-            for (final shader in shaders) shader.dispose();
             renderer.dispose();
             scene.dispose();
           }
