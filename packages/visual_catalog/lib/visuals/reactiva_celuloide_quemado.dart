@@ -237,7 +237,7 @@ class Visual final : public Scene {
     for (auto& b : bins_) b.reserve(2048);
     resetOwn(seed);
   }
-  static constexpr float kGrow = 0.42f;  // lo que tarda el frente en llegar a su tamaño
+  static constexpr float kSpeed = 7.5f;  // anchos de pantalla por segundo: cruza en unos 12 cuadros
   void resetOwn(uint32_t) {}
   void update(const Frame& f) override {
     const Hits h = listen(f);
@@ -248,13 +248,13 @@ class Visual final : public Scene {
     auto g = glide(f);
     const auto m = modifiers(f);
     const float W = f.width, H = f.height;
-    const float fade = g.caida / pace(f);
+    const float fade = (0.06f + 0.12f * g.caida) / pace(f);
     const Color red = f.colors[1], orange = f.colors[2], yellow = f.colors[3];
     for (const Pulse& p : slots) {
       const float age = float(now - p.start);
-      if (age < 0.0f || age > 0.5f + fade) continue;
-      // Arde mientras el frente avanza; luego se apaga.
-      const float temp = age < 0.5f ? 1.0f : clamp01(1.0f - (age - 0.5f) / fade);
+      if (age < 0.0f || age > 0.36f + fade) continue;
+      // Arde mientras el frente cruza; luego se apaga del todo.
+      const float temp = age < 0.36f ? 1.0f : clamp01(1.0f - (age - 0.36f) / fade);
       if (temp <= 0.0f) continue;
       const float k = std::min(amount(p.power) * f.intensity, 1.2f);
       // Origen: cuatro esquinas y los centros de los cuatro bordes.
@@ -278,15 +278,18 @@ class Visual final : public Scene {
         o[1] = {o[0].x, o[0].y - a1 * 1.4f};
         o[2] = {o[0].x, o[0].y + a2 * 1.4f};
       }
-      // Tamaño final y retardo de cada foco; el frente avanza sin pararse.
-      const float P = g.tamano * 1.45f * (p.kind == 1 ? 0.8f : 1.0f) * (0.75f + 0.25f * std::min(k, 1.0f));
+      // Velocidad de cada foco y su retardo: el frente nunca se para dentro
+      // del cuadro.
+      const float P = kSpeed * (0.6f + 0.6f * g.tamano) * (p.kind == 1 ? 0.85f : 1.0f) * (0.85f + 0.15f * std::min(k, 1.0f));
       std::array<float, 3> size{}, delay{};
       float reach = 0.0f;
       for (int j = 0; j < 3; j++) {
         delay[size_t(j)] = j == 0 ? 0.0f : 0.03f + 0.07f * rnd(p.id * 9u + uint32_t(j));
-        size[size_t(j)] = P * (j == 0 ? 1.0f : 0.55f + 0.25f * rnd(p.id * 13u + uint32_t(j)));
-        if (age >= delay[size_t(j)])
-          reach = std::max(reach, size[size_t(j)] * (0.06f + 0.94f * clamp01((age - delay[size_t(j)]) / kGrow)));
+        size[size_t(j)] = P * (j == 0 ? 1.0f : 0.7f + 0.2f * rnd(p.id * 13u + uint32_t(j)));
+        if (age >= delay[size_t(j)]) {
+          const float t = age - delay[size_t(j)];
+          reach = std::max(reach, size[size_t(j)] * t * (0.85f + 0.75f * t));
+        }
       }
       // Sólo se pinta alrededor de los focos: la quemadura y su resplandor.
       reach = (reach * 2.0f + 0.15f) * W;
@@ -297,7 +300,7 @@ class Visual final : public Scene {
       if (x1 <= x0 || y1 <= y0) continue;
       c.material("burn", {x0, y0, x1 - x0, y1 - y0},
                  {x0, y0, W, o[0].x, o[0].y, o[1].x, o[1].y, o[2].x, o[2].y,
-                  size[0], size[1], size[2], delay[0], delay[1], delay[2], age, kGrow, temp,
+                  size[0], size[1], size[2], delay[0], delay[1], delay[2], age, float(now), temp,
                   rnd(p.id * 7u + 3u), reach / W,
                   red.r, red.g, red.b, orange.r, orange.g, orange.b, yellow.r, yellow.g, yellow.b},
                  {"burn"});
@@ -319,7 +322,7 @@ uniform vec2 uO2;
 uniform vec3 uP;
 uniform vec3 uDelay;
 uniform float uAge;
-uniform float uGrow;
+uniform float uClock;
 uniform float uTemp;
 uniform float uSeed;
 uniform float uReach;
@@ -333,11 +336,35 @@ float hash(vec2 p) {
   return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
+// Red continua de celdas de emulsión (Voronoi, celdas de 8 a 20 px con las
+// paredes torcidas): 1 en las paredes entre celdas.
+float cells(vec2 px) {
+  vec2 gp = px / 12.0;
+  vec2 ip = floor(gp);
+  vec2 fp = fract(gp);
+  float f1 = 9.0;
+  float f2 = 9.0;
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      vec2 o = vec2(float(i), float(j));
+      vec2 c = o + vec2(hash(ip + o), hash(ip + o + 5.3)) - fp;
+      float d = dot(c, c);
+      if (d < f1) {
+        f2 = f1;
+        f1 = d;
+      } else if (d < f2) {
+        f2 = d;
+      }
+    }
+  }
+  return 1.0 - smoothstep(0.0, 0.1, sqrt(f2) - sqrt(f1));
+}
+
 void main() {
   vec2 px = FlutterFragCoord().xy + uOffset;
   float W = uWidth;
   // Temblor del proyector y el calor que hace temblar el borde.
-  vec2 g = px + vec2(sin(px.y * 0.09 + uAge * 23.0) * 0.0015 * W, sin(uAge * 9.0) * 0.002 * W);
+  vec2 g = px + vec2(sin(px.y * 0.09 + uClock * 23.0) * 0.0015 * W, sin(uClock * 9.0) * 0.002 * W);
   vec2 st = g / W;
   vec2 seed = vec2(uSeed, fract(uSeed * 7.31));
   // Ruido deformado en varias escalas: lóbulos grandes, medianos y dedos finos.
@@ -350,44 +377,96 @@ void main() {
   vec3 rw = r * warp;
   // Distancia al frente de cada foco (positivo = ya quemado).
   vec3 lit = step(uDelay, vec3(uAge));
-  vec3 prog = mix(vec3(-1.0), uP * (0.06 + 0.94 * clamp((vec3(uAge) - uDelay) / uGrow, 0.0, 1.0)), lit);
+  // Velocidad constante que acelera un poco: nunca se para.
+  vec3 tt = max(vec3(uAge) - uDelay, 0.0);
+  vec3 prog = mix(vec3(-1.0), uP * tt * (0.85 + 0.75 * tt), lit);
   vec3 ev = prog - rw;
-  float e = max(ev.x, max(ev.y, ev.z)) - 0.035 * (mid.r - 0.5) - 0.014 * (t.r - 0.5);
+  // Dedos finos que se adelantan al frente.
+  float e = max(ev.x, max(ev.y, ev.z)) - 0.05 * (mid.r - 0.5) - 0.02 * (t.r - 0.5);
   float aa = 1.5 / W;
   float inside = smoothstep(-aa, aa, e);
   // Los exponentes van acotados: lejos del frente un exp() desbordado daría NaN.
   float ein = max(e, 0.0), eout = min(e, 0.0);
-  // Cuánto hace que pasó el frente por aquí (distancia / velocidad): lo
-  // quemado se aclara en unos cuadros, sin escalones entre focos.
-  float ago = ein * uGrow / (0.94 * max(max(uP.x, max(uP.y, uP.z)), 0.001));
+  // Cuánto hace que pasó el frente por aquí (distancia / velocidad actual).
+  vec3 v = uP * (0.85 + 1.5 * tt);
+  float ago = ein / max(max(v.x, max(v.y, v.z)), 0.3);
   float rmin = min(r.x, min(r.y, r.z));
   float edge = smoothstep(uReach, uReach - 0.12, rmin);
   // Grano fino nuevo en cada cuadro y parpadeo de la ventanilla.
-  float frame = floor(uAge * 24.0);
-  float grain = hash(floor(px) + frame * 7.13);
+  float frame = floor(uClock * 24.0);
+  float grain = hash(px * 1.37 + frame * 7.13);
   float gate = 0.9 + 0.2 * hash(vec2(frame, uSeed * 13.0));
-  // Frente: blanco en la línea y, en pocos píxeles, amarillo, naranja y rojo.
-  float L = 32.0 * exp(eout / 0.006) * (1.0 - inside) + 32.0 * exp(-ein / 0.006) * inside;
-  // Lo ya quemado brilla naranja y rojo y se aclara en unos cuadros.
-  L += inside * (1.2 + 1.6 * big.g) * (0.85 + 0.3 * mid.r) * exp(-ago / 0.09);
+  // Frente: núcleo blanco de 3-5 px y, justo detrás, una banda quemada a
+  // blanco de 15 px; por delante, tras el carbón, el precalentamiento
+  // amarillo, naranja y rojo de 20-40 px.
+  float L = 90.0 * exp(-abs(e) / 0.0045) + inside * 30.0 * smoothstep(0.06, 0.03, ein + (mid.r - 0.5) * 0.017);
+  L += (1.0 - inside) * 3.0 * exp(min(eout + 0.02, 0.0) / 0.03) * smoothstep(-0.006, -0.02, e);
+  // Lo ya quemado se disuelve en agujeros de borde irregular en unos tres
+  // cuadros: cada punto está caliente o ya no está.
+  float melt = ago / 0.1 - mid.g + (t.r - 0.5) * 0.12;
+  // Color según la distancia al frente: amarillo, naranja y naranja rojizo
+  // (sin azul, así sigue naranja sobre escenas claras), brillo entre el 70 y
+  // el 100 % con grano de 2-3 px y vetas de fundido en el sentido del avance,
+  // y la red de celdas con las paredes un 15 % más claras.
+  vec3 cY = mix(uYellow, uOrange, 0.3) * vec3(1.0, 1.0, 0.0);
+  vec3 cO = uOrange * vec3(1.0, 1.0, 0.0);
+  vec3 cR = mix(uOrange, uRed, 0.5) * vec3(1.0, 1.0, 0.0);
+  // Fundidos suaves de 8-12 px entre zonas, con el límite ondulando unos 6 px.
+  float ez = ein + (mid.r - 0.5) * 0.033;
+  vec3 burnt = mix(mix(cY, cO, smoothstep(0.12, 0.15, ez)), cR, smoothstep(0.3, 0.33, ez));
+  vec3 col = vec3(0.0);
+  if (inside > 0.0 && melt < 0.05) {
+    vec2 dir = normalize(g - uO0 + vec2(0.001));
+    vec2 sp = vec2(dot(g, vec2(-dir.y, dir.x)), dot(g, dir)) / W;
+    float streak = texture(uTex, fract(sp * vec2(9.0, 1.2) + seed)).r;
+    // Grano suave por píxel (±8 %) y paredes de celda un 8 % más claras.
+    vec2 warpc = (vec2(t.r, mid.r) - 0.5) * 6.0;
+    float bright = (0.83 + 0.17 * streak) * (0.92 + 0.16 * hash(px * 1.37 + frame)) * (1.0 + 0.08 * cells(px + warpc));
+    col += burnt * bright * inside * step(melt, 0.0);
+  }
+  // Borde de 2 px de los agujeros y un resplandor naranja de 4-6 px hacia dentro.
+  vec3 cRim = mix(uOrange, uRed, 0.25);
+  col += cRim * inside * (exp(-melt * melt / 0.0012) + 0.4 * step(0.0, melt) * exp(-melt / 0.04));
   // Ampollas llenas agrupadas justo delante del frente: destellan y revientan al pasar.
   L += 14.0 * smoothstep(0.08, 0.3, big.b) * smoothstep(-0.03, -0.004, e) * (1.0 - inside);
-  // Chispas por delante.
-  float spark = step(0.985, hash(floor(px / 2.0) + frame));
-  L += spark * 6.0 * smoothstep(-0.08, -0.03, e) * (1.0 - smoothstep(-0.025, -0.012, e));
+  // Chispas despedidas por delante (8-12 por cuadro): núcleo de 1,5 px y
+  // resplandor de 2 px, blanco amarillento en la cabeza y naranja en la cola;
+  // viven unos cinco cuadros y se alejan del foco.
+  float life = floor(uClock * 6.0);
+  float step6 = fract(uClock * 6.0);
+  vec2 cell = floor(px / 14.0);
+  if (e < -0.01 && e > -0.12 && hash(cell + life * 1.31) > 0.915) {
+    vec2 c0 = (cell + vec2(hash(cell + 3.1), hash(cell + 7.7))) * 14.0;
+    vec2 dir = normalize(c0 - uO0 + vec2(0.001));
+    vec2 dp = px - c0 - dir * step6 * 10.0;
+    float u = dot(dp, dir) / 14.0;
+    float across = dot(dp, vec2(-dir.y, dir.x));
+    float body = smoothstep(-0.55, -0.3, u) * smoothstep(0.55, 0.42, u) * (1.0 - step6 * 0.5);
+    float sw = exp(-across * across / 0.55) + 0.35 * exp(-across * across / 4.0);
+    col += mix(uOrange, mix(uYellow, vec3(1.0), 0.5), u + 0.5) * body * sw;
+  }
   L *= (0.92 + 0.16 * grain) * gate;
-  // Destello mínimo en cada foco al prender.
-  vec3 ig = clamp(1.0 - (vec3(uAge) - uDelay) / 0.07, 0.0, 1.0) * lit;
-  L += 10.0 * dot(ig, exp(-r / 0.05));
+  // Al prender, un punto blanco de 6 px en cada foco que enseguida es frente.
+  vec3 ig = clamp(1.0 - (vec3(uAge) - uDelay) / 0.05, 0.0, 1.0) * lit;
+  L += 40.0 * dot(ig, exp(-r * r / 0.00007));
   float alive = smoothstep(0.0, 0.6, uTemp) * edge;
   L *= alive;
   // Sensor: el rojo se satura primero, así lo menos intenso es rojo vivo.
   vec3 k = vec3(2.0, 0.5 * (2.0 * uRed.g / max(uRed.r, 0.01) + 0.6 * uOrange.g), 0.06 * uYellow.b);
   vec3 emit = vec3(1.0) - exp(-L * k);
-  // Borde de carbón: oscurece un 20 % sin color, justo fuera del rojo.
-  float charA = smoothstep(-0.045, -0.032, e) * (1.0 - smoothstep(-0.024, -0.016, e)) * 0.2 * alive;
+  col *= gate * alive;
+  emit += clamp(col, 0.0, 1.0) * (vec3(1.0) - emit);
+  // Carbón pegado al núcleo, del lado sin quemar: 6-10 px que oscurecen un
+  // 45 % sin color, con el borde irregular; así el frente se lee también sobre
+  // escenas claras.
+  float charEnd = -0.022 - 0.01 * t.r;
+  float charA = smoothstep(-0.004, -0.008, e) * smoothstep(charEnd - aa, charEnd + aa, e) * 0.45 * alive;
   float mx = max(emit.r, max(emit.g, emit.b));
-  fragColor = vec4(emit, clamp(max(charA, 0.1 * mx), 0.0, 1.0));
+  // Bajo el fuego la imagen se oscurece primero sin color (como una quemadura
+  // real que reemplaza la imagen): así el naranja sigue saturado sobre escenas
+  // claras. Borde suave en los agujeros y se disuelve con el fuego.
+  float under = inside * smoothstep(0.03, -0.03, melt) * 0.55 * alive;
+  fragColor = vec4(emit, clamp(max(max(charA, under), 0.1 * mx), 0.0, 1.0));
 }
 ''',
 

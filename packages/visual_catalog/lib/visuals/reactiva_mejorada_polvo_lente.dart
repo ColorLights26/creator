@@ -24,13 +24,13 @@ const modifiers = [
   // MOVIMIENTO: por dónde cruza la luz.
   CreatorModifier.choice('barrido', 'Barrido', options: ['Izquierda a derecha', 'Derecha a izquierda', 'De arriba abajo']),
   // ATMÓSFERA: cuánto tarda en cruzar.
-  CreatorModifier.slider('caida', 'Duración', min: .35, max: 1.2, value: .6),
+  CreatorModifier.slider('caida', 'Duración', min: .5, max: 1.8, value: 1.1),
 ];
 
 // Combinaciones con nombre que parecen otro visual.
 const variations = [
-  CreatorVariation('Lente Vieja', {'suciedad': 1, 'caida': 1}),
-  CreatorVariation('Reflejo Rápido', {'suciedad': .45, 'caida': .4, 'barrido': 'De arriba abajo'}),
+  CreatorVariation('Lente Vieja', {'suciedad': 1, 'caida': 1.5}),
+  CreatorVariation('Reflejo Rápido', {'suciedad': .45, 'caida': .6, 'barrido': 'De arriba abajo'}),
 ];
 
 const nativeSource = r'''
@@ -263,18 +263,16 @@ class Visual final : public Scene {
       const double age = now - p.start;
       if (age <= 0.0 || age >= double(T)) continue;
       const float q = float(age / double(T));
-      float e = std::pow(std::max(0.0f, std::sin(float(pi) * q)), 0.6f) * std::min(amount(p.power) * f.intensity, 1.3f) * (p.kind == 1 ? 0.75f : 1.0f);
+      // Brilla de inmediato (más del 60 % en el segundo cuadro) y se apaga suave.
+      float e = clamp01(float(age) / 0.05f) * (1.0f - easeInOut((q - 0.6f) / 0.4f)) * std::min(amount(p.power) * f.intensity, 1.3f) * (p.kind == 1 ? 0.75f : 1.0f);
       // Un color intenso distinto en cada golpe; los fantasmas toman el siguiente.
       const Color tint = f.colors[size_t(1 + p.id % 3u)], ghost = f.colors[size_t(1 + (p.id + 1u) % 3u)];
-      // Cruza en un arco suave, con entrada y salida suaves.
-      const float s = easeInOut(q), bow = 1.0f - (2.0f * s - 1.0f) * (2.0f * s - 1.0f);
+      // Nace dentro del cuadro y cruza en un arco suave: arranca rápido y frena.
+      const float s = 1.0f - (1.0f - q) * (1.0f - q), bow = 1.0f - (2.0f * s - 1.0f) * (2.0f * s - 1.0f);
       const float y = H * (0.25f + 0.45f * rnd(p.id * 13u)), x = W * (0.3f + 0.4f * rnd(p.id * 29u));
       const float tilt = (rnd(p.id * 41u) < 0.5f ? -1.0f : 1.0f) * 0.07f * H;
-      const Vec2 L = {wl * W * (-0.15f + 1.3f * s) + wr * W * (1.15f - 1.3f * s) + wt * (x + 0.06f * W * bow),
-                      (wl + wr) * (y + tilt * (2.0f * s - 1.0f) - 0.05f * H * bow) + wt * H * (-0.1f + 1.2f * s)};
-      // Se apaga antes de salir del cuadro.
-      const float margin = (wl + wr) * std::min(L.x, W - L.x) + wt * std::min(L.y, H - L.y);
-      e *= easeInOut((margin + 0.06f * W) / (0.18f * W));
+      const Vec2 L = {wl * W * (0.06f + 1.0f * s) + wr * W * (0.94f - 1.0f * s) + wt * (x + 0.06f * W * bow),
+                      (wl + wr) * (y + tilt * (2.0f * s - 1.0f) - 0.05f * H * bow) + wt * H * (0.04f + 0.9f * s)};
       if (e < kMin) continue;
       c.material("dirt", {0.0f, 0.0f, W, H},
                  {L.x, L.y, 0.55f * W, e * g.suciedad, e, tint.r, tint.g, tint.b, ghost.r, ghost.g, ghost.b, blue.r, blue.g, blue.b},
@@ -304,50 +302,70 @@ vec3 sensor(vec3 c) {
   return c / max(max(c.r, c.g), max(c.b, 0.01)) * 0.86 + 0.14;
 }
 
-// Fantasma del diafragma: hexágono de esquinas redondeadas, casi transparente,
-// con el borde suave y más claro.
-float ghost(vec2 p, float rad, float soft) {
-  p = abs(p) / rad;
-  float d = mix(max(p.x * 0.866 + p.y * 0.5, p.y), length(p) * 0.93, 0.35);
-  float fill = 1.0 - smoothstep(1.0 - soft, 1.0, d);
-  return fill * (0.3 + 0.45 * smoothstep(0.6, 0.98, d));
+// Como el sensor, pero el canal dominante se satura antes: la luz cálida pasa
+// de blanco a ámbar, naranja y rojo sin volverse beige.
+vec3 warmSensor(vec3 c) {
+  vec3 n = c / max(max(c.r, c.g), max(c.b, 0.01));
+  return (pow(n, vec3(1.5)) * 0.95 + 0.05) * mix(vec3(1.0), vec3(2.5), step(0.99, n));
+}
+
+// Fantasma del diafragma: el relleno sube del 50 % en el centro al 100 % a
+// 0,85 del radio, el aro apenas más claro (1,4 veces el relleno) y el borde
+// se apaga en lo mayor de 3 px o el 10 % del radio, todo con 1 px de suavizado.
+float ghost(vec2 p, float rad, float px1) {
+  float d = length(p) / rad;
+  float fe = max(3.0 * px1 / rad, 0.1);
+  float fill = mix(0.5, 1.0, smoothstep(0.0, 0.85, d)) * (1.0 - smoothstep(1.0 - fe, 1.0 + px1 / rad, d));
+  float rz = (d - 0.9) / (0.035 + px1 / rad);
+  return 0.22 * fill * (1.0 + 0.4 * exp(-rz * rz));
 }
 
 void main() {
   vec2 p = FlutterFragCoord().xy;
   vec2 d = (p - uLight) / uReach;
   float r2 = dot(d, d);
-  // La suciedad aparece con la caída de la luz real (1/r²).
-  float reveal = 1.0 / (1.0 + r2 * 14.0);
+  // Distancia a la luz en píxeles de una pantalla de 360.
+  float rpx = length(p - uLight) * 360.0 / uSize.x;
+  // La suciedad se enciende de lleno hasta unos 120 px de la luz y se apaga
+  // antes de 180 px; lejos no queda velo.
+  float reveal = 1.0 - smoothstep(90.0, 190.0, rpx);
   // Borde cromático en la suciedad: el rojo un poco más grande que el azul.
   vec2 st = p / uSize.x * 0.9;
   vec2 c = 0.45 * uSize / uSize.x;
   float dr = texture(uTex, fract(c + (st - c) * 0.995)).r;
   vec4 t = texture(uTex, fract(st));
   float db = texture(uTex, fract(c + (st - c) * 1.005)).r;
-  vec3 kT = sensor(uTint);
-  vec3 light = vec3(dr, t.r, db) * kT * (3.2 * reveal * uAmount) + kT * (t.g * reveal * uAmount * 0.5);
-  // La fuente: centro blanco, halo ajustado y un velo mínimo.
-  light += kT * uGlow * (9.0 / (1.0 + r2 * 160.0) + 0.35 / (1.0 + r2 * 22.0) + 0.04 / (1.0 + r2 * 3.0));
+  vec3 kT = warmSensor(uTint);
+  // La suciedad lleva la luz: en ámbar claro, más brillante que el resplandor.
+  vec3 kD = vec3(1.6, 0.75, 0.22) * mix(vec3(1.0), uTint / max(max(uTint.r, uTint.g), max(uTint.b, 0.01)), 0.3);
+  // Entre las manchas no queda velo: sólo brilla lo que sobresale.
+  vec3 dirt = max(vec3(dr, t.r, db) - 0.08, 0.0) / 0.92;
+  vec3 light = pow(dirt, vec3(1.5)) * kD * (1.4 * reveal * uAmount) + kD * (t.g * t.g * reveal * uAmount * 0.25);
+  // La fuente: núcleo blanco y una caída suave sin meseta (rojo +230 a 20 px,
+  // +170 a 35, +115 a 50, +55 a 80, +22 a 120 y nada a 180).
+  float a1 = rpx / 6.0;
+  light += kT * uGlow * (8.0 * exp(-a1 * a1) + 0.93 * pow(20.0 / max(rpx, 3.0), 1.6) * (1.0 - smoothstep(100.0, 180.0, rpx)));
   // Estela anamórfica azul: núcleo casi blanco de 3-4 px y resplandor vertical
   // suave; máxima en la fuente y apagada antes del borde.
   float ax = abs(p.x - uLight.x) / uSize.x;
   float dy = abs(p.y - uLight.y) / uSize.x;
-  float taper = exp(-ax / 0.32) * smoothstep(0.0, 0.08, min(p.x, uSize.x - p.x) / uSize.x);
-  light += sensor(uBlue) * uGlow * taper * (3.0 * exp(-dy / 0.0045) + 0.35 * exp(-dy / 0.045));
+  float taper = exp(-ax / 0.2) * smoothstep(0.0, 0.08, min(p.x, uSize.x - p.x) / uSize.x);
+  light += sensor(uBlue) * uGlow * taper * (3.5 * exp(-dy / 0.004) + 0.5 * exp(-dy / 0.022));
   // Fantasmas sobre el eje que pasa por el centro: se mueven al revés que la luz.
   vec2 C = 0.5 * uSize;
   vec2 axis = C - uLight;
   vec3 kG = sensor(uGhost);
-  vec3 green = vec3(0.3, 1.0, 0.45);
-  for (int i = 0; i < 5; i++) {
-    float s = i == 0 ? 0.35 : (i == 1 ? 0.8 : (i == 2 ? 1.25 : (i == 3 ? 1.7 : 2.3)));
-    float rad = uSize.x * (i == 0 ? 0.03 : (i == 1 ? 0.09 : (i == 2 ? 0.05 : (i == 3 ? 0.17 : 0.07))));
-    float soft = uSize.x * 0.016 / rad;
+  float px1 = uSize.x / 360.0;
+  for (int i = 0; i < 4; i++) {
+    float s = i == 0 ? 0.4 : (i == 1 ? 0.9 : (i == 2 ? 1.45 : 2.1));
+    float rad = px1 * (i == 0 ? 6.0 : (i == 1 ? 13.0 : (i == 2 ? 24.0 : 45.0)));
     vec2 q = p - (C + axis * s);
-    vec3 shape = vec3(ghost(q, rad * 1.03, soft), ghost(q, rad, soft), ghost(q, rad * 0.97, soft));
-    vec3 col = i == 1 ? kT : (i == 2 ? green : kG);
-    light += shape * col * uGlow * 0.55;
+    // Filo de color de 1 px: el rojo un píxel más grande que el azul.
+    vec3 shape = vec3(ghost(q, rad + px1, px1), ghost(q, rad, px1), ghost(q, rad - px1, px1));
+    // Recubrimientos de la lente: azul intenso y el color siguiente, saturados.
+    vec3 gc = i == 1 || i == 3 ? uBlue : uGhost;
+    gc = pow(gc / max(max(gc.r, gc.g), max(gc.b, 0.01)), vec3(1.3)) * 0.9 + 0.05;
+    light += shape * gc * uGlow;
   }
   vec3 col = vec3(1.0) - exp(-light);
   fragColor = vec4(col, 0.1 * max(col.r, max(col.g, col.b)));

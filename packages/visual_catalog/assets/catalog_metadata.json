@@ -13060,14 +13060,14 @@
           "name": "Lente Vieja",
           "values": {
             "suciedad": 1,
-            "caida": 1
+            "caida": 1.5
           }
         },
         {
           "name": "Reflejo Rápido",
           "values": {
             "suciedad": 0.45,
-            "caida": 0.4,
+            "caida": 0.6,
             "barrido": "De arriba abajo"
           }
         }
@@ -13596,14 +13596,14 @@
           "name": "Lente Vieja",
           "values": {
             "suciedad": 1,
-            "caida": 1
+            "caida": 1.5
           }
         },
         {
           "name": "Reflejo Rápido",
           "values": {
             "suciedad": 0.45,
-            "caida": 0.4,
+            "caida": 0.6,
             "barrido": "De arriba abajo"
           }
         }

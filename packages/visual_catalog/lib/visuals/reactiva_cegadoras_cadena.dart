@@ -248,19 +248,25 @@ class Visual final : public Scene {
     auto g = glide(f);
     const float W = f.width, H = f.height;
     const int n = std::clamp(int(std::lround(g.lamparas)), 3, 6);
-    const float cool = g.enfriado / pace(f), flash = 0.18f / pace(f), hit = 0.14f / pace(f);
+    const float cool = g.enfriado / pace(f), flash = 0.18f / pace(f);
     const float wc = g.cadena.weight(0), wl = g.cadena.weight(1);
     // Cada módulo sigue el último golpe que le llega: su edad y su fuerza. El
     // shader calcula cada lámpara con su propio desfase.
     std::array<float, 6> ages{}, amps{};
     ages.fill(100.0f);
-    float punch = 0.0f;
+    float wash = 0.0f, firstAge = 100.0f, firstDelay = 100.0f;
+    int first = 0;
     bool alive = false;
     for (const Pulse& p : slots) {
       const double age0 = now - p.start;
       if (age0 < -0.05 || age0 > 0.8 + 1.3 * double(cool)) continue;
       const bool odd = (p.id & 1u) != 0u;
       const float k = std::min(amount(p.power) * f.intensity, 1.3f);
+      if (float(age0) < firstAge) {
+        firstAge = float(age0);
+        firstDelay = 100.0f;
+        wash = k;
+      }
       for (int i = 0; i < n; i++) {
         if (p.kind == 1 && ((i < n / 2) == odd)) continue;  // con la caja, un lado cada vez
         const float centerOrder = std::fabs(float(i) - 0.5f * float(n - 1));
@@ -272,18 +278,16 @@ class Visual final : public Scene {
           ages[size_t(i)] = age;
           amps[size_t(i)] = k;
         }
-        punch = std::max(punch, env(double(age), 0.01f, hit) * k);
+        // El primer módulo de la cadena del golpe más reciente.
+        if (float(age0) == firstAge && float(age0) - age < firstDelay) {
+          firstDelay = float(age0) - age;
+          first = i;
+        }
         alive = true;
       }
     }
     if (!alive) return;
     const Color ember = f.colors[1], orange = f.colors[2], white = f.colors[3];
-    // En el golpe, un resplandor cálido sube un instante desde los módulos.
-    if (punch > kMin) {
-      const Color warm = mixc(orange, white, 0.6f);
-      const float a = std::min(punch, 1.0f) * 0.25f;
-      c.material("lift", {0.0f, 0.0f, W, H}, {warm.r * a, warm.g * a, warm.b * a, 0.5f * W, 0.18f * W, 0.9f * W});
-    }
     // Lámparas y bruma: sólo la parte de arriba.
     const float band = std::min(H, 1.3f * W);
     c.material("blinders", {0.0f, 0.0f, W, band},
@@ -292,6 +296,19 @@ class Visual final : public Scene {
                 amps[0], amps[1], amps[2], amps[3], amps[4], amps[5], cool, flash,
                 ember.r, ember.g, ember.b, orange.r, orange.g, orange.b, white.r, white.g, white.b},
                {"smoke"});
+    // En el golpe, sobre todo lo demás, el resplandor del primer módulo: un
+    // cuadro entero y el siguiente a la mitad de radio; luego nada.
+    const float tFirst = firstAge - firstDelay;
+    if (wash > kMin && tFirst >= 0.0f && tFirst < 0.067f) {
+      const float spacing = 0.72f / float(std::max(n - 1, 1));
+      const float unit = std::min(1.0f, (2.0f * spacing - 0.025f) / 0.424f);
+      const float halfSize = (0.11f + 0.102f) * unit;
+      const float fx = (0.14f + float(first) * spacing) * W;
+      const float fy = (first % 2 == 0 ? 0.06f : 0.06f + 2.0f * halfSize + 0.03f) * W;
+      // Escala de la curva: el segundo cuadro, a la mitad de radio.
+      const float scale = (tFirst < 0.034f ? 1.0f : 0.5f) * W / 360.0f;
+      c.material("lift", {0.0f, 0.0f, W, std::min(H, fy + 262.0f * scale)}, {std::min(wash, 1.0f), fx, fy, scale});
+    }
   }
 };
 ''';
@@ -301,16 +318,29 @@ const shaderSources = <String, String>{
 #version 460 core
 #include <flutter/runtime_effect.glsl>
 uniform vec2 uSize;
-uniform vec3 uLight;
+uniform float uAmount;
 uniform vec2 uCenter;
-uniform float uRadius;
+uniform float uScale;
 out vec4 fragColor;
 
-// Resplandor cálido del golpe, centrado en los módulos.
+// Resplandor del golpe sobre el primer módulo, circular y sin meseta: blanco
+// hasta 30 px y luego cae suave por ámbar y naranja hasta 260 px (en píxeles
+// de una pantalla de 360).
+vec3 glare(float r) {
+  vec3 c1 = vec3(0.92, 0.86, 0.59);
+  vec3 c2 = vec3(0.78, 0.59, 0.24);
+  vec3 c3 = vec3(0.51, 0.27, 0.04);
+  vec3 c4 = vec3(0.24, 0.1, 0.0);
+  if (r < 60.0) return mix(vec3(1.0), c1, smoothstep(30.0, 60.0, r));
+  if (r < 100.0) return mix(c1, c2, (r - 60.0) / 40.0);
+  if (r < 150.0) return mix(c2, c3, (r - 100.0) / 50.0);
+  if (r < 200.0) return mix(c3, c4, (r - 150.0) / 50.0);
+  return mix(c4, vec3(0.0), clamp((r - 200.0) / 60.0, 0.0, 1.0));
+}
+
 void main() {
   vec2 p = FlutterFragCoord().xy;
-  vec2 d = (p - uCenter) / uRadius;
-  vec3 c = uLight * exp(-dot(d, d)) * (1.0 - 0.3 * p.y / uSize.y);
+  vec3 c = glare(length(p - uCenter) / uScale) * uAmount * smoothstep(uSize.y, uSize.y * 0.9, p.y);
   fragColor = vec4(c, 0.1 * max(c.r, max(c.g, c.b)));
 }
 ''',
@@ -353,17 +383,27 @@ void main() {
   float amps[6];
   ages[0] = uAgeA.x; ages[1] = uAgeA.y; ages[2] = uAgeA.z; ages[3] = uAgeA.w; ages[4] = uAgeB.x; ages[5] = uAgeB.y;
   amps[0] = uAmpA.x; amps[1] = uAmpA.y; amps[2] = uAmpA.z; amps[3] = uAmpA.w; amps[4] = uAmpB.x; amps[5] = uAmpB.y;
-  // Módulos 2x2 grandes en dos filas escalonadas; más pequeños si hay muchos.
-  float unit = min(1.0, 4.5 / max(uCount, 1.0));
-  float off = 0.075 * unit;  // del centro del módulo a cada lámpara
-  float Rc = 0.06 * unit;    // radio de cada lámpara
+  // Módulos 2x2 muy grandes en dos filas escalonadas que se salen del cuadro,
+  // sin tocarse nunca (al menos 8 px entre carcasas); más pequeños si hay muchos.
   float spacing = 0.72 / max(uCount - 1.0, 1.0);
+  float unit = min(1.0, (2.0 * spacing - 0.025) / 0.424);
+  float off = 0.11 * unit;   // del centro del módulo a cada lámpara
+  float Rc = 0.085 * unit;   // radio de cada lámpara
+  float halfSize = off + Rc * 1.2;
+  float aa = 1.0 / uSize.x;
   // Sensor según la temperatura del filamento: caliente, ámbar que quema a
   // blanco; frío, rojo brasa saturado.
   vec3 m = mix(uOrange, uWhite, 0.3);
   vec3 kHot = vec3(1.0, m.g / max(m.r, 0.01), 0.25 * m.b / max(m.r, 0.01));
   vec3 kCold = vec3(2.0, 2.0 * uEmber.g / max(uEmber.r, 0.01), 0.02);
+  // El reflector cambia de color con su brillo: ámbar claro, naranja y rojo
+  // vivo, sin pasar por bronce.
+  vec3 hi3 = mix(uOrange, uWhite, 0.7) * vec3(1.0, 1.0, 0.7);
+  vec3 mid3 = vec3(1.0, min(uOrange.g / max(uOrange.r, 0.01), 0.3), 0.06);
+  vec3 lo3 = mix(uEmber, uOrange, 0.35);
+  lo3 /= max(lo3.r, 0.01);
   vec3 light = vec3(0.0);
+  float shade = 0.0;
   for (int i = 0; i < 6; i++) {
     float age = ages[i];
     float amp = amps[i];
@@ -372,51 +412,83 @@ void main() {
     float hM = env(age, 0.015, uFlash) * amp;
     if (eM < 0.003 && hM < 0.003 && age > 0.1) continue;
     vec3 k = mix(kCold, kHot, smoothstep(0.15, 0.7, max(eM, hM)));
-    float y = mod(float(i), 2.0) < 0.5 ? 0.07 : 0.29;
+    // Fuera del pico ningún brillo intermedio tira a cobre: el verde nunca pasa
+    // del 30 % del rojo (sólo el núcleo del filamento llega a amarillo).
+    k.g = min(k.g, mix(0.3, 1.0, smoothstep(0.6, 0.9, hM)) * k.r);
+    float y = mod(float(i), 2.0) < 0.5 ? 0.06 : 0.06 + 2.0 * halfSize + 0.03;
     vec2 d = vec2(uv.x - (0.14 + float(i) * spacing), uv.y - y);
     float r2 = dot(d, d);
     float L = 0.0;
     // Las cuatro lámparas, cada una con su desfase (±40 ms) y su brillo (±15 %).
-    if (r2 < 0.1) {
+    float hottest = 0.0;
+    if (r2 < 0.2) {
       for (int c = 0; c < 4; c++) {
         vec2 o = vec2(c == 0 || c == 2 ? -off : off, c < 2 ? -off : off);
         float jit = hash(float(i * 4 + c) + 1.7);
         float a = age - (jit - 0.5) * 0.08;
         float gain = amp * (0.85 + 0.3 * hash(float(i * 4 + c) + 9.1));
-        float e = env(a, 0.02, uCool * (0.85 + 0.3 * jit)) * gain;
+        float e = env(a, 0.02, uCool * (0.7 + 0.6 * jit)) * gain;
         float h = env(a, 0.015, uFlash) * gain;
+        hottest = max(hottest, max(e, h));
         vec2 dc = d - o;
         float q2 = dot(dc, dc) / (Rc * Rc);
-        // Blanco puro sólo en el centro, y el resplandor de 1,5 veces el radio.
-        L += 60.0 * h * h * exp(-q2 / 0.12) + 1.6 * h * exp(-q2 / 2.25);
-        // Filamento: una espiral pequeña y horizontal que sigue brillando al
-        // enfriarse, con el reflector apenas encendido alrededor.
+        float q = sqrt(q2);
+        // Reflector parabólico caliente: doce facetas (±12 %), dos escalones a
+        // 0,45R y 0,75R y un labio exterior nítido de 1,5 px.
+        float cs = dc.x / max(q * Rc, 1e-4);
+        float c4 = 2.0 * (2.0 * cs * cs - 1.0) * (2.0 * cs * cs - 1.0) - 1.0;
+        float facets = 1.0 + 0.06 * (4.0 * c4 * c4 * c4 - 3.0 * c4);
+        float lipW = 0.025 / unit;
+        float s1 = (q - 0.45) / 0.033;
+        float s2 = (q - 0.75) / 0.033;
+        float lip = (q - 1.0) / lipW;
+        // Núcleo quemado a blanco de unos 24 px dentro del reflector de 54 px.
+        float h3 = h * h * h;
+        L += 60.0 * h * h * exp(-q2 / 0.18);
+        L += h3 * (2.2 * smoothstep(0.3, 0.9, q) * smoothstep(1.02, 0.97, q) * facets
+                   + 0.25 * exp(-s1 * s1) + 0.25 * exp(-s2 * s2) + 0.9 * exp(-lip * lip));
+        // Halo ámbar ajustado (sigma de unos 14 px).
+        L += 1.0 * h * exp(-q2 / (0.42 / (unit * unit)));
+        // Destello horizontal corto en cada lámpara, que se va con el brillo.
+        L += 1.2 * h * exp(-abs(dc.y) / 0.004) * exp(-abs(dc.x) / 0.12);
+        // Al enfriarse: el filamento, un punto caliente de 10-14 px a su
+        // alrededor y el borde del reflector sólo mientras queda calor.
         vec2 fl = dc / (vec2(0.0085, 0.003) * unit);
-        L += 9.0 * e * exp(-dot(fl, fl)) + 0.7 * e * exp(-q2 / 0.5);
+        L += 9.0 * e * exp(-dot(fl, fl));
+        // Reflector y punto caliente al enfriarse: su brillo cae como el
+        // filamento^2,5 y su color sigue a ese brillo.
+        // Al enfriarse el reflector brilla radial desde el filamento,
+        // (1 - r/R)², y el aro sólo queda mientras el filamento está casi a
+        // tope: más allá de 0,6R no queda casi nada.
+        float lvl = e * e * e * e;
+        float fillR = max(1.0 - q, 0.0);
+        float e6 = lvl * e * e;
+        float lr = 0.75 * lvl * fillR * fillR + 0.6 * e6 * smoothstep(0.83, 0.9, e) * smoothstep(0.62, 0.95, q) * smoothstep(1.06, 0.96, q);
+        // El color sigue al brillo que se ve: por debajo del 60 %, rojo vivo.
+        vec3 rc = mix(mix(lo3, mid3, smoothstep(0.25, 0.35, lr)), hi3, smoothstep(0.58, 0.68, lr));
+        light += rc * lr;
       }
     }
-    // Resplandor ancho del módulo (6 veces el radio): cae en unos tres cuadros.
-    L += 0.7 * hM * exp(-r2 / (36.0 * Rc * Rc));
-    // Estrella de seis puntas, igual en todas, que se afina con la distancia.
-    if (hM > 0.05) {
-      float rr = sqrt(r2);
-      float sp = abs(cos(3.0 * (atan(d.y, d.x) + 0.26)));
-      sp *= sp; sp *= sp; sp *= sp; sp *= sp; sp *= sp; sp *= sp; sp *= sp;
-      L += hM * sp * 0.02 / (rr + 0.004) * exp(-rr / (0.2 * hM * unit));
-    }
-    // Cono de bruma suave hacia abajo.
+    // Carcasa del módulo: rectángulo de esquinas de 6 px y borde de 1 px que
+    // oscurece un 40 % sin color; se va cuando su filamento más caliente baja
+    // del 30 %.
+    vec2 bq = abs(d) - vec2(halfSize - 0.0167);
+    float box = length(max(bq, 0.0)) + min(max(bq.x, bq.y), 0.0) - 0.0167;
+    shade = max(shade, 0.4 * smoothstep(aa, -aa, box) * hottest * hottest * hottest * hottest * smoothstep(0.48, 0.52, hottest));
+    // Cono de bruma suave hacia abajo, sólo en el destello.
     if (d.y > 0.0 && uSmoke > 0.0) {
       float cone = clamp(1.0 - abs(d.x) / (d.y * 0.8 + 0.06), 0.0, 1.0);
       if (cone > 0.0) {
         float sm = texture(uTex, fract(vec2(d.x * 0.6 + float(i) * 0.23, d.y * 0.35 - uTime * 0.04))).r;
-        L += uSmoke * max(hM, 0.25 * eM) * cone * cone * (0.75 + 0.5 * sm) * 0.35 / (1.0 + d.y * d.y * 8.0);
+        L += uSmoke * hM * cone * cone * (0.75 + 0.5 * sm) * 0.3 / (1.0 + d.y * d.y * 8.0);
       }
     }
     light += L * k;
   }
   light *= smoothstep(uSize.y, uSize.y * 0.6, px.y);  // nada llega al borde de la zona pintada
   vec3 tone = vec3(1.0) - exp(-light);
-  fragColor = vec4(tone, 0.1 * max(tone.r, max(tone.g, tone.b)));
+  shade *= smoothstep(uSize.y, uSize.y * 0.6, px.y);
+  fragColor = vec4(tone, max(shade, 0.1 * max(tone.r, max(tone.g, tone.b))));
 }
 ''',
 
