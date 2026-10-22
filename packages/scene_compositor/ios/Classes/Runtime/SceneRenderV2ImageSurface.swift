@@ -2542,6 +2542,40 @@ private final class SceneRenderV2WaveformMetalRenderer {
     pipeline = try device.makeRenderPipelineState(descriptor: descriptor)
   }
 
+  /// One frame of waveform input. `peakAmplitude` must bound every |sample|
+  /// (the state guarantees it): the shader skips rows outside that band.
+  struct Signal {
+    let samples: [Float]
+    let lineEnergy: Double
+    let peakAmplitude: Double
+    let impactLight: Double
+    let lineVisibility: Double
+
+    init(
+      samples: [Float],
+      lineEnergy: Double,
+      peakAmplitude: Double,
+      impactLight: Double,
+      lineVisibility: Double
+    ) {
+      self.samples = samples
+      self.lineEnergy = lineEnergy
+      self.peakAmplitude = peakAmplitude
+      self.impactLight = impactLight
+      self.lineVisibility = lineVisibility
+    }
+
+    init(state: SceneRenderV2WaveformState) {
+      self.init(
+        samples: state.samples,
+        lineEnergy: state.lineEnergy,
+        peakAmplitude: state.peakAmplitude,
+        impactLight: state.impactLight,
+        lineVisibility: state.lineVisibility
+      )
+    }
+  }
+
   func render(
     width: Int,
     height: Int,
@@ -2551,10 +2585,33 @@ private final class SceneRenderV2WaveformMetalRenderer {
     pointScale: Float,
     outputAllocator: SceneSurfaceNativeOutputAllocator? = nil
   ) throws -> MTLTexture {
+    try render(
+      width: width,
+      height: height,
+      layer: layer,
+      signal: Signal(state: state),
+      quality: quality,
+      pointScale: pointScale,
+      outputAllocator: outputAllocator
+    )
+  }
+
+  func render(
+    width: Int,
+    height: Int,
+    layer: SceneRenderV2WaveformLayer,
+    signal: Signal,
+    quality: String,
+    pointScale: Float,
+    outputAllocator: SceneSurfaceNativeOutputAllocator? = nil
+  ) throws -> MTLTexture {
     guard
       let sampleCount = layer.sampleCountsByQuality[quality],
       let glowPasses = layer.glowPassesByQuality[quality]
     else { throw RendererError("waveform_quality_invalid") }
+    guard signal.samples.count == SceneRenderV2WaveformState.sampleCount else {
+      throw RendererError("waveform_samples_invalid")
+    }
     guard
       let texture = try SceneSurfaceNativeOutputAllocator.makeTexture(
         device: device, width: width, height: height, allocator: outputAllocator
@@ -2571,8 +2628,8 @@ private final class SceneRenderV2WaveformMetalRenderer {
     }
     var viewport = SIMD2<Float>(Float(width), Float(height))
     let metrics = [
-      Float(layer.opacity), Float(state.lineEnergy), Float(state.peakAmplitude),
-      Float(state.impactLight), Float(state.lineVisibility),
+      Float(layer.opacity), Float(signal.lineEnergy), Float(signal.peakAmplitude),
+      Float(signal.impactLight), Float(signal.lineVisibility),
       Float(layer.maximumDisplacementHeightFraction),
       Float(layer.maximumDisplacementWidthFraction),
       pointScale,
@@ -2592,7 +2649,7 @@ private final class SceneRenderV2WaveformMetalRenderer {
     colors.withUnsafeBytes {
       encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 3)
     }
-    state.samples.withUnsafeBytes {
+    signal.samples.withUnsafeBytes {
       encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 4)
     }
     encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
@@ -2637,54 +2694,169 @@ private final class SceneRenderV2WaveformMetalRenderer {
       out.uv=uvs[vertexID];
       return out;
     }
-    float waveformSample(constant float *samples,int index) {
-      return samples[clamp(index,0,126)];
+    // The authored sample grid in pixels. Points are measured relative to the
+    // fragment's pixel so single precision is spent where the distance
+    // matters. (`fragment` itself is an MSL keyword, hence `pixel`.)
+    struct WaveformGrid {
+      float maximum; float2 viewport; float displacement;
+      float2 pixel; float column; float stepX; float sourceStep;
+    };
+    float waveformGridSample(WaveformGrid grid,constant float *samples,int index) {
+      int clamped=clamp(index,0,int(grid.maximum));
+      return samples[clamp(int(round(float(clamped)*grid.sourceStep)),0,126)];
     }
-    float waveformReducedSample(float x,constant float *samples,int sampleCount) {
-      float maximum=float(max(sampleCount-1,1));
-      float position=clamp(x,0.0,1.0)*maximum;
-      float lower=floor(position); float upper=min(maximum,lower+1.0);
-      int sourceLower=int(round(lower/maximum*126.0));
-      int sourceUpper=int(round(upper/maximum*126.0));
-      return mix(waveformSample(samples,sourceLower),waveformSample(samples,sourceUpper),
-        fract(position));
+    float2 waveformGridPoint(WaveformGrid grid,constant float *samples,int index) {
+      float x=float(clamp(index,0,int(grid.maximum)))*grid.stepX;
+      float y=0.5*grid.viewport.y-waveformGridSample(grid,samples,index)*grid.displacement;
+      return float2(x,y)-grid.pixel;
     }
-    // The authored Canvas path starts at sample 0, then uses sample i as
-    // a quadratic control and midpoint(i,i+1) as its endpoint. Its monotonic
-    // x coordinate has a closed-form inverse: no segment search is needed.
-    // Returns amplitude and its derivative with respect to normalized x.
-    float2 waveformCurve(float x,constant float *samples,int sampleCount) {
-      int count=max(sampleCount,3);
-      float maximum=float(count-1);
-      float u=clamp(x,0.0,1.0)*maximum;
-      if(u>=maximum-0.5) {
-        float previous=waveformReducedSample((maximum-1)/maximum,samples,count);
-        float last=waveformReducedSample(1.0,samples,count);
-        float start=(previous+last)*0.5;
-        return float2(mix(start,last,(u-maximum+0.5)*2.0),
-          (last-start)*2.0*maximum);
+    // Distance from the fragment (origin) to segment a-b: a capsule once the
+    // stroke half width is subtracted, which is how round caps and joins arise.
+    float waveformSegmentDistance(float2 a,float2 b) {
+      float2 ab=b-a;
+      float t=clamp(dot(-a,ab)/max(dot(ab,ab),1e-6),0.0,1.0);
+      return length(a+ab*t);
+    }
+    // The authored Canvas path starts at sample 0, then uses sample i as a
+    // quadratic control and midpoint(i,i+1) as its end; the tail is a line.
+    // `previous`, `current`, `next` are grid points index-1, index, index+1.
+    void waveformPathSegment(int index,int last,float2 previous,float2 current,float2 next,
+      thread float2 &a,thread float2 &b,thread float2 &c) {
+      if(index>=last) { a=(previous+current)*0.5; c=current; b=(a+c)*0.5; return; }
+      a=index<=1 ? previous : (previous+current)*0.5;
+      b=current; c=(current+next)*0.5;
+    }
+    // Distance to the quadratic a-b-c, but no farther than `best`. The curve
+    // never leaves its chord a-c by more than sag=|a-2b+c|/4, so one capsule
+    // test settles a near-straight segment (sag <= 0.5 px) and rules out a
+    // bent one that cannot beat `best`. The curve also stays inside triangle
+    // abc: a fragment outside that triangle is no nearer to the curve than to
+    // the triangle's edges, which excludes the far fragments of a tall spike
+    // for two more tests. What remains is chorded n=ceil(sqrt(sag/0.5)) times
+    // (error sag/n^2 <= 0.5 px), capped at 8 chords: a full-band spike at 3x
+    // (sag ~150 px) then errs by up to 2.4 px, as the previous fixed 8 did.
+    float waveformQuadDistance(float2 a,float2 b,float2 c,float best) {
+      float chord=waveformSegmentDistance(a,c);
+      float sag=0.25*length(a-2.0*b+c);
+      if(sag<=0.5) return min(best,chord);
+      if(chord-sag>=best) return best;
+      float hull=min(chord,min(waveformSegmentDistance(a,b),waveformSegmentDistance(b,c)));
+      float s1=a.x*b.y-a.y*b.x,s2=b.x*c.y-b.y*c.x,s3=c.x*a.y-c.y*a.x;
+      bool inside=(s1>=0.0&&s2>=0.0&&s3>=0.0)||(s1<=0.0&&s2<=0.0&&s3<=0.0);
+      if(!inside&&hull>=best) return best;
+      int pieces=min(8,int(ceil(sqrt(sag*2.0))));
+      float2 previous=a;
+      for(int k=1;k<=pieces;k++) {
+        float t=float(k)/float(pieces);
+        float2 point=mix(mix(a,b,t),mix(b,c,t),t);
+        best=min(best,waveformSegmentDistance(previous,point));
+        previous=point;
       }
-      int index=max(1,int(floor(u+0.5)));
-      float previous=waveformReducedSample(float(index-1)/maximum,samples,count);
-      float control=waveformReducedSample(float(index)/maximum,samples,count);
-      float next=waveformReducedSample(float(index+1)/maximum,samples,count);
-      float start=index==1 ? previous : (previous+control)*0.5;
-      float end=(control+next)*0.5;
-      float t=index==1 ? u/(1.0+sqrt(max(1.0-u*0.5,0.0))) : u-float(index)+0.5;
-      float amplitude=mix(mix(start,control,t),mix(control,end,t),t);
-      float derivative=2.0*mix(control-start,end-control,t);
-      float dx=index==1 ? 2.0-t : 1.0;
-      return float2(amplitude,derivative/dx*maximum);
+      return best;
+    }
+    // Nearest distance to the reconstructed stroke, not to its local tangent,
+    // so a steep slope cannot smear glow along its whole column. Segments are
+    // visited outward from the fragment's column, each side carrying the three
+    // grid points its next segment needs (one new point per side and step).
+    // The walk stops when every remaining segment is farther than the best so
+    // far, or than `reach`, beyond which the pass is transparent anyway (the
+    // result is therefore capped at `reach`). Cost contract: at most 73
+    // segments, one capsule test each, plus two more and up to 8 chords only
+    // for a bent segment that may still win (see waveformQuadDistance).
+    float waveformPathDistance(WaveformGrid grid,constant float *samples,float reach) {
+      int last=int(grid.maximum);
+      int center=clamp(int(floor(grid.column+0.5)),1,last);
+      float best=reach;
+      float2 rp=waveformGridPoint(grid,samples,center-1);
+      float2 rc=waveformGridPoint(grid,samples,center);
+      float2 rn=waveformGridPoint(grid,samples,center+1);
+      float2 lp=rp,lc=rc,ln=rn;
+      float2 a,b,c;
+      for(int k=0;k<=36;k++) {
+        if(float(max(k-1,0))*grid.stepX>best) break;
+        int right=center+k;
+        if(right<=last) {
+          waveformPathSegment(right,last,rp,rc,rn,a,b,c);
+          best=waveformQuadDistance(a,b,c,best);
+          rp=rc; rc=rn; rn=waveformGridPoint(grid,samples,right+2);
+        }
+        int left=center-k;
+        if(k>0&&left>=1) {
+          ln=lc; lc=lp; lp=waveformGridPoint(grid,samples,left-1);
+          waveformPathSegment(left,last,lp,lc,ln,a,b,c);
+          best=waveformQuadDistance(a,b,c,best);
+        }
+      }
+      return best;
+    }
+    // Flutter's peak glow is a straight polyline through the samples whose
+    // neighbourhood (previous, current, next) reaches the threshold. Segment
+    // (j,j+1) exists when either end qualifies: that is exactly its
+    // moveTo(j-1)/lineTo run construction, round caps and all.
+    bool waveformPeakQualifies(float before,float sample,float after,float threshold) {
+      return max(abs(before),max(abs(sample),abs(after)))>=threshold;
+    }
+    float2 waveformPeakPoint(WaveformGrid grid,int index,float sample) {
+      return float2(float(index)*grid.stepX,0.5*grid.viewport.y-sample*grid.displacement)
+        -grid.pixel;
+    }
+    // Same outward walk as the path, over the four samples j-1..j+2 that decide
+    // and place segment (j,j+1): one sample fetch per side and step, one
+    // capsule test per qualifying segment, result capped at `reach`.
+    float waveformPeakDistance(WaveformGrid grid,constant float *samples,float threshold,float reach) {
+      int last=int(grid.maximum);
+      int center=clamp(int(floor(grid.column)),0,last-1);
+      float best=reach;
+      float r0=waveformGridSample(grid,samples,center-1),r1=waveformGridSample(grid,samples,center);
+      float r2=waveformGridSample(grid,samples,center+1),r3=waveformGridSample(grid,samples,center+2);
+      float l0=r0,l1=r1,l2=r2,l3=r3;
+      for(int k=0;k<=36;k++) {
+        if(float(max(k-1,0))*grid.stepX>best) break;
+        int right=center+k;
+        if(right<=last-1) {
+          if(waveformPeakQualifies(r0,r1,r2,threshold)||waveformPeakQualifies(r1,r2,r3,threshold)) {
+            best=min(best,waveformSegmentDistance(waveformPeakPoint(grid,right,r1),
+              waveformPeakPoint(grid,right+1,r2)));
+          }
+          r0=r1; r1=r2; r2=r3; r3=waveformGridSample(grid,samples,right+3);
+        }
+        int left=center-k;
+        if(k>0&&left>=0) {
+          l3=l2; l2=l1; l1=l0; l0=waveformGridSample(grid,samples,left-1);
+          if(waveformPeakQualifies(l0,l1,l2,threshold)||waveformPeakQualifies(l1,l2,l3,threshold)) {
+            best=min(best,waveformSegmentDistance(waveformPeakPoint(grid,left,l1),
+              waveformPeakPoint(grid,left+1,l2)));
+          }
+        }
+      }
+      return best;
     }
     float waveformStroke(float distancePixels,float widthPixels) {
       float halfWidth=max(widthPixels*0.5,0.35);
       return 1-smoothstep(halfWidth,halfWidth+1.0,distancePixels);
     }
+    // erf to 1.5e-7 (Abramowitz-Stegun 7.1.26); MSL has no erf.
+    float waveformErf(float x) {
+      float t=1.0/(1.0+0.3275911*abs(x));
+      float y=1.0-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t
+        -0.284496736)*t+0.254829592)*t*exp(-x*x);
+      return x<0.0 ? -y : y;
+    }
+    // Flutter blurs the stroke's coverage with a Gaussian of `blurPixels` sigma.
+    // At distance d from the centre of a stroke of half width h that is the
+    // Gaussian integral over [d-h, d+h]: a faint wide haze whose peak
+    // erf(h/(sigma*sqrt2)) stays well below 1 whenever the blur is wider than
+    // the stroke. A plateau of 1 inside the stroke would add ~3x the light.
     float waveformBloom(float distancePixels,float widthPixels,float blurPixels) {
       float halfWidth=max(widthPixels*0.5,0.35);
-      float outside=max(distancePixels-halfWidth,0.0);
-      float sigma=max(blurPixels,0.5);
-      return exp(-0.5*outside*outside/(sigma*sigma));
+      float scale=0.70710678/max(blurPixels,0.5);
+      return 0.5*(waveformErf((distancePixels+halfWidth)*scale)
+        -waveformErf((distancePixels-halfWidth)*scale));
+    }
+    // Beyond this distance a pass contributes under 1/255 (3.5 sigma) or the
+    // anti-aliased stroke edge has ended.
+    float waveformReach(float widthPixels,float blurPixels) {
+      return max(widthPixels*0.5,0.35)+3.5*max(blurPixels,0.5)+1.0;
     }
     void waveformAdd(thread float3 &premultiplied,thread float &alpha,
       float3 color,float coverage) {
@@ -2700,44 +2872,61 @@ private final class SceneRenderV2WaveformMetalRenderer {
       float peak=clamp(metrics[2],0.0,1.0),impact=clamp(metrics[3],0.0,1.0);
       float visibility=clamp(metrics[4]*opacity,0.0,1.0);
       float displacement=min(viewport.y*metrics[5],viewport.x*metrics[6]);
-      float2 curve=waveformCurve(in.uv.x,samples,counts.x);
-      float waveY=0.5-curve.x*displacement/max(viewport.y,1.0);
-      float slope=-curve.y*displacement/max(viewport.x,1.0);
-      // Local tangent distance is exact on straight/sloped sections. Curved
-      // glow remains an approximation, not a full nearest-path/blur solve.
-      float distancePixels=abs(in.uv.y-waveY)*viewport.y/sqrt(1.0+slope*slope);
       float pointScale=max(metrics[7],0.0001);
-      float viewportScale=clamp(min(viewport.x,viewport.y)/pointScale/390.0,0.78,1.35)*pointScale;
+      // Flutter scales stroke widths by its artistic viewport factor but keeps
+      // blur sigmas at fixed logical points; both then meet the pixel density.
+      float widthScale=clamp(min(viewport.x,viewport.y)/pointScale/390.0,0.78,1.35)*pointScale;
+      float blurScale=pointScale;
+      float outerWidth=(11+peak*23+impact*18)*widthScale,outerBlur=24*blurScale;
+      float peakWidth=(5.5+peak*12+impact*9)*widthScale,peakBlur=13*blurScale;
+      float hotWidth=(1.4+peak*2.2+impact*1.8)*widthScale,hotBlur=3*blurScale;
+      float haloWidth=(5.8+energy*7.2+impact*4.8)*widthScale,haloBlur=8*blurScale;
+      float innerWidth=(2.1+energy*1.9+impact*1.4)*widthScale;
+      float coreWidth=(1.15+energy*0.95+impact*0.75)*widthScale;
+      bool peakPasses=counts.y>=5&&peak>0.18;
+      float pathReach=max(waveformReach(innerWidth,0.0),waveformReach(coreWidth,0.0));
+      if(counts.y>=3) pathReach=max(pathReach,waveformReach(haloWidth,haloBlur));
+      if(counts.y>=4) pathReach=max(pathReach,waveformReach(outerWidth,outerBlur));
+      float peakReach=peakPasses
+        ? max(waveformReach(peakWidth,peakBlur),waveformReach(hotWidth,hotBlur)) : 0.0;
+      WaveformGrid grid;
+      grid.maximum=float(max(counts.x,3)-1);
+      grid.viewport=viewport;
+      grid.displacement=displacement;
+      grid.pixel=in.uv*viewport;
+      grid.column=clamp(in.uv.x,0.0,1.0)*grid.maximum;
+      grid.stepX=viewport.x/grid.maximum;
+      grid.sourceStep=126.0/grid.maximum;
+      // Every stroke lies inside the amplitude band: rows beyond its reach are
+      // transparent without visiting a single segment.
+      if(abs(grid.pixel.y-0.5*viewport.y)-peak*displacement>max(pathReach,peakReach)) {
+        discard_fragment();
+      }
+      float pathDistance=waveformPathDistance(grid,samples,pathReach);
       float3 premultiplied=float3(0); float alpha=0;
       if(counts.y>=4) {
         float a=min((0.14+peak*0.28+energy*0.18+impact*0.24)*visibility,0.78);
-        waveformAdd(premultiplied,alpha,colors[0],waveformBloom(distancePixels,
-          (11+peak*23+impact*18)*viewportScale,24*viewportScale)*a);
+        waveformAdd(premultiplied,alpha,colors[0],
+          waveformBloom(pathDistance,outerWidth,outerBlur)*a);
       }
-      if(counts.y>=5&&peak>0.18) {
-        float local=max(abs(waveformReducedSample(in.uv.x-1/max(viewport.x,1.0),samples,counts.x)),
-          max(abs(waveformReducedSample(in.uv.x,samples,counts.x)),
-          abs(waveformReducedSample(in.uv.x+1/max(viewport.x,1.0),samples,counts.x))));
-        if(local>=max(0.12,peak*0.44)) {
-          float a=min((0.10+peak*0.42+energy*0.10+impact*0.30)*visibility,0.82);
-          waveformAdd(premultiplied,alpha,colors[1],waveformBloom(distancePixels,
-            (5.5+peak*12+impact*9)*viewportScale,13*viewportScale)*a);
-          a=min((0.12+peak*0.48+impact*0.24)*visibility,0.88);
-          waveformAdd(premultiplied,alpha,colors[2],waveformBloom(distancePixels,
-            (1.4+peak*2.2+impact*1.8)*viewportScale,3*viewportScale)*a);
-        }
+      if(peakPasses) {
+        float peakDistance=waveformPeakDistance(grid,samples,max(0.12,peak*0.44),peakReach);
+        float a=min((0.10+peak*0.42+energy*0.10+impact*0.30)*visibility,0.82);
+        waveformAdd(premultiplied,alpha,colors[1],
+          waveformBloom(peakDistance,peakWidth,peakBlur)*a);
+        a=min((0.12+peak*0.48+impact*0.24)*visibility,0.88);
+        waveformAdd(premultiplied,alpha,colors[2],
+          waveformBloom(peakDistance,hotWidth,hotBlur)*a);
       }
       if(counts.y>=3) {
         float a=min((0.18+energy*0.28+impact*0.16)*visibility,0.62);
-        waveformAdd(premultiplied,alpha,colors[0],waveformBloom(distancePixels,
-          (5.8+energy*7.2+impact*4.8)*viewportScale,8*viewportScale)*a);
+        waveformAdd(premultiplied,alpha,colors[0],
+          waveformBloom(pathDistance,haloWidth,haloBlur)*a);
       }
       float a=min((0.70+energy*0.25)*visibility,0.96);
-      waveformAdd(premultiplied,alpha,colors[3],waveformStroke(distancePixels,
-        (2.1+energy*1.9+impact*1.4)*viewportScale)*a);
+      waveformAdd(premultiplied,alpha,colors[3],waveformStroke(pathDistance,innerWidth)*a);
       a=min((0.92+energy*0.08)*visibility,1.0);
-      waveformAdd(premultiplied,alpha,colors[4],waveformStroke(distancePixels,
-        (1.15+energy*0.95+impact*0.75)*viewportScale)*a);
+      waveformAdd(premultiplied,alpha,colors[4],waveformStroke(pathDistance,coreWidth)*a);
       if(alpha<=0.00001) discard_fragment();
       return half4(half3(clamp(premultiplied,0.0,alpha)),half(alpha));
     }

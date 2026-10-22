@@ -107,6 +107,9 @@ class StudioView extends StatefulWidget {
     this.onVoteFilterChanged,
     this.onListEnd,
     this.catalogSectionTitle = 'Visuales',
+    this.collectionFilters = const [],
+    this.selectedCollection = 'all',
+    this.onCollectionChanged,
     super.key,
   });
 
@@ -169,6 +172,9 @@ class StudioView extends StatefulWidget {
 
   /// The current catalog section, shown when opening its visual list.
   final String catalogSectionTitle;
+  final List<StudioFilterOption> collectionFilters;
+  final String selectedCollection;
+  final ValueChanged<String>? onCollectionChanged;
 
   @override
   State<StudioView> createState() => _StudioViewState();
@@ -229,7 +235,112 @@ class _StudioViewState extends State<StudioView> {
   }
 
   bool get _anyFilterActive =>
-      _roleFilter != StudioRoleFilter.all || _activeVoteFilter != null;
+      _roleFilter != StudioRoleFilter.all ||
+      _activeVoteFilter != null ||
+      (widget.collectionFilters.isNotEmpty &&
+          widget.selectedCollection != widget.collectionFilters.first.id);
+
+  bool get _hasCollections => widget.collectionFilters.length > 1;
+  double get _collectionBarHeight => _hasCollections ? 52 : 0;
+
+  Future<void> _chooseCollection(VoidCallback? onChanged) async {
+    final id = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder:
+          (sheetContext) => SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(24, 0, 24, 12),
+                    child: Text(
+                      'Colecciones',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  for (final option in widget.collectionFilters)
+                    ListTile(
+                      key: ValueKey('collection-${option.id}'),
+                      title: Text(option.label),
+                      subtitle: Text('${option.count} visuales'),
+                      trailing:
+                          option.id == widget.selectedCollection
+                              ? const Icon(
+                                Icons.check_circle_rounded,
+                                color: Color(0xFF73F572),
+                              )
+                              : null,
+                      onTap: () => Navigator.of(sheetContext).pop(option.id),
+                    ),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            ),
+          ),
+    );
+    if (!mounted || id == null) return;
+    setState(() => _roleFilter = StudioRoleFilter.all);
+    widget.onCollectionChanged?.call(id);
+    if (onChanged != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) onChanged();
+      });
+    }
+  }
+
+  Widget _collectionPicker({VoidCallback? onChanged}) {
+    final selected =
+        widget.collectionFilters
+            .where((option) => option.id == widget.selectedCollection)
+            .firstOrNull;
+    return InkWell(
+      key: ValueKey(
+        onChanged == null ? 'collection-selector' : 'collection-selector-sheet',
+      ),
+      onTap: () => unawaited(_chooseCollection(onChanged)),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 48),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: .65),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.collections_bookmark_outlined,
+              size: 18,
+              color: Color(0xFF73F572),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Colección · ${selected?.label ?? 'Todos los grupos'}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const Icon(Icons.expand_more_rounded, color: Colors.white70),
+          ],
+        ),
+      ),
+    );
+  }
 
   List<StudioVisualItem> get _filteredVisuals {
     return switch (_roleFilter) {
@@ -323,6 +434,16 @@ class _StudioViewState extends State<StudioView> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
+        bottom:
+            _hasCollections
+                ? PreferredSize(
+                  preferredSize: Size.fromHeight(_collectionBarHeight),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                    child: _collectionPicker(),
+                  ),
+                )
+                : null,
         title: InkWell(
           onTap: () => _showVisualList(context),
           borderRadius: BorderRadius.circular(12),
@@ -686,7 +807,7 @@ class _StudioViewState extends State<StudioView> {
                 ),
                 if (widget.compareLabel case final String label)
                   Positioned(
-                    top: MediaQuery.paddingOf(context).top + 64,
+                    top: MediaQuery.paddingOf(context).top + 64 + _collectionBarHeight,
                     left: 0,
                     right: 0,
                     child: IgnorePointer(
@@ -720,7 +841,7 @@ class _StudioViewState extends State<StudioView> {
                   child: IgnorePointer(
                     ignoring: !_showControls,
                     child: SafeArea(
-                      minimum: const EdgeInsets.fromLTRB(16, 72, 16, 16),
+                      minimum: EdgeInsets.fromLTRB(16, 72 + _collectionBarHeight, 16, 16),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
                           final wide = constraints.maxWidth >= 760;
@@ -777,7 +898,7 @@ class _StudioViewState extends State<StudioView> {
                 // 3. Live cost of the visual, under the app bar.
                 if (widget.performanceOverlay case final Widget overlay)
                   Positioned(
-                    top: MediaQuery.paddingOf(context).top + kToolbarHeight,
+                    top: MediaQuery.paddingOf(context).top + kToolbarHeight + _collectionBarHeight,
                     // Clear the side system bar (Android buttons in landscape).
                     left: MediaQuery.paddingOf(context).left + 12,
                     child: AnimatedOpacity(
@@ -1699,6 +1820,15 @@ class _StudioViewState extends State<StudioView> {
 
                       const SizedBox(height: 12),
 
+                      if (_hasCollections) ...[
+                        _collectionPicker(
+                          onChanged: () {
+                            if (context.mounted) setSheetState(() {});
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+
                       TextField(
                         key: const ValueKey('visual-search-field'),
                         controller: _visualSearch,
@@ -1884,6 +2014,11 @@ class _StudioViewState extends State<StudioView> {
                                         ),
                                         onPressed: () {
                                           _setRoleFilter(StudioRoleFilter.all);
+                                          if (widget.collectionFilters.isNotEmpty) {
+                                            widget.onCollectionChanged?.call(
+                                              widget.collectionFilters.first.id,
+                                            );
+                                          }
                                           if (widget.voteFilters.isNotEmpty) {
                                             widget.onVoteFilterChanged?.call(
                                               widget.voteFilters.first.id,

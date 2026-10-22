@@ -12282,6 +12282,54 @@ struct SceneSurfacePictureInPictureSource: Equatable {
     let revision: Int
 }
 
+/// One complete frame that the V1 engine has already published to its Flutter
+/// texture. Passive observers receive it on the render queue after the GPU
+/// work completed; they must return immediately and may only retain `buffer`
+/// briefly (it belongs to the session's bounded published-buffer budget).
+struct SceneSurfacePublishedFrame {
+    let sessionID: String
+    let sceneID: String
+    let documentGeneration: String
+    /// Applied revision when `appliedDocument` is true; otherwise the pending
+    /// transaction's requested revision whose candidate document was rendered.
+    let revision: Int
+    /// False while a candidate document of a pending edit transaction, or a
+    /// document whose edit receipt has not been applied yet, produced the frame.
+    let appliedDocument: Bool
+    let serial: UInt64
+    let width: Int
+    let height: Int
+    /// `CACurrentMediaTime()` at render start: the frame's media timestamp.
+    let hostTime: CFTimeInterval
+    let buffer: CVPixelBuffer
+}
+
+/// Optional generic observation of published frames. The engine keeps only a
+/// weak reference, never waits for the observer and never renders for it.
+protocol SceneSurfacePublishedFrameObserver: AnyObject {
+    func sceneSurfaceDidPublish(_ frame: SceneSurfacePublishedFrame)
+}
+
+/// Read-only description of the surface an observer may bind to. It mirrors
+/// the PiP admission guards without leasing, retaining or changing anything.
+struct SceneSurfacePublishedSurfaceIdentity: Equatable {
+    let sessionID: String
+    let sceneID: String
+    let documentGeneration: String
+    let appliedRevision: Int
+    let editStatus: String
+    let publishedFrameCount: UInt64
+    let foregroundAttached: Bool
+    let preparing: Bool
+    let width: Int
+    let height: Int
+
+    /// True when the surface currently publishes authoritative frames.
+    var publishesAppliedFrames: Bool {
+        foregroundAttached && !preparing && editStatus != "pending" && publishedFrameCount > 0
+    }
+}
+
 /// Renders a complete, ordered scene graph into one IOSurface-backed Flutter
 /// texture. Sessions are independent so the PageView can keep adjacent scenes
 /// alive during an interactive transition.
@@ -12360,6 +12408,8 @@ final class SceneSurfaceRenderEngine: NSObject {
         var editObservedBackend: SceneSurfaceObservedBackendReceipt?
         var firstMovingVideoAt: CFTimeInterval?
         var publishedFrameCount: UInt64 = 0
+        weak var lastPublishedDocument: SceneSurfaceDocumentRuntime?
+        var lastPublishedRevision = -1
         var gpuFrameTiming = SceneSurfaceGPUFrameTiming()
         var performanceProbe: PerformanceProbe?
         var reactiveFrame = SceneSurfaceReactiveFrame()
@@ -12440,6 +12490,55 @@ final class SceneSurfaceRenderEngine: NSObject {
     private var documentInspections = [String: (
         id: UUID, operation: SceneSurfaceInspectionOperation<[String: SceneSurfaceVideoAssetInspection]>
     )]()
+
+    /// Confined to `renderQueue`.
+    private weak var publishedFrameObserver: SceneSurfacePublishedFrameObserver?
+
+    /// Installs or clears the single passive published-frame observer.
+    func setPublishedFrameObserver(_ observer: SceneSurfacePublishedFrameObserver?) {
+        renderQueue.async { [weak self] in self?.publishedFrameObserver = observer }
+    }
+
+    /// Seeds an observer from the image already on screen. No render or
+    /// permanent extra source retain is created, including static scenes.
+    func offerCurrentPublishedFrame(sessionID: String) {
+        renderQueue.async { [weak self] in
+            guard let self, let observer = self.publishedFrameObserver,
+                  let session = self.sessions[sessionID],
+                  session.foregroundAttached, session.preparationId == nil,
+                  session.editStatus != "pending", session.publishedFrameCount > 0,
+                  session.lastPublishedDocument === session.document,
+                  session.lastPublishedRevision == session.editAppliedRevision,
+                  let buffer = session.texture.copyPixelBuffer()?.takeRetainedValue() else { return }
+            observer.sceneSurfaceDidPublish(SceneSurfacePublishedFrame(
+                sessionID: session.id, sceneID: session.sceneId,
+                documentGeneration: session.documentGeneration,
+                revision: session.editAppliedRevision, appliedDocument: true,
+                serial: session.publishedFrameCount, width: session.width, height: session.height,
+                hostTime: CACurrentMediaTime(), buffer: buffer
+            ))
+        }
+    }
+
+    /// Describes an attached session without leasing or mutating it.
+    func publishedSurfaceIdentity(sessionID: String) -> SceneSurfacePublishedSurfaceIdentity? {
+        renderQueue.sync {
+            guard let session = sessions[sessionID] else { return nil }
+            return SceneSurfacePublishedSurfaceIdentity(
+                sessionID: session.id,
+                sceneID: session.sceneId,
+                documentGeneration: session.documentGeneration,
+                appliedRevision: session.lastPublishedRevision,
+                editStatus: session.lastPublishedDocument === session.document ? session.editStatus : "pending",
+                publishedFrameCount: session.publishedFrameCount,
+                foregroundAttached: session.foregroundAttached,
+                preparing: session.preparationId != nil || documentInspections[sessionID] != nil
+                    || session.pendingFilterResult != nil,
+                width: session.width,
+                height: session.height
+            )
+        }
+    }
 
     func retainPictureInPictureSource(
         sessionID: String, consumerID: String, identity: [String: Any]
@@ -14405,6 +14504,23 @@ final class SceneSurfaceRenderEngine: NSObject {
             }
             if session.publishedFrameCount < UInt64.max {
                 session.publishedFrameCount += 1
+            }
+            let applied = document === session.document && session.editStatus != "pending"
+            session.lastPublishedDocument = document
+            session.lastPublishedRevision = applied ? session.editAppliedRevision : -1
+            if let observer = publishedFrameObserver {
+                observer.sceneSurfaceDidPublish(SceneSurfacePublishedFrame(
+                    sessionID: session.id,
+                    sceneID: document.sceneId,
+                    documentGeneration: session.documentGeneration,
+                    revision: session.lastPublishedRevision,
+                    appliedDocument: applied,
+                    serial: session.publishedFrameCount,
+                    width: session.width,
+                    height: session.height,
+                    hostTime: renderStartedAt,
+                    buffer: buffer
+                ))
             }
             session.lastRenderedAt = hostTime
             session.lastFrameCheckAt = hostTime
