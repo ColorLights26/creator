@@ -10975,6 +10975,2227 @@
       "reactivity": "music"
     },
     {
+      "id": "reactiva_mejorada_aurora_enciende",
+      "name": "Reactiva Mejorada · Aurora que se Enciende",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Durante la subida de energía baja desde arriba una cortina de rayos de aurora, esmeralda con borde rosado y cresta carmesí; en el drop brilla el doble y se retira hacia arriba. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "magical",
+        "building",
+        "vivid"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "aurora",
+        "build-up",
+        "curtain of light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Aurora Roja",
+          "values": {
+            "tono": "Toda roja",
+            "altura": 0.4
+          }
+        },
+        {
+          "name": "Velo Polar",
+          "values": {
+            "altura": 0.2,
+            "pliegues": 1,
+            "disparo": "Cada dos tiempos"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_banda_obturador",
+      "name": "Reactiva Mejorada · Banda de Obturador",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con la caja aparece el artefacto de un flash grabado con obturador rodante: en un cuadro se ilumina una franja con corte nítido y en el siguiente la parte complementaria. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "rhythmic",
+        "bright"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "rolling shutter",
+        "camera flash",
+        "exposure"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.59
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Sensor",
+          "values": {
+            "corte": 1,
+            "duracion": 0.04
+          }
+        },
+        {
+          "name": "Película",
+          "values": {
+            "corte": 0.2,
+            "duracion": 0.12,
+            "orientacion": "Vertical"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_barrido_holografico",
+      "name": "Reactiva Mejorada · Barrido Holográfico",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar una frase cruza en diagonal una banda iridiscente, como al inclinar una carta holográfica: interferencia arcoíris, retícula fina, línea especular y purpurina. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "futuristic",
+        "elegant",
+        "vivid"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "holographic",
+        "iridescent",
+        "light sweep"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.3
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Carta Rara",
+          "values": {
+            "ancho": 0.6,
+            "purpurina": 1,
+            "angulo": 50
+          }
+        },
+        {
+          "name": "Filo de Luz",
+          "values": {
+            "ancho": 0.22,
+            "purpurina": 0.2,
+            "angulo": -20
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_bokeh_luces_2_transparente",
+      "name": "Reactiva Mejorada · Bokeh 2",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Luces desenfocadas rojas, naranjas y amarillas intensas que laten con los graves y saltan hacia la cámara con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "relax",
+        "visualizer",
+        "focus"
+      ],
+      "moods": [
+        "dreamy",
+        "elegant",
+        "calm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "bokeh",
+        "lights",
+        "depth of field",
+        "glow"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music"
+    },
+    {
+      "id": "reactiva_mejorada_borde_luz",
+      "name": "Reactiva Mejorada · Borde de Luz",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con los platillos, los bordes de la escena se aclaran un instante con una luz cálida y el centro no se toca. En modo Alterno la luz entra por un lado y luego por el otro. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "rhythmic",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "edge light",
+        "hi-hat",
+        "light pulse"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.36
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Destello Lateral",
+          "values": {
+            "marco": "Alterno",
+            "disparo": "Caja"
+          }
+        },
+        {
+          "name": "Halo de Escenario",
+          "values": {
+            "marco": "Óvalo",
+            "apertura": 0.35,
+            "caida": 0.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_cabezas_moviles",
+      "name": "Reactiva Mejorada · Mirada de Cabezas Móviles",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con la caja, varios haces de cabezas móviles giran y apuntan a cámara: cada uno se vuelve un disco cegador con estrella de seis puntas, la escena se vela un instante y los haces se retiran. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "energetic",
+        "dramatic",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "moving heads",
+        "beam",
+        "concert lighting"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.68
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Festival",
+          "values": {
+            "cabezas": 5,
+            "deslumbre": 1
+          }
+        },
+        {
+          "name": "Discreto",
+          "values": {
+            "cabezas": 3,
+            "deslumbre": 0.25,
+            "disparo": "Cada tiempo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_cadena_iris",
+      "name": "Reactiva Mejorada · Cadena de Iris",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el bombo, una luz fuera del cuadro hace que la lente proyecte su cadena de fantasmas heptagonales con los tintes rojo, verde y ámbar de los recubrimientos. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "cinematic",
+        "vintage",
+        "rhythmic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "lens flare",
+        "iris ghosts",
+        "aperture"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.04
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Vintage",
+          "values": {
+            "fantasmas": 8,
+            "lamina": "Seis láminas",
+            "caida": 0.5
+          }
+        },
+        {
+          "name": "Limpio",
+          "values": {
+            "fantasmas": 4,
+            "lamina": "Redondo",
+            "caida": 0.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_candilejas_ascenso",
+      "name": "Reactiva Mejorada · Candilejas en Ascenso",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Durante la subida de energía, cada bombo enciende un pulso de candilejas bajo el cuadro, con conos y humo que trepan más alto y más blancos cuanto más sube; en el drop se corta. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "energetic",
+        "warm",
+        "building"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "footlights",
+        "build-up",
+        "stage lighting"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 2.16
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Teatro",
+          "values": {
+            "luces": 8,
+            "altura": 0.4,
+            "humo": 1
+          }
+        },
+        {
+          "name": "Rampa",
+          "values": {
+            "luces": 5,
+            "altura": 0.8,
+            "disparo": "Cada bombo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_canon_seguimiento",
+      "name": "Reactiva Mejorada · Cañón de Seguimiento",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Tras una pausa, en el primer golpe se abre de golpe el iris de un cañón de seguimiento: luz cálida dentro, la escena algo más oscura fuera, y se cierra al poco. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "cinematic",
+        "dramatic",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "followspot",
+        "iris",
+        "spotlight"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.3
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Solista",
+          "values": {
+            "tamano": 0.25,
+            "oscuridad": 0.6,
+            "posicion": "Tercio superior"
+          }
+        },
+        {
+          "name": "Escenario",
+          "values": {
+            "tamano": 0.45,
+            "oscuridad": 0.25,
+            "disparo": "Golpes acentuados"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_causticas_fugaces",
+      "name": "Reactiva Mejorada · Cáusticas Fugaces",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Cuando crecen los graves aparece por zonas la red de luz de una piscina, con líneas curvas brillantes, halo y borde prismático, y se evapora cuando bajan. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "dreamy",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "caustics",
+        "water light",
+        "bass"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.05
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Piscina",
+          "values": {
+            "escala": 1.4,
+            "ondulacion": 1
+          }
+        },
+        {
+          "name": "Red Fina",
+          "values": {
+            "escala": 0.7,
+            "ondulacion": 0.3,
+            "prisma": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_cegadoras_cadena",
+      "name": "Reactiva Mejorada · Cegadoras en Cadena",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el drop se encienden en cadena las cegadoras de concierto que hay justo encima del cuadro, con halo ámbar y un cono con humo, y al apagarse se enfrían de blanco a ámbar y a brasa. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "dramatic",
+        "energetic",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "audience blinders",
+        "concert lighting",
+        "tungsten"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.12
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Estadio",
+          "values": {
+            "lamparas": 6,
+            "cadena": "De lado a lado",
+            "enfriado": 0.8
+          }
+        },
+        {
+          "name": "Golpe Seco",
+          "values": {
+            "cadena": "Todas a la vez",
+            "enfriado": 0.3,
+            "lamparas": 4
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_celuloide_quemado",
+      "name": "Reactiva Mejorada · Celuloide Quemado",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe grande la película se quema desde una esquina: una mancha irregular que hierve, con núcleo casi blanco, cuerpo naranja, borde granate, ampollas y grano, y se apaga enseguida. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "dramatic",
+        "vintage",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "film burn",
+        "celluloid",
+        "light leak"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Proyector",
+          "values": {
+            "esquina": "Abajo",
+            "tamano": 1,
+            "caida": 0.9
+          }
+        },
+        {
+          "name": "Chispazo",
+          "values": {
+            "tamano": 0.5,
+            "caida": 0.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_chispas_bordes_premium",
+      "name": "Reactiva Mejorada · Chispas desde los Bordes Premium",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Chispas de núcleo caliente y estela de color que entran desde los bordes de la pantalla, se frenan y se apagan antes de llegar al centro, dejando libre la imagen. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "energetic",
+        "intense",
+        "dynamic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "sparks",
+        "frame",
+        "light trails",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Marco de Fuego",
+          "values": {
+            "bordes": "Todos",
+            "alcance": 0.3,
+            "estela": 0.8,
+            "detail": 1.6
+          }
+        },
+        {
+          "name": "Cruce",
+          "values": {
+            "bordes": "Laterales",
+            "alcance": 1,
+            "estela": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_chispas_premium",
+      "name": "Reactiva Mejorada · Chispas Premium",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Chispas finas y rapidísimas de núcleo blanco y estela naranja que saltan de fuentes de fuego en abanico y caen en arco por su peso; con cada golpe, una fuente nueva. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "energetic",
+        "intense",
+        "cinematic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "sparks",
+        "fire",
+        "streaks",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Soldadura",
+          "values": {
+            "abanico": 1,
+            "caida": 1,
+            "estela": 1,
+            "tamano": 0.8
+          }
+        },
+        {
+          "name": "Bengala",
+          "values": {
+            "abanico": 0.15,
+            "caida": 0.1,
+            "estela": 0.4,
+            "tamano": 1.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_cortina_svoboda",
+      "name": "Reactiva Mejorada · Cortina Svoboda",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar una frase se materializa desde arriba una lámina de decenas de rayos casi paralelos, con venas brillantes y polvo dentro, y se disuelve hacia arriba. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "elegant",
+        "cinematic",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "light curtain",
+        "svoboda",
+        "volumetric light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.15
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Teatro",
+          "values": {
+            "rayos": 40,
+            "inclinacion": 0,
+            "polvo": 1
+          }
+        },
+        {
+          "name": "Contraluz",
+          "values": {
+            "rayos": 18,
+            "inclinacion": -12,
+            "disparo": "Golpes acentuados"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_cristal_electrico_transparente",
+      "name": "Reactiva Mejorada · Cristal Eléctrico",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Una figura de Lichtenberg, el rayo fractal que se quema en la madera, crece ramificándose al rojo vivo; cada golpe manda una descarga blanca que recorre todas sus ramas sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "focus"
+      ],
+      "moods": [
+        "electric",
+        "organic",
+        "intense"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "lichtenberg figure",
+        "fractal",
+        "lightning",
+        "growth"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Tormenta",
+          "values": {
+            "origen": "Arriba y abajo",
+            "ramas": 1.6,
+            "velocidad": 1.8,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Brasa Viva",
+          "values": {
+            "origen": "Abajo",
+            "ramas": 0.7,
+            "velocidad": 0.6,
+            "pulso": "Graves"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_descarga_tesla_transparente",
+      "name": "Reactiva Mejorada · Descarga Tesla",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Plasma eléctrico a pantalla completa: rayos ramificados desde un núcleo de energía que siguen el espectro y estallan con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "electric",
+        "energetic",
+        "mysterious"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "plasma",
+        "electricity",
+        "tesla",
+        "lightning"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music"
+    },
+    {
+      "id": "reactiva_mejorada_destello_drop",
+      "name": "Reactiva Mejorada · Destello de Drop",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Sólo en el golpe grande (el primero tras una pausa o uno mucho más fuerte que los anteriores) se abre desde el centro una luz suave que se apaga enseguida. Aparece muy de vez en cuando. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "dramatic",
+        "bright"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "drop",
+        "light burst",
+        "impact"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.12
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Amanecer",
+          "values": {
+            "forma": "Desde abajo",
+            "nucleo": 1,
+            "caida": 0.7
+          }
+        },
+        {
+          "name": "Fogonazo",
+          "values": {
+            "forma": "Toda la pantalla",
+            "caida": 0.25,
+            "nucleo": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_destellos_anamorficos",
+      "name": "Reactiva Mejorada · Destellos Anamórficos",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Luces con las rayas horizontales de las lentes de cine, estrellas de difracción o arcos, sin fondo para ponerlas encima de otro visual; cada golpe de la música hace estallar algunas.",
+      "purposes": [
+        "visualizer",
+        "party"
+      ],
+      "moods": [
+        "cinematic",
+        "futuristic",
+        "glamorous"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "anamorphic lens flare",
+        "sci-fi",
+        "light streaks",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Ciencia Ficción",
+          "values": {
+            "lente": "Anamórfica",
+            "recorrido": "Barrido",
+            "pulso": "Golpes",
+            "reflejos": 0.9,
+            "speed": 1.3
+          }
+        },
+        {
+          "name": "Cristal Estelar",
+          "values": {
+            "lente": "Estrella",
+            "recorrido": "Órbita",
+            "pulso": "Brillos",
+            "reflejos": 0.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_destellos_dorados_premium",
+      "name": "Reactiva Mejorada · Destellos Dorados Premium",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Estrellas doradas que aparecen, titilan con rayos finos de luz y se apagan sobre un polvo de oro que flota y unas luces doradas desenfocadas. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "magical",
+        "glamorous",
+        "festive"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "sparkles",
+        "stars",
+        "gold",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Purpurina",
+          "values": {
+            "titileo": "Chispeante",
+            "rayos": 0.25,
+            "tamano": 0.8,
+            "detail": 1.8
+          }
+        },
+        {
+          "name": "Estrellas",
+          "values": {
+            "titileo": "Lento",
+            "rayos": 1,
+            "tamano": 1.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_estrella_difraccion",
+      "name": "Reactiva Mejorada · Estrella de Difracción",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con la caja se abre en un punto alto la estrella que hace una lente ante una luz fuerte: núcleo diminuto, picos larguísimos con el color separado y anillos de Airy, y se apaga en 300 ms. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "elegant",
+        "bright",
+        "rhythmic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "diffraction spikes",
+        "starburst",
+        "optics"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.6
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Diafragma",
+          "values": {
+            "puntas": "Catorce",
+            "largo": 0.7
+          }
+        },
+        {
+          "name": "Gemelas",
+          "values": {
+            "dos": true,
+            "puntas": "Seis",
+            "largo": 0.4
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_estrellas_fugaces_premium",
+      "name": "Reactiva Mejorada · Estrellas Fugaces Premium",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Estrellas fugaces de verdad: una cabeza blanca con resplandor y una cola larga que se afina y se apaga cruzan en diagonal sobre un cielo de estrellas que titilan; con cada golpe cruza otra. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "magical",
+        "dreamy",
+        "calm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "shooting stars",
+        "meteors",
+        "night sky",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Lluvia de Meteoros",
+          "values": {
+            "angulo": 0.9,
+            "estela": 1,
+            "detail": 2,
+            "speed": 1.3
+          }
+        },
+        {
+          "name": "Deseo",
+          "values": {
+            "angulo": -0.4,
+            "estela": 0.5,
+            "tamano": 1.4,
+            "speed": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_estrobo_entrada",
+      "name": "Reactiva Mejorada · Estrobo de Entrada",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe grande, de uno a tres parpadeos tenues de luz o de sombra y nada más: la versión suave del estroboscopio, nunca más de tres por segundo. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "energetic",
+        "bright"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "strobe",
+        "drop",
+        "flash"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.04
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Relámpago",
+          "values": {
+            "rafaga": 2,
+            "caida": 0.05,
+            "tono": "Luz"
+          }
+        },
+        {
+          "name": "Pulso Negro",
+          "values": {
+            "tono": "Sombra",
+            "rafaga": 3,
+            "caida": 0.12
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_flash_palmada",
+      "name": "Reactiva Mejorada · Flash de Palmada",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Sólo con la caja o la palmada, un velo de luz muy tenue cubre la escena y se apaga en un parpadeo, como el flash de una cámara a lo lejos. El bombo no lo activa. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "rhythmic",
+        "bright"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "flash",
+        "clap",
+        "light veil"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.6
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Cámara Lejana",
+          "values": {
+            "origen": "Desde el centro",
+            "caida": 0.06
+          }
+        },
+        {
+          "name": "Foco Cenital",
+          "values": {
+            "origen": "Desde arriba",
+            "caida": 0.16,
+            "disparo": "Golpes acentuados"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_fotograma_impacto",
+      "name": "Reactiva Mejorada · Fotograma de Impacto",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. El impact frame del anime en el golpe grande: dos cuadros en que la pantalla se hunde en negro y decenas de cuñas blancas apuntan a un foco, y luego se vuelven bermellón y se retiran. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "dramatic",
+        "intense",
+        "graphic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "impact frame",
+        "anime",
+        "speed lines"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.04
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Shonen",
+          "values": {
+            "lineas": 120,
+            "oscuro": 1
+          }
+        },
+        {
+          "name": "Sólo Luz",
+          "values": {
+            "oscuro": 0,
+            "lineas": 60,
+            "foco": "Centro"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_fuegos_artificiales_transparente",
+      "name": "Reactiva Mejorada · Fuegos Artificiales",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Espectáculo de fuegos artificiales sincronizado con la música: peonías, sauces dorados, anillos y chispas que estallan con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "celebration",
+        "visualizer"
+      ],
+      "moods": [
+        "festive",
+        "epic",
+        "joyful"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "fireworks",
+        "sparks",
+        "celebration",
+        "show"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Lluvia de Oro",
+          "values": {
+            "carcasa": "Sauces",
+            "caida": 1.6,
+            "estela": 2.2,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Anillos Flotantes",
+          "values": {
+            "carcasa": "Anillos",
+            "caida": 0.4,
+            "estela": 0.6,
+            "pulso": "Agudos"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_fuga_carrete",
+      "name": "Reactiva Mejorada · Fuga de Luz de Carrete",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar una frase entra desde un borde una fuga de luz cálida y orgánica, como la de una cámara de película, que se desplaza, respira y se va, con grano encima. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "warm",
+        "vintage",
+        "dreamy"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "light leak",
+        "film",
+        "analog"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.5
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Super 8",
+          "values": {
+            "grano": 1,
+            "tamano": 0.9
+          }
+        },
+        {
+          "name": "Rayo de Tarde",
+          "values": {
+            "lado": "Arriba",
+            "tamano": 0.55,
+            "grano": 0.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_golpe_cine",
+      "name": "Reactiva Mejorada · Golpe de Cine",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe grande, unas franjas negras finas entran desde arriba y desde abajo, como en una película, y se retiran enseguida. Encuadra la escena un instante sin tocar su contenido. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "cinematic",
+        "dramatic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "letterbox",
+        "cinema bars",
+        "impact"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.1
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Cinemascope",
+          "values": {
+            "barras": "Arriba y abajo",
+            "cierre": 0.14,
+            "caida": 0.5
+          }
+        },
+        {
+          "name": "Marco",
+          "values": {
+            "barras": "Las cuatro",
+            "cierre": 0.05,
+            "disparo": "Bombo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_haces_estadio_transparente",
+      "name": "Reactiva Mejorada · Haces de Estadio",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Iluminación de concierto: conos de luz de cabezas móviles que pulsan con cada golpe y cambian de coreografía y color con cada compás sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "epic",
+        "energetic",
+        "concert"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "stage lights",
+        "moving heads",
+        "beams",
+        "concert"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music"
+    },
+    {
+      "id": "reactiva_mejorada_halo_hielo",
+      "name": "Reactiva Mejorada · Halo de Hielo",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar una frase se enciende un halo de 22° alrededor de una luz: borde interior rojizo, parhelios, arco tangente en ala de gaviota y polvo de diamante. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "magical",
+        "elegant",
+        "cold"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "ice halo",
+        "sun dogs",
+        "atmospheric optics"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.3
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Ártico",
+          "values": {
+            "tamano": 1.3,
+            "polvo": 1
+          }
+        },
+        {
+          "name": "Anillo Solo",
+          "values": {
+            "parhelios": false,
+            "polvo": 0.2,
+            "tamano": 0.8
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_hiperespacio_premium",
+      "name": "Reactiva Mejorada · Hiperespacio Premium",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Salto al hiperespacio: estrellas que nacen tenues en el centro y salen disparadas hacia los bordes, acelerando y estirándose en rayos de luz. Sin fondo, encima de cualquier visual.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "overlay"
+      ],
+      "moods": [
+        "epic",
+        "futuristic",
+        "energetic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "hyperspace",
+        "warp",
+        "light speed",
+        "overlay"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Salto a la Luz",
+          "values": {
+            "estela": 1,
+            "giro": 0,
+            "detail": 1.8,
+            "speed": 1.5
+          }
+        },
+        {
+          "name": "Espiral",
+          "values": {
+            "giro": 1,
+            "estela": 0.35,
+            "tamano": 1.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_latido_completo",
+      "name": "Reactiva Mejorada · Latido Completo",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Una reacción por sonido: el bombo oscurece un instante, la caja aclara un instante y el golpe grande lanza un reflejo que cruza la escena. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "rhythmic",
+        "cinematic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "sidechain",
+        "flash",
+        "light sweep"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.05
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Club",
+          "values": {
+            "reacciones": "Con reflejo",
+            "caida": 0.1,
+            "borde": 0.15
+          }
+        },
+        {
+          "name": "Respiro",
+          "values": {
+            "reacciones": "Sombra y reflejo",
+            "caida": 0.3,
+            "borde": 0.8
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_latido_oscuro",
+      "name": "Reactiva Mejorada · Latido Oscuro",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con cada bombo toda la escena se oscurece un poco durante una décima de segundo y vuelve, como el sidechain de la música electrónica. No añade nada: sólo baja la luz de lo que haya detrás. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "rhythmic",
+        "dark"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "sidechain",
+        "pump",
+        "shadow pulse"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.05
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Sidechain",
+          "values": {
+            "disparo": "Bombo",
+            "borde": 0,
+            "caida": 0.1
+          }
+        },
+        {
+          "name": "Túnel",
+          "values": {
+            "disparo": "Bombo y caja",
+            "borde": 1,
+            "caida": 0.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_luciernagas_transparente",
+      "name": "Reactiva Mejorada · Luciérnagas Sincronizadas",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Cientos de luciérnagas que parpadean al azar y poco a poco se ponen de acuerdo hasta encenderse todas a la vez; con música, cada golpe las sincroniza con el ritmo sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "relax",
+        "focus"
+      ],
+      "moods": [
+        "magical",
+        "organic",
+        "calm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "fireflies",
+        "synchronization",
+        "kuramoto",
+        "emergence"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music"
+    },
+    {
+      "id": "reactiva_mejorada_luz_bordes_transparente",
+      "name": "Reactiva Mejorada · Luz de Bordes",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Resplandor de colores que recorre los bordes de la pantalla y se engrosa con cada banda de la música, con pulsos que corren con el ritmo sobre fondo transparente.",
+      "purposes": [
+        "visualizer",
+        "party",
+        "ambient"
+      ],
+      "moods": [
+        "modern",
+        "vivid",
+        "minimal"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "edge lighting",
+        "glow",
+        "spectrum",
+        "border"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music"
+    },
+    {
+      "id": "reactiva_mejorada_onda_choque_espectral",
+      "name": "Reactiva Mejorada · Onda de Choque Espectral",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe grande cruza la pantalla un frente de luz gigante que nace fuera del cuadro, con cresta blanca, bordes rojo, ámbar y azul separados, estela ámbar y un eco. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "dramatic",
+        "energetic",
+        "futuristic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "shockwave",
+        "chromatic aberration",
+        "impact"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Prisma Roto",
+          "values": {
+            "separacion": 1,
+            "origen": "Desde una esquina"
+          }
+        },
+        {
+          "name": "Latido Limpio",
+          "values": {
+            "disparo": "Bombo",
+            "eco": false,
+            "separacion": 0.3,
+            "origen": "Desde el centro"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_onda_cristal",
+      "name": "Reactiva Mejorada · Onda en el Cristal",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el bombo se abren ondas rápidas como en una lámina de agua sobre la escena: cresta de luz y valle de sombra, que se leen como refracción, y se apagan enseguida. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "fluid",
+        "rhythmic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "ripple",
+        "water",
+        "refraction"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.15
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gota",
+          "values": {
+            "ondas": 2,
+            "profundidad": 1,
+            "origen": "Centro"
+          }
+        },
+        {
+          "name": "Lluvia de Graves",
+          "values": {
+            "ondas": 5,
+            "profundidad": 0.5,
+            "disparo": "Graves fuertes"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_polvo_lente",
+      "name": "Reactiva Mejorada · Polvo de Lente Revelado",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe grande una luz fuera de cuadro barre la lente y revela la suciedad del cristal cerca de ella: motas, huellas, pelos y un velo cálido. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "cinematic",
+        "elegant",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "lens dirt",
+        "lens flare",
+        "optics"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.3
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Lente Vieja",
+          "values": {
+            "suciedad": 1,
+            "caida": 0.9
+          }
+        },
+        {
+          "name": "Reflejo Rápido",
+          "values": {
+            "suciedad": 0.45,
+            "caida": 0.35,
+            "barrido": "Desde arriba"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_primer_tiempo",
+      "name": "Reactiva Mejorada · Primer Tiempo",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Sólo en el primer pulso de cada compás la escena se oscurece o se aclara un instante y vuelve: marca el ritmo sin parpadear en cada golpe. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "rhythmic",
+        "minimal"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "downbeat",
+        "bar",
+        "pulse"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.08
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Compás de Luz",
+          "values": {
+            "tono": "Luz",
+            "cada": 4,
+            "borde": 0
+          }
+        },
+        {
+          "name": "Frase",
+          "values": {
+            "cada": 8,
+            "caida": 0.5,
+            "borde": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_purpurina_rafaga",
+      "name": "Reactiva Mejorada · Purpurina en Ráfaga",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con los platillos una onda de luz recorre miles de microfacetas que destellan sólo cuando coincide su ángulo, como lentejuelas bajo un foco; las más brillantes abren una cruz. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "sparkling",
+        "elegant",
+        "rhythmic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "glitter",
+        "glints",
+        "sequins"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.42
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Lentejuelas",
+          "values": {
+            "destellos": 1,
+            "direccion": "Desde el centro",
+            "caida": 0.7
+          }
+        },
+        {
+          "name": "Escarcha",
+          "values": {
+            "destellos": 0.4,
+            "caida": 0.25
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_reflejo_cruza",
+      "name": "Reactiva Mejorada · Reflejo que Cruza",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar un compás o una frase, una franja de luz suave atraviesa la escena una sola vez, como el reflejo de un vidrio que se mueve, y desaparece. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "elegant",
+        "bright"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "light sweep",
+        "glass reflection",
+        "phrase"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.35
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Vitrina",
+          "values": {
+            "angulo": -35,
+            "ancho": 0.12,
+            "paso": "Doble"
+          }
+        },
+        {
+          "name": "Faro",
+          "values": {
+            "paso": "Ida y vuelta",
+            "ancho": 0.35,
+            "disparo": "Cada dos tiempos",
+            "cruce": 1.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_relampago_campo",
+      "name": "Reactiva Mejorada · Relámpago Fuera de Campo",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. No se ve el rayo: en el golpe grande entra rasante desde una esquina la luz azul blanca de una tormenta fuera de plano, con golpe principal, segundo rayo y una cola que titila entre nubes. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "dramatic",
+        "dark",
+        "cinematic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "lightning",
+        "storm",
+        "off-screen light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.08
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Tormenta",
+          "values": {
+            "nubes": 1,
+            "segundo": true
+          }
+        },
+        {
+          "name": "Rayo Seco",
+          "values": {
+            "nubes": 0.15,
+            "segundo": false,
+            "esquina": "Arriba derecha"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_show_laser_transparente",
+      "name": "Reactiva Mejorada · Show Láser",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Espectáculo de láseres de festival: abanicos de rayos de colores que barren el humo, se abren y destellan con cada golpe sobre fondo transparente.",
+      "purposes": [
+        "party",
+        "visualizer"
+      ],
+      "moods": [
+        "epic",
+        "energetic",
+        "club"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "lasers",
+        "beams",
+        "festival",
+        "light show"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music"
+    },
+    {
+      "id": "reactiva_mejorada_v10_supernova_transparente",
+      "name": "Reactiva Mejorada · Supernova & Termodinámica",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Explosión estelar relativista con ondas de choque expansivas y partículas termodinámicas sobre fondo transparente.",
+      "purposes": [
+        "physics",
+        "visualizer",
+        "epic"
+      ],
+      "moods": [
+        "explosive",
+        "intense",
+        "cosmic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "supernova",
+        "shockwave",
+        "thermodynamics",
+        "stellar explosion"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Galaxia Viva",
+          "values": {
+            "remolino": 2,
+            "estela": 1.8,
+            "pulso": "Graves"
+          }
+        },
+        {
+          "name": "Colapso",
+          "values": {
+            "remolino": 0.3,
+            "estela": 0.5,
+            "pulso": "Agudos",
+            "speed": 1.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_v11_archivo_corrupto_transparente",
+      "name": "Reactiva Mejorada · Archivo Corrupto",
+      "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Filtro glitch transparente con aberración cromática RGB aditiva, datamosh y saltos de escaneo en los bombos.",
+      "purposes": [
+        "hud",
+        "fx"
+      ],
+      "moods": [
+        "glitch",
+        "cyberpunk"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "reactiva mejorada",
+        "glitch",
+        "crt",
+        "datamosh"
+      ],
+      "credits": {
+        "author": "Visuales Inmersivas",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.2
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Señal Rota",
+          "values": {
+            "caracter": "Entrecortado",
+            "aberracion": 2.2,
+            "bloques": 0.7,
+            "pulso": "Golpes"
+          }
+        },
+        {
+          "name": "Losas VHS",
+          "values": {
+            "bloques": 2.2,
+            "aberracion": 0.4,
+            "pulso": "Graves",
+            "speed": 0.8
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_vineta_late",
+      "name": "Reactiva Mejorada · Viñeta que Late",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe, los bordes de la escena se oscurecen un instante, como si se mirara por un túnel, y el centro no se toca. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "subtle",
+        "rhythmic",
+        "cinematic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "vignette",
+        "tunnel",
+        "shadow pulse"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.08
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Túnel",
+          "values": {
+            "marco": "Óvalo",
+            "apertura": 0.25,
+            "caida": 0.35
+          }
+        },
+        {
+          "name": "Pantalla Ancha",
+          "values": {
+            "marco": "Arriba y abajo",
+            "apertura": 0.6,
+            "disparo": "Cada pulso"
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_onda_choque_espectral",
       "name": "Reactiva · Onda de Choque Espectral",
       "description": "En el golpe grande cruza la pantalla un frente de luz gigante que nace fuera del cuadro, con cresta blanca, bordes rojo, ámbar y azul separados, estela ámbar y un eco. Sin música no dibuja nada.",
