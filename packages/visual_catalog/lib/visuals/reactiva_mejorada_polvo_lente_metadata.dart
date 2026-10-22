@@ -5,18 +5,18 @@ const metadata = CreatorVisualMetadata(
   name: 'Reactiva Mejorada · Polvo de Lente Revelado',
   publication: CreatorPublication.draft,
   description:
-      'Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe grande una luz fuera de cuadro barre la lente y revela la suciedad del cristal cerca de ella: motas, huellas, pelos y un velo cálido. Sin música no dibuja nada.',
+      'Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Una luz cálida e intensa cruza la lente en un arco y revela a su alrededor la suciedad real del cristal: manchas, huellas, vetas de grasa, fibras y motas con borde cromático, con una estela anamórfica azul y fantasmas suaves del diafragma que se mueven al revés que la luz. Sin música no dibuja nada.',
   purposes: ['visualizer', 'overlay', 'momentary'],
-  moods: ['cinematic', 'elegant', 'warm'],
-  concepts: ['aparición momentánea', 'lens dirt', 'lens flare', 'optics'],
+  moods: ['cinematic', 'elegant', 'vivid'],
+  concepts: ['aparición momentánea', 'lens dirt', 'anamorphic streak', 'lens ghosts', 'optics'],
   credits: CreatorCredits(author: 'Chic Apps', license: '', source: ''),
   thumbnail: CreatorThumbnailSpec(timeSeconds: 1.3),
   role: CreatorRole.overlay,
   // Sólo con música: sin ella la capa queda vacía.
   reactivity: CreatorReactivity.music,
-  colors: [0x00000000, 0xffff5a3a, 0xffffb050, 0xfffff0dc],
+  colors: [0x003c8cff, 0xffff6a00, 0xffff2a2a, 0xffffa31a],
+  images: {'dirt': 'assets/images/reactiva_suciedad_lente.png'},
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
-  // Sin música no dibuja nada; sólo aparece un instante con su momento.
-  // Degradados, trazos y puntos agrupados: sin shaders por píxel.
+  // Sin música no dibuja nada; sólo aparece con su momento musical.
   framesPerSecond: 30,
 );

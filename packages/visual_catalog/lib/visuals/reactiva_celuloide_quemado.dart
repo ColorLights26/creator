@@ -1,30 +1,35 @@
-// Reactiva · Celuloide Quemado — transparencia momentánea. En el golpe grande la película
-// se quema desde una esquina: una mancha de borde irregular que hierve, con
-// núcleo casi blanco, cuerpo naranja, borde granate, ampollas brillantes y
-// grano, y se apaga enseguida. Es el «corte quemado» del montaje de videoclip.
-// Referentes: Free Film Burn Transition (Motion Array) y FilmBurn de
-// gl-transitions.
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// Reactiva · Celuloide Quemado — transparencia momentánea. La película se quema en la
+// ventanilla del proyector: en el golpe prende con un destello mínimo en una
+// esquina o un borde y en dos focos más que se unen, y un frente de lóbulos y
+// dedos finos (ruido deformado en varias escalas) barre la imagen sin pararse.
+// El frente quema a blanco y en pocos píxeles pasa a amarillo, naranja y rojo,
+// con ampollas que destellan justo delante y chispas por delante de ellas; lo ya
+// quemado brilla naranja y rojo y se aclara en unos cuadros, así que la
+// quemadura es un anillo de fuego que avanza. Por fuera, un borde de carbón que
+// oscurece sin color. Grano fino nuevo en cada cuadro, parpadeo de la
+// ventanilla y temblor del proyector. Sólo suma luz.
+// Referentes: film burn de Motion Array y quemaduras reales de 16 mm.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
 const modifiers = [
   // MÚSICA: qué momento la quema.
   CreatorModifier.choice('disparo', 'Lo dispara', options: ['Golpe grande', 'Cambio de frase', 'Vuelta tras pausa']),
-  // FORMA: desde qué esquina entra.
-  CreatorModifier.choice('esquina', 'Esquina', options: ['Alterna', 'Arriba', 'Abajo']),
+  // FORMA: desde dónde nace.
+  CreatorModifier.choice('origen', 'Origen', options: ['Alterna', 'Esquinas', 'Bordes']),
   // ATMÓSFERA: hasta dónde llega la quemadura.
   CreatorModifier.slider('tamano', 'Tamaño', min: .4, max: 1, value: .7),
   // MOVIMIENTO: cuánto tarda en apagarse.
-  CreatorModifier.slider('caida', 'Caída', min: .3, max: 1, value: .55),
+  CreatorModifier.slider('caida', 'Caída', min: .3, max: 1, value: .5),
 ];
 
 // Combinaciones con nombre que parecen otro visual.
 const variations = [
-  CreatorVariation('Proyector', {'esquina': 'Abajo', 'tamano': 1, 'caida': .9}),
-  CreatorVariation('Chispazo', {'tamano': .5, 'caida': .3}),
+  CreatorVariation('Proyector', {'origen': 'Bordes', 'tamano': 1, 'caida': .8}),
+  CreatorVariation('Chispazo', {'origen': 'Esquinas', 'tamano': .5, 'caida': .3}),
 ];
 
 const nativeSource = r'''
@@ -232,63 +237,158 @@ class Visual final : public Scene {
     for (auto& b : bins_) b.reserve(2048);
     resetOwn(seed);
   }
+  static constexpr float kGrow = 0.42f;  // lo que tarda el frente en llegar a su tamaño
   void resetOwn(uint32_t) {}
   void update(const Frame& f) override {
     const Hits h = listen(f);
     const int d = modifiers(f).disparo;
     fire(d == 0 ? h.big : d == 1 ? every(h, 16) : h.back, d);
   }
-  static float wobble(float x) { return 0.5f * std::sin(x) + 0.3f * std::sin(2.3f * x + 1.7f) + 0.2f * std::sin(5.1f * x + 4.2f); }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
     const auto m = modifiers(f);
-    const float W = f.width, H = f.height, S = std::min(W, H), D = std::sqrt(W * W + H * H);
+    const float W = f.width, H = f.height;
     const float fade = g.caida / pace(f);
-    const Color cols[3] = {f.colors[1], f.colors[2], f.colors[3]};
-    const float layers[3] = {1.0f, 0.68f, 0.4f}, alphas[3] = {0.4f, 0.62f, 0.9f};
+    const Color red = f.colors[1], orange = f.colors[2], yellow = f.colors[3];
     for (const Pulse& p : slots) {
-      const double age = now - p.start;
-      if (age < 0.0 || age > 0.25 + double(fade)) continue;
-      const float grow = easeOut(float(age / 0.25));
-      const float a = (age < 0.25 ? 0.55f + 0.45f * grow : std::pow(clamp01(1.0f - float((age - 0.25) / double(fade))), 1.5f)) * amount(p.power) * f.intensity;
-      if (a < kMin) continue;
-      int corner = int(p.id % 4u);
-      if (m.esquina == 1) corner = int(p.id % 2u);
-      if (m.esquina == 2) corner = 2 + int(p.id % 2u);
-      const Vec2 o = {(corner % 2) ? W : 0.0f, corner >= 2 ? H : 0.0f};
-      const float R = g.tamano * D * 0.55f * (0.35f + 0.65f * grow) * (p.kind == 1 ? 0.8f : 1.0f);
-      const float seed = rnd(p.id * 7u + 3u) * 20.0f, t = float(now) * 0.8f;
-      const float dirx = (corner % 2) ? -1.0f : 1.0f, diry = corner >= 2 ? -1.0f : 1.0f;
-      // La quemadura es sólo luz: manchas suaves a lo largo de un borde que
-      // hierve (granate fuera, naranja dentro) y un núcleo casi blanco.
-      for (int l = 0; l < 3; l++) {
-        const int count = l == 0 ? 14 : l == 1 ? 10 : 6;
-        for (int j = 0; j < count; j++) {
-          const float th = float(pi) * 0.5f * (float(j) + 0.5f) / float(count);
-          const float edge = R * layers[l] * (0.7f + 0.3f * wobble(th * 6.0f + seed + t * (1.0f + 0.4f * float(l))));
-          const Vec2 q = {o.x + dirx * edge * 0.7f * std::cos(th), o.y + diry * edge * 0.7f * std::sin(th)};
-          softGlow(c, q, edge * (0.42f - 0.08f * float(l)), cols[l], cols[l], alphas[l] * a * (l == 0 ? 0.55f : 0.65f));
-        }
+      const float age = float(now - p.start);
+      if (age < 0.0f || age > 0.5f + fade) continue;
+      // Arde mientras el frente avanza; luego se apaga.
+      const float temp = age < 0.5f ? 1.0f : clamp01(1.0f - (age - 0.5f) / fade);
+      if (temp <= 0.0f) continue;
+      const float k = std::min(amount(p.power) * f.intensity, 1.2f);
+      // Origen: cuatro esquinas y los centros de los cuatro bordes.
+      int spot = int(p.id % 8u);
+      if (m.origen == 1) spot = int(p.id % 4u);
+      if (m.origen == 2) spot = 4 + int(p.id % 4u);
+      const float cx[8] = {0.0f, W, 0.0f, W, 0.5f * W, W, 0.5f * W, 0.0f};
+      const float cy[8] = {0.0f, 0.0f, H, H, 0.0f, 0.5f * H, H, 0.5f * H};
+      // Dos focos más sobre los bordes que tocan el origen; se unen al primero.
+      std::array<Vec2, 3> o{};
+      o[0] = {cx[spot], cy[spot]};
+      const float a1 = W * (0.18f + 0.2f * rnd(p.id * 5u + 1u)), a2 = W * (0.18f + 0.2f * rnd(p.id * 5u + 2u));
+      if (spot < 4) {
+        const float sx = spot % 2 == 0 ? 1.0f : -1.0f, sy = spot < 2 ? 1.0f : -1.0f;
+        o[1] = {o[0].x + sx * a1, o[0].y};
+        o[2] = {o[0].x, o[0].y + sy * a2 * 1.4f};
+      } else if (spot == 4 || spot == 6) {
+        o[1] = {o[0].x - a1, o[0].y};
+        o[2] = {o[0].x + a2, o[0].y};
+      } else {
+        o[1] = {o[0].x, o[0].y - a1 * 1.4f};
+        o[2] = {o[0].x, o[0].y + a2 * 1.4f};
       }
-      softGlow(c, o, R * 0.55f, cols[2], cols[1], 0.9f * a);
-      // Ampollas que hierven dentro de la quemadura.
-      for (int j = 0; j < 12; j++) {
-        const float th = float(pi) * 0.5f * rnd(p.id * 31u + uint32_t(j));
-        const float rr = R * 0.75f * std::sqrt(rnd(p.id * 57u + uint32_t(j)));
-        const Vec2 q = {o.x + dirx * rr * std::cos(th), o.y + diry * rr * std::sin(th)};
-        const float flick = 0.5f + 0.5f * std::sin(float(now) * 18.0f + float(j) * 2.3f);
-        glow(c, q, S * (0.02f + 0.03f * rnd(p.id * 91u + uint32_t(j))), cols[2], cols[1], 0.5f * a * flick);
+      // Tamaño final y retardo de cada foco; el frente avanza sin pararse.
+      const float P = g.tamano * 1.45f * (p.kind == 1 ? 0.8f : 1.0f) * (0.75f + 0.25f * std::min(k, 1.0f));
+      std::array<float, 3> size{}, delay{};
+      float reach = 0.0f;
+      for (int j = 0; j < 3; j++) {
+        delay[size_t(j)] = j == 0 ? 0.0f : 0.03f + 0.07f * rnd(p.id * 9u + uint32_t(j));
+        size[size_t(j)] = P * (j == 0 ? 1.0f : 0.55f + 0.25f * rnd(p.id * 13u + uint32_t(j)));
+        if (age >= delay[size_t(j)])
+          reach = std::max(reach, size[size_t(j)] * (0.06f + 0.94f * clamp01((age - delay[size_t(j)]) / kGrow)));
       }
-      // Grano dentro de la luz.
-      clearBins();
-      const uint32_t frame = uint32_t(now * 30.0);
-      for (int j = 0; j < 160; j++) {
-        const float th = float(pi) * 0.5f * rnd(frame * 977u + uint32_t(j) * 13u);
-        const float rr = R * 0.9f * std::sqrt(rnd(frame * 613u + uint32_t(j) * 29u));
-        bins_[0].push_back({o.x + dirx * rr * std::cos(th), o.y + diry * rr * std::sin(th)});
-      }
-      drawBin(c, 0, std::max(0.8f, S * 0.0013f), cols[2], 0.25f * a);
+      // Sólo se pinta alrededor de los focos: la quemadura y su resplandor.
+      reach = (reach * 2.0f + 0.15f) * W;
+      const float x0 = std::max(0.0f, std::min(o[0].x, std::min(o[1].x, o[2].x)) - reach);
+      const float y0 = std::max(0.0f, std::min(o[0].y, std::min(o[1].y, o[2].y)) - reach);
+      const float x1 = std::min(W, std::max(o[0].x, std::max(o[1].x, o[2].x)) + reach);
+      const float y1 = std::min(H, std::max(o[0].y, std::max(o[1].y, o[2].y)) + reach);
+      if (x1 <= x0 || y1 <= y0) continue;
+      c.material("burn", {x0, y0, x1 - x0, y1 - y0},
+                 {x0, y0, W, o[0].x, o[0].y, o[1].x, o[1].y, o[2].x, o[2].y,
+                  size[0], size[1], size[2], delay[0], delay[1], delay[2], age, kGrow, temp,
+                  rnd(p.id * 7u + 3u), reach / W,
+                  red.r, red.g, red.b, orange.r, orange.g, orange.b, yellow.r, yellow.g, yellow.b},
+                 {"burn"});
     }
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'burn': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform vec2 uOffset;
+uniform float uWidth;
+uniform vec2 uO0;
+uniform vec2 uO1;
+uniform vec2 uO2;
+uniform vec3 uP;
+uniform vec3 uDelay;
+uniform float uAge;
+uniform float uGrow;
+uniform float uTemp;
+uniform float uSeed;
+uniform float uReach;
+uniform vec3 uRed;
+uniform vec3 uOrange;
+uniform vec3 uYellow;
+uniform sampler2D uTex;
+out vec4 fragColor;
+
+float hash(vec2 p) {
+  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+void main() {
+  vec2 px = FlutterFragCoord().xy + uOffset;
+  float W = uWidth;
+  // Temblor del proyector y el calor que hace temblar el borde.
+  vec2 g = px + vec2(sin(px.y * 0.09 + uAge * 23.0) * 0.0015 * W, sin(uAge * 9.0) * 0.002 * W);
+  vec2 st = g / W;
+  vec2 seed = vec2(uSeed, fract(uSeed * 7.31));
+  // Ruido deformado en varias escalas: lóbulos grandes, medianos y dedos finos.
+  vec4 big = texture(uTex, fract(st * 0.38 + seed));
+  vec2 wst = st + (big.rg - 0.5) * 0.12;
+  vec4 mid = texture(uTex, fract(wst * 1.1 + seed.yx));
+  vec4 t = texture(uTex, fract(wst * 2.3 + seed * 1.7));
+  float warp = 0.62 + 0.55 * big.g + 0.25 * (mid.g - 0.5);
+  vec3 r = vec3(length(g - uO0), length(g - uO1), length(g - uO2)) / W;
+  vec3 rw = r * warp;
+  // Distancia al frente de cada foco (positivo = ya quemado).
+  vec3 lit = step(uDelay, vec3(uAge));
+  vec3 prog = mix(vec3(-1.0), uP * (0.06 + 0.94 * clamp((vec3(uAge) - uDelay) / uGrow, 0.0, 1.0)), lit);
+  vec3 ev = prog - rw;
+  float e = max(ev.x, max(ev.y, ev.z)) - 0.035 * (mid.r - 0.5) - 0.014 * (t.r - 0.5);
+  float aa = 1.5 / W;
+  float inside = smoothstep(-aa, aa, e);
+  // Los exponentes van acotados: lejos del frente un exp() desbordado daría NaN.
+  float ein = max(e, 0.0), eout = min(e, 0.0);
+  // Cuánto hace que pasó el frente por aquí (distancia / velocidad): lo
+  // quemado se aclara en unos cuadros, sin escalones entre focos.
+  float ago = ein * uGrow / (0.94 * max(max(uP.x, max(uP.y, uP.z)), 0.001));
+  float rmin = min(r.x, min(r.y, r.z));
+  float edge = smoothstep(uReach, uReach - 0.12, rmin);
+  // Grano fino nuevo en cada cuadro y parpadeo de la ventanilla.
+  float frame = floor(uAge * 24.0);
+  float grain = hash(floor(px) + frame * 7.13);
+  float gate = 0.9 + 0.2 * hash(vec2(frame, uSeed * 13.0));
+  // Frente: blanco en la línea y, en pocos píxeles, amarillo, naranja y rojo.
+  float L = 32.0 * exp(eout / 0.006) * (1.0 - inside) + 32.0 * exp(-ein / 0.006) * inside;
+  // Lo ya quemado brilla naranja y rojo y se aclara en unos cuadros.
+  L += inside * (1.2 + 1.6 * big.g) * (0.85 + 0.3 * mid.r) * exp(-ago / 0.09);
+  // Ampollas llenas agrupadas justo delante del frente: destellan y revientan al pasar.
+  L += 14.0 * smoothstep(0.08, 0.3, big.b) * smoothstep(-0.03, -0.004, e) * (1.0 - inside);
+  // Chispas por delante.
+  float spark = step(0.985, hash(floor(px / 2.0) + frame));
+  L += spark * 6.0 * smoothstep(-0.08, -0.03, e) * (1.0 - smoothstep(-0.025, -0.012, e));
+  L *= (0.92 + 0.16 * grain) * gate;
+  // Destello mínimo en cada foco al prender.
+  vec3 ig = clamp(1.0 - (vec3(uAge) - uDelay) / 0.07, 0.0, 1.0) * lit;
+  L += 10.0 * dot(ig, exp(-r / 0.05));
+  float alive = smoothstep(0.0, 0.6, uTemp) * edge;
+  L *= alive;
+  // Sensor: el rojo se satura primero, así lo menos intenso es rojo vivo.
+  vec3 k = vec3(2.0, 0.5 * (2.0 * uRed.g / max(uRed.r, 0.01) + 0.6 * uOrange.g), 0.06 * uYellow.b);
+  vec3 emit = vec3(1.0) - exp(-L * k);
+  // Borde de carbón: oscurece un 20 % sin color, justo fuera del rojo.
+  float charA = smoothstep(-0.045, -0.032, e) * (1.0 - smoothstep(-0.024, -0.016, e)) * 0.2 * alive;
+  float mx = max(emit.r, max(emit.g, emit.b));
+  fragColor = vec4(emit, clamp(max(charA, 0.1 * mx), 0.0, 1.0));
+}
+''',
+
+};

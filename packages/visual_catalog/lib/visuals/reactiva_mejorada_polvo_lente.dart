@@ -1,15 +1,18 @@
-// Reactiva Mejorada · Polvo de Lente Revelado — transparencia momentánea. En el golpe grande una luz
-// fuera de cuadro barre la lente y revela la suciedad del cristal sólo cerca de
-// ella: motas, huellas, un par de pelos y un velo cálido. La suciedad está fija
-// (semilla) y lo que se mueve es la luz, como en la postproducción cara.
-// Referentes: Optical Flares de Video Copilot (lens dirt) y los tutoriales de
-// suciedad procedural que reacciona a la luz.
+// Reactiva Mejorada · Polvo de Lente Revelado — transparencia momentánea. Una luz cálida e intensa
+// (naranja, rojo o ámbar, distinta en cada golpe) con el centro blanco cruza la
+// lente en un arco suave y se apaga antes de salir, y revela a su alrededor,
+// con la caída de la luz real, la suciedad del cristal: manchas grandes, huellas,
+// vetas de grasa, fibras rizadas y motas desenfocadas con borde cromático. Una
+// estela anamórfica azul nace de la fuente y se afina antes del borde; al otro
+// lado del centro, los fantasmas del diafragma, casi transparentes, de esquinas
+// redondeadas y borde suave más claro, de tamaños distintos, se mueven al revés
+// que la luz. La luz se suma a la escena.
+// Referente: lens dirt y flares de Optical Flares (Video Copilot).
 // Versión mejorada: sigue el ritmo (cada golpe o cada tiempo) y su fuerza
-// depende del volumen de la música; los pulsos son cortos para que se
-// vean con el compás. La original («Reactiva · Polvo de Lente Revelado») no se toca.
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// depende del volumen de la música.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -17,17 +20,17 @@ const modifiers = [
   // MÚSICA: qué momento enciende la luz.
   CreatorModifier.choice('disparo', 'Lo dispara', options: ['Golpes acentuados', 'Bombo', 'Cada dos tiempos']),
   // FORMA: cuánta suciedad tiene la lente.
-  CreatorModifier.slider('suciedad', 'Suciedad', min: .3, max: 1, value: .7),
-  // MOVIMIENTO: desde dónde barre la luz.
-  CreatorModifier.choice('barrido', 'Barrido', options: ['Desde la izquierda', 'Desde la derecha', 'Desde arriba']),
-  // ATMÓSFERA: cuánto dura el barrido.
-  CreatorModifier.slider('caida', 'Duración', min: .3, max: 1, value: .6),
+  CreatorModifier.slider('suciedad', 'Suciedad', min: .3, max: 1, value: .75),
+  // MOVIMIENTO: por dónde cruza la luz.
+  CreatorModifier.choice('barrido', 'Barrido', options: ['Izquierda a derecha', 'Derecha a izquierda', 'De arriba abajo']),
+  // ATMÓSFERA: cuánto tarda en cruzar.
+  CreatorModifier.slider('caida', 'Duración', min: .35, max: 1.2, value: .6),
 ];
 
 // Combinaciones con nombre que parecen otro visual.
 const variations = [
-  CreatorVariation('Lente Vieja', {'suciedad': 1, 'caida': .9}),
-  CreatorVariation('Reflejo Rápido', {'suciedad': .45, 'caida': .35, 'barrido': 'Desde arriba'}),
+  CreatorVariation('Lente Vieja', {'suciedad': 1, 'caida': 1}),
+  CreatorVariation('Reflejo Rápido', {'suciedad': .45, 'caida': .4, 'barrido': 'De arriba abajo'}),
 ];
 
 const nativeSource = r'''
@@ -244,29 +247,7 @@ class Visual final : public Scene {
     for (auto& b : bins_) b.reserve(2048);
     resetOwn(seed);
   }
-  static constexpr int kMotes = 320, kSmudges = 12, kHairs = 3;
-  std::array<Vec2, kMotes> mote{};
-  std::array<float, kMotes> moteLum{};
-  std::array<Vec2, kSmudges> smudge{};
-  std::array<float, kSmudges> smudgeR{}, smudgeA{}, smudgeE{};
-  std::array<std::array<Vec2, 4>, kHairs> hair{};
-  void resetOwn(uint32_t seed) {
-    Random rng(seed);
-    for (int i = 0; i < kMotes; i++) {
-      mote[size_t(i)] = {rng.unit(), rng.unit()};
-      moteLum[size_t(i)] = 0.35f + 0.65f * rng.unit();
-    }
-    for (int i = 0; i < kSmudges; i++) {
-      smudge[size_t(i)] = {rng.unit(), rng.unit()};
-      smudgeR[size_t(i)] = 0.04f + 0.08f * rng.unit();
-      smudgeA[size_t(i)] = rng.unit() * float(pi);
-      smudgeE[size_t(i)] = 1.2f + 1.8f * rng.unit();
-    }
-    for (int i = 0; i < kHairs; i++) {
-      const Vec2 b = {rng.unit(), rng.unit()};
-      for (int k = 0; k < 4; k++) hair[size_t(i)][size_t(k)] = {b.x + (rng.unit() - 0.5f) * 0.12f, b.y + (rng.unit() - 0.5f) * 0.12f};
-    }
-  }
+  void resetOwn(uint32_t) {}
   void update(const Frame& f) override {
     const Hits h = listen(f);
     const int d = modifiers(f).disparo;
@@ -274,59 +255,103 @@ class Visual final : public Scene {
   }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
-    const float W = f.width, H = f.height, S = std::min(W, H), D = std::sqrt(W * W + H * H);
+    const float W = f.width, H = f.height;
     const float T = g.caida / pace(f);
     const float wl = g.barrido.weight(0), wr = g.barrido.weight(1), wt = g.barrido.weight(2);
-    const Color warm = f.colors[3], amber = f.colors[2];
+    const Color blue = f.colors[0];
     for (const Pulse& p : slots) {
       const double age = now - p.start;
       if (age <= 0.0 || age >= double(T)) continue;
       const float q = float(age / double(T));
-      const float e = std::pow(std::max(0.0f, std::sin(float(pi) * q)), 0.7f) * amount(p.power) * f.intensity * (p.kind == 1 ? 0.75f : 1.0f);
-      const float sweep = easeOut(q), y = H * (0.2f + 0.5f * rnd(p.id * 13u)), x = W * (0.25f + 0.5f * rnd(p.id * 29u));
-      const Vec2 L = {wl * W * (-0.15f + 0.5f * sweep) + wr * W * (1.15f - 0.5f * sweep) + wt * x,
-                      (wl + wr) * y + wt * H * (-0.15f + 0.5f * sweep)};
-      glow(c, L, D * 0.75f, warm, amber, 0.26f * e);
-      const float reach = 1.0f / (0.38f * D);
-      const int count = std::clamp(int(float(kMotes) * g.suciedad), 0, kMotes);
-      clearBins();
-      for (int i = 0; i < count; i++) {
-        const Vec2 pt = {mote[size_t(i)].x * W, mote[size_t(i)].y * H};
-        const float dx = (pt.x - L.x) * reach, dy = (pt.y - L.y) * reach;
-        const float v = e * moteLum[size_t(i)] * std::exp(-(dx * dx + dy * dy));
-        if (v < 0.03f) continue;
-        bins_[size_t(std::min(3, int(v * 4.0f)))].push_back(pt);
-      }
-      const float lv[4] = {0.18f, 0.34f, 0.55f, 0.8f};
-      for (int b = 0; b < 4; b++) drawBin(c, b, std::max(0.8f, S * 0.0017f * (1.0f + 0.3f * float(b))), mixc(white(), warm, 0.3f), lv[b]);
-      drawBin(c, 3, std::max(1.5f, S * 0.005f), f.colors[1], 0.08f);  // borde irisado de las motas cercanas
-      for (int i = 0; i < kSmudges; i++) {
-        const Vec2 pt = {smudge[size_t(i)].x * W, smudge[size_t(i)].y * H};
-        const float dx = (pt.x - L.x) * reach, dy = (pt.y - L.y) * reach;
-        const float v = e * std::exp(-(dx * dx + dy * dy)) * g.suciedad;
-        if (v < 0.02f) continue;
-        c.save();
-        c.translate(pt.x, pt.y);
-        c.rotate(smudgeA[size_t(i)]);
-        c.scale(smudgeE[size_t(i)], 1.0f);
-        glow(c, {0.0f, 0.0f}, smudgeR[size_t(i)] * S, warm, amber, 0.13f * v);
-        c.restore();
-      }
-      for (int i = 0; i < kHairs; i++) {
-        const auto& hh = hair[size_t(i)];
-        const float dx = (hh[1].x * W - L.x) * reach, dy = (hh[1].y * H - L.y) * reach;
-        const float v = e * std::exp(-(dx * dx + dy * dy)) * g.suciedad;
-        if (v < 0.03f) continue;
-        Path hp;
-        hp.moveTo(hh[0].x * W, hh[0].y * H).cubicTo(hh[1].x * W, hh[1].y * H, hh[2].x * W, hh[2].y * H, hh[3].x * W, hh[3].y * H);
-        Paint pp;
-        pp.color = tint(warm, 0.45f * v);
-        pp.blend = Blend::plus;
-        pp.strokeWidth = std::max(1.0f, S * 0.0012f);
-        pp.strokeCap = 1;
-        c.path(hp, pp);
-      }
+      float e = std::pow(std::max(0.0f, std::sin(float(pi) * q)), 0.6f) * std::min(amount(p.power) * f.intensity, 1.3f) * (p.kind == 1 ? 0.75f : 1.0f);
+      // Un color intenso distinto en cada golpe; los fantasmas toman el siguiente.
+      const Color tint = f.colors[size_t(1 + p.id % 3u)], ghost = f.colors[size_t(1 + (p.id + 1u) % 3u)];
+      // Cruza en un arco suave, con entrada y salida suaves.
+      const float s = easeInOut(q), bow = 1.0f - (2.0f * s - 1.0f) * (2.0f * s - 1.0f);
+      const float y = H * (0.25f + 0.45f * rnd(p.id * 13u)), x = W * (0.3f + 0.4f * rnd(p.id * 29u));
+      const float tilt = (rnd(p.id * 41u) < 0.5f ? -1.0f : 1.0f) * 0.07f * H;
+      const Vec2 L = {wl * W * (-0.15f + 1.3f * s) + wr * W * (1.15f - 1.3f * s) + wt * (x + 0.06f * W * bow),
+                      (wl + wr) * (y + tilt * (2.0f * s - 1.0f) - 0.05f * H * bow) + wt * H * (-0.1f + 1.2f * s)};
+      // Se apaga antes de salir del cuadro.
+      const float margin = (wl + wr) * std::min(L.x, W - L.x) + wt * std::min(L.y, H - L.y);
+      e *= easeInOut((margin + 0.06f * W) / (0.18f * W));
+      if (e < kMin) continue;
+      c.material("dirt", {0.0f, 0.0f, W, H},
+                 {L.x, L.y, 0.55f * W, e * g.suciedad, e, tint.r, tint.g, tint.b, ghost.r, ghost.g, ghost.b, blue.r, blue.g, blue.b},
+                 {"dirt"});
     }
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'dirt': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform vec2 uLight;
+uniform float uReach;
+uniform float uAmount;
+uniform float uGlow;
+uniform vec3 uTint;
+uniform vec3 uGhost;
+uniform vec3 uBlue;
+uniform sampler2D uTex;
+out vec4 fragColor;
+
+// Sensor: el color se satura en lo tenue y se quema a blanco en lo intenso.
+vec3 sensor(vec3 c) {
+  return c / max(max(c.r, c.g), max(c.b, 0.01)) * 0.86 + 0.14;
+}
+
+// Fantasma del diafragma: hexágono de esquinas redondeadas, casi transparente,
+// con el borde suave y más claro.
+float ghost(vec2 p, float rad, float soft) {
+  p = abs(p) / rad;
+  float d = mix(max(p.x * 0.866 + p.y * 0.5, p.y), length(p) * 0.93, 0.35);
+  float fill = 1.0 - smoothstep(1.0 - soft, 1.0, d);
+  return fill * (0.3 + 0.45 * smoothstep(0.6, 0.98, d));
+}
+
+void main() {
+  vec2 p = FlutterFragCoord().xy;
+  vec2 d = (p - uLight) / uReach;
+  float r2 = dot(d, d);
+  // La suciedad aparece con la caída de la luz real (1/r²).
+  float reveal = 1.0 / (1.0 + r2 * 14.0);
+  // Borde cromático en la suciedad: el rojo un poco más grande que el azul.
+  vec2 st = p / uSize.x * 0.9;
+  vec2 c = 0.45 * uSize / uSize.x;
+  float dr = texture(uTex, fract(c + (st - c) * 0.995)).r;
+  vec4 t = texture(uTex, fract(st));
+  float db = texture(uTex, fract(c + (st - c) * 1.005)).r;
+  vec3 kT = sensor(uTint);
+  vec3 light = vec3(dr, t.r, db) * kT * (3.2 * reveal * uAmount) + kT * (t.g * reveal * uAmount * 0.5);
+  // La fuente: centro blanco, halo ajustado y un velo mínimo.
+  light += kT * uGlow * (9.0 / (1.0 + r2 * 160.0) + 0.35 / (1.0 + r2 * 22.0) + 0.04 / (1.0 + r2 * 3.0));
+  // Estela anamórfica azul: núcleo casi blanco de 3-4 px y resplandor vertical
+  // suave; máxima en la fuente y apagada antes del borde.
+  float ax = abs(p.x - uLight.x) / uSize.x;
+  float dy = abs(p.y - uLight.y) / uSize.x;
+  float taper = exp(-ax / 0.32) * smoothstep(0.0, 0.08, min(p.x, uSize.x - p.x) / uSize.x);
+  light += sensor(uBlue) * uGlow * taper * (3.0 * exp(-dy / 0.0045) + 0.35 * exp(-dy / 0.045));
+  // Fantasmas sobre el eje que pasa por el centro: se mueven al revés que la luz.
+  vec2 C = 0.5 * uSize;
+  vec2 axis = C - uLight;
+  vec3 kG = sensor(uGhost);
+  vec3 green = vec3(0.3, 1.0, 0.45);
+  for (int i = 0; i < 5; i++) {
+    float s = i == 0 ? 0.35 : (i == 1 ? 0.8 : (i == 2 ? 1.25 : (i == 3 ? 1.7 : 2.3)));
+    float rad = uSize.x * (i == 0 ? 0.03 : (i == 1 ? 0.09 : (i == 2 ? 0.05 : (i == 3 ? 0.17 : 0.07))));
+    float soft = uSize.x * 0.016 / rad;
+    vec2 q = p - (C + axis * s);
+    vec3 shape = vec3(ghost(q, rad * 1.03, soft), ghost(q, rad, soft), ghost(q, rad * 0.97, soft));
+    vec3 col = i == 1 ? kT : (i == 2 ? green : kG);
+    light += shape * col * uGlow * 0.55;
+  }
+  vec3 col = vec3(1.0) - exp(-light);
+  fragColor = vec4(col, 0.1 * max(col.r, max(col.g, col.b)));
+}
+''',
+
+};

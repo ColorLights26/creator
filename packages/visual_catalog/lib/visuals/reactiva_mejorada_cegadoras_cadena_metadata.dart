@@ -5,18 +5,18 @@ const metadata = CreatorVisualMetadata(
   name: 'Reactiva Mejorada · Cegadoras en Cadena',
   publication: CreatorPublication.draft,
   description:
-      'Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el drop se encienden en cadena las cegadoras de concierto que hay justo encima del cuadro, con halo ámbar y un cono con humo, y al apagarse se enfrían de blanco a ámbar y a brasa. Sin música no dibuja nada.',
+      'Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Módulos grandes de cuatro cegadoras en dos filas se encienden en cadena: cada lámpara quema a blanco en su centro con resplandores suaves y una estrella de seis puntas; el brillo cae en unos cuadros y queda el filamento, que se enfría de ámbar a naranja y rojo brasa. Sin música no dibuja nada.',
   purposes: ['visualizer', 'overlay', 'momentary'],
   moods: ['dramatic', 'energetic', 'warm'],
-  concepts: ['aparición momentánea', 'audience blinders', 'concert lighting', 'tungsten'],
+  concepts: ['aparición momentánea', 'audience blinders', 'concert lighting', 'tungsten', 'diffraction star'],
   credits: CreatorCredits(author: 'Chic Apps', license: '', source: ''),
-  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.12),
+  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.1),
   role: CreatorRole.overlay,
   // Sólo con música: sin ella la capa queda vacía.
   reactivity: CreatorReactivity.music,
-  colors: [0x00000000, 0xffd8231a, 0xffffa31a, 0xfffff2dc],
+  colors: [0x00000000, 0xffb01800, 0xffff5a1a, 0xfffff6e8],
+  images: {'smoke': 'assets/images/reactiva_humo.png'},
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
-  // Sin música no dibuja nada; sólo aparece un instante con su momento.
-  // Degradados, trazos y puntos agrupados: sin shaders por píxel.
+  // Sin música no dibuja nada; sólo aparece con su momento musical.
   framesPerSecond: 30,
 );

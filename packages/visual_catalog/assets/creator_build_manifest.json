@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "hash": "db4f049fea2eab13c665fc9207ad3616a5e5af8be88e7fa5531ef1d3b65170de",
+  "hash": "d76c81a1da2aecd14f20c0fc4bae6b83cce7553352cb25c33c4cd315cc790c47",
   "engine": {
     "sdkHash": "f7e3b26c2d074a5eb648d37f0cc4c5211fae5703cacc9ccedf5b145a85037c76",
     "abi": 1,
@@ -41,8 +41,12 @@
     },
     "materialToolchainHash": "782567f526a85b7dffc742a00a990ed46901d54e421c56cf75c53b78ff81ab02",
     "resources": {
-      "files": {},
-      "hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      "files": {
+        "assets/images\\reactiva_humo.png": "9781b9ea9393fc5b68e90c2217da863ab2e4cfe15cb6d8d3f38e329e58e75c22",
+        "assets/images\\reactiva_quemado.png": "c9ac3425f7399e0334a7f8b4f58e6b94e87bcc892d70397fa144ca7321144f52",
+        "assets/images\\reactiva_suciedad_lente.png": "98c75e5aa3fb70f5b681da57693ac35035f56b567bc27d3a266bfaee3f122a14"
+      },
+      "hash": "d9962c0172d4bbea5a3e692f4da6c1d0008b02c122cef79797e2446b56203494"
     },
     "checks": {
       "files": {
@@ -115,5 +119,5 @@
       "valuesHash": "2ea928927b705de186d7816d11650e4f6bd2cced1e4cff0a1942a57fe6eac9e7"
     }
   },
-  "catalogSha256": "815099c1ed3b9a86109ca5aaf5e821560f5f372588981ae84b9ca45092338f7e"
+  "catalogSha256": "8814f03b9ff32e46e376816857a691fdeae9b6cc4518a6f3cc19f6964744f5d5"
 }

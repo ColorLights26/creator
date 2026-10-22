@@ -10037,7 +10037,7 @@
     {
       "id": "reactiva_cegadoras_cadena",
       "name": "Reactiva · Cegadoras en Cadena",
-      "description": "En el drop se encienden en cadena las cegadoras de concierto que hay justo encima del cuadro, con halo ámbar y un cono con humo, y al apagarse se enfrían de blanco a ámbar y a brasa. Sin música no dibuja nada.",
+      "description": "Módulos grandes de cuatro cegadoras en dos filas se encienden en cadena: cada lámpara quema a blanco en su centro con resplandores suaves y una estrella de seis puntas; el brillo cae en unos cuadros y queda el filamento, que se enfría de ámbar a naranja y rojo brasa. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -10052,7 +10052,8 @@
         "aparición momentánea",
         "audience blinders",
         "concert lighting",
-        "tungsten"
+        "tungsten",
+        "diffraction star"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -10060,7 +10061,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.12
+        "timeSeconds": 1.1
       },
       "publication": "draft",
       "role": "overlay",
@@ -10071,7 +10072,8 @@
           "values": {
             "lamparas": 6,
             "cadena": "De lado a lado",
-            "enfriado": 0.8
+            "enfriado": 0.8,
+            "humo": 1
           }
         },
         {
@@ -10079,7 +10081,8 @@
           "values": {
             "cadena": "Todas a la vez",
             "enfriado": 0.3,
-            "lamparas": 4
+            "lamparas": 3,
+            "humo": 0.3
           }
         }
       ]
@@ -10087,7 +10090,7 @@
     {
       "id": "reactiva_celuloide_quemado",
       "name": "Reactiva · Celuloide Quemado",
-      "description": "En el golpe grande la película se quema desde una esquina: una mancha irregular que hierve, con núcleo casi blanco, cuerpo naranja, borde granate, ampollas y grano, y se apaga enseguida. Sin música no dibuja nada.",
+      "description": "La película se quema desde una esquina o un borde, con varios focos que se unen: un frente de lóbulos y dedos finos quema a blanco y pasa a amarillo, naranja y rojo, con ampollas que destellan y chispas; lo quemado se aclara enseguida y queda un anillo de fuego que avanza. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -10102,7 +10105,7 @@
         "aparición momentánea",
         "film burn",
         "celluloid",
-        "light leak"
+        "16mm"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -10110,7 +10113,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.2
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -10119,14 +10122,15 @@
         {
           "name": "Proyector",
           "values": {
-            "esquina": "Abajo",
+            "origen": "Bordes",
             "tamano": 1,
-            "caida": 0.9
+            "caida": 0.8
           }
         },
         {
           "name": "Chispazo",
           "values": {
+            "origen": "Esquinas",
             "tamano": 0.5,
             "caida": 0.3
           }
@@ -11711,7 +11715,7 @@
     {
       "id": "reactiva_mejorada_cegadoras_cadena",
       "name": "Reactiva Mejorada · Cegadoras en Cadena",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el drop se encienden en cadena las cegadoras de concierto que hay justo encima del cuadro, con halo ámbar y un cono con humo, y al apagarse se enfrían de blanco a ámbar y a brasa. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Módulos grandes de cuatro cegadoras en dos filas se encienden en cadena: cada lámpara quema a blanco en su centro con resplandores suaves y una estrella de seis puntas; el brillo cae en unos cuadros y queda el filamento, que se enfría de ámbar a naranja y rojo brasa. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -11726,7 +11730,8 @@
         "aparición momentánea",
         "audience blinders",
         "concert lighting",
-        "tungsten"
+        "tungsten",
+        "diffraction star"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -11734,7 +11739,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.12
+        "timeSeconds": 1.1
       },
       "publication": "draft",
       "role": "overlay",
@@ -11745,7 +11750,8 @@
           "values": {
             "lamparas": 6,
             "cadena": "De lado a lado",
-            "enfriado": 0.8
+            "enfriado": 0.8,
+            "humo": 1
           }
         },
         {
@@ -11753,7 +11759,8 @@
           "values": {
             "cadena": "Todas a la vez",
             "enfriado": 0.3,
-            "lamparas": 4
+            "lamparas": 3,
+            "humo": 0.3
           }
         }
       ]
@@ -11761,7 +11768,7 @@
     {
       "id": "reactiva_mejorada_celuloide_quemado",
       "name": "Reactiva Mejorada · Celuloide Quemado",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe grande la película se quema desde una esquina: una mancha irregular que hierve, con núcleo casi blanco, cuerpo naranja, borde granate, ampollas y grano, y se apaga enseguida. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. La película se quema desde una esquina o un borde, con varios focos que se unen: un frente de lóbulos y dedos finos quema a blanco y pasa a amarillo, naranja y rojo, con ampollas que destellan y chispas; lo quemado se aclara enseguida y queda un anillo de fuego que avanza. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -11776,7 +11783,7 @@
         "aparición momentánea",
         "film burn",
         "celluloid",
-        "light leak"
+        "16mm"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -11784,7 +11791,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.2
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -11793,14 +11800,15 @@
         {
           "name": "Proyector",
           "values": {
-            "esquina": "Abajo",
+            "origen": "Bordes",
             "tamano": 1,
-            "caida": 0.9
+            "caida": 0.8
           }
         },
         {
           "name": "Chispazo",
           "values": {
+            "origen": "Esquinas",
             "tamano": 0.5,
             "caida": 0.3
           }
@@ -13018,7 +13026,7 @@
     {
       "id": "reactiva_mejorada_polvo_lente",
       "name": "Reactiva Mejorada · Polvo de Lente Revelado",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe grande una luz fuera de cuadro barre la lente y revela la suciedad del cristal cerca de ella: motas, huellas, pelos y un velo cálido. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Una luz cálida e intensa cruza la lente en un arco y revela a su alrededor la suciedad real del cristal: manchas, huellas, vetas de grasa, fibras y motas con borde cromático, con una estela anamórfica azul y fantasmas suaves del diafragma que se mueven al revés que la luz. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -13027,12 +13035,13 @@
       "moods": [
         "cinematic",
         "elegant",
-        "warm"
+        "vivid"
       ],
       "concepts": [
         "aparición momentánea",
         "lens dirt",
-        "lens flare",
+        "anamorphic streak",
+        "lens ghosts",
         "optics"
       ],
       "credits": {
@@ -13051,15 +13060,15 @@
           "name": "Lente Vieja",
           "values": {
             "suciedad": 1,
-            "caida": 0.9
+            "caida": 1
           }
         },
         {
           "name": "Reflejo Rápido",
           "values": {
             "suciedad": 0.45,
-            "caida": 0.35,
-            "barrido": "Desde arriba"
+            "caida": 0.4,
+            "barrido": "De arriba abajo"
           }
         }
       ]
@@ -13553,7 +13562,7 @@
     {
       "id": "reactiva_polvo_lente",
       "name": "Reactiva · Polvo de Lente Revelado",
-      "description": "En el golpe grande una luz fuera de cuadro barre la lente y revela la suciedad del cristal cerca de ella: motas, huellas, pelos y un velo cálido. Sin música no dibuja nada.",
+      "description": "Una luz cálida e intensa cruza la lente en un arco y revela a su alrededor la suciedad real del cristal: manchas, huellas, vetas de grasa, fibras y motas con borde cromático, con una estela anamórfica azul y fantasmas suaves del diafragma que se mueven al revés que la luz. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -13562,12 +13571,13 @@
       "moods": [
         "cinematic",
         "elegant",
-        "warm"
+        "vivid"
       ],
       "concepts": [
         "aparición momentánea",
         "lens dirt",
-        "lens flare",
+        "anamorphic streak",
+        "lens ghosts",
         "optics"
       ],
       "credits": {
@@ -13586,15 +13596,15 @@
           "name": "Lente Vieja",
           "values": {
             "suciedad": 1,
-            "caida": 0.9
+            "caida": 1
           }
         },
         {
           "name": "Reflejo Rápido",
           "values": {
             "suciedad": 0.45,
-            "caida": 0.35,
-            "barrido": "Desde arriba"
+            "caida": 0.4,
+            "barrido": "De arriba abajo"
           }
         }
       ]
