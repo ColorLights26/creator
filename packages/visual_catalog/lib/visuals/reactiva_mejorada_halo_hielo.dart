@@ -1,15 +1,19 @@
-// Reactiva Mejorada · Halo de Hielo — transparencia momentánea. Al empezar una frase se enciende en
-// el cielo de la escena un halo de 22° alrededor de una luz: borde interior
-// nítido y rojizo que se abre a naranja y blanco azulado, dos parhelios con su
-// cola blanca, un arco tangente superior en ala de gaviota y polvo de diamante
-// que titila; aparece en 0,3 s y se apaga despacio. Referentes: Atmospheric
-// Optics (halo de 22°) e HyperPhysics.
+// Reactiva Mejorada · Halo de Hielo — transparencia momentánea. Al empezar una frase se enciende
+// alrededor de una luz alta el halo de 22° que forman los cristales de hielo:
+// dentro el cielo queda limpio; el borde interior sube en 2 px a rojo vivo,
+// pasa por naranja y sólo es dorado donde más brilla, y hacia fuera se abre
+// una cola blanca fría que se apaga en 45 px. Más intenso a los lados y
+// arriba, con manchas que derivan. Arriba toca el arco tangente en ala de
+// gaviota (un vértice en V con alas que suben y se aplanan); a los lados, los
+// parhelios con su cara roja y su cola blanca azulada; un círculo parhélico
+// tenue y polvo de diamante que titila. Se enciende en cuatro cuadros, se
+// mantiene y se rompe en pedazos. La luz se suma a la escena. Referente:
+// fotografías de halos y parhelios en el Ártico.
 // Versión mejorada: sigue el ritmo (cada golpe o cada tiempo) y su fuerza
-// depende del volumen de la música; los pulsos son cortos para que se
-// vean con el compás. La original («Reactiva · Halo de Hielo») no se toca.
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// depende del volumen de la música.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -252,61 +256,163 @@ class Visual final : public Scene {
   }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
-    const float W = f.width, H = f.height, S = std::min(W, H);
-    const Color red = f.colors[1], orange = f.colors[2], ice = f.colors[3];
+    const auto m = modifiers(f);
+    const float W = f.width, H = f.height;
+    // Vida: cuatro cuadros para encenderse, hasta 0,8 s de pie y se rompe
+    // en pedazos hasta 1,15 s.
+    float age = 100.0f, amp = 0.0f;
     for (const Pulse& p : slots) {
-      const double age = now - p.start;
-      const float life = (p.kind == 1 ? 0.9f : 1.5f) / pace(f);
-      if (age <= 0.0 || age >= double(life)) continue;
-      const float rise = 0.2f * life;
-      const float e = age < double(rise) ? easeOut(float(age / double(rise))) : std::pow(1.0f - float((age - double(rise)) / double(life - rise)), 1.4f);
-      const float a = std::min(e * amount(p.power) * f.intensity, 1.2f);
-      if (a < kMin) continue;
-      const Vec2 o = {W * 0.5f, H * 0.27f};
-      const float R = 0.36f * S * g.tamano;
-      Paint halo = Paint::radial(o, 1.4f * R, {tint(red, 0.0f), tint(red, 0.0f), tint(red, 0.5f * a), tint(orange, 0.4f * a), tint(ice, 0.25f * a), tint(ice, 0.0f)},
-                                 {0.0f, 0.6f, 0.643f, 0.679f, 0.75f, 1.0f});
-      halo.blend = Blend::plus;
-      c.circle(o, 1.4f * R, halo);
-      glow(c, o, S * 0.12f, ice, orange, 0.25f * a);
-      if (g.parhelios > 0.01f) {
-        for (int s = -1; s <= 1; s += 2) {
-          const Vec2 q = {o.x + float(s) * R * 1.02f, o.y};
-          c.save();
-          c.translate(q.x, q.y);
-          c.scale(1.6f, 1.0f);
-          glow(c, {0.0f, 0.0f}, S * 0.07f, ice, red, 0.6f * a * g.parhelios);
-          c.restore();
-          const float tail = S * 0.25f, th = S * 0.012f;
-          const float x0 = s > 0 ? q.x : q.x - tail;
-          Paint tp = Paint::linear(q, {q.x + float(s) * tail, q.y}, {tint(ice, 0.25f * a * g.parhelios), tint(ice, 0.0f)}, {0.0f, 1.0f});
-          tp.blend = Blend::plus;
-          c.rect({x0, q.y - th * 0.5f, tail, th}, tp);
-        }
-      }
-      // Arco tangente superior en ala de gaviota.
-      Path arcp;
-      arcp.moveTo(o.x - 0.55f * R, o.y - 0.93f * R).cubicTo(o.x - 0.2f * R, o.y - 1.16f * R, o.x + 0.2f * R, o.y - 1.16f * R, o.x + 0.55f * R, o.y - 0.93f * R);
-      Paint wide;
-      wide.color = tint(ice, 0.08f * a);
-      wide.blend = Blend::plus;
-      wide.strokeWidth = S * 0.035f;
-      wide.strokeCap = 1;
-      c.path(arcp, wide);
-      Paint thin = wide;
-      thin.color = tint(ice, 0.3f * a);
-      thin.strokeWidth = S * 0.01f;
-      c.path(arcp, thin);
-      // Polvo de diamante que titila.
-      clearBins();
-      const uint32_t frame = uint32_t(now * 30.0);
-      for (int j = 0; j < 90; j++) {
-        if (rnd(frame * 5u + uint32_t(j) * 9u + p.id) < 0.4f) continue;
-        const float th = 2.0f * float(pi) * rnd(p.id * 37u + uint32_t(j)), rr = 1.6f * R * std::sqrt(rnd(p.id * 39u + uint32_t(j)));
-        bins_[0].push_back({o.x + rr * std::cos(th), o.y + rr * std::sin(th)});
-      }
-      drawBin(c, 0, std::max(0.8f, S * 0.0016f), ice, 0.6f * a * g.polvo);
+      const float a = float(now - p.start) * pace(f);
+      if (a < 0.0f || a > 1.15f || a >= age) continue;
+      age = a;
+      amp = std::min(amount(p.power) * f.intensity, 1.2f);
     }
+    if (amp <= 0.0f) return;
+    const float R = g.tamano * 0.3f * W;
+    const float cx = 0.5f * W, cy = 0.24f * H;
+    const float y1 = std::min(H, cy + R * 1.6f);
+    const Color red = f.colors[1], orange = f.colors[2], ice = f.colors[3];
+    c.material("halo", {0.0f, 0.0f, W, y1},
+               {cx, cy, R, age, amp, m.parhelios ? 1.0f : 0.0f, g.polvo, float(now),
+                red.r, red.g, red.b, orange.r, orange.g, orange.b, ice.r, ice.g, ice.b},
+               {"noise"});
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'halo': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform vec2 uSun;
+uniform float uR;
+uniform float uAge;
+uniform float uAmp;
+uniform float uDogs;
+uniform float uDust;
+uniform float uTime;
+uniform vec3 uRed;
+uniform vec3 uOrange;
+uniform vec3 uIce;
+uniform sampler2D uTex;
+out vec4 fragColor;
+
+float hash(float n) {
+  return fract(sin(n * 12.9898) * 43758.5453);
+}
+float hash2(vec2 p) {
+  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+// Halo por distancia al radio (px): nada dentro hasta R-3, sube en 2 px,
+// cola fría de +150 a R+12, +80 a R+20, +35 a R+30 y nada a R+45.
+float haloI(float x) {
+  if (x < -3.0) return 0.0;
+  if (x < -1.0) return smoothstep(-3.0, -1.0, x) * 0.85;
+  if (x < 2.0) return mix(0.85, 0.9, (x + 1.0) / 3.0);
+  if (x < 12.0) return mix(0.9, 0.59, (x - 2.0) / 10.0);
+  if (x < 20.0) return mix(0.59, 0.31, (x - 12.0) / 8.0);
+  if (x < 30.0) return mix(0.31, 0.14, (x - 20.0) / 10.0);
+  return mix(0.14, 0.0, clamp((x - 30.0) / 15.0, 0.0, 1.0));
+}
+
+// Color del halo: rojo dentro y rojo anaranjado (#FF4A10); dorado sólo donde
+// el anillo pasa del 80 % y en 2 px; el cálido acaba en R+5 y desde ahí sube
+// el blanco frío de la cola, sin mezclarse en beige.
+vec3 haloC(float x, float I, vec3 red, vec3 ice) {
+  vec3 orRed = vec3(1.0, 0.29, 0.063);
+  vec3 warm = mix(red, orRed, smoothstep(-1.0, 2.0, x));
+  float gold = smoothstep(0.72, 0.8, I) * exp(-(x - 1.0) * (x - 1.0) / 0.8);
+  warm = mix(warm, vec3(1.0, 0.82, 0.38), gold);
+  // Donde el anillo es más brillante, blanco cálido quemado en R+2..R+3.
+  float hot = smoothstep(0.82, 0.92, I) * exp(-(x - 2.5) * (x - 2.5) / 0.8);
+  warm = mix(warm, vec3(1.0, 0.97, 0.88) * 1.18, hot);
+  return warm * (1.0 - smoothstep(3.0, 5.0, x)) + ice * smoothstep(3.5, 6.0, x);
+}
+
+void main() {
+  vec2 p = FlutterFragCoord().xy;
+  float px1 = uSize.x / 360.0;
+  vec2 q = p - uSun;
+  float r = length(q);
+  float Rp = uR / px1;
+  float x = (r - uR) / px1;
+  float th = atan(q.y, q.x);
+  // Vida: se enciende en cuatro cuadros, se mantiene y se rompe en pedazos.
+  float build = smoothstep(0.0, 0.13, uAge);
+  float breakT = smoothstep(0.8, 1.08, uAge);
+  float breakA = smoothstep(0.74, 0.98, uAge);
+  float breakS = smoothstep(0.92, 1.13, uAge);
+  float xt = clamp(x, 0.0, 45.0) / 45.0;
+  float piece = 0.5 + 0.3 * sin(4.0 * th + 0.03 * x + 1.7) + 0.2 * sin(7.0 * th - 0.05 * x + 3.4);
+  float kill = mix(-0.4, 1.45, breakT) + 0.25 * xt;
+  float dim = 1.0 - 0.5 * smoothstep(0.95, 1.08, uAge);
+  float alive = build * smoothstep(kill - 0.35, kill + 0.05, piece) * dim;
+  float ux = q.x / px1;
+  float pieceA = 0.5 + 0.3 * sin(ux / 22.0 + 1.7) + 0.2 * sin(ux / 13.0 - 0.07 * q.y / px1 + 3.4);
+  float killA = mix(-0.4, 1.45, breakA);
+  float aliveA = build * smoothstep(killA - 0.35, killA + 0.05, pieceA);
+  float aliveS = build * (1.0 - breakS);
+  // Más intenso a los lados y arriba, con manchas que derivan.
+  float around = (0.6 + 0.4 * abs(cos(2.0 * th))) * (1.0 + 0.12 * sin(3.0 * th + uTime * 3.9) + 0.08 * sin(5.0 * th - uTime * 6.5));
+  float hI = haloI(x) * around;
+  vec3 iceC = vec3(0.4, 0.64, 1.0) * mix(vec3(1.0), uIce / max(uIce.b, 0.01), 0.15);
+  vec3 light = hI * haloC(x, hI, uRed, iceC) * alive;
+  // Arco tangente en ala de gaviota: vértice en V sobre el halo y alas que
+  // suben unos 35° y se aplanan, de 80-100 px; el borde de abajo, rojo.
+  float u = abs(q.x) / px1;
+  float yTop = -Rp;
+  float yArc = yTop - 40.0 * (1.0 - exp(-u / 50.0));
+  float dyA = (q.y / px1) - yArc;
+  float tA = clamp(u / 95.0, 0.0, 1.0);
+  float wingB = 0.7 * pow(1.0 - tA, 1.5) * 0.9;
+  float arcI = wingB * 1.4 * (dyA > 0.0 ? exp(-dyA * dyA / 2.0) : exp(dyA / 5.0));
+  vec3 arcC = mix(iceC, uRed, smoothstep(0.0, 1.0, dyA));
+  arcC = mix(arcC, vec3(1.0), (1.0 - smoothstep(0.0, 0.15, tA)) * smoothstep(0.5, 0.6, arcI));
+  light += arcI * arcC * aliveA;
+  // Parhelios: 3-6 px fuera del halo, cara roja hacia el sol, núcleo quemado
+  // pequeño y cola blanca azulada de 40-70 px hacia fuera; respiran un poco.
+  vec3 dogs = vec3(0.0);
+  for (int i = 0; i < 2; i++) {
+    float side = i == 0 ? -1.0 : 1.0;
+    vec2 v = (q - vec2(side * (uR + 9.0 * px1), 0.0)) / px1;
+    float ax = side * v.x;
+    float body = exp(-ax * ax / 25.0 - v.y * v.y / 169.0);
+    float core = exp(-ax * ax / 4.0 - v.y * v.y / 25.0) * 1.4;
+    // Cara roja sólo hacia el sol; hacia fuera y arriba/abajo, de blanco a frío.
+    vec3 sideCol = mix(uRed, mix(uOrange, vec3(1.0, 0.29, 0.063), 0.6), smoothstep(-6.0, -2.0, ax));
+    sideCol = mix(sideCol, iceC, smoothstep(-2.0, 2.0, ax));
+    float tail = exp(-abs(v.y) / 3.0) * exp(-max(ax, 0.0) / 25.0) * smoothstep(5.0, 11.0, ax) * (1.0 - smoothstep(55.0, 70.0, ax)) * 0.45;
+    dogs += (body * sideCol * 0.9 + core * vec3(1.0) + tail * iceC) * (1.0 + 0.1 * sin(uTime * 9.0 + side * 1.7));
+  }
+  light += dogs * uDogs * aliveS;
+  // Círculo parhélico tenue y azulado (más tenue dentro del halo) y el
+  // brillo frío del sol, que se apaga a 50 px.
+  float pl = exp(-abs(q.y) / (px1 * 1.0)) * 0.14 * (r < uR ? 0.4 : 1.0) * exp(-abs(q.x) / (uR * 1.6));
+  light += pl * vec3(0.55, 0.65, 1.0) * aliveA;
+  float rp = r / px1;
+  float sun = (rp < 4.0 ? 1.1 : 0.0) + pow(1.0 - smoothstep(0.0, 50.0, rp), 2.0) * 0.45;
+  light += sun * mix(vec3(0.55, 0.7, 1.0), vec3(1.0), smoothstep(0.7, 0.9, sun)) * build * (1.0 - breakS);
+  // Polvo de diamante: un punto de 1 px con brillo radial, mirando las
+  // celdas vecinas; titila cada pocos cuadros.
+  vec2 cell0 = floor(p / (9.0 * px1));
+  float dust = 0.0;
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      vec2 cell = cell0 + vec2(float(i), float(j));
+      if (hash2(cell) < 0.975) continue;
+      vec2 cp = (cell + vec2(hash2(cell + 2.3), hash2(cell + 5.9))) * 9.0 * px1;
+      float tw = step(0.4, hash2(cell + floor(uTime * (6.0 + 4.0 * hash2(cell + 1.1)))));
+      float dd = length(p - cp) / px1;
+      dust += tw * (exp(-dd * dd / 0.5) + 0.4 * exp(-dd * dd / 2.9));
+    }
+  }
+  light += dust * uDust * 1.6 * iceC * build * (1.0 - breakT);
+  light *= uAmp * smoothstep(uSize.y, uSize.y * 0.8, p.y);
+  vec3 tone = min(light, vec3(1.0));
+  fragColor = vec4(tone, 0.1 * max(tone.r, max(tone.g, tone.b)));
+}
+''',
+
+};

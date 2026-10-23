@@ -1,12 +1,14 @@
 // Reactiva · Onda de Choque Espectral — transparencia momentánea. En el golpe grande cruza
-// la pantalla un frente de luz gigante que nace fuera del cuadro: cresta blanca
-// fina, bordes rojo, ámbar y azul separados como una aberración cromática,
-// estela ámbar detrás y un eco más débil. No hay explosión ni objeto: sólo el
-// frente. Referente: «Blast Wall» (godotshaders, CC0) y las ondas de choque
-// cromáticas de Shadertoy.
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// la pantalla un frente de luz gigante que nace fuera del cuadro: la cresta es
+// una línea blanca nítida, con el azul adelantado y el rojo y el ámbar
+// rezagados (los colores se separan como en un prisma), detrás deja una estela
+// ámbar que se apaga en unos cuadros y, si se quiere, un eco más débil le
+// sigue. Cruza en medio segundo y no se para. La luz se suma a la escena.
+// Referente: las ondas de choque de los vídeos de música electrónica y de
+// los títulos de cine.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -240,41 +242,86 @@ class Visual final : public Scene {
   }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
-    const float W = f.width, H = f.height, S = std::min(W, H);
-    const float T = 0.45f / pace(f);
-    const float w0 = g.origen.weight(0), w1 = g.origen.weight(1), w2 = g.origen.weight(2);
+    const auto m = modifiers(f);
+    const float W = f.width, H = f.height;
+    // Origen fuera del cuadro (o en el centro) y velocidad para cruzar en
+    // medio segundo.
+    const float ox = m.origen == 1 ? -0.35f * W : 0.5f * W;
+    const float oy = m.origen == 0 ? H + 0.6f * W : m.origen == 1 ? H + 0.35f * W : 0.5f * H;
+    const float far = std::max(std::hypot(ox, oy), std::max(std::hypot(W - ox, oy), std::max(std::hypot(ox, H - oy), std::hypot(W - ox, H - oy))));
+    const float near = m.origen == 2 ? 0.0f : (m.origen == 0 ? oy - H : std::hypot(std::max(0.0f, -ox), std::max(0.0f, oy - H)));
+    const float T = 0.5f / pace(f);
+    const Color red = f.colors[1], amber = f.colors[2], blue = f.colors[3];
     for (const Pulse& p : slots) {
-      const double age0 = now - p.start;
-      if (age0 < 0.0 || age0 > double(T) + 0.15) continue;
-      const bool right = (p.id & 1u) != 0u;
-      const Vec2 o = {w0 * W * 0.5f + w1 * (right ? W * 1.04f : -W * 0.04f) + w2 * W * 0.5f,
-                      w0 * H * 1.12f + w1 * H * 1.04f + w2 * H * 0.5f};
-      const float fx = std::max(o.x, W - o.x), fy = std::max(o.y, H - o.y);
-      const float rmax = std::sqrt(fx * fx + fy * fy) * 1.05f;
-      const float k = amount(p.power) * f.intensity * (p.kind == 2 ? 0.7f : 1.0f);
-      for (int echo = 0; echo < 2; echo++) {
-        if (echo == 1 && g.eco < 0.01f) break;
-        const double age = age0 - 0.11 * double(echo);
-        if (age <= 0.0 || age >= double(T)) continue;
-        const float q = float(age / double(T));
-        const float r = rmax * easeOut(q);
-        const float fade = std::pow(1.0f - q, 1.2f) * (echo == 1 ? 0.4f * g.eco : 1.0f);
-        const float a = std::min(k * fade, 1.4f);
-        const float w = S * (0.007f + 0.006f * fade);
-        const float sep = S * 0.012f * g.separacion;
-        if (echo == 0 && r > S * 0.22f) ring(c, f, o, r - S * 0.1f, S * 0.1f, f.colors[2], 0.2f * a);
-        ring(c, f, o, r + sep, w * 1.3f, f.colors[1], 0.65f * a);
-        ring(c, f, o, r, w * 1.2f, f.colors[2], 0.5f * a);
-        ring(c, f, o, std::max(r - sep, w * 1.5f), w * 1.3f, f.colors[3], 0.65f * a);
-        ring(c, f, o, r, w * 0.5f, white(), 0.85f * a);
-      }
-      if (age0 < 0.05) {
-        Paint flash;
-        flash.color = tint(white(), 0.06f * k);
-        flash.blend = Blend::plus;
-        c.rect({0.0f, 0.0f, W, H}, flash);
-      }
+      const float age = float(now - p.start);
+      if (age < 0.0f || age > T * 1.35f) continue;
+      const float k = std::min(amount(p.power) * f.intensity, 1.3f);
+      const float R = near + (far + 0.2f * W - near) * (age / T);
+      c.material("shock", {0.0f, 0.0f, W, H},
+                 {ox, oy, R, (far + 0.2f * W - near) / T, k, g.separacion, m.eco ? 1.0f : 0.0f,
+                  red.r, red.g, red.b, amber.r, amber.g, amber.b, blue.r, blue.g, blue.b});
     }
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'shock': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform vec2 uOrigin;
+uniform float uR;
+uniform float uSpeed;
+uniform float uAmp;
+uniform float uSep;
+uniform float uEcho;
+uniform vec3 uRed;
+uniform vec3 uAmber;
+uniform vec3 uBlue;
+out vec4 fragColor;
+
+void main() {
+  vec2 p = FlutterFragCoord().xy;
+  float px1 = uSize.x / 360.0;
+  vec2 v = p - uOrigin;
+  float r = length(v);
+  float time = uR / max(uSpeed, 1.0);
+  // Arco recorrido a lo largo de la cresta (px), para su variación.
+  float s = atan(v.y, v.x) * r / px1;
+  float dpx = (r - uR) / px1;  // < 0 detrás del frente
+  dpx += 0.4 * sin(6.2832 * s / 240.0 + time * 3.0);
+  // De abajo arriba la cresta se ensancha de 3 a 6 px y baja al 70 %.
+  float t = clamp(1.0 - p.y / uSize.y, 0.0, 1.0);
+  float w = mix(3.0, 6.0, t);
+  float bright = mix(1.0, 0.7, t) * (1.0 + 0.12 * sin(6.2832 * (s - 90.0 * time) / 80.0) + 0.08 * sin(6.2832 * (s + 60.0 * time) / 135.0));
+  // Núcleo blanco quemado.
+  float core = 1.3 * exp(-dpx * dpx / (0.36 * w * w));
+  // Azul 2-3 px por delante, solapado con el blanco, que se apaga en 3 px.
+  float lead = 2.0 + clamp(uSep, 0.0, 1.0);
+  float bz = (dpx - lead) / 1.8;
+  float blueL = 0.9 * exp(-bz * bz);
+  // Estela de 30-40 px: oro sólo en los primeros 4 px, luego rojo anaranjado
+  // y rojo (+150 a 6 px, +70 a 14, +25 a 25 y nada a 40).
+  float b = max(-dpx, 0.0);
+  float wake = b < 6.0 ? mix(1.0, 0.59, b / 6.0) : (b < 14.0 ? mix(0.59, 0.275, (b - 6.0) / 8.0)
+             : (b < 25.0 ? mix(0.275, 0.098, (b - 14.0) / 11.0) : mix(0.098, 0.0, clamp((b - 25.0) / 15.0, 0.0, 1.0))));
+  wake *= step(dpx, 0.0);
+  vec3 red = uRed / max(uRed.r, 0.01);
+  vec3 gold = mix(vec3(1.0, 0.78, 0.31), uAmber / max(uAmber.r, 0.01), 0.2);
+  vec3 wakeC = mix(gold, vec3(1.0, 0.29, 0.063), smoothstep(2.0, 5.0, b));
+  wakeC = mix(wakeC, vec3(1.0, 0.165, 0.063) * mix(vec3(1.0), red, 0.2), smoothstep(10.0, 25.0, b));
+  vec3 blue = uBlue / max(uBlue.b, 0.01);
+  // Un solo eco suave 75 px detrás (al 35 %), con su azul delante; se va
+  // antes de que la cresta salga.
+  float de = dpx + 75.0;
+  float fadeE = smoothstep(0.25, 0.5, p.y / uSize.y) * uEcho;
+  vec3 echo = 0.35 * exp(-de * de / 12.5) * vec3(1.0, 0.29, 0.063) * fadeE;
+  vec3 light = (core * vec3(1.0) + blueL * blue + wake * wakeC) * bright + echo;
+  light *= uAmp;
+  vec3 tone = min(light, vec3(1.0));
+  fragColor = vec4(tone, 0.1 * max(tone.r, max(tone.g, tone.b)));
+}
+''',
+
+};

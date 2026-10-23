@@ -10641,22 +10641,23 @@
     {
       "id": "reactiva_estrella_difraccion",
       "name": "Reactiva · Estrella de Difracción",
-      "description": "Con la caja se abre en un punto alto la estrella que hace una lente ante una luz fuerte: núcleo diminuto, picos larguísimos con el color separado y anillos de Airy, y se apaga en 300 ms. Sin música no dibuja nada.",
+      "description": "Con la caja se abre en un punto alto la estrella de una lente ante una luz fuerte: núcleo quemado, picos que salen disparados y se recogen desde la punta, blancos junto al núcleo y en bandas de azul, verde y rojo hacia fuera, con anillos de Airy al principio. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
+        "cosmic",
         "elegant",
-        "bright",
-        "rhythmic"
+        "cinematic"
       ],
       "concepts": [
         "aparición momentánea",
         "diffraction spikes",
-        "starburst",
-        "optics"
+        "airy rings",
+        "optics",
+        "starburst"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -10664,7 +10665,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.6
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -10944,7 +10945,7 @@
     {
       "id": "reactiva_fuga_carrete",
       "name": "Reactiva · Fuga de Luz de Carrete",
-      "description": "Al empezar una frase entra desde un borde una fuga de luz cálida y orgánica, como la de una cámara de película, que se desplaza, respira y se va, con grano encima. Sin música no dibuja nada.",
+      "description": "Al empezar una frase entra desde un borde una fuga de luz de cámara de película: lóbulos orgánicos que se deslizan, respiran y se van, amarillo blanco junto al borde, naranja y rojo vivo hacia dentro, con grano y un leve parpadeo. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -10952,14 +10953,15 @@
       ],
       "moods": [
         "warm",
-        "vintage",
+        "nostalgic",
         "dreamy"
       ],
       "concepts": [
         "aparición momentánea",
         "light leak",
         "film",
-        "analog"
+        "super 8",
+        "grain"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -10967,7 +10969,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.5
+        "timeSeconds": 1.2
       },
       "publication": "draft",
       "role": "overlay",
@@ -11075,21 +11077,22 @@
     {
       "id": "reactiva_halo_hielo",
       "name": "Reactiva · Halo de Hielo",
-      "description": "Al empezar una frase se enciende un halo de 22° alrededor de una luz: borde interior rojizo, parhelios, arco tangente en ala de gaviota y polvo de diamante. Sin música no dibuja nada.",
+      "description": "Al empezar una frase se enciende el halo de 22° alrededor de una luz alta: borde interior rojo que pasa a naranja con cola blanca fría, arco tangente en ala de gaviota, parhelios con cara roja y cola blanca y polvo de diamante que titila; luego se rompe en pedazos. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "magical",
+        "dreamy",
         "elegant",
         "cold"
       ],
       "concepts": [
         "aparición momentánea",
         "ice halo",
-        "sun dogs",
+        "sundogs",
+        "diamond dust",
         "atmospheric optics"
       ],
       "credits": {
@@ -11098,7 +11101,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.3
+        "timeSeconds": 0.6
       },
       "publication": "draft",
       "role": "overlay",
@@ -12431,22 +12434,23 @@
     {
       "id": "reactiva_mejorada_estrella_difraccion",
       "name": "Reactiva Mejorada · Estrella de Difracción",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con la caja se abre en un punto alto la estrella que hace una lente ante una luz fuerte: núcleo diminuto, picos larguísimos con el color separado y anillos de Airy, y se apaga en 300 ms. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con la caja se abre en un punto alto la estrella de una lente ante una luz fuerte: núcleo quemado, picos que salen disparados y se recogen desde la punta, blancos junto al núcleo y en bandas de azul, verde y rojo hacia fuera, con anillos de Airy al principio. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
+        "cosmic",
         "elegant",
-        "bright",
-        "rhythmic"
+        "cinematic"
       ],
       "concepts": [
         "aparición momentánea",
         "diffraction spikes",
-        "starburst",
-        "optics"
+        "airy rings",
+        "optics",
+        "starburst"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -12454,7 +12458,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.6
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -12736,7 +12740,7 @@
     {
       "id": "reactiva_mejorada_fuga_carrete",
       "name": "Reactiva Mejorada · Fuga de Luz de Carrete",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar una frase entra desde un borde una fuga de luz cálida y orgánica, como la de una cámara de película, que se desplaza, respira y se va, con grano encima. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar una frase entra desde un borde una fuga de luz de cámara de película: lóbulos orgánicos que se deslizan, respiran y se van, amarillo blanco junto al borde, naranja y rojo vivo hacia dentro, con grano y un leve parpadeo. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -12744,14 +12748,15 @@
       ],
       "moods": [
         "warm",
-        "vintage",
+        "nostalgic",
         "dreamy"
       ],
       "concepts": [
         "aparición momentánea",
         "light leak",
         "film",
-        "analog"
+        "super 8",
+        "grain"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -12759,7 +12764,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.5
+        "timeSeconds": 1.2
       },
       "publication": "draft",
       "role": "overlay",
@@ -12868,21 +12873,22 @@
     {
       "id": "reactiva_mejorada_halo_hielo",
       "name": "Reactiva Mejorada · Halo de Hielo",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar una frase se enciende un halo de 22° alrededor de una luz: borde interior rojizo, parhelios, arco tangente en ala de gaviota y polvo de diamante. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar una frase se enciende el halo de 22° alrededor de una luz alta: borde interior rojo que pasa a naranja con cola blanca fría, arco tangente en ala de gaviota, parhelios con cara roja y cola blanca y polvo de diamante que titila; luego se rompe en pedazos. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "magical",
+        "dreamy",
         "elegant",
         "cold"
       ],
       "concepts": [
         "aparición momentánea",
         "ice halo",
-        "sun dogs",
+        "sundogs",
+        "diamond dust",
         "atmospheric optics"
       ],
       "credits": {
@@ -12891,7 +12897,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.3
+        "timeSeconds": 0.6
       },
       "publication": "draft",
       "role": "overlay",
@@ -13138,22 +13144,22 @@
     {
       "id": "reactiva_mejorada_onda_choque_espectral",
       "name": "Reactiva Mejorada · Onda de Choque Espectral",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe grande cruza la pantalla un frente de luz gigante que nace fuera del cuadro, con cresta blanca, bordes rojo, ámbar y azul separados, estela ámbar y un eco. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe grande cruza la pantalla un frente de luz gigante que nace fuera del cuadro: cresta blanca nítida con el azul adelantado y el rojo y ámbar rezagados, estela ámbar que se apaga enseguida y un eco más débil. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "dramatic",
         "energetic",
+        "dramatic",
         "futuristic"
       ],
       "concepts": [
         "aparición momentánea",
         "shockwave",
         "chromatic aberration",
-        "impact"
+        "light front"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -13161,7 +13167,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.2
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -13725,22 +13731,22 @@
     {
       "id": "reactiva_onda_choque_espectral",
       "name": "Reactiva · Onda de Choque Espectral",
-      "description": "En el golpe grande cruza la pantalla un frente de luz gigante que nace fuera del cuadro, con cresta blanca, bordes rojo, ámbar y azul separados, estela ámbar y un eco. Sin música no dibuja nada.",
+      "description": "En el golpe grande cruza la pantalla un frente de luz gigante que nace fuera del cuadro: cresta blanca nítida con el azul adelantado y el rojo y ámbar rezagados, estela ámbar que se apaga enseguida y un eco más débil. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "dramatic",
         "energetic",
+        "dramatic",
         "futuristic"
       ],
       "concepts": [
         "aparición momentánea",
         "shockwave",
         "chromatic aberration",
-        "impact"
+        "light front"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -13748,7 +13754,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.2
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",

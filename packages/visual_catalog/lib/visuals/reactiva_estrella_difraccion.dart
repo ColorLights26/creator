@@ -1,12 +1,15 @@
 // Reactiva · Estrella de Difracción — transparencia momentánea. Con la caja se abre en un
-// punto alto de la escena la estrella que hace una lente ante una luz fuerte:
-// núcleo diminuto, picos larguísimos alternando largos y cortos con el color
-// separado de azul a rojo a lo largo de cada pico, y dos anillos de Airy
-// tenues; se abre en 60 ms y se apaga en 300 ms. Referentes: «Cheap Glare» y
-// «Star PSF» de Shadertoy y la óptica de la difracción del diafragma.
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// punto alto la estrella que hace una lente ante una luz fuerte: un núcleo
+// quemado de 4 px, dos picos diagonales largos y un par horizontal más corto y
+// fino, que salen disparados en dos cuadros y luego se recogen desde la punta.
+// Cada pico es blanco junto al núcleo y se abre en bandas de color espectral
+// (azul, verde y rojo, el rojo llegando más lejos); alrededor del núcleo, un
+// brillo frío y tres anillos de Airy finos que sólo se ven al principio.
+// La luz se suma a la escena. Referente: las estrellas de difracción del
+// telescopio James Webb y de un objetivo cerrado a f/16.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -238,49 +241,131 @@ class Visual final : public Scene {
     const int d = modifiers(f).disparo;
     fire(d == 0 ? h.snare : d == 1 ? h.hat : h.big, d);
   }
-  void star(Canvas& c, const Frame& f, Vec2 o, float len, float rot, int n, float a, float S) const {
-    if (a < kMin || len < 1.0f) return;
-    const float chroma[3] = {1.0f, 0.93f, 0.86f};
-    for (int ch = 0; ch < 3; ch++) {
-      Path spikes;
-      for (int k = 0; k < n; k++) {
-        const float th = rot + 2.0f * float(pi) * float(k) / float(n);
-        const float l = len * chroma[ch] * (k % 2 == 0 ? 1.0f : 0.55f);
-        const float bw = S * 0.0035f * (1.2f - 0.15f * float(ch));
-        const float cx = std::cos(th), sy = std::sin(th);
-        spikes.moveTo(o.x - sy * bw, o.y + cx * bw).lineTo(o.x + cx * l, o.y + sy * l).lineTo(o.x + sy * bw, o.y - cx * bw).close();
-      }
-      const Color col = f.colors[size_t(1 + ch)];
-      Paint q = Paint::radial(o, len * chroma[ch], {tint(mixc(white(), col, 0.4f), a), tint(col, a * 0.5f), tint(col, a * 0.15f), tint(col, 0.0f)}, {0.0f, 0.25f, 0.65f, 1.0f});
-      q.blend = Blend::plus;
-      c.path(spikes, q);
-    }
-    glow(c, o, S * 0.06f, white(), f.colors[2], a);
-    // Dos anillos de Airy muy tenues.
-    const float r = S * 0.075f;
-    Paint airy = Paint::radial(o, r, {tint(white(), 0.0f), tint(white(), 0.0f), tint(white(), 0.2f * a), tint(white(), 0.0f), tint(white(), 0.0f), tint(white(), 0.1f * a), tint(white(), 0.0f), tint(white(), 0.0f)},
-                               {0.0f, 0.4f, 0.48f, 0.56f, 0.76f, 0.84f, 0.92f, 1.0f});
-    airy.blend = Blend::plus;
-    c.circle(o, r, airy);
-  }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
     const auto m = modifiers(f);
-    const float W = f.width, H = f.height, S = std::min(W, H);
-    const int n = m.puntas == 0 ? 6 : m.puntas == 1 ? 8 : 14;
+    const float W = f.width, H = f.height;
+    const float px1 = W / 360.0f;
+    const float points = m.puntas == 0 ? 6.0f : m.puntas == 1 ? 8.0f : 14.0f;
+    const Color red = f.colors[1], green = f.colors[2], blue = f.colors[3];
     for (const Pulse& p : slots) {
-      const double age = now - p.start;
-      if (age < 0.0 || age > 0.42) continue;
-      const float grow = easeOut(float(age / 0.06));
-      const float fade = age < 0.06 ? 1.0f : std::pow(clamp01(1.0f - float((age - 0.06) / 0.36)), 1.6f);
-      const float a = std::min(fade * amount(p.power) * f.intensity, 1.2f);
-      const float len = g.largo * S * grow * (p.kind == 2 ? 1.25f : 1.0f);
-      const float rot = 2.0f * float(pi) * rnd(p.id * 5u) + 0.05f * float(age / 0.42);
-      const bool right = (p.id & 1u) != 0u;
-      const Vec2 o = {W * (right ? 0.68f : 0.32f), H * (0.2f + 0.12f * rnd(p.id * 9u + 4u))};
-      star(c, f, o, len, rot, n, a, S);
-      if (g.dos > 0.01f) star(c, f, {W - o.x, o.y + 0.09f * H}, len * 0.7f, rot + 0.4f, n, a * 0.75f * g.dos, S);
+      const float age = float(now - p.start) * pace(f);
+      if (age < 0.0f || age > 0.45f) continue;
+      const float k = std::min(amount(p.power) * f.intensity, 1.3f);
+      const int stars = m.dos ? 2 : 1;
+      for (int s = 0; s < stars; s++) {
+        // Un punto alto, distinto en cada golpe.
+        const float x = W * (0.25f + 0.5f * rnd(p.id * 7u + uint32_t(s) * 3u + 1u));
+        const float y = H * (0.12f + 0.22f * rnd(p.id * 11u + uint32_t(s) * 5u + 2u));
+        // Largo máximo (175 px con el ajuste por defecto): sale en dos
+        // cuadros y luego se recoge desde la punta a unos 25 px por cuadro.
+        const float lmax = 350.0f * g.largo * (s == 0 ? 1.0f : 0.65f);
+        const float len = (age < 0.067f ? lmax * easeOut(age / 0.067f) : lmax - 750.0f * (age - 0.067f)) * px1;
+        if (len <= 0.0f) continue;
+        const float reach = len + 40.0f * px1;
+        const float x0 = std::max(0.0f, x - reach), y0 = std::max(0.0f, y - reach);
+        const float x1 = std::min(W, x + reach), y1 = std::min(H, y + reach);
+        if (x1 <= x0 || y1 <= y0) continue;
+        c.material("star", {x0, y0, x1 - x0, y1 - y0},
+                   {x0, y0, W, x, y, len, lmax * px1, points, age, k * (s == 0 ? 1.0f : 0.7f),
+                    red.r, red.g, red.b, green.r, green.g, green.b, blue.r, blue.g, blue.b});
+      }
     }
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'star': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform vec2 uOffset;
+uniform float uWidth;
+uniform vec2 uCenter;
+uniform float uLen;
+uniform float uMax;
+uniform float uPoints;
+uniform float uAge;
+uniform float uAmp;
+uniform vec3 uRed;
+uniform vec3 uGreen;
+uniform vec3 uBlue;
+out vec4 fragColor;
+
+// Brillo de un pico a lo largo (px de 360 a escala del largo máximo):
+// +200 a 20 px, +120 a 50, +60 a 100, +25 a 150 y nada a 175.
+float spikeI(float a) {
+  if (a < 20.0) return 1.2;
+  if (a < 34.0) return mix(1.0, 0.573, (a - 20.0) / 14.0);
+  if (a < 58.0) return mix(0.573, 0.353, (a - 34.0) / 24.0);
+  if (a < 66.0) return 0.353;
+  if (a < 90.0) return mix(0.353, 0.216, (a - 66.0) / 24.0);
+  if (a < 100.0) return mix(0.216, 0.235, (a - 90.0) / 10.0);
+  if (a < 150.0) return mix(0.235, 0.098, (a - 100.0) / 50.0);
+  return mix(0.098, 0.0, clamp((a - 150.0) / 25.0, 0.0, 1.0));
+}
+
+// Color del pico: blanco sólo donde pasa de +200, luego azul, verde y rojo
+// saturados; cada uno se apaga mientras sube el siguiente.
+vec3 spikeCol(float a) {
+  vec3 blue = uBlue / max(uBlue.b, 0.01);
+  vec3 green = uGreen / max(uGreen.g, 0.01);
+  vec3 red = uRed / max(uRed.r, 0.01);
+  vec3 c = mix(vec3(1.0), blue, smoothstep(26.0, 37.0, a));
+  // Cada relevo cruza al ~40 % de los dos colores: sin hueco y sin oliva.
+  float t1 = clamp((a - 56.0) / 9.0, 0.0, 1.0);
+  float t2 = clamp((a - 87.0) / 10.0, 0.0, 1.0);
+  float wB = pow(1.0 - t1, 1.3);
+  float wG = pow(t1, 1.3) * pow(1.0 - t2, 1.3) * 1.4;
+  float wR = pow(t2, 1.3);
+  return c * wB + green * wG + red * wR;
+}
+
+void main() {
+  vec2 q = FlutterFragCoord().xy + uOffset - uCenter;
+  float px1 = uWidth / 360.0;
+  float r = length(q) / px1;
+  float scale = 175.0 / max(uMax / px1, 1.0);
+  vec3 light = vec3(0.0);
+  // Un par horizontal más corto y fino; el resto, diagonales.
+  float lines = uPoints * 0.5;
+  for (int i = 0; i < 7; i++) {
+    float fi = float(i);
+    if (fi >= lines) continue;
+    float ang = fi * 3.14159 / lines + (lines > 3.5 ? 0.0 : 0.0);
+    vec2 dir = vec2(cos(ang), sin(ang));
+    bool horiz = i == 0;
+    float along = abs(dot(q, dir)) / px1;
+    float across = abs(q.x * dir.y - q.y * dir.x) / px1;
+    float lenPx = uLen / px1 * (horiz ? 0.6 : 1.0);
+    float a = along * scale / (horiz ? 0.6 : 1.0);
+    // La punta se apaga y se afina a 1 px en sus últimos 20 px.
+    float tip = smoothstep(lenPx, lenPx - 20.0, along);
+    float w = (horiz ? 0.7 : 1.0) * mix(0.55, 1.0, tip);
+    float prof = exp(-across * across / (w * w));
+    light += prof * tip * spikeI(a) * spikeCol(a);
+  }
+  // Núcleo quemado de 4 px y un brillo frío alrededor que se apaga a 32 px.
+  float glow = r < 4.0 ? 1.2 : (r < 7.0 ? mix(1.2, 0.59, (r - 4.0) / 3.0) : (r < 12.0 ? mix(0.59, 0.235, (r - 7.0) / 5.0)
+             : (r < 20.0 ? mix(0.235, 0.08, (r - 12.0) / 8.0) : mix(0.08, 0.0, clamp((r - 20.0) / 12.0, 0.0, 1.0)))));
+  vec3 cool = mix(vec3(0.45, 0.65, 1.0), vec3(1.0), smoothstep(0.62, 0.8, glow));
+  light += glow * cool;
+  // Tres anillos de Airy finos, sólo en los primeros cuadros; el rojo 1,5 px
+  // más afuera que el azul.
+  float rings = 1.0 - smoothstep(0.06, 0.1, uAge);
+  vec3 ring = vec3(0.0);
+  for (int k = 0; k < 3; k++) {
+    float rr = k == 0 ? 12.0 : (k == 1 ? 20.0 : 28.0);
+    float amp = k == 0 ? 0.18 : (k == 1 ? 0.1 : 0.05);
+    vec3 z = (vec3(r) - vec3(rr + 1.5, rr + 0.75, rr)) / 0.8;
+    ring += exp(-z * z) * amp;
+  }
+  light += ring * rings * vec3(0.7, 0.85, 1.0);
+  light *= uAmp * step(0.0, uSize.x);
+  vec3 tone = min(light, vec3(1.0));
+  fragColor = vec4(tone, 0.1 * max(tone.r, max(tone.g, tone.b)));
+}
+''',
+
+};

@@ -5,18 +5,18 @@ const metadata = CreatorVisualMetadata(
   name: 'Reactiva · Estrella de Difracción',
   publication: CreatorPublication.draft,
   description:
-      'Con la caja se abre en un punto alto la estrella que hace una lente ante una luz fuerte: núcleo diminuto, picos larguísimos con el color separado y anillos de Airy, y se apaga en 300 ms. Sin música no dibuja nada.',
+      'Con la caja se abre en un punto alto la estrella de una lente ante una luz fuerte: núcleo quemado, picos que salen disparados y se recogen desde la punta, blancos junto al núcleo y en bandas de azul, verde y rojo hacia fuera, con anillos de Airy al principio. Sin música no dibuja nada.',
   purposes: ['visualizer', 'overlay', 'momentary'],
-  moods: ['elegant', 'bright', 'rhythmic'],
-  concepts: ['aparición momentánea', 'diffraction spikes', 'starburst', 'optics'],
+  moods: ['cosmic', 'elegant', 'cinematic'],
+  concepts: ['aparición momentánea', 'diffraction spikes', 'airy rings', 'optics', 'starburst'],
   credits: CreatorCredits(author: 'Chic Apps', license: '', source: ''),
-  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.6),
+  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.0),
   role: CreatorRole.overlay,
   // Sólo con música: sin ella la capa queda vacía.
   reactivity: CreatorReactivity.music,
-  colors: [0x00000000, 0xffff3b2a, 0xffffc84a, 0xff6a8bff],
+  colors: [0x00000000, 0xffff2a10, 0xff30ff70, 0xff3a6bff],
+  images: {},
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
-  // Sin música no dibuja nada; sólo aparece un instante con su momento.
-  // Degradados, trazos y puntos agrupados: sin shaders por píxel.
+  // Sin música no dibuja nada; sólo aparece con su momento musical.
   framesPerSecond: 30,
 );
