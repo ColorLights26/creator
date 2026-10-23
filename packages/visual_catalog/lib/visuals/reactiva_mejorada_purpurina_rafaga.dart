@@ -1,15 +1,15 @@
-// Reactiva Mejorada · Purpurina en Ráfaga — transparencia momentánea. Con los platillos, una onda de
-// luz recorre miles de microfacetas invisibles y cada una destella sólo cuando
-// la onda coincide con su ángulo, como lentejuelas bajo un foco que se mueve;
-// las más brillantes abren una cruz de cuatro puntas. Nada vuela ni aparece:
-// sólo puntos que captan la luz. Referentes: «Fake glints», «Glitter Effect» y
-// «Sparkles effect» de Shadertoy.
+// Reactiva Mejorada · Purpurina en Ráfaga — transparencia momentánea. Con los platillos una onda de
+// luz recorre miles de microfacetas que sólo destellan cuando su ángulo
+// coincide con la luz, como lentejuelas bajo un foco: cada faceta brilla un
+// instante en su color (rojo, oro o azul de la paleta), las más fuertes abren
+// una cruz fina de cuatro puntas que se apaga con ella, y la onda pasa en
+// medio segundo. La luz se suma a la escena. Referente: un vestido de
+// lentejuelas cruzado por un cañón de luz en un videoclip.
 // Versión mejorada: sigue el ritmo (cada golpe o cada tiempo) y su fuerza
-// depende del volumen de la música; los pulsos son cortos para que se
-// vean con el compás. La original («Reactiva · Purpurina en Ráfaga») no se toca.
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// depende del volumen de la música.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -244,18 +244,7 @@ class Visual final : public Scene {
     for (auto& b : bins_) b.reserve(2048);
     resetOwn(seed);
   }
-  static constexpr int kFacets = 1800;
-  std::array<Vec2, kFacets> facet{};
-  std::array<float, kFacets> phase{};
-  std::array<int, kFacets> hue{};
-  void resetOwn(uint32_t seed) {
-    Random rng(seed);
-    for (int i = 0; i < kFacets; i++) {
-      facet[size_t(i)] = {rng.unit(), rng.unit()};
-      phase[size_t(i)] = rng.unit();
-      hue[size_t(i)] = std::min(2, int(rng.unit() * 3.0f));
-    }
-  }
+  void resetOwn(uint32_t) {}
   void update(const Frame& f) override {
     const Hits h = listen(f);
     const int d = modifiers(f).disparo;
@@ -264,62 +253,128 @@ class Visual final : public Scene {
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
     const auto m = modifiers(f);
-    const float W = f.width, H = f.height, S = std::min(W, H);
-    const int count = std::clamp(int(float(kFacets) * g.destellos), 1, kFacets);
+    const float W = f.width, H = f.height;
+    // La onda cruza a unos 58 px por cuadro con la duración por defecto.
+    const float speed = 0.45f / std::max(g.caida, 0.1f) * pace(f);
+    const float T = 0.8f / speed;
+    const Color red = f.colors[1], gold = f.colors[2], blue = f.colors[3];
     for (const Pulse& p : slots) {
-      const double age = now - p.start;
-      const float T = g.caida * (1.0f + 0.6f * clamp01(p.power)) * (p.kind == 2 ? 1.5f : 1.0f) / pace(f);
-      if (age <= 0.0 || age >= double(T)) continue;
-      const float prog = float(age / double(T));
-      const float w = -0.3f + 1.6f * prog;
-      const float e = std::pow(1.0f - prog, 0.35f) * amount(p.power) * f.intensity * 1.3f;
-      clearBins();
-      Path crosses;
-      int nCross = 0;
-      const bool flipSide = (p.id & 1u) != 0u;
-      for (int i = 0; i < count; i++) {
-        const Vec2 fc = facet[size_t(i)];
-        const float u = flipSide ? 1.0f - fc.x : fc.x;
-        float x;
-        if (m.direccion == 0) {
-          x = 0.5f * (u + fc.y);
-        } else if (m.direccion == 1) {
-          x = u;
-        } else {
-          const float dx = fc.x - 0.5f, dy = (fc.y - 0.5f) * H / W;
-          x = std::sqrt(dx * dx + dy * dy) * 1.6f;
-        }
-        const float band = (x - w) * 5.0f;
-        if (band > 3.0f || band < -3.0f) continue;
-        const float t = phase[size_t(i)] + w * 1.7f;
-        const float win = 1.0f - std::fabs((t - std::floor(t)) - 0.5f) * 4.0f;
-        if (win <= 0.0f) continue;
-        const float val = e * win * std::exp(-band * band);
-        if (val < 0.04f) continue;
-        const int level = std::min(3, int(val * 4.0f));
-        bins_[size_t(hue[size_t(i)] * 4 + level)].push_back({fc.x * W, fc.y * H});
-        if (val > 0.85f && nCross < 60) {
-          const float l = S * 0.022f * std::min(val, 1.3f), X = fc.x * W, Y = fc.y * H;
-          crosses.moveTo(X - l, Y).lineTo(X + l, Y).moveTo(X, Y - l).lineTo(X, Y + l);
-          nCross++;
-        }
-      }
-      const float lv[4] = {0.22f, 0.4f, 0.62f, 0.9f};
-      for (int hq = 0; hq < 3; hq++)
-        for (int b = 0; b < 4; b++)
-          drawBin(c, hq * 4 + b, std::max(1.0f, S * 0.0026f * (1.0f + 0.35f * float(b))), mixc(white(), f.colors[size_t(1 + hq)], 0.35f), lv[b]);
-      for (int hq = 0; hq < 3; hq++)
-        for (int b = 2; b < 4; b++)  // halo de los destellos fuertes
-          drawBin(c, hq * 4 + b, std::max(2.5f, S * 0.009f), f.colors[size_t(1 + hq)], 0.1f * float(b - 1));
-      if (nCross > 0) {
-        Paint cp;
-        cp.color = tint(white(), 0.7f * std::min(e, 1.0f));
-        cp.blend = Blend::plus;
-        cp.strokeWidth = std::max(1.0f, S * 0.0012f);
-        cp.strokeCap = 1;
-        c.path(crosses, cp);
-      }
+      const float age = float(now - p.start);
+      if (age < 0.0f || age > T) continue;
+      const float k = std::min(amount(p.power) * f.intensity, 1.3f);
+      c.material("glitter", {0.0f, 0.0f, W, H},
+                 {age * speed, k, g.destellos, float(m.direccion), float(p.id % 97u), float(now),
+                  red.r, red.g, red.b, gold.r, gold.g, gold.b, blue.r, blue.g, blue.b});
     }
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'glitter': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform float uT;
+uniform float uAmp;
+uniform float uDensity;
+uniform float uDir;
+uniform float uSeed;
+uniform float uTime;
+uniform vec3 uRed;
+uniform vec3 uGold;
+uniform vec3 uBlue;
+out vec4 fragColor;
+
+float hash(float n) {
+  return fract(sin(n * 12.9898) * 43758.5453);
+}
+float hash2(vec2 p) {
+  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+// Posición (px) a lo largo de la onda de luz, con el frente un poco curvado.
+float sweep(vec2 q, vec2 sz, float dir) {
+  if (dir < 0.5) {
+    vec2 a = normalize(vec2(1.0, 1.0));
+    float perp = dot(q - 0.5 * sz, vec2(-a.y, a.x));
+    return dot(q, a) + perp * perp / 1400.0;
+  }
+  if (dir < 1.5) {
+    float perp = q.y - 0.5 * sz.y;
+    return q.x + perp * perp / 1400.0;
+  }
+  return length(q - 0.5 * sz) * 1.6;
+}
+
+void main() {
+  vec2 p = FlutterFragCoord().xy;
+  float px1 = uSize.x / 360.0;
+  vec2 q = p / px1;
+  vec2 sz = uSize / px1;
+  // Frente de la onda (58 px por cuadro).
+  float front = -150.0 + 1740.0 * uT;
+  float sp = sweep(q, sz, uDir);
+  if (abs(sp - front) > 320.0) {
+    fragColor = vec4(0.0);
+    return;
+  }
+  // Lóbulos a lo largo de la onda (±35 %).
+  float perp = uDir < 0.5 ? dot(q - 0.5 * sz, normalize(vec2(-1.0, 1.0))) : q.y;
+  float lobe = 1.0 + 0.35 * sin(6.2832 * perp / 320.0 + uSeed + 0.5 * uTime);
+  vec3 pal0 = mix(vec3(1.0, 0.165, 0.227), uRed / max(uRed.r, 0.01), 0.2);
+  vec3 pal1 = vec3(0.19, 1.0, 0.44);
+  vec3 pal2 = mix(vec3(0.227, 0.42, 1.0), uBlue / max(uBlue.b, 0.01), 0.2);
+  vec3 pal3 = vec3(0.63, 0.227, 1.0);
+  vec3 gold = mix(vec3(1.0, 0.784, 0.0), uGold / max(uGold.r, 0.01), 0.15);
+  float cs = 10.0;
+  vec2 cell0 = floor(q / cs);
+  vec3 light = vec3(0.0);
+  for (int j = -2; j <= 2; j++) {
+    for (int i = -2; i <= 2; i++) {
+      vec2 cell = cell0 + vec2(float(i), float(j));
+      if (hash2(cell + uSeed) > mix(0.5, 1.0, uDensity)) continue;
+      vec2 fc = (cell + vec2(hash2(cell + 3.1), hash2(cell + 7.7))) * cs;
+      // Cada faceta destella al pasar la luz (con un adelanto o retraso
+      // propio) durante 1-3 cuadros.
+      float h1 = hash2(cell + 11.3);
+      float h2 = hash2(cell + 12.9);
+      float h3 = hash2(cell + 14.7);
+      float jit = hash2(cell + 19.1) < 0.03 ? (h1 - 0.5) * 240.0 : (h1 + h2 + h3 - 1.5) * 40.0;
+      float litLen = 58.0 * (3.0 + hash2(cell + 23.3));
+      float x = front - (sweep(fc, sz, uDir) + jit);
+      float on = smoothstep(0.0, 12.0, x) * (1.0 - smoothstep(litLen - 12.0, litLen, x));
+      if (on < 0.01) continue;
+      // 75 % tenues, 20 % fuertes y 5 % las más fuertes (con cruz).
+      float cls = hash2(cell + 5.5);
+      float lv = cls < 0.75 ? mix(0.43, 0.67, hash2(cell + 6.1)) : (cls < 0.95 ? mix(0.75, 0.94, hash2(cell + 6.1)) : 1.15);
+      // Donde pasa el frente brillan más (una cresta de luz); lejos, menos.
+      float dF = abs(sweep(fc, sz, uDir) - front);
+      lv *= on * lobe * uAmp * mix(1.5, 0.6, smoothstep(20.0, 60.0, dF));
+      float sel = hash2(cell + 9.9);
+      vec3 col = sel < 0.25 ? pal0 : (sel < 0.5 ? pal1 : (sel < 0.75 ? pal2 : pal3));
+      if (lv > 0.67 && hash2(cell + 8.8) < 0.35) col = gold;
+      vec2 d = q - fc;
+      float r2 = dot(d, d);
+      float core = exp(-r2 / 1.44) * lv;
+      float glow = 0.3 * exp(-r2 / 2.9) * lv;
+      // Núcleo blanco sólo en 1 px y desde +220.
+      light += mix(col, vec3(1.0), smoothstep(0.86, 0.95, core)) * core + col * glow;
+      if (cls >= 0.95) {
+        float len = 8.0 + 12.0 * hash2(cell + 2.2);
+        float ax = abs(d.x);
+        float ay = abs(d.y);
+        float armX = pow(max(1.0 - ax / len, 0.0), 2.0) * exp(-d.y * d.y / 0.32) * smoothstep(0.5, 1.5, ax);
+        float armY = pow(max(1.0 - ay / len, 0.0), 2.0) * exp(-d.x * d.x / 0.32) * smoothstep(0.5, 1.5, ay);
+        float wx = 1.0 - smoothstep(1.5, 2.5, ax);
+        float wy = 1.0 - smoothstep(1.5, 2.5, ay);
+        light += 0.6 * lv * (armX * mix(col, vec3(1.0), wx) + armY * mix(col, vec3(1.0), wy));
+      }
+    }
+  }
+  vec3 tone = min(light, vec3(1.0));
+  fragColor = vec4(tone, 0.1 * max(tone.r, max(tone.g, tone.b)));
+}
+''',
+
+};

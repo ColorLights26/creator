@@ -5,18 +5,18 @@ const metadata = CreatorVisualMetadata(
   name: 'Reactiva · Barrido Holográfico',
   publication: CreatorPublication.draft,
   description:
-      'Al empezar una frase cruza en diagonal una banda iridiscente, como al inclinar una carta holográfica: interferencia arcoíris, retícula fina, línea especular y purpurina. Sin música no dibuja nada.',
+      'Al empezar una frase cruza en diagonal una banda iridiscente como al inclinar una carta holográfica: arcoíris de interferencia que cambia con la posición, rejilla de difracción finísima, línea especular nítida y purpurina dentro. Sin música no dibuja nada.',
   purposes: ['visualizer', 'overlay', 'momentary'],
-  moods: ['futuristic', 'elegant', 'vivid'],
-  concepts: ['aparición momentánea', 'holographic', 'iridescent', 'light sweep'],
+  moods: ['futuristic', 'playful', 'vivid'],
+  concepts: ['aparición momentánea', 'hologram', 'iridescence', 'foil', 'sweep'],
   credits: CreatorCredits(author: 'Chic Apps', license: '', source: ''),
-  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.3),
+  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.0),
   role: CreatorRole.overlay,
   // Sólo con música: sin ella la capa queda vacía.
   reactivity: CreatorReactivity.music,
   colors: [0x00000000, 0xffff3a5a, 0xffffb03a, 0xfff4f0ff],
+  images: {'noise': 'assets/images/reactiva_quemado.png'},
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
-  // Sin música no dibuja nada; sólo aparece un instante con su momento.
-  // Degradados, trazos y puntos agrupados: sin shaders por píxel.
+  // Sin música no dibuja nada; sólo aparece con su momento musical.
   framesPerSecond: 30,
 );

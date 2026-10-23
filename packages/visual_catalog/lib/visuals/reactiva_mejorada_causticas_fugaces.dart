@@ -1,15 +1,15 @@
-// Reactiva Mejorada · Cáusticas Fugaces — transparencia momentánea. Cuando crecen los graves aparece
-// sobre la escena, por zonas, la red de luz de una piscina: líneas curvas
-// brillantes que se deforman despacio, con halo y borde prismático, y se
-// evaporan en cuanto los graves bajan. Reflejos sin objeto, en la línea líquida
-// de Cromo Líquido. Referentes: Sapphire Caustics (Boris FX) y «2Tweet Water
-// Caustic» de Shadertoy, rehechas con trazos para el móvil.
+// Reactiva Mejorada · Cáusticas Fugaces — transparencia momentánea. Cuando crecen los graves
+// aparece por zonas la red de luz que el sol dibuja a través del agua de una
+// piscina: filamentos finos y curvos que se cruzan, se estiran y se mueven,
+// dorados en sus nudos más intensos y ámbar en los finos, con un borde
+// prismático apenas separado, y se evapora cuando bajan los graves. Las zonas
+// se abren y cierran como manchas de sol. La luz se suma a la escena.
+// Referente: cáusticas de una piscina en una pared al atardecer.
 // Versión mejorada: sigue el ritmo (cada golpe o cada tiempo) y su fuerza
-// depende del volumen de la música; los pulsos son cortos para que se
-// vean con el compás. La original («Reactiva · Cáusticas Fugaces») no se toca.
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// depende del volumen de la música.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -256,66 +256,162 @@ class Visual final : public Scene {
   }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
-    const float W = f.width, H = f.height, S = std::min(W, H);
-    float V = glowLevel;
-    for (const Pulse& p : slots) V = std::max(V, arc(now - p.start, (p.kind == 1 ? 0.6f : 1.2f) / pace(f)) * amount(p.power));
-    V *= f.intensity;
-    if (V < kMin) return;
-    const float cell = S * 0.17f * g.escala;
-    const int nx = std::min(14, int(W / cell) + 3), ny = std::min(24, int(H / cell) + 3);
-    const float t = float(now), wob = 0.42f * g.ondulacion;
-    auto vertex = [&](int i, int j) -> Vec2 {
-      const float fi = float(i), fj = float(j);
-      return {(fi - 1.0f) * cell + cell * (wob * std::sin(t * 0.9f + fi * 1.3f + fj * 0.7f) + 0.7f * (rnd(uint32_t(i * 31 + j * 17)) - 0.5f)),
-              (fj - 1.0f) * cell + cell * (wob * std::cos(t * 0.8f + fi * 0.6f - fj * 1.1f) + 0.7f * (rnd(uint32_t(i * 53 + j * 29 + 7)) - 0.5f))};
-    };
-    std::array<Path, 3> nets;
-    clearBins();
-    for (int j = 0; j < ny; j++)
-      for (int i = 0; i < nx; i++) {
-        const Vec2 a0 = vertex(i, j);
-        // Destello donde se cruzan las líneas en las zonas más brillantes.
-        const float va = 0.5f + 0.5f * std::sin(a0.x / W * 3.1f + t * 0.4f) * std::sin(a0.y / H * 2.3f - t * 0.3f + 1.0f);
-        if (va > 0.72f) bins_[0].push_back(a0);
-        for (int dir = 0; dir < 3; dir++) {
-          if ((dir == 0 && i + 1 >= nx) || (dir == 1 && j + 1 >= ny)) continue;
-          // Algunas diagonales: celdas irregulares, mezcla de cuadros y triángulos.
-          if (dir == 2 && (i + 1 >= nx || j + 1 >= ny || rnd(uint32_t(i * 71 + j * 13 + 5)) < 0.5f)) continue;
-          const Vec2 b0 = dir == 0 ? vertex(i + 1, j) : dir == 1 ? vertex(i, j + 1) : vertex(i + 1, j + 1);
-          const Vec2 mid = {0.5f * (a0.x + b0.x), 0.5f * (a0.y + b0.y)};
-          // Manchas grandes: la red sólo aparece por zonas.
-          const float mask = 0.5f + 0.5f * std::sin(mid.x / W * 3.1f + t * 0.4f) * std::sin(mid.y / H * 2.3f - t * 0.3f + 1.0f);
-          if (mask < 0.3f) continue;
-          const int bin = mask < 0.55f ? 0 : mask < 0.8f ? 1 : 2;
-          const float bend = cell * 0.25f * std::sin(t * 1.3f + float(i) + float(j) * 1.7f + float(dir));
-          const float dx = b0.x - a0.x, dy = b0.y - a0.y, l = std::sqrt(dx * dx + dy * dy) + 1e-3f;
-          nets[size_t(bin)].moveTo(a0.x, a0.y).quadraticTo(mid.x - dy / l * bend, mid.y + dx / l * bend, b0.x, b0.y);
-        }
-      }
-    drawBin(c, 0, std::max(2.0f, S * 0.008f), f.colors[2], 0.2f * V);
-    drawBin(c, 0, std::max(1.0f, S * 0.0028f), f.colors[3], std::min(0.7f * V, 0.9f));
-    const float lv[3] = {0.35f, 0.65f, 1.0f};
-    for (int b = 0; b < 3; b++) {
-      Paint halo;
-      halo.color = tint(f.colors[2], 0.07f * V * lv[b]);
-      halo.blend = Blend::plus;
-      halo.strokeWidth = S * 0.012f;
-      halo.strokeCap = 1;
-      halo.strokeJoin = 1;
-      c.path(nets[size_t(b)], halo);
-      Paint line = halo;
-      line.color = tint(f.colors[3], std::min(0.55f * V * lv[b], 0.8f));
-      line.strokeWidth = std::max(1.0f, S * 0.0022f);
-      c.path(nets[size_t(b)], line);
-      if (g.prisma > 0.01f) {
-        Paint pr = line;
-        pr.color = tint(f.colors[1], 0.2f * V * lv[b] * g.prisma);
-        c.save();
-        c.translate(std::max(1.0f, S * 0.002f), 0.0f);
-        c.path(nets[size_t(b)], pr);
-        c.restore();
-      }
+    const auto m = modifiers(f);
+    const float W = f.width, H = f.height;
+    float level = glowLevel * f.intensity;
+    for (const Pulse& p : slots) {
+      const double age = now - p.start;
+      if (age < 0.0 || age > 1.4) continue;
+      level = std::max(level, env(age, 0.12f / pace(f), 1.0f / pace(f)) * std::min(amount(p.power) * f.intensity, 1.3f));
     }
+    if (level < kMin) return;
+    const Color orange = f.colors[1], gold = f.colors[2], white = f.colors[3];
+    c.material("caustics", {0.0f, 0.0f, W, H},
+               {float(now) * pace(f), level, g.escala, g.ondulacion, m.prisma ? 1.0f : 0.0f,
+                orange.r, orange.g, orange.b, gold.r, gold.g, gold.b, white.r, white.g, white.b},
+               {"noise"});
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'caustics': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform float uTime;
+uniform float uLevel;
+uniform float uScale;
+uniform float uWave;
+uniform float uPrism;
+uniform vec3 uOrange;
+uniform vec3 uGold;
+uniform vec3 uWhite;
+uniform sampler2D uTex;
+out vec4 fragColor;
+
+float hash2(vec2 p) {
+  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+// Punto de cada celda, que se mueve despacio.
+vec2 cellPt(vec2 c, float t, float s) {
+  float h = hash2(c + s);
+  return c + 0.5 + 0.4 * vec2(sin(t * 1.3 + 6.2832 * h), cos(t * 1.1 + 6.2832 * hash2(c + s + 3.1)));
+}
+
+// Distancia real (en celdas) al borde más cercano entre celdas y la dirección
+// hacia él.
+vec3 border(vec2 x, float t, float s) {
+  vec2 ip = floor(x);
+  vec2 mr = vec2(0.0);
+  vec2 mc = vec2(0.0);
+  float md = 9.0;
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      vec2 c = ip + vec2(float(i), float(j));
+      vec2 r = cellPt(c, t, s) - x;
+      float d = dot(r, r);
+      if (d < md) {
+        md = d;
+        mr = r;
+        mc = c;
+      }
+    }
+  }
+  md = 9.0;
+  vec2 dir = vec2(0.0, 1.0);
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      vec2 c = mc + vec2(float(i), float(j));
+      vec2 r = cellPt(c, t, s) - x;
+      vec2 e = r - mr;
+      if (dot(e, e) > 0.00001) {
+        vec2 n = normalize(e);
+        float d = dot(0.5 * (mr + r), n);
+        if (d < md) {
+          md = d;
+          dir = n;
+        }
+      }
+    }
+  }
+  return vec3(md, dir);
+}
+
+void main() {
+  vec2 px = FlutterFragCoord().xy;
+  float px1 = uSize.x / 360.0;
+  vec2 q = px / px1;
+  float Hpx = uSize.y / px1;
+  float t = uTime * (0.35 + 0.5 * uWave);
+  // Dos o tres manchas de 100-160 px que derivan unos 2,5 px por cuadro; con
+  // menos nivel se encogen: se apaga por área, no bajando el brillo.
+  float shrink = sqrt(clamp(uLevel, 0.0, 1.0));
+  float mask = 0.0;
+  for (int k = 0; k < 2; k++) {
+    float fk = float(k);
+    float ph1 = uTime * 0.65 + fk * 2.6 + 0.3;
+    float ph2 = uTime * 0.26 + fk * 3.1 + 1.1;
+    vec2 c = vec2(180.0 + 100.0 * sin(ph1), Hpx * (0.5 + 0.3 * sin(ph2)));
+    // Alargada 1,45 veces en la dirección en que deriva.
+    vec2 vel = normalize(vec2(65.0 * cos(ph1), Hpx * 0.078 * cos(ph2)) + vec2(0.001));
+    vec2 dq = q - c;
+    vec2 lq = vec2(dot(dq, vel) / 1.45, dot(dq, vec2(-vel.y, vel.x)) * 1.2);
+    float ang = atan(lq.y, lq.x);
+    // Contorno orgánico: ±30 % en 3-5 lóbulos que giran despacio.
+    float lob = 1.0 + 0.3 * (0.6 * sin(3.0 * ang + uTime * 0.4 + fk * 1.7) + 0.4 * sin(5.0 * ang - uTime * 0.3 + fk * 2.9));
+    float R = (55.0 + 10.0 * hash2(vec2(fk, 3.0))) * (0.35 + 0.65 * shrink) * step(0.02, uLevel) * lob;
+    mask = max(mask, smoothstep(R + 50.0, R - 10.0, length(lq)));
+  }
+  if (mask < 0.003) {
+    fragColor = vec4(0.0);
+    return;
+  }
+  // Agua que ondula (6-8 px a escala de 60-90 px) y la red que fluye unos
+  // 1,5 px por cuadro.
+  vec2 w = q + vec2(36.0, -24.0) * uTime;
+  w += vec2(7.0 * sin(w.y / 11.0 + t * 1.3) + 2.0 * sin(w.y / 5.0 - t), 7.0 * sin(w.x / 12.0 - t * 1.1) + 2.0 * sin(w.x / 6.0 + t)) * (0.5 + 0.5 * uWave);
+  float cell = 30.0 * uScale;
+  vec3 b1 = border(w / cell, t, 0.0);
+  vec3 b2 = border((w * 1.3 + vec2(17.0, 5.0)) / cell, t * 1.2, 7.0);
+  float d1 = b1.x * cell;
+  float d2 = b2.x * cell / 1.3;
+  // Ancho y brillo que cambian a lo largo de cada pared: fina y brillante
+  // donde enfoca, más ancha y suave en el resto.
+  float v1 = texture(uTex, fract(w / 90.0)).r;
+  float v2 = texture(uTex, fract(w / 80.0 + 0.5)).r;
+  float f1 = mix(0.72, 1.0, v1);
+  float f2 = mix(0.72, 1.0, v2) * 0.85;
+  float s1 = mix(1.1, 0.45, v1);
+  float s2 = mix(1.1, 0.45, v2);
+  float c1 = exp(-d1 * d1 / (2.0 * s1 * s1)) * f1;
+  float c2 = exp(-d2 * d2 / (2.0 * s2 * s2)) * f2;
+  // Nudos donde se cruzan las dos redes: quemados en 1,5 px y con brillo
+  // hasta 5 px.
+  float rr = d1 * d1 + d2 * d2;
+  float kn = 1.3 * exp(-rr / 2.0) + 0.35 * exp(-rr / 9.0);
+  // El color sale del brillo final (con la mancha), así el borde de la mancha
+  // cae por naranja y rojo, nunca a gris.
+  float I = (max(c1, c2) + kn) * mask;
+  // Color por intensidad: blanco en los nudos, amarillo en los filamentos y
+  // naranja y rojo al caer (verde <= 0,30 del rojo en lo tenue).
+  vec3 red = vec3(1.0, 0.26, 0.0);
+  vec3 orange = mix(vec3(1.0, 0.55, 0.0), uOrange / max(uOrange.r, 0.01), 0.1);
+  vec3 yellow = mix(vec3(1.0, 0.8, 0.02), uGold / max(uGold.r, 0.01), 0.15);
+  vec3 white = mix(vec3(1.0, 0.97, 0.9), uWhite, 0.3);
+  vec3 col = mix(red, orange, smoothstep(0.47, 0.62, I));
+  col = mix(col, yellow, smoothstep(0.62, 0.75, I));
+  col = mix(col, white, smoothstep(0.92, 1.0, I));
+  // Prisma sólo en los filamentos más brillantes: 1 px azul a un lado y
+  // rojo anaranjado al otro.
+  float fr = exp(-(d1 - 1.6) * (d1 - 1.6) / 0.5) * smoothstep(0.78, 0.9, f1 * mask) * uPrism;
+  float side = dot(b1.yz, vec2(0.6, -0.8));
+  vec3 prism = fr * (side > 0.0 ? vec3(0.28, 0.48, 1.0) : vec3(1.0, 0.25, 0.04)) * 0.55;
+  vec3 light = side > 0.0 ? col * min(I, 1.0) * (1.0 - min(fr * 1.5, 1.0)) + prism : col * min(I, 1.0) + prism;
+  vec3 tone = min(light, vec3(1.0));
+  fragColor = vec4(tone, 0.1 * max(tone.r, max(tone.g, tone.b)));
+}
+''',
+
+};

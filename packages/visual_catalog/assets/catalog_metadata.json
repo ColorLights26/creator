@@ -9657,7 +9657,7 @@
     {
       "id": "reactiva_barrido_holografico",
       "name": "Reactiva · Barrido Holográfico",
-      "description": "Al empezar una frase cruza en diagonal una banda iridiscente, como al inclinar una carta holográfica: interferencia arcoíris, retícula fina, línea especular y purpurina. Sin música no dibuja nada.",
+      "description": "Al empezar una frase cruza en diagonal una banda iridiscente como al inclinar una carta holográfica: arcoíris de interferencia que cambia con la posición, rejilla de difracción finísima, línea especular nítida y purpurina dentro. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -9665,14 +9665,15 @@
       ],
       "moods": [
         "futuristic",
-        "elegant",
+        "playful",
         "vivid"
       ],
       "concepts": [
         "aparición momentánea",
-        "holographic",
-        "iridescent",
-        "light sweep"
+        "hologram",
+        "iridescence",
+        "foil",
+        "sweep"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -9680,7 +9681,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.3
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -9993,22 +9994,22 @@
     {
       "id": "reactiva_causticas_fugaces",
       "name": "Reactiva · Cáusticas Fugaces",
-      "description": "Cuando crecen los graves aparece por zonas la red de luz de una piscina, con líneas curvas brillantes, halo y borde prismático, y se evapora cuando bajan. Sin música no dibuja nada.",
+      "description": "Cuando crecen los graves aparece por zonas la red de luz que el sol dibuja a través del agua: filamentos finos y curvos que se mueven, dorados en los nudos y ámbar en los finos, con borde prismático, y se evapora cuando bajan. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "fluid",
         "dreamy",
-        "warm"
+        "warm",
+        "calm"
       ],
       "concepts": [
         "aparición momentánea",
         "caustics",
         "water light",
-        "bass"
+        "pool"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -10016,7 +10017,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.05
+        "timeSeconds": 1.4
       },
       "publication": "draft",
       "role": "overlay",
@@ -11443,7 +11444,7 @@
     {
       "id": "reactiva_mejorada_barrido_holografico",
       "name": "Reactiva Mejorada · Barrido Holográfico",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar una frase cruza en diagonal una banda iridiscente, como al inclinar una carta holográfica: interferencia arcoíris, retícula fina, línea especular y purpurina. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar una frase cruza en diagonal una banda iridiscente como al inclinar una carta holográfica: arcoíris de interferencia que cambia con la posición, rejilla de difracción finísima, línea especular nítida y purpurina dentro. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -11451,14 +11452,15 @@
       ],
       "moods": [
         "futuristic",
-        "elegant",
+        "playful",
         "vivid"
       ],
       "concepts": [
         "aparición momentánea",
-        "holographic",
-        "iridescent",
-        "light sweep"
+        "hologram",
+        "iridescence",
+        "foil",
+        "sweep"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -11466,7 +11468,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.3
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -11780,22 +11782,22 @@
     {
       "id": "reactiva_mejorada_causticas_fugaces",
       "name": "Reactiva Mejorada · Cáusticas Fugaces",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Cuando crecen los graves aparece por zonas la red de luz de una piscina, con líneas curvas brillantes, halo y borde prismático, y se evapora cuando bajan. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Cuando crecen los graves aparece por zonas la red de luz que el sol dibuja a través del agua: filamentos finos y curvos que se mueven, dorados en los nudos y ámbar en los finos, con borde prismático, y se evapora cuando bajan. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "fluid",
         "dreamy",
-        "warm"
+        "warm",
+        "calm"
       ],
       "concepts": [
         "aparición momentánea",
         "caustics",
         "water light",
-        "bass"
+        "pool"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -11803,7 +11805,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.05
+        "timeSeconds": 1.4
       },
       "publication": "draft",
       "role": "overlay",
@@ -13394,22 +13396,23 @@
     {
       "id": "reactiva_mejorada_purpurina_rafaga",
       "name": "Reactiva Mejorada · Purpurina en Ráfaga",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con los platillos una onda de luz recorre miles de microfacetas que destellan sólo cuando coincide su ángulo, como lentejuelas bajo un foco; las más brillantes abren una cruz. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con los platillos una onda de luz recorre miles de microfacetas que destellan sólo cuando su ángulo coincide, como lentejuelas bajo un foco: cada una en su color y las más fuertes con una cruz fina de cuatro puntas. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "sparkling",
-        "elegant",
-        "rhythmic"
+        "glamorous",
+        "sparkly",
+        "energetic"
       ],
       "concepts": [
         "aparición momentánea",
         "glitter",
-        "glints",
-        "sequins"
+        "sequins",
+        "sparkle",
+        "specular"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -13417,7 +13420,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.42
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -13982,22 +13985,23 @@
     {
       "id": "reactiva_purpurina_rafaga",
       "name": "Reactiva · Purpurina en Ráfaga",
-      "description": "Con los platillos una onda de luz recorre miles de microfacetas que destellan sólo cuando coincide su ángulo, como lentejuelas bajo un foco; las más brillantes abren una cruz. Sin música no dibuja nada.",
+      "description": "Con los platillos una onda de luz recorre miles de microfacetas que destellan sólo cuando su ángulo coincide, como lentejuelas bajo un foco: cada una en su color y las más fuertes con una cruz fina de cuatro puntas. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "sparkling",
-        "elegant",
-        "rhythmic"
+        "glamorous",
+        "sparkly",
+        "energetic"
       ],
       "concepts": [
         "aparición momentánea",
         "glitter",
-        "glints",
-        "sequins"
+        "sequins",
+        "sparkle",
+        "specular"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -14005,7 +14009,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.42
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
