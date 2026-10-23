@@ -9605,6 +9605,54 @@
       ]
     },
     {
+      "id": "reactiva_aire_relieve_rechazo_critica",
+      "name": "Reactiva · Aire en Relieve (rechazada por la crítica)",
+      "description": "Con el golpe una bocanada de aire caliente se enciende en relieve esmeralda y violeta; sus remolinos grandes se parten en otros cada vez más pequeños de un extremo al otro y se apaga al afinarse. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "fluid",
+        "graphic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "color schlieren",
+        "turbulent cascade",
+        "refraction"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Bocanada",
+          "values": {
+            "tamano": 1.3,
+            "rotura": 0.8
+          }
+        },
+        {
+          "name": "Soplo Rápido",
+          "values": {
+            "tamano": 0.7,
+            "rotura": 1.4
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_aura_kirlian_rechazo_critica",
       "name": "Reactiva · Aura Kirlian (rechazada por la crítica)",
       "description": "Con el golpe aparece el aura eléctrica de una forma invisible, como en una fotografía Kirlian: decenas de filamentos de descarga violeta y magenta que brotan de un contorno que no se ve, cambian sin parar y se acortan hasta desaparecer. Sin música no dibuja nada.",
@@ -10736,6 +10784,54 @@
       ]
     },
     {
+      "id": "reactiva_choque_mareas",
+      "name": "Reactiva · Choque de Mareas (aprobada por la crítica)",
+      "description": "Con el golpe dos láminas de líquido luminoso, mandarina y lima, chocan a lo largo de una línea inclinada y la junta se levanta en pliegues desiguales que brillan amarillos; luego se retiran y se adelgazan desde los bordes lejanos. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "bold",
+        "fluid",
+        "energetic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "colliding currents",
+        "liquid fold",
+        "color fields"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Choque",
+          "values": {
+            "tamano": 1.3,
+            "fuerza": 1.4
+          }
+        },
+        {
+          "name": "Roce",
+          "values": {
+            "tamano": 0.7,
+            "fuerza": 0.6
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_chorro_criogenico_rechazo_critica",
       "name": "Reactiva · Chorro Criogénico (rechazada por la crítica)",
       "description": "En el golpe disparan desde abajo de dos a cuatro chorros de CO2: núcleo blanco que sale de la boquilla y columna turbulenta con filo violeta; al cortarse, la niebla sube y se deshace en jirones. Sin música no dibuja nada.",
@@ -11112,6 +11208,54 @@
       "reactivity": "music"
     },
     {
+      "id": "reactiva_desplome_rechazo_critica",
+      "name": "Reactiva · Desplome (rechazada por la crítica)",
+      "description": "Con el golpe una columna de líquido luminoso mandarina, ya inclinada y cayendo, se derrumba en dos oleadas de cabezas abultadas que corren por el tercio de abajo, ámbar donde es más gruesa; la película se vacía desde las colas. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "dramatic",
+        "fluid",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "dam break",
+        "liquid collapse",
+        "surge"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Desplome",
+          "values": {
+            "tamano": 1.3,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Salpicón",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.6
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_destello_drop",
       "name": "Reactiva · Destello de Drop",
       "description": "Sólo en el golpe grande se abre una luz desde el centro o desde abajo: un núcleo quemado con caída de luz real que crece en tres cuadros y se apaga encogiéndose hasta una brasa roja, y un frente de luz roja suave que se aleja. Aparece muy de vez en cuando. Sin música no dibuja nada.",
@@ -11454,6 +11598,102 @@
           "values": {
             "subida": 0.45,
             "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_escision_rechazo_critica",
+      "name": "Reactiva · Escisión (rechazada por la crítica)",
+      "description": "Con el golpe aparece una lámina de luz amarilla que se parte en dos capas, bermellón y lima, que se despegan por caminos curvos opuestos; el amarillo de donde se tapan se encoge y cada capa se adelgaza desde su borde lejano. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "bold",
+        "graphic",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "additive split",
+        "layer peel",
+        "misregistration"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Escisión",
+          "values": {
+            "tamano": 1.3,
+            "separacion": 1.4
+          }
+        },
+        {
+          "name": "Desfase Corto",
+          "values": {
+            "tamano": 0.7,
+            "separacion": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_estiron_opalescente_rechazo_critica",
+      "name": "Reactiva · Estirón Opalescente (rechazada por la crítica)",
+      "description": "Con el golpe una masa de líquido lechoso se estira en dos lenguas desiguales por un eje curvo; lo grueso brilla bermellón y lo fino ultramar, y se apaga desde las puntas. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "bold",
+        "fluid",
+        "strange"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "extensional flow",
+        "tyndall scattering",
+        "colloid"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Estirón",
+          "values": {
+            "tamano": 1.3,
+            "estiron": 1.4
+          }
+        },
+        {
+          "name": "Gota Corta",
+          "values": {
+            "tamano": 0.7,
+            "estiron": 0.6
           }
         }
       ]
@@ -12832,6 +13072,54 @@
       ]
     },
     {
+      "id": "reactiva_mejorada_aire_relieve_rechazo_critica",
+      "name": "Reactiva Mejorada · Aire en Relieve (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe una bocanada de aire caliente se enciende en relieve esmeralda y violeta; sus remolinos grandes se parten en otros cada vez más pequeños de un extremo al otro y se apaga al afinarse. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "fluid",
+        "graphic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "color schlieren",
+        "turbulent cascade",
+        "refraction"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Bocanada",
+          "values": {
+            "tamano": 1.3,
+            "rotura": 0.8
+          }
+        },
+        {
+          "name": "Soplo Rápido",
+          "values": {
+            "tamano": 0.7,
+            "rotura": 1.4
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_mejorada_aura_kirlian_rechazo_critica",
       "name": "Reactiva Mejorada · Aura Kirlian (rechazada por la crítica)",
       "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe aparece el aura eléctrica de una forma invisible, como en una fotografía Kirlian: decenas de filamentos de descarga violeta y magenta que brotan de un contorno que no se ve, cambian sin parar y se acortan hasta desaparecer. Sin música no dibuja nada.",
@@ -13966,6 +14254,54 @@
       ]
     },
     {
+      "id": "reactiva_mejorada_choque_mareas",
+      "name": "Reactiva Mejorada · Choque de Mareas (aprobada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe dos láminas de líquido luminoso, mandarina y lima, chocan a lo largo de una línea inclinada y la junta se levanta en pliegues desiguales que brillan amarillos; luego se retiran y se adelgazan desde los bordes lejanos. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "bold",
+        "fluid",
+        "energetic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "colliding currents",
+        "liquid fold",
+        "color fields"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Choque",
+          "values": {
+            "tamano": 1.3,
+            "fuerza": 1.4
+          }
+        },
+        {
+          "name": "Roce",
+          "values": {
+            "tamano": 0.7,
+            "fuerza": 0.6
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_mejorada_chorro_criogenico_rechazo_critica",
       "name": "Reactiva Mejorada · Chorro Criogénico (rechazada por la crítica)",
       "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe disparan desde abajo de dos a cuatro chorros de CO2: núcleo blanco que sale de la boquilla y columna turbulenta con filo violeta; al cortarse, la niebla sube y se deshace en jirones. Sin música no dibuja nada.",
@@ -14344,6 +14680,54 @@
       "reactivity": "music"
     },
     {
+      "id": "reactiva_mejorada_desplome_rechazo_critica",
+      "name": "Reactiva Mejorada · Desplome (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe una columna de líquido luminoso mandarina, ya inclinada y cayendo, se derrumba en dos oleadas de cabezas abultadas que corren por el tercio de abajo, ámbar donde es más gruesa; la película se vacía desde las colas. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "dramatic",
+        "fluid",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "dam break",
+        "liquid collapse",
+        "surge"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Desplome",
+          "values": {
+            "tamano": 1.3,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Salpicón",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.6
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_mejorada_destello_drop",
       "name": "Reactiva Mejorada · Destello de Drop",
       "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Sólo en el golpe grande se abre una luz desde el centro o desde abajo: un núcleo quemado con caída de luz real que crece en tres cuadros y se apaga encogiéndose hasta una brasa roja, y un frente de luz roja suave que se aleja. Aparece muy de vez en cuando. Sin música no dibuja nada.",
@@ -14688,6 +15072,102 @@
           "values": {
             "subida": 0.45,
             "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_escision_rechazo_critica",
+      "name": "Reactiva Mejorada · Escisión (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe aparece una lámina de luz amarilla que se parte en dos capas, bermellón y lima, que se despegan por caminos curvos opuestos; el amarillo de donde se tapan se encoge y cada capa se adelgaza desde su borde lejano. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "bold",
+        "graphic",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "additive split",
+        "layer peel",
+        "misregistration"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Escisión",
+          "values": {
+            "tamano": 1.3,
+            "separacion": 1.4
+          }
+        },
+        {
+          "name": "Desfase Corto",
+          "values": {
+            "tamano": 0.7,
+            "separacion": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_estiron_opalescente_rechazo_critica",
+      "name": "Reactiva Mejorada · Estirón Opalescente (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe una masa de líquido lechoso se estira en dos lenguas desiguales por un eje curvo; lo grueso brilla bermellón y lo fino ultramar, y se apaga desde las puntas. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "bold",
+        "fluid",
+        "strange"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "extensional flow",
+        "tyndall scattering",
+        "colloid"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Estirón",
+          "values": {
+            "tamano": 1.3,
+            "estiron": 1.4
+          }
+        },
+        {
+          "name": "Gota Corta",
+          "values": {
+            "tamano": 0.7,
+            "estiron": 0.6
           }
         }
       ]
