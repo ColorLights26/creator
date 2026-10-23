@@ -9839,7 +9839,7 @@
     {
       "id": "reactiva_cadena_iris",
       "name": "Reactiva · Cadena de Iris",
-      "description": "Con el bombo, una luz fuera del cuadro hace que la lente proyecte su cadena de fantasmas heptagonales con los tintes rojo, verde y ámbar de los recubrimientos. Sin música no dibuja nada.",
+      "description": "Con el bombo, una luz que entra por el borde hace que la lente proyecte su cadena de fantasmas del diafragma hacia el centro: polígonos casi transparentes con aro suave, filo de color y polvo, en rojo, verde y violeta, que se deslizan con la luz y se apagan. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -9847,14 +9847,15 @@
       ],
       "moods": [
         "cinematic",
-        "vintage",
-        "rhythmic"
+        "elegant",
+        "vivid"
       ],
       "concepts": [
         "aparición momentánea",
+        "lens ghosts",
+        "iris",
         "lens flare",
-        "iris ghosts",
-        "aperture"
+        "optics"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -9862,7 +9863,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.04
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -11626,7 +11627,7 @@
     {
       "id": "reactiva_mejorada_cadena_iris",
       "name": "Reactiva Mejorada · Cadena de Iris",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el bombo, una luz fuera del cuadro hace que la lente proyecte su cadena de fantasmas heptagonales con los tintes rojo, verde y ámbar de los recubrimientos. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el bombo, una luz que entra por el borde hace que la lente proyecte su cadena de fantasmas del diafragma hacia el centro: polígonos casi transparentes con aro suave, filo de color y polvo, en rojo, verde y violeta, que se deslizan con la luz y se apagan. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -11634,14 +11635,15 @@
       ],
       "moods": [
         "cinematic",
-        "vintage",
-        "rhythmic"
+        "elegant",
+        "vivid"
       ],
       "concepts": [
         "aparición momentánea",
+        "lens ghosts",
+        "iris",
         "lens flare",
-        "iris ghosts",
-        "aperture"
+        "optics"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -11649,7 +11651,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.04
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -13443,22 +13445,23 @@
     {
       "id": "reactiva_mejorada_reflejo_cruza",
       "name": "Reactiva Mejorada · Reflejo que Cruza",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar un compás o una frase, una franja de luz suave atraviesa la escena una sola vez, como el reflejo de un vidrio que se mueve, y desaparece. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar un compás o una frase, el reflejo de un vidrio atraviesa la escena una vez: brillo ancho y suave, línea nítida en el centro y otra tenue detrás, filo irisado en los bordes y las huellas del cristal dentro del brillo. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
         "elegant",
-        "bright"
+        "calm",
+        "premium"
       ],
       "concepts": [
         "aparición momentánea",
-        "light sweep",
         "glass reflection",
-        "phrase"
+        "sheen",
+        "sweep",
+        "specular"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -13466,7 +13469,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.35
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -14030,22 +14033,23 @@
     {
       "id": "reactiva_reflejo_cruza",
       "name": "Reactiva · Reflejo que Cruza",
-      "description": "Al empezar un compás o una frase, una franja de luz suave atraviesa la escena una sola vez, como el reflejo de un vidrio que se mueve, y desaparece. Sin música no dibuja nada.",
+      "description": "Al empezar un compás o una frase, el reflejo de un vidrio atraviesa la escena una vez: brillo ancho y suave, línea nítida en el centro y otra tenue detrás, filo irisado en los bordes y las huellas del cristal dentro del brillo. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
         "elegant",
-        "bright"
+        "calm",
+        "premium"
       ],
       "concepts": [
         "aparición momentánea",
-        "light sweep",
         "glass reflection",
-        "phrase"
+        "sheen",
+        "sweep",
+        "specular"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -14053,7 +14057,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.35
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",

@@ -5,17 +5,18 @@ const metadata = CreatorVisualMetadata(
   name: 'Reactiva Mejorada · Reflejo que Cruza',
   publication: CreatorPublication.draft,
   description:
-      'Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar un compás o una frase, una franja de luz suave atraviesa la escena una sola vez, como el reflejo de un vidrio que se mueve, y desaparece. Sin música no dibuja nada.',
+      'Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar un compás o una frase, el reflejo de un vidrio atraviesa la escena una vez: brillo ancho y suave, línea nítida en el centro y otra tenue detrás, filo irisado en los bordes y las huellas del cristal dentro del brillo. Sin música no dibuja nada.',
   purposes: ['visualizer', 'overlay', 'momentary'],
-  moods: ['subtle', 'elegant', 'bright'],
-  concepts: ['aparición momentánea', 'light sweep', 'glass reflection', 'phrase'],
+  moods: ['elegant', 'calm', 'premium'],
+  concepts: ['aparición momentánea', 'glass reflection', 'sheen', 'sweep', 'specular'],
   credits: CreatorCredits(author: 'Chic Apps', license: '', source: ''),
-  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.35),
+  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.0),
   role: CreatorRole.overlay,
   // Sólo con música: sin ella la capa queda vacía.
   reactivity: CreatorReactivity.music,
-  colors: [0x00000000, 0xff000000, 0xffffd6a0, 0xfffff7ea],
+  colors: [0x00000000, 0xff000000, 0xffffc27a, 0xfffff7ea],
+  images: {'dirt': 'assets/images/reactiva_suciedad_lente.png'},
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
-  // Sin música no dibuja nada; sólo aparece un instante con su momento. Dibuja como mucho unos rectángulos con degradado.
+  // Sin música no dibuja nada; sólo aparece con su momento musical.
   framesPerSecond: 30,
 );
