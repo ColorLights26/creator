@@ -9608,22 +9608,22 @@
     {
       "id": "reactiva_banda_obturador",
       "name": "Reactiva · Banda de Obturador",
-      "description": "Con la caja aparece el artefacto de un flash grabado con obturador rodante: en un cuadro se ilumina una franja con corte nítido y en el siguiente la parte complementaria. Sin música no dibuja nada.",
+      "description": "Con la caja aparece el artefacto de un flash grabado con obturador rodante: en un cuadro se ilumina una franja con corte nítido, con línea brillante y filo rojo en el corte, y en el siguiente la parte complementaria. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
-        "rhythmic",
-        "bright"
+        "energetic",
+        "raw",
+        "documentary"
       ],
       "concepts": [
         "aparición momentánea",
         "rolling shutter",
         "camera flash",
-        "exposure"
+        "sensor artifact"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -9631,7 +9631,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.59
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -10845,15 +10845,15 @@
     {
       "id": "reactiva_fotograma_impacto",
       "name": "Reactiva · Fotograma de Impacto",
-      "description": "El impact frame del anime en el golpe grande: dos cuadros en que la pantalla se hunde en negro y decenas de cuñas blancas apuntan a un foco, y luego se vuelven bermellón y se retiran. Sin música no dibuja nada.",
+      "description": "El impact frame del anime en el golpe grande: dos cuadros en que la escena se hunde en negro y decenas de cuñas blancas finas apuntan a un foco; luego se vuelven bermellón con borde dorado y se retiran hacia los bordes. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
+        "energetic",
         "dramatic",
-        "intense",
         "graphic"
       ],
       "concepts": [
@@ -10868,7 +10868,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.04
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -10877,7 +10877,7 @@
         {
           "name": "Shonen",
           "values": {
-            "lineas": 120,
+            "lineas": 70,
             "oscuro": 1
           }
         },
@@ -10885,7 +10885,7 @@
           "name": "Sólo Luz",
           "values": {
             "oscuro": 0,
-            "lineas": 60,
+            "lineas": 44,
             "foco": "Centro"
           }
         }
@@ -11395,22 +11395,22 @@
     {
       "id": "reactiva_mejorada_banda_obturador",
       "name": "Reactiva Mejorada · Banda de Obturador",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con la caja aparece el artefacto de un flash grabado con obturador rodante: en un cuadro se ilumina una franja con corte nítido y en el siguiente la parte complementaria. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con la caja aparece el artefacto de un flash grabado con obturador rodante: en un cuadro se ilumina una franja con corte nítido, con línea brillante y filo rojo en el corte, y en el siguiente la parte complementaria. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
-        "rhythmic",
-        "bright"
+        "energetic",
+        "raw",
+        "documentary"
       ],
       "concepts": [
         "aparición momentánea",
         "rolling shutter",
         "camera flash",
-        "exposure"
+        "sensor artifact"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -11418,7 +11418,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.59
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -12640,15 +12640,15 @@
     {
       "id": "reactiva_mejorada_fotograma_impacto",
       "name": "Reactiva Mejorada · Fotograma de Impacto",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. El impact frame del anime en el golpe grande: dos cuadros en que la pantalla se hunde en negro y decenas de cuñas blancas apuntan a un foco, y luego se vuelven bermellón y se retiran. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. El impact frame del anime en el golpe grande: dos cuadros en que la escena se hunde en negro y decenas de cuñas blancas finas apuntan a un foco; luego se vuelven bermellón con borde dorado y se retiran hacia los bordes. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
+        "energetic",
         "dramatic",
-        "intense",
         "graphic"
       ],
       "concepts": [
@@ -12663,7 +12663,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.04
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -12672,7 +12672,7 @@
         {
           "name": "Shonen",
           "values": {
-            "lineas": 120,
+            "lineas": 70,
             "oscuro": 1
           }
         },
@@ -12680,7 +12680,7 @@
           "name": "Sólo Luz",
           "values": {
             "oscuro": 0,
-            "lineas": 60,
+            "lineas": 44,
             "foco": "Centro"
           }
         }
@@ -13196,22 +13196,22 @@
     {
       "id": "reactiva_mejorada_onda_cristal",
       "name": "Reactiva Mejorada · Onda en el Cristal",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el bombo se abren ondas rápidas como en una lámina de agua sobre la escena: cresta de luz y valle de sombra, que se leen como refracción, y se apagan enseguida. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el bombo se abren sobre la escena ondas rápidas como en una lámina de agua: cada anillo con cresta de luz fina y valle de sombra justo dentro, que se leen como refracción, y que se amortiguan y apagan en medio segundo. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
-        "fluid",
-        "rhythmic"
+        "calm",
+        "elegant",
+        "fluid"
       ],
       "concepts": [
         "aparición momentánea",
         "ripple",
-        "water",
-        "refraction"
+        "refraction",
+        "water"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -13219,7 +13219,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.15
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -13784,22 +13784,22 @@
     {
       "id": "reactiva_onda_cristal",
       "name": "Reactiva · Onda en el Cristal",
-      "description": "Con el bombo se abren ondas rápidas como en una lámina de agua sobre la escena: cresta de luz y valle de sombra, que se leen como refracción, y se apagan enseguida. Sin música no dibuja nada.",
+      "description": "Con el bombo se abren sobre la escena ondas rápidas como en una lámina de agua: cada anillo con cresta de luz fina y valle de sombra justo dentro, que se leen como refracción, y que se amortiguan y apagan en medio segundo. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
-        "fluid",
-        "rhythmic"
+        "calm",
+        "elegant",
+        "fluid"
       ],
       "concepts": [
         "aparición momentánea",
         "ripple",
-        "water",
-        "refraction"
+        "refraction",
+        "water"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -13807,7 +13807,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.15
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",

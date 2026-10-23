@@ -1,15 +1,15 @@
 // Reactiva Mejorada · Fotograma de Impacto — transparencia momentánea. El «impact frame» del anime
-// en el golpe grande: durante dos cuadros la pantalla se hunde en negro hacia
-// los bordes y decenas de cuñas blancas apuntan a un foco, dejando libre un
-// ojo alrededor; luego las cuñas se vuelven bermellón y se retiran hacia fuera.
-// Dura menos de un tercio de segundo. Referentes: ActFX Impact (92 ms),
-// SpeedLines FX y los impact frames de One Punch Man.
+// en el golpe grande: durante dos cuadros la escena se hunde en negro sin color
+// y decenas de cuñas blancas, finas y de largos distintos, apuntan a un foco;
+// luego se vuelven bermellón con el borde dorado y se retiran hacia los bordes
+// en un tercio de segundo. El borde de cada cuña es nítido pero suave. Sólo
+// suma luz y sombra sin color. Referente: los impact frames de Jujutsu Kaisen
+// y Chainsaw Man.
 // Versión mejorada: sigue el ritmo (cada golpe o cada tiempo) y su fuerza
-// depende del volumen de la música; los pulsos son cortos para que se
-// vean con el compás. La original («Reactiva · Fotograma de Impacto») no se toca.
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// depende del volumen de la música.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -17,7 +17,7 @@ const modifiers = [
   // MÚSICA: qué momento lo lanza.
   CreatorModifier.choice('disparo', 'Lo dispara', options: ['Golpes acentuados', 'Cada dos tiempos', 'Cada tiempo']),
   // FORMA: cuántas cuñas.
-  CreatorModifier.steps('lineas', 'Líneas', min: 40, max: 120, value: 80),
+  CreatorModifier.steps('lineas', 'Líneas', min: 40, max: 70, value: 50),
   // ATMÓSFERA: cuánto se oscurece el borde en el impacto.
   CreatorModifier.slider('oscuro', 'Fondo oscuro', min: 0, max: 1, value: .7),
   // MOVIMIENTO: dónde apuntan.
@@ -26,8 +26,8 @@ const modifiers = [
 
 // Combinaciones con nombre que parecen otro visual.
 const variations = [
-  CreatorVariation('Shonen', {'lineas': 120, 'oscuro': 1}),
-  CreatorVariation('Sólo Luz', {'oscuro': 0, 'lineas': 60, 'foco': 'Centro'}),
+  CreatorVariation('Shonen', {'lineas': 70, 'oscuro': 1}),
+  CreatorVariation('Sólo Luz', {'oscuro': 0, 'lineas': 44, 'foco': 'Centro'}),
 ];
 
 const nativeSource = r'''
@@ -252,58 +252,117 @@ class Visual final : public Scene {
   }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
-    const float W = f.width, H = f.height, S = std::min(W, H), D = std::sqrt(W * W + H * H);
-    const int n = std::clamp(int(std::lround(g.lineas)), 40, 120);
-    const double life = 0.28 / double(pace(f));
+    const auto m = modifiers(f);
+    const float W = f.width, H = f.height;
+    const float T = 0.45f / pace(f);
+    const Color red = f.colors[1], gold = f.colors[2], white = f.colors[3];
     for (const Pulse& p : slots) {
-      const double age = now - p.start;
-      if (age < 0.0 || age > life) continue;
-      const float wr = g.foco.weight(0);
-      const Vec2 o = {W * (0.5f + wr * (rnd(p.id * 11u) - 0.5f) * 0.5f), H * (0.45f + wr * (rnd(p.id * 17u + 5u) - 0.5f) * 0.4f)};
-      const float k = amount(p.power) * std::min(f.intensity, 1.5f) * (p.kind == 1 ? 0.6f : 1.0f);
-      const float eye = S * 0.17f;
-      const bool hold = age < 0.066;  // dos cuadros de impacto
-      const float q = hold ? 0.0f : float((age - 0.066) / (life - 0.066));
-      // Campo oscuro: sólo en el impacto y se va en 40 ms.
-      const float dark = std::min(0.82f * g.oscuro * k * clamp01((p.power - 0.75f) * 2.0f), 0.85f) * (hold ? 1.0f : clamp01(1.0f - float((age - 0.066) / 0.04)));
-      if (dark > kMin) {
-        const Color ink = f.colors[0];
-        const float R = D * 0.8f;
-        Paint field = Paint::radial(o, R, {tint(ink, 0.0f), tint(ink, 0.0f), tint(ink, dark * 0.55f), tint(ink, dark)}, {0.0f, eye / R, 0.45f, 1.0f});
-        c.rect({0.0f, 0.0f, W, H}, field);
-      }
-      // Cuñas que apuntan al foco y luego se retiran hacia fuera.
-      Path wedges;
-      for (int i = 0; i < n; i++) {
-        const float th = 2.0f * float(pi) * (float(i) + 0.6f * rnd(p.id * 131u + uint32_t(i))) / float(n);
-        const float half = (0.004f + 0.011f * rnd(p.id * 71u + uint32_t(i))) * (1.0f - 0.6f * q);
-        const float tip = eye * (1.0f + 0.9f * rnd(p.id * 53u + uint32_t(i))) + D * 0.55f * q * q;
-        wedges.moveTo(o.x + tip * std::cos(th), o.y + tip * std::sin(th));
-        wedges.lineTo(o.x + D * std::cos(th - half), o.y + D * std::sin(th - half));
-        wedges.lineTo(o.x + D * std::cos(th + half), o.y + D * std::sin(th + half));
-        wedges.close();
-      }
-      const Color col = mixc(white(), f.colors[1], q);
-      const float a = (hold ? 0.9f : 0.75f * std::pow(1.0f - q, 1.5f)) * std::min(k, 1.2f);
-      Paint wp = Paint::radial(o, D, {tint(col, 0.0f), tint(col, 0.0f), tint(col, a), tint(col, a * 0.8f)}, {0.0f, eye / D, eye / D + 0.12f, 1.0f});
-      wp.blend = hold ? Blend::sourceOver : Blend::plus;
-      c.path(wedges, wp);
-      // Anillo bermellón y polvo en el borde del ojo.
-      Paint rp;
-      rp.color = tint(f.colors[1], 0.6f * a);
-      rp.blend = Blend::plus;
-      rp.strokeWidth = S * 0.004f;
-      Path eyeRing;
-      eyeRing.circle(o, eye * (1.0f + 0.3f * q));
-      c.path(eyeRing, rp);
-      clearBins();
-      for (int j = 0; j < 48; j++) {
-        const float th = 2.0f * float(pi) * rnd(p.id * 19u + uint32_t(j));
-        const float rr = eye * (0.95f + 0.25f * rnd(p.id * 23u + uint32_t(j))) * (1.0f + 0.5f * q);
-        bins_[0].push_back({o.x + rr * std::cos(th), o.y + rr * std::sin(th)});
-      }
-      drawBin(c, 0, std::max(0.8f, S * 0.002f), white(), 0.6f * a);
+      const float age = float(now - p.start);
+      if (age < 0.0f || age > T) continue;
+      const float k = std::min(amount(p.power) * f.intensity, 1.3f) * (p.kind == 1 ? 0.7f : 1.0f);
+      const float fx = m.foco == 1 ? 0.5f * W : W * (0.3f + 0.4f * rnd(p.id * 5u + 1u));
+      const float fy = m.foco == 1 ? 0.5f * H : H * (0.3f + 0.4f * rnd(p.id * 9u + 2u));
+      // Dos cuadros en negro con cuñas blancas; luego bermellón y se retiran.
+      const float dark = std::min(1.2f * g.oscuro * k * clamp01((p.power - 0.75f) * 2.0f), 0.88f);
+      c.material("impact", {0.0f, 0.0f, W, H},
+                 {fx, fy, age, T, k, std::round(g.lineas), dark, float(p.id % 53u),
+                  red.r, red.g, red.b, gold.r, gold.g, gold.b, white.r, white.g, white.b});
     }
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'impact': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform vec2 uFocus;
+uniform float uAge;
+uniform float uT;
+uniform float uAmp;
+uniform float uLines;
+uniform float uDark;
+uniform float uSeed;
+uniform vec3 uRed;
+uniform vec3 uGold;
+uniform vec3 uWhite;
+out vec4 fragColor;
+
+float hash(float n) {
+  return fract(sin(n * 12.9898) * 43758.5453);
+}
+float hash2(vec2 p) {
+  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+void main() {
+  vec2 p = FlutterFragCoord().xy;
+  float px1 = uSize.x / 360.0;
+  vec2 q = (p - uFocus) / px1;
+  float r = length(q);
+  float ang = atan(q.y, q.x);
+  float diag = length(uSize) / px1;
+  // Dos cuadros de impacto en negro con cuñas blancas, uno a x0,6 y luego
+  // bermellón que se retira hacia los bordes sin apagarse.
+  float impact = step(uAge, 0.067);
+  float fi = step(0.033, uAge);
+  float k = clamp((uAge - 0.067) / max(uT - 0.067, 0.01), 0.0, 1.0);
+  float retreat = k * k;
+  float N = uLines;
+  float a = (ang / 6.28318 + 0.5) * N;
+  float idx0 = floor(a);
+  float Redge = 0.55 * diag;
+  float cover = 0.0;
+  float goldE = 0.0;
+  float bright = 0.0;
+  for (int j = -1; j <= 1; j++) {
+    float idx = mod(idx0 + float(j), N);
+    float h1 = hash(idx + uSeed);
+    float h2 = hash(idx * 1.7 + uSeed + 3.0);
+    float h3 = hash(idx * 2.3 + uSeed + 5.0);
+    // El segundo cuadro se redibuja: giro de 3-6° y largo ±20 %.
+    float shift = fi * (0.052 + 0.052 * h3) * (h2 > 0.5 ? 1.0 : -1.0);
+    float th = ((idx + 0.5 + 0.3 * (h1 - 0.5)) / N - 0.5) * 6.28318 + shift;
+    float dth = ang - th;
+    dth = dth - 6.28318 * floor((dth + 3.14159) / 6.28318);
+    float lat = abs(dth) * r;
+    // Punta a 80-150 px del foco; base de 3-14 px en el borde (tres llegan a 18).
+    float rTip = (80.0 + 70.0 * h2) * (1.0 + fi * 0.2 * (2.0 * h1 - 1.0)) + retreat * diag * 0.8;
+    float wB = idx < 3.0 ? 18.0 : 3.0 + 11.0 * pow(h1, 1.5);
+    float t = clamp((r - rTip) / max(Redge - rTip, 1.0), 0.0, 1.3);
+    float hw = 0.5 * wB * t;
+    // Borde suavizado en 1-1,5 px; la parte fina se apaga sola al bajar de
+    // un píxel.
+    float cov = smoothstep(hw + 0.6, hw - 0.6, lat) * min(1.0, hw / 0.6) * step(rTip, r);
+    // Quemada desde la base y en el 60 % del largo; el último 40 % se afina
+    // y se apaga.
+    float lv = smoothstep(0.0, 0.4, t);
+    // Filo dorado de 1,5-2 px por dentro del borde (el borde suavizado sigue
+    // en bermellón).
+    float inner = hw - 0.6;
+    float gw = min(1.5, 0.35 * hw);
+    float ge = smoothstep(inner - gw - 0.5, inner - gw + 0.5, lat) * smoothstep(inner + 0.5, inner - 0.5, lat)
+             * smoothstep(0.0, 20.0, r - rTip) * step(0.3, gw);
+    if (cov * lv > bright) {
+      bright = cov * lv;
+      cover = cov;
+      goldE = ge;
+    }
+  }
+  vec3 white = mix(uWhite, vec3(1.0), 0.6);
+  vec3 verm = mix(vec3(1.0, 0.227, 0.063), uRed / max(uRed.r, 0.01), 0.15);
+  vec3 gold = mix(vec3(1.0, 0.784, 0.0), uGold / max(uGold.r, 0.01), 0.15);
+  vec3 col = impact > 0.5 ? white : mix(verm, gold, goldE);
+  vec3 light = col * bright * 1.15 * uAmp;
+  vec3 tone = min(light, vec3(1.0));
+  // Negro sin color: x0,15 en los bordes y x0,25 en el centro (caída suave
+  // de más de 200 px); el tercer cuadro a x0,6.
+  float sh = uDark * (0.88 + 0.12 * smoothstep(0.0, 220.0, r));
+  float shade = impact > 0.5 ? sh : (uAge < 0.1 ? 0.4 * uDark / 0.85 : 0.0);
+  float m = max(tone.r, max(tone.g, tone.b));
+  fragColor = vec4(tone, clamp(max(shade * (1.0 - m), 0.1 * m), 0.0, 1.0));
+}
+''',
+
+};
