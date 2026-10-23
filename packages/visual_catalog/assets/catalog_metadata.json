@@ -9889,7 +9889,7 @@
     {
       "id": "reactiva_candilejas_ascenso",
       "name": "Reactiva · Candilejas en Ascenso",
-      "description": "Durante la subida de energía, cada bombo enciende un pulso de candilejas bajo el cuadro, con conos y humo que trepan más alto y más blancos cuanto más sube; en el drop se corta. Sin música no dibuja nada.",
+      "description": "Durante la subida de energía cada bombo enciende una fila de focos en el borde inferior que lanzan conos de luz blanca cálida hacia arriba, más altos y más blancos cuanto más sube, que se recogen hacia abajo; en el drop se corta en seco. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -9897,14 +9897,15 @@
       ],
       "moods": [
         "energetic",
-        "warm",
-        "building"
+        "dramatic",
+        "warm"
       ],
       "concepts": [
         "aparición momentánea",
         "footlights",
-        "build-up",
-        "stage lighting"
+        "uplights",
+        "stage haze",
+        "build-up"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -9912,7 +9913,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.16
+        "timeSeconds": 1.2
       },
       "publication": "draft",
       "role": "overlay",
@@ -10794,22 +10795,22 @@
     {
       "id": "reactiva_flash_palmada",
       "name": "Reactiva · Flash de Palmada",
-      "description": "Sólo con la caja o la palmada, un velo de luz muy tenue cubre la escena y se apaga en un parpadeo, como el flash de una cámara a lo lejos. El bombo no lo activa. Sin música no dibuja nada.",
+      "description": "Sólo con la caja o la palmada salta el flash de una cámara a lo lejos: un punto quemado, una estrella óptica que gira un poco en cada flash y un resplandor azul frío que cae rápido, a pleno en el mismo golpe y apagado al tercer cuadro. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
-        "rhythmic",
-        "bright"
+        "energetic",
+        "documentary",
+        "crisp"
       ],
       "concepts": [
         "aparición momentánea",
-        "flash",
+        "camera flash",
         "clap",
-        "light veil"
+        "paparazzi"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -10817,7 +10818,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.6
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -10827,14 +10828,14 @@
           "name": "Cámara Lejana",
           "values": {
             "origen": "Desde el centro",
-            "caida": 0.06
+            "tamano": 0.7
           }
         },
         {
           "name": "Foco Cenital",
           "values": {
             "origen": "Desde arriba",
-            "caida": 0.16,
+            "tamano": 1.5,
             "disparo": "Golpe grande"
           }
         }
@@ -10995,22 +10996,22 @@
     {
       "id": "reactiva_golpe_cine",
       "name": "Reactiva · Golpe de Cine",
-      "description": "En el golpe grande, unas franjas negras finas entran desde arriba y desde abajo, como en una película, y se retiran enseguida. Encuadra la escena un instante sin tocar su contenido. Sin música no dibuja nada.",
+      "description": "En el golpe grande la escena se encuadra un instante como una película: franjas negras finas que entran deslizándose con el borde suave y un hilo de luz cálida en el filo, y se retiran enseguida. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
         "cinematic",
-        "dramatic"
+        "dramatic",
+        "minimal"
       ],
       "concepts": [
         "aparición momentánea",
         "letterbox",
-        "cinema bars",
-        "impact"
+        "cinema",
+        "framing"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -11018,7 +11019,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.1
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -11028,16 +11029,15 @@
           "name": "Cinemascope",
           "values": {
             "barras": "Arriba y abajo",
-            "cierre": 0.14,
+            "cierre": 0.12,
             "caida": 0.5
           }
         },
         {
-          "name": "Marco",
+          "name": "Formato Alto",
           "values": {
-            "barras": "Las cuatro",
-            "cierre": 0.05,
-            "disparo": "Bombo"
+            "barras": "Laterales",
+            "cierre": 0.06
           }
         }
       ]
@@ -11229,22 +11229,22 @@
     {
       "id": "reactiva_latido_oscuro",
       "name": "Reactiva · Latido Oscuro",
-      "description": "Con cada bombo toda la escena se oscurece un poco durante una décima de segundo y vuelve, como el sidechain de la música electrónica. No añade nada: sólo baja la luz de lo que haya detrás. Sin música no dibuja nada.",
+      "description": "Con cada bombo toda la escena baja de luz como con un compresor: a fondo en el mismo golpe, se sostiene un cuadro y vuelve suave, primero en el centro, con cada golpe un poco distinto; también puede oscurecer sólo los bordes. No añade nada. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
-        "rhythmic",
+        "energetic",
+        "minimal",
         "dark"
       ],
       "concepts": [
         "aparición momentánea",
         "sidechain",
         "pump",
-        "shadow pulse"
+        "darkening"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -11252,7 +11252,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.05
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -11263,7 +11263,7 @@
           "values": {
             "disparo": "Bombo",
             "borde": 0,
-            "caida": 0.1
+            "caida": 0.18
           }
         },
         {
@@ -11271,7 +11271,7 @@
           "values": {
             "disparo": "Bombo y caja",
             "borde": 1,
-            "caida": 0.3
+            "caida": 0.45
           }
         }
       ]
@@ -11676,7 +11676,7 @@
     {
       "id": "reactiva_mejorada_candilejas_ascenso",
       "name": "Reactiva Mejorada · Candilejas en Ascenso",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Durante la subida de energía, cada bombo enciende un pulso de candilejas bajo el cuadro, con conos y humo que trepan más alto y más blancos cuanto más sube; en el drop se corta. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Durante la subida de energía cada bombo enciende una fila de focos en el borde inferior que lanzan conos de luz blanca cálida hacia arriba, más altos y más blancos cuanto más sube, que se recogen hacia abajo; en el drop se corta en seco. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -11684,14 +11684,15 @@
       ],
       "moods": [
         "energetic",
-        "warm",
-        "building"
+        "dramatic",
+        "warm"
       ],
       "concepts": [
         "aparición momentánea",
         "footlights",
-        "build-up",
-        "stage lighting"
+        "uplights",
+        "stage haze",
+        "build-up"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -11699,7 +11700,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 2.16
+        "timeSeconds": 1.2
       },
       "publication": "draft",
       "role": "overlay",
@@ -12588,22 +12589,22 @@
     {
       "id": "reactiva_mejorada_flash_palmada",
       "name": "Reactiva Mejorada · Flash de Palmada",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Sólo con la caja o la palmada, un velo de luz muy tenue cubre la escena y se apaga en un parpadeo, como el flash de una cámara a lo lejos. El bombo no lo activa. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Sólo con la caja o la palmada salta el flash de una cámara a lo lejos: un punto quemado, una estrella óptica que gira un poco en cada flash y un resplandor azul frío que cae rápido, a pleno en el mismo golpe y apagado al tercer cuadro. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
-        "rhythmic",
-        "bright"
+        "energetic",
+        "documentary",
+        "crisp"
       ],
       "concepts": [
         "aparición momentánea",
-        "flash",
+        "camera flash",
         "clap",
-        "light veil"
+        "paparazzi"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -12611,7 +12612,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.6
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -12621,14 +12622,14 @@
           "name": "Cámara Lejana",
           "values": {
             "origen": "Desde el centro",
-            "caida": 0.06
+            "tamano": 0.7
           }
         },
         {
           "name": "Foco Cenital",
           "values": {
             "origen": "Desde arriba",
-            "caida": 0.16,
+            "tamano": 1.5,
             "disparo": "Golpes acentuados"
           }
         }
@@ -12790,22 +12791,22 @@
     {
       "id": "reactiva_mejorada_golpe_cine",
       "name": "Reactiva Mejorada · Golpe de Cine",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe grande, unas franjas negras finas entran desde arriba y desde abajo, como en una película, y se retiran enseguida. Encuadra la escena un instante sin tocar su contenido. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe grande la escena se encuadra un instante como una película: franjas negras finas que entran deslizándose con el borde suave y un hilo de luz cálida en el filo, y se retiran enseguida. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
         "cinematic",
-        "dramatic"
+        "dramatic",
+        "minimal"
       ],
       "concepts": [
         "aparición momentánea",
         "letterbox",
-        "cinema bars",
-        "impact"
+        "cinema",
+        "framing"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -12813,7 +12814,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.1
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -12823,16 +12824,15 @@
           "name": "Cinemascope",
           "values": {
             "barras": "Arriba y abajo",
-            "cierre": 0.14,
+            "cierre": 0.12,
             "caida": 0.5
           }
         },
         {
-          "name": "Marco",
+          "name": "Formato Alto",
           "values": {
-            "barras": "Las cuatro",
-            "cierre": 0.05,
-            "disparo": "Bombo"
+            "barras": "Laterales",
+            "cierre": 0.06
           }
         }
       ]
@@ -13026,22 +13026,22 @@
     {
       "id": "reactiva_mejorada_latido_oscuro",
       "name": "Reactiva Mejorada · Latido Oscuro",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con cada bombo toda la escena se oscurece un poco durante una décima de segundo y vuelve, como el sidechain de la música electrónica. No añade nada: sólo baja la luz de lo que haya detrás. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con cada bombo toda la escena baja de luz como con un compresor: a fondo en el mismo golpe, se sostiene un cuadro y vuelve suave, primero en el centro, con cada golpe un poco distinto; también puede oscurecer sólo los bordes. No añade nada. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
-        "rhythmic",
+        "energetic",
+        "minimal",
         "dark"
       ],
       "concepts": [
         "aparición momentánea",
         "sidechain",
         "pump",
-        "shadow pulse"
+        "darkening"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -13049,7 +13049,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.05
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -13060,7 +13060,7 @@
           "values": {
             "disparo": "Bombo",
             "borde": 0,
-            "caida": 0.1
+            "caida": 0.18
           }
         },
         {
@@ -13068,7 +13068,7 @@
           "values": {
             "disparo": "Bombo y caja",
             "borde": 1,
-            "caida": 0.3
+            "caida": 0.45
           }
         }
       ]
@@ -13681,22 +13681,22 @@
     {
       "id": "reactiva_mejorada_vineta_late",
       "name": "Reactiva Mejorada · Viñeta que Late",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe, los bordes de la escena se oscurecen un instante, como si se mirara por un túnel, y el centro no se toca. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe, los bordes de la escena se oscurecen un instante como al mirar por un objetivo: viñeta sin color de caída larga y suave (óvalo, laterales o arriba y abajo) con el centro intacto. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
-        "rhythmic",
-        "cinematic"
+        "cinematic",
+        "dark",
+        "rhythmic"
       ],
       "concepts": [
         "aparición momentánea",
         "vignette",
-        "tunnel",
-        "shadow pulse"
+        "lens",
+        "pulse"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -13704,7 +13704,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.08
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -13715,14 +13715,14 @@
           "values": {
             "marco": "Óvalo",
             "apertura": 0.25,
-            "caida": 0.35
+            "caida": 0.45
           }
         },
         {
           "name": "Pantalla Ancha",
           "values": {
             "marco": "Arriba y abajo",
-            "apertura": 0.6,
+            "apertura": 0.55,
             "disparo": "Cada pulso"
           }
         }
@@ -14265,22 +14265,22 @@
     {
       "id": "reactiva_vineta_late",
       "name": "Reactiva · Viñeta que Late",
-      "description": "Con el golpe, los bordes de la escena se oscurecen un instante, como si se mirara por un túnel, y el centro no se toca. Sin música no dibuja nada.",
+      "description": "Con el golpe, los bordes de la escena se oscurecen un instante como al mirar por un objetivo: viñeta sin color de caída larga y suave (óvalo, laterales o arriba y abajo) con el centro intacto. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
-        "rhythmic",
-        "cinematic"
+        "cinematic",
+        "dark",
+        "rhythmic"
       ],
       "concepts": [
         "aparición momentánea",
         "vignette",
-        "tunnel",
-        "shadow pulse"
+        "lens",
+        "pulse"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -14288,7 +14288,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.08
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -14299,14 +14299,14 @@
           "values": {
             "marco": "Óvalo",
             "apertura": 0.25,
-            "caida": 0.35
+            "caida": 0.45
           }
         },
         {
           "name": "Pantalla Ancha",
           "values": {
             "marco": "Arriba y abajo",
-            "apertura": 0.6,
+            "apertura": 0.55,
             "disparo": "Cada pulso"
           }
         }

@@ -5,18 +5,18 @@ const metadata = CreatorVisualMetadata(
   name: 'Reactiva · Candilejas en Ascenso',
   publication: CreatorPublication.draft,
   description:
-      'Durante la subida de energía, cada bombo enciende un pulso de candilejas bajo el cuadro, con conos y humo que trepan más alto y más blancos cuanto más sube; en el drop se corta. Sin música no dibuja nada.',
+      'Durante la subida de energía cada bombo enciende una fila de focos en el borde inferior que lanzan conos de luz blanca cálida hacia arriba, más altos y más blancos cuanto más sube, que se recogen hacia abajo; en el drop se corta en seco. Sin música no dibuja nada.',
   purposes: ['visualizer', 'overlay', 'momentary'],
-  moods: ['energetic', 'warm', 'building'],
-  concepts: ['aparición momentánea', 'footlights', 'build-up', 'stage lighting'],
+  moods: ['energetic', 'dramatic', 'warm'],
+  concepts: ['aparición momentánea', 'footlights', 'uplights', 'stage haze', 'build-up'],
   credits: CreatorCredits(author: 'Chic Apps', license: '', source: ''),
-  thumbnail: CreatorThumbnailSpec(timeSeconds: 2.16),
+  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.2),
   role: CreatorRole.overlay,
   // Sólo con música: sin ella la capa queda vacía.
   reactivity: CreatorReactivity.music,
-  colors: [0x00000000, 0xffd8231a, 0xffffa31a, 0xfffff2dc],
+  colors: [0x00000000, 0xffff2a0a, 0xffffb31a, 0xfffff2dc],
+  images: {'smoke': 'assets/images/reactiva_humo.png'},
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
-  // Sin música no dibuja nada; sólo aparece un instante con su momento.
-  // Degradados, trazos y puntos agrupados: sin shaders por píxel.
+  // Sin música no dibuja nada; sólo aparece con su momento musical.
   framesPerSecond: 30,
 );
