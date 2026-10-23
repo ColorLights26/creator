@@ -10350,22 +10350,23 @@
     {
       "id": "reactiva_cortina_svoboda",
       "name": "Reactiva · Cortina Svoboda",
-      "description": "Al empezar una frase se materializa desde arriba una lámina de decenas de rayos casi paralelos, con venas brillantes y polvo dentro, y se disuelve hacia arriba. Sin música no dibuja nada.",
+      "description": "Al empezar una frase se materializa desde arriba una cortina de decenas de haces finísimos casi blancos a distancias irregulares, con su lámpara caliente arriba, venas más intensas y polvo flotando; se mantiene un instante y se recoge hacia arriba. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "elegant",
-        "cinematic",
-        "warm"
+        "dramatic",
+        "theatrical",
+        "elegant"
       ],
       "concepts": [
         "aparición momentánea",
         "light curtain",
         "svoboda",
-        "volumetric light"
+        "beams",
+        "stage haze"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -10373,7 +10374,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.15
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -10382,7 +10383,7 @@
         {
           "name": "Teatro",
           "values": {
-            "rayos": 40,
+            "rayos": 48,
             "inclinacion": 0,
             "polvo": 1
           }
@@ -10390,7 +10391,7 @@
         {
           "name": "Contraluz",
           "values": {
-            "rayos": 18,
+            "rayos": 36,
             "inclinacion": -12,
             "disparo": "Golpe grande"
           }
@@ -12135,22 +12136,23 @@
     {
       "id": "reactiva_mejorada_cortina_svoboda",
       "name": "Reactiva Mejorada · Cortina Svoboda",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar una frase se materializa desde arriba una lámina de decenas de rayos casi paralelos, con venas brillantes y polvo dentro, y se disuelve hacia arriba. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar una frase se materializa desde arriba una cortina de decenas de haces finísimos casi blancos a distancias irregulares, con su lámpara caliente arriba, venas más intensas y polvo flotando; se mantiene un instante y se recoge hacia arriba. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "elegant",
-        "cinematic",
-        "warm"
+        "dramatic",
+        "theatrical",
+        "elegant"
       ],
       "concepts": [
         "aparición momentánea",
         "light curtain",
         "svoboda",
-        "volumetric light"
+        "beams",
+        "stage haze"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -12158,7 +12160,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.15
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -12167,7 +12169,7 @@
         {
           "name": "Teatro",
           "values": {
-            "rayos": 40,
+            "rayos": 48,
             "inclinacion": 0,
             "polvo": 1
           }
@@ -12175,7 +12177,7 @@
         {
           "name": "Contraluz",
           "values": {
-            "rayos": 18,
+            "rayos": 36,
             "inclinacion": -12,
             "disparo": "Golpes acentuados"
           }
@@ -13486,7 +13488,7 @@
     {
       "id": "reactiva_mejorada_relampago_campo",
       "name": "Reactiva Mejorada · Relámpago Fuera de Campo",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. No se ve el rayo: en el golpe grande entra rasante desde una esquina la luz azul blanca de una tormenta fuera de plano, con golpe principal, segundo rayo y una cola que titila entre nubes. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. No se ve el rayo: en el golpe grande entra desde una esquina la luz de una tormenta fuera de plano, con descarga, re-descarga, segundo rayo desde otro punto y cola que titila; blanca cerca, azul y violeta lejos, con nubes que se encienden por el borde y rayos entre ellas. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -13501,7 +13503,8 @@
         "aparición momentánea",
         "lightning",
         "storm",
-        "off-screen light"
+        "off-screen light",
+        "clouds"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -13509,7 +13512,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.08
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -14072,7 +14075,7 @@
     {
       "id": "reactiva_relampago_campo",
       "name": "Reactiva · Relámpago Fuera de Campo",
-      "description": "No se ve el rayo: en el golpe grande entra rasante desde una esquina la luz azul blanca de una tormenta fuera de plano, con golpe principal, segundo rayo y una cola que titila entre nubes. Sin música no dibuja nada.",
+      "description": "No se ve el rayo: en el golpe grande entra desde una esquina la luz de una tormenta fuera de plano, con descarga, re-descarga, segundo rayo desde otro punto y cola que titila; blanca cerca, azul y violeta lejos, con nubes que se encienden por el borde y rayos entre ellas. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
@@ -14087,7 +14090,8 @@
         "aparición momentánea",
         "lightning",
         "storm",
-        "off-screen light"
+        "off-screen light",
+        "clouds"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -14095,7 +14099,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.08
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",

@@ -1,12 +1,15 @@
-// Reactiva · Cortina Svoboda — transparencia momentánea. Al empezar una frase (o con un
-// crash fuerte) se materializa desde arriba una lámina de decenas de rayos casi
-// paralelos, inclinada como un contraluz, con venas más brillantes y polvo que
-// brilla dentro; se sostiene un instante y se disuelve hacia arriba.
-// Referentes: la «Light Curtain» de Josef Svoboda (ADB, 1968) y la Robe Tetra2
-// «Svoboda-style».
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// Reactiva · Cortina Svoboda — transparencia momentánea. Al empezar una frase se
+// materializa desde arriba la «cortina de luz» de Josef Svoboda: entre 36 y 48
+// haces finísimos (núcleo de 1-1,5 px casi blanco y halo de 2 px) a distancias
+// irregulares, cada uno con su brillo y unos pocos con una vena más intensa,
+// que se abren apenas hacia abajo y se apagan con la distancia; cada lámpara
+// es un punto caliente en el borde superior y entre los haces sólo queda un
+// humo muy tenue con polvo que flota. Se mantiene un instante y se recoge
+// hacia arriba desde abajo. La luz se suma a la escena. Referente: la cortina
+// de luz de Svoboda y los muros de haces de Nine Inch Nails.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -14,17 +17,17 @@ const modifiers = [
   // MÚSICA: qué momento la enciende.
   CreatorModifier.choice('disparo', 'Lo dispara', options: ['Cambio de frase', 'Platillos fuertes', 'Golpe grande']),
   // FORMA: cuántos rayos.
-  CreatorModifier.steps('rayos', 'Rayos', min: 16, max: 40, value: 28),
+  CreatorModifier.steps('rayos', 'Rayos', min: 36, max: 48, value: 42),
   // MOVIMIENTO: inclinación de la lámina.
-  CreatorModifier.slider('inclinacion', 'Inclinación', min: -15, max: 15, value: 7),
+  CreatorModifier.slider('inclinacion', 'Inclinación', min: -15, max: 15, value: 3),
   // ATMÓSFERA: polvo dentro de la luz.
   CreatorModifier.slider('polvo', 'Polvo', min: 0, max: 1, value: .6),
 ];
 
 // Combinaciones con nombre que parecen otro visual.
 const variations = [
-  CreatorVariation('Teatro', {'rayos': 40, 'inclinacion': 0, 'polvo': 1}),
-  CreatorVariation('Contraluz', {'rayos': 18, 'inclinacion': -12, 'disparo': 'Golpe grande'}),
+  CreatorVariation('Teatro', {'rayos': 48, 'inclinacion': 0, 'polvo': 1}),
+  CreatorVariation('Contraluz', {'rayos': 36, 'inclinacion': -12, 'disparo': 'Golpe grande'}),
 ];
 
 const nativeSource = r'''
@@ -240,43 +243,114 @@ class Visual final : public Scene {
   }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
-    const float W = f.width, H = f.height, S = std::min(W, H);
-    const int n = std::clamp(int(std::lround(g.rayos)), 16, 40);
-    const Color red = f.colors[1], amber = f.colors[2], hot = f.colors[3];
+    const float W = f.width, H = f.height;
+    // La cortina más reciente.
+    float age = 100.0f, amp = 0.0f;
+    uint32_t id = 0u;
     for (const Pulse& p : slots) {
-      const double age = (now - p.start) * double(pace(f));
-      if (age < 0.0 || age > 0.68) continue;
-      const float appear = easeOut(float(age / 0.08));
-      const float q = age < 0.23 ? 0.0f : float((age - 0.23) / 0.45);
-      const float length = H * 0.92f * (1.0f - q * q);
-      const float a = std::min(amount(p.power) * f.intensity, 1.3f) * appear * std::pow(clamp01(1.0f - q), 1.3f);
-      if (a < kMin || length < 2.0f) continue;
-      c.save();
-      c.translate(W * 0.5f, 0.0f);
-      c.rotate(g.inclinacion * float(pi) / 180.0f);
-      const float half = W * 0.62f;
-      Paint base = Paint::linear({0.0f, 0.0f}, {0.0f, length}, {tint(hot, 0.12f * a), tint(amber, 0.05f * a), tint(red, 0.0f)}, {0.0f, 0.55f, 1.0f});
-      base.blend = Blend::plus;
-      c.rect({-half, -0.3f * H, 2.0f * half, length + 0.3f * H}, base);
-      for (int i = 0; i < n + 3; i++) {
-        const bool vein = i >= n;
-        const float u = vein ? rnd(p.id * 61u + uint32_t(i)) : (float(i) + 0.5f) / float(n);
-        const float x = -half + 2.0f * half * u + W * 0.004f * q * std::sin(float(now) * 3.0f + float(i));
-        const float w = vein ? S * 0.03f : S * (0.002f + 0.004f * rnd(uint32_t(i) * 7u + 11u));
-        const float ai = vein ? 0.1f * a : a * (0.25f + 0.75f * rnd(uint32_t(i) * 13u + p.id * 3u));
-        Paint ray = Paint::linear({0.0f, 0.0f}, {0.0f, length}, {tint(hot, 0.55f * ai), tint(amber, 0.22f * ai), tint(red, 0.0f)}, {0.0f, 0.6f, 1.0f});
-        ray.blend = Blend::plus;
-        c.rect({x - 0.5f * w, -0.3f * H, w, length + 0.3f * H}, ray);
-      }
-      clearBins();
-      const uint32_t frame = uint32_t(now * 30.0);
-      for (int j = 0; j < 120; j++) {
-        if (rnd(frame * 3u + uint32_t(j)) < 0.35f) continue;
-        bins_[0].push_back({-half + 2.0f * half * rnd(p.id * 89u + uint32_t(j)), length * rnd(p.id * 83u + uint32_t(j))});
-      }
-      drawBin(c, 0, std::max(0.8f, S * 0.0018f), hot, 0.5f * a * g.polvo);
-      c.restore();
+      const float a = float(now - p.start) * pace(f);
+      if (a < 0.0f || a > 1.0f || a >= age) continue;
+      age = a;
+      amp = std::min(amount(p.power) * f.intensity, 1.3f);
+      id = p.id;
     }
+    if (amp <= 0.0f) return;
+    const Color orange = f.colors[1], amber = f.colors[2], white = f.colors[3];
+    c.material("curtain", {0.0f, 0.0f, W, H},
+               {age, amp, std::round(g.rayos), g.inclinacion * float(pi) / 180.0f, g.polvo, float(now), H / W, float(id % 13u),
+                orange.r, orange.g, orange.b, amber.r, amber.g, amber.b, white.r, white.g, white.b},
+               {"smoke"});
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'curtain': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform float uAge;
+uniform float uAmp;
+uniform float uRays;
+uniform float uTilt;
+uniform float uDust;
+uniform float uTime;
+uniform float uAspect;
+uniform float uSeed;
+uniform vec3 uOrange;
+uniform vec3 uAmber;
+uniform vec3 uWhite;
+uniform sampler2D uTex;
+out vec4 fragColor;
+
+float hash(float n) {
+  return fract(sin(n * 12.9898) * 43758.5453);
+}
+float hash2(vec2 p) {
+  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+void main() {
+  vec2 px = FlutterFragCoord().xy;
+  vec2 uv = px / uSize.x;
+  float px1 = uSize.x / 360.0;
+  float ypx = px.y / px1;
+  float a = uAge;
+  // Baja en cinco cuadros, se mantiene ocho y se recoge desde abajo a unos
+  // 60 px por cuadro.
+  float bottom = a < 0.15 ? a / 0.15 * (uAspect + 0.2) : (uAspect + 0.2) - max(0.0, a - 0.42) * 5.0;
+  // Haces a distancias irregulares (6-14 px) que se abren unos 2° hacia abajo.
+  float xs = 0.5 + (uv.x - 0.5 - uv.y * tan(uTilt)) / (1.0 + 0.035 * uv.y);
+  float u = xs * uRays;
+  float i0 = floor(u);
+  float spacing = 360.0 / uRays;
+  float B = 0.0;
+  float lamp = 0.0;
+  for (int k = -1; k <= 1; k++) {
+    float idx = i0 + float(k);
+    float cpos = idx + 0.5 + (hash(idx + uSeed) - 0.5) * 0.55;
+    float dx = (u - cpos) * spacing;
+    // Brillos mezclados: un cuarto tenues, la mitad medios, algunos a tope y
+    // unas pocas venas con más resplandor; cada uno titila un poco.
+    float hb = hash(idx + 7.3);
+    float gain = hb < 0.25 ? 0.35 + 0.6 * hb : (hb < 0.75 ? 0.6 + 0.4 * (hb - 0.25) : (hb < 0.9 ? 1.0 : 1.15));
+    float vein = step(0.9, hb);
+    gain *= 1.0 + 0.15 * sin(uTime * 26.0 + idx * 2.3);
+    // Cada haz varía ±15 % a lo largo, con manchas de 40-80 px que bajan.
+    gain *= 0.85 + 0.3 * texture(uTex, fract(vec2(idx * 0.137, ypx / 300.0 - uTime * 0.15))).r;
+    // Ritmo grande a lo ancho: el brillo de los haces sube y baja ±30 % en
+    // ondas de 60-120 px que derivan despacio.
+    float bx = cpos * spacing;
+    gain *= 1.0 + 0.3 * (0.6 * sin(6.2832 * bx / 90.0 + uTime * 1.6) + 0.4 * sin(6.2832 * bx / 150.0 - uTime * 1.0));
+    // Cada haz acaba a su altura (±50 px) y se desvanece en unos 35 px.
+    float end = bottom + (hash(idx + 4.4) - 0.5) * 0.28;
+    float tail = smoothstep(end, end - 0.1, uv.y);
+    B += (exp(-dx * dx / 0.5) + 0.3 * exp(-dx * dx / 4.0) + vein * 0.35 * exp(-dx * dx / 9.0)) * gain * tail;
+    // La lámpara: un punto quemado de 1,5 px con su resplandor de 6 px.
+    float ly = ypx - 3.0;
+    lamp += (4.0 * exp(-(dx * dx + ly * ly) / 2.25) + 0.65 * exp(-(dx * dx + ly * ly) / 36.0)) * (0.85 + 0.3 * hash(idx + 5.1)) * smoothstep(0.0, 0.03, a);
+  }
+  // Se apagan con la distancia: unos +100 a 700 px.
+  float dim = 1.0 / (1.0 + ypx / 210.0);
+  // Entre los haces sólo un humo muy tenue.
+  float haze = texture(uTex, fract(vec2(u * 0.03 + 0.3, uv.y * 0.35 - uTime * 0.04))).r;
+  // El humo entre los haces brilla un poco (+6..+12, más cerca de las
+  // lámparas) y baja despacio.
+  float hz = texture(uTex, fract(vec2(px.x / (100.0 * px1), (ypx - uTime * 45.0) / 200.0))).r;
+  float sx = xs * 360.0;
+  float rhythm = 1.0 + 0.3 * (0.6 * sin(6.2832 * sx / 90.0 + uTime * 1.6) + 0.4 * sin(6.2832 * sx / 150.0 - uTime * 1.0));
+  float sheet = (mix(0.045, 0.024, smoothstep(0.25, 0.5, uv.y / uAspect)) * (0.7 + 0.6 * hz) + 0.05 * exp(-ypx / 40.0)) * rhythm * smoothstep(bottom, bottom - 0.1, uv.y);
+  // Polvo que flota dentro de la luz.
+  vec2 drift = vec2(uTime * 3.0, uTime * 9.0) * px1;
+  vec2 cell = floor((px + drift) / (6.0 * px1));
+  vec2 cp = (cell + vec2(hash2(cell), hash2(cell + 4.1))) * 6.0 * px1 - drift;
+  float dust = step(0.965, hash2(cell + 2.7)) * exp(-dot(px - cp, px - cp) / (px1 * px1 * 1.2)) * 1.5 * uDust * min(B, 1.0);
+  // El humo entre los haces es neutro, tirando a frío.
+  vec3 light = (B * 2.4 * dim + dust) * mix(uWhite, uAmber, 0.12) + sheet * vec3(0.85, 0.92, 1.0) + lamp * uWhite;
+  light *= uAmp * smoothstep(0.0, 0.04, a);
+  vec3 tone = vec3(1.0) - exp(-light);
+  fragColor = vec4(tone, 0.1 * max(tone.r, max(tone.g, tone.b)));
+}
+''',
+
+};
