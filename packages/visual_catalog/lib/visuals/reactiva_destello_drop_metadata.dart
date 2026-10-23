@@ -5,17 +5,18 @@ const metadata = CreatorVisualMetadata(
   name: 'Reactiva · Destello de Drop',
   publication: CreatorPublication.draft,
   description:
-      'Sólo en el golpe grande (el primero tras una pausa o uno mucho más fuerte que los anteriores) se abre desde el centro una luz suave que se apaga enseguida. Aparece muy de vez en cuando. Sin música no dibuja nada.',
+      'Sólo en el golpe grande se abre una luz desde el centro o desde abajo: un núcleo quemado con caída de luz real que crece en tres cuadros y se apaga encogiéndose hasta una brasa roja, y un frente de luz roja suave que se aleja. Aparece muy de vez en cuando. Sin música no dibuja nada.',
   purposes: ['visualizer', 'overlay', 'momentary'],
-  moods: ['subtle', 'dramatic', 'bright'],
-  concepts: ['aparición momentánea', 'drop', 'light burst', 'impact'],
+  moods: ['euphoric', 'warm', 'dramatic'],
+  concepts: ['aparición momentánea', 'drop', 'bloom', 'flash'],
   credits: CreatorCredits(author: 'Chic Apps', license: '', source: ''),
-  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.12),
+  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.0),
   role: CreatorRole.overlay,
   // Sólo con música: sin ella la capa queda vacía.
   reactivity: CreatorReactivity.music,
-  colors: [0x00000000, 0xff000000, 0xffffd6a0, 0xfffff7ea],
+  colors: [0x00000000, 0xffff2a10, 0xffffa020, 0xfffff6ea],
+  images: {},
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
-  // Sin música no dibuja nada; sólo aparece un instante con su momento. Dibuja como mucho unos rectángulos con degradado.
+  // Sin música no dibuja nada; sólo aparece con su momento musical.
   framesPerSecond: 30,
 );

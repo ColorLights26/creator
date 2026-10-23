@@ -9740,22 +9740,22 @@
     {
       "id": "reactiva_borde_luz",
       "name": "Reactiva · Borde de Luz",
-      "description": "Con los platillos, los bordes de la escena se aclaran un instante con una luz cálida y el centro no se toca. En modo Alterno la luz entra por un lado y luego por el otro. Sin música no dibuja nada.",
+      "description": "Con los platillos entra por un borde la luz de un foco justo fuera del cuadro: quema a blanco junto al borde, se abre a ámbar y cae a rojo vivo con caída suave, sin llegar al centro. Cada golpe entra por un sitio distinto. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
-        "rhythmic",
-        "warm"
+        "warm",
+        "cinematic",
+        "energetic"
       ],
       "concepts": [
         "aparición momentánea",
         "edge light",
-        "hi-hat",
-        "light pulse"
+        "backlight",
+        "light spill"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -9763,7 +9763,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.36
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -9772,16 +9772,17 @@
         {
           "name": "Destello Lateral",
           "values": {
-            "marco": "Alterno",
-            "disparo": "Caja"
+            "marco": "Los lados",
+            "disparo": "Caja",
+            "caida": 0.14
           }
         },
         {
-          "name": "Halo de Escenario",
+          "name": "Luz de Contra",
           "values": {
-            "marco": "Óvalo",
+            "marco": "Arriba y abajo",
             "apertura": 0.35,
-            "caida": 0.2
+            "caida": 0.28
           }
         }
       ]
@@ -10488,22 +10489,22 @@
     {
       "id": "reactiva_destello_drop",
       "name": "Reactiva · Destello de Drop",
-      "description": "Sólo en el golpe grande (el primero tras una pausa o uno mucho más fuerte que los anteriores) se abre desde el centro una luz suave que se apaga enseguida. Aparece muy de vez en cuando. Sin música no dibuja nada.",
+      "description": "Sólo en el golpe grande se abre una luz desde el centro o desde abajo: un núcleo quemado con caída de luz real que crece en tres cuadros y se apaga encogiéndose hasta una brasa roja, y un frente de luz roja suave que se aleja. Aparece muy de vez en cuando. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
-        "dramatic",
-        "bright"
+        "euphoric",
+        "warm",
+        "dramatic"
       ],
       "concepts": [
         "aparición momentánea",
         "drop",
-        "light burst",
-        "impact"
+        "bloom",
+        "flash"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -10511,7 +10512,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.12
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -10528,8 +10529,8 @@
         {
           "name": "Fogonazo",
           "values": {
-            "forma": "Toda la pantalla",
-            "caida": 0.25,
+            "forma": "Desde el centro",
+            "caida": 0.3,
             "nucleo": 0
           }
         }
@@ -10746,22 +10747,22 @@
     {
       "id": "reactiva_estrobo_entrada",
       "name": "Reactiva · Estrobo de Entrada",
-      "description": "En el golpe grande, de uno a tres parpadeos tenues de luz o de sombra y nada más: la versión suave del estroboscopio, nunca más de tres por segundo. Sin música no dibuja nada.",
+      "description": "En el golpe grande, de uno a tres parpadeos de un estroboscopio colgado arriba en los pulsos siguientes, cada uno más débil: quemado en el borde superior y azul frío saturado al caer, a pleno en el mismo cuadro y apagado al segundo; o la escena baja de luz sin color. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
         "energetic",
-        "bright"
+        "intense",
+        "club"
       ],
       "concepts": [
         "aparición momentánea",
         "strobe",
-        "drop",
-        "flash"
+        "flash",
+        "drop"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -10769,7 +10770,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.04
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -10779,7 +10780,6 @@
           "name": "Relámpago",
           "values": {
             "rafaga": 2,
-            "caida": 0.05,
             "tono": "Luz"
           }
         },
@@ -10787,8 +10787,7 @@
           "name": "Pulso Negro",
           "values": {
             "tono": "Sombra",
-            "rafaga": 3,
-            "caida": 0.12
+            "rafaga": 3
           }
         }
       ]
@@ -11180,22 +11179,22 @@
     {
       "id": "reactiva_latido_completo",
       "name": "Reactiva · Latido Completo",
-      "description": "Una reacción por sonido: el bombo oscurece un instante, la caja aclara un instante y el golpe grande lanza un reflejo que cruza la escena. Sin música no dibuja nada.",
+      "description": "Una reacción por sonido: el bombo baja la luz a fondo y la devuelve suave desde el centro, la caja abre un destello cálido pequeño que se apaga encogiéndose y el golpe grande lanza el reflejo de un vidrio que cruza la escena. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
+        "energetic",
         "rhythmic",
-        "cinematic"
+        "elegant"
       ],
       "concepts": [
         "aparición momentánea",
         "sidechain",
         "flash",
-        "light sweep"
+        "glass reflection"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -11203,7 +11202,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.05
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -11212,8 +11211,8 @@
         {
           "name": "Club",
           "values": {
-            "reacciones": "Con reflejo",
-            "caida": 0.1,
+            "reacciones": "Todo",
+            "caida": 0.16,
             "borde": 0.15
           }
         },
@@ -11221,7 +11220,7 @@
           "name": "Respiro",
           "values": {
             "reacciones": "Sombra y reflejo",
-            "caida": 0.3,
+            "caida": 0.4,
             "borde": 0.8
           }
         }
@@ -11528,22 +11527,22 @@
     {
       "id": "reactiva_mejorada_borde_luz",
       "name": "Reactiva Mejorada · Borde de Luz",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con los platillos, los bordes de la escena se aclaran un instante con una luz cálida y el centro no se toca. En modo Alterno la luz entra por un lado y luego por el otro. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con los platillos entra por un borde la luz de un foco justo fuera del cuadro: quema a blanco junto al borde, se abre a ámbar y cae a rojo vivo con caída suave, sin llegar al centro. Cada golpe entra por un sitio distinto. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
-        "rhythmic",
-        "warm"
+        "warm",
+        "cinematic",
+        "energetic"
       ],
       "concepts": [
         "aparición momentánea",
         "edge light",
-        "hi-hat",
-        "light pulse"
+        "backlight",
+        "light spill"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -11551,7 +11550,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.36
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -11560,16 +11559,17 @@
         {
           "name": "Destello Lateral",
           "values": {
-            "marco": "Alterno",
-            "disparo": "Caja"
+            "marco": "Los lados",
+            "disparo": "Caja",
+            "caida": 0.14
           }
         },
         {
-          "name": "Halo de Escenario",
+          "name": "Luz de Contra",
           "values": {
-            "marco": "Óvalo",
+            "marco": "Arriba y abajo",
             "apertura": 0.35,
-            "caida": 0.2
+            "caida": 0.28
           }
         }
       ]
@@ -12280,22 +12280,22 @@
     {
       "id": "reactiva_mejorada_destello_drop",
       "name": "Reactiva Mejorada · Destello de Drop",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Sólo en el golpe grande (el primero tras una pausa o uno mucho más fuerte que los anteriores) se abre desde el centro una luz suave que se apaga enseguida. Aparece muy de vez en cuando. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Sólo en el golpe grande se abre una luz desde el centro o desde abajo: un núcleo quemado con caída de luz real que crece en tres cuadros y se apaga encogiéndose hasta una brasa roja, y un frente de luz roja suave que se aleja. Aparece muy de vez en cuando. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
-        "dramatic",
-        "bright"
+        "euphoric",
+        "warm",
+        "dramatic"
       ],
       "concepts": [
         "aparición momentánea",
         "drop",
-        "light burst",
-        "impact"
+        "bloom",
+        "flash"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -12303,7 +12303,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.12
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -12320,8 +12320,8 @@
         {
           "name": "Fogonazo",
           "values": {
-            "forma": "Toda la pantalla",
-            "caida": 0.25,
+            "forma": "Desde el centro",
+            "caida": 0.3,
             "nucleo": 0
           }
         }
@@ -12541,22 +12541,22 @@
     {
       "id": "reactiva_mejorada_estrobo_entrada",
       "name": "Reactiva Mejorada · Estrobo de Entrada",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe grande, de uno a tres parpadeos tenues de luz o de sombra y nada más: la versión suave del estroboscopio, nunca más de tres por segundo. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe grande, de uno a tres parpadeos de un estroboscopio colgado arriba en los pulsos siguientes, cada uno más débil: quemado en el borde superior y azul frío saturado al caer, a pleno en el mismo cuadro y apagado al segundo; o la escena baja de luz sin color. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
         "energetic",
-        "bright"
+        "intense",
+        "club"
       ],
       "concepts": [
         "aparición momentánea",
         "strobe",
-        "drop",
-        "flash"
+        "flash",
+        "drop"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -12564,7 +12564,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.04
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -12574,7 +12574,6 @@
           "name": "Relámpago",
           "values": {
             "rafaga": 2,
-            "caida": 0.05,
             "tono": "Luz"
           }
         },
@@ -12582,8 +12581,7 @@
           "name": "Pulso Negro",
           "values": {
             "tono": "Sombra",
-            "rafaga": 3,
-            "caida": 0.12
+            "rafaga": 3
           }
         }
       ]
@@ -12978,22 +12976,22 @@
     {
       "id": "reactiva_mejorada_latido_completo",
       "name": "Reactiva Mejorada · Latido Completo",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Una reacción por sonido: el bombo oscurece un instante, la caja aclara un instante y el golpe grande lanza un reflejo que cruza la escena. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Una reacción por sonido: el bombo baja la luz a fondo y la devuelve suave desde el centro, la caja abre un destello cálido pequeño que se apaga encogiéndose y el golpe grande lanza el reflejo de un vidrio que cruza la escena. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
+        "energetic",
         "rhythmic",
-        "cinematic"
+        "elegant"
       ],
       "concepts": [
         "aparición momentánea",
         "sidechain",
         "flash",
-        "light sweep"
+        "glass reflection"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -13001,7 +12999,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.05
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -13010,8 +13008,8 @@
         {
           "name": "Club",
           "values": {
-            "reacciones": "Con reflejo",
-            "caida": 0.1,
+            "reacciones": "Todo",
+            "caida": 0.16,
             "borde": 0.15
           }
         },
@@ -13019,7 +13017,7 @@
           "name": "Respiro",
           "values": {
             "reacciones": "Sombra y reflejo",
-            "caida": 0.3,
+            "caida": 0.4,
             "borde": 0.8
           }
         }
@@ -13346,22 +13344,22 @@
     {
       "id": "reactiva_mejorada_primer_tiempo",
       "name": "Reactiva Mejorada · Primer Tiempo",
-      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Sólo en el primer pulso de cada compás la escena se oscurece o se aclara un instante y vuelve: marca el ritmo sin parpadear en cada golpe. Sin música no dibuja nada.",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Sólo en el primer pulso de cada compás la escena respira una vez, lenta: baja la luz sin color y vuelve en medio segundo, primero en el centro, o se abre una luz cálida desde el centro que se apaga encogiéndose. Marca el ritmo sin parpadear en cada golpe. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
+        "minimal",
         "rhythmic",
-        "minimal"
+        "calm"
       ],
       "concepts": [
         "aparición momentánea",
         "downbeat",
-        "bar",
-        "pulse"
+        "pulse",
+        "breathing light"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -13369,7 +13367,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.08
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -13387,7 +13385,7 @@
           "name": "Frase",
           "values": {
             "cada": 8,
-            "caida": 0.5,
+            "caida": 0.8,
             "borde": 0.7
           }
         }
@@ -13934,22 +13932,22 @@
     {
       "id": "reactiva_primer_tiempo",
       "name": "Reactiva · Primer Tiempo",
-      "description": "Sólo en el primer pulso de cada compás la escena se oscurece o se aclara un instante y vuelve: marca el ritmo sin parpadear en cada golpe. Sin música no dibuja nada.",
+      "description": "Sólo en el primer pulso de cada compás la escena respira una vez, lenta: baja la luz sin color y vuelve en medio segundo, primero en el centro, o se abre una luz cálida desde el centro que se apaga encogiéndose. Marca el ritmo sin parpadear en cada golpe. Sin música no dibuja nada.",
       "purposes": [
         "visualizer",
         "overlay",
         "momentary"
       ],
       "moods": [
-        "subtle",
+        "minimal",
         "rhythmic",
-        "minimal"
+        "calm"
       ],
       "concepts": [
         "aparición momentánea",
         "downbeat",
-        "bar",
-        "pulse"
+        "pulse",
+        "breathing light"
       ],
       "credits": {
         "author": "Chic Apps",
@@ -13957,7 +13955,7 @@
         "source": ""
       },
       "thumbnail": {
-        "timeSeconds": 1.08
+        "timeSeconds": 1.0
       },
       "publication": "draft",
       "role": "overlay",
@@ -13975,7 +13973,7 @@
           "name": "Frase",
           "values": {
             "cada": 8,
-            "caida": 0.5,
+            "caida": 0.8,
             "borde": 0.7
           }
         }
