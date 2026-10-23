@@ -9557,6 +9557,102 @@
       ]
     },
     {
+      "id": "reactiva_acuarela_florece_rechazo_critica",
+      "name": "Reactiva · Acuarela que Florece (rechazada por la crítica)",
+      "description": "Con el golpe caen dos gotas de pigmento de luz, magenta y amarillo limón, que se abren como acuarela en papel mojado: bordes plumosos que se ramifican, grano por dentro y rojo coral donde se funden; al secarse se pierden en grano. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "artistic",
+        "dreamy"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "watercolor",
+        "wet on wet",
+        "pigment bloom"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Mancha",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Gota Rápida",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_aura_kirlian_rechazo_critica",
+      "name": "Reactiva · Aura Kirlian (rechazada por la crítica)",
+      "description": "Con el golpe aparece el aura eléctrica de una forma invisible, como en una fotografía Kirlian: decenas de filamentos de descarga violeta y magenta que brotan de un contorno que no se ve, cambian sin parar y se acortan hasta desaparecer. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "electric",
+        "mystic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "kirlian",
+        "corona discharge",
+        "aura"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Aura Grande",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Chispazo",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_aurora_enciende",
       "name": "Reactiva · Aurora que se Enciende",
       "description": "Durante la subida de energía baja desde arriba la cortina de una aurora boreal: cinta ondulada con pliegues que brillan de canto, rayos verticales finos, borde verde intenso con franja magenta debajo y carmesí arriba; en el pico brilla el doble y se retira. Sin música no dibuja nada.",
@@ -9706,6 +9802,102 @@
       ]
     },
     {
+      "id": "reactiva_bengala_humo",
+      "name": "Reactiva · Bengala de Humo (aprobada por la crítica)",
+      "description": "Con el golpe revienta desde un lado una bengala de humo verde esmeralda encendido: una columna espesa que sale a borbotones y se hincha en volutas que ruedan, brillante cerca de la boca; al cortarse se despega y se aclara hasta desaparecer. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "bold",
+        "warm",
+        "dramatic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "smoke bomb",
+        "colored smoke",
+        "billows"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Humareda",
+          "values": {
+            "largo": 1.2,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Bocanada",
+          "values": {
+            "largo": 0.55,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_bioluminiscencia_rechazo_critica",
+      "name": "Reactiva · Bioluminiscencia (rechazada por la crítica)",
+      "description": "Con el golpe una ola cruza la escena y se enciende el plancton: una cresta de espuma de luz azul rota en tramos con salpicaduras, y detrás puntos que destellan y se apagan en unos cuadros. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "calm",
+        "magical",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "bioluminescence",
+        "plankton",
+        "glow wave"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Marea Viva",
+          "values": {
+            "plancton": 1,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Chispas de Agua",
+          "values": {
+            "plancton": 0.4,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_bokeh_luces_2_transparente",
       "name": "Reactiva · Bokeh 2",
       "description": "Versión reactiva: sin música no dibuja nada y sólo aparece un instante con el golpe grande (o el momento que elijas en Ajustes) y desaparece. Luces desenfocadas rojas, naranjas y amarillas intensas que laten con los graves y saltan hacia la cámara con cada golpe sobre fondo transparente.",
@@ -9784,6 +9976,54 @@
             "marco": "Arriba y abajo",
             "apertura": 0.35,
             "caida": 0.28
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_burbujas_iridiscentes_rechazo_critica",
+      "name": "Reactiva · Burbujas Iridiscentes (rechazada por la crítica)",
+      "description": "Con el golpe aparecen burbujas de jabón que suben bamboleándose, con bandas de color de interferencia que fluyen en la película, un reflejo blanco y el centro casi transparente; revientan una a una en un anillo de gotas. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "playful",
+        "dreamy",
+        "iridescent"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "soap bubbles",
+        "thin film",
+        "iridescence"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Nube de Burbujas",
+          "values": {
+            "burbujas": 8,
+            "caida": 1.8
+          }
+        },
+        {
+          "name": "Pompas Rápidas",
+          "values": {
+            "burbujas": 3,
+            "caida": 0.7
           }
         }
       ]
@@ -9890,6 +10130,102 @@
       ]
     },
     {
+      "id": "reactiva_calle_vortices",
+      "name": "Reactiva · Calle de Vórtices (aprobada por la crítica)",
+      "description": "Con el golpe algo invisible cruza la escena y deja una calle de remolinos de luz: dos hilos de tinte, carmesí y ámbar, que se enrollan en espirales alternas, cada vez más difusas, como el humo detrás de un cilindro; se borra desde el extremo más viejo. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "hypnotic",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "von karman",
+        "vortex street",
+        "flow visualization"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Remolinos Grandes",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Estela Corta",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_camara_niebla_rechazo_critica",
+      "name": "Reactiva · Cámara de Niebla (rechazada por la crítica)",
+      "description": "Con el golpe aparecen trazas de partículas como en una cámara de niebla: una estrella de trazas gruesas, espirales finas, rayas que cruzan la pantalla y rizos cortos, hechas de gotitas de luz blanca con halo azul frío que se dispersan y se pierden. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "scientific",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "cloud chamber",
+        "particle tracks",
+        "radiation"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Tormenta Cósmica",
+          "values": {
+            "trazas": 1,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Rayo Cósmico",
+          "values": {
+            "trazas": 0.45,
+            "caida": 0.6
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_candilejas_ascenso",
       "name": "Reactiva · Candilejas en Ascenso",
       "description": "Durante la subida de energía cada bombo enciende una fila de focos en el borde inferior que lanzan conos de luz blanca cálida hacia arriba, más altos y más blancos cuanto más sube, que se recogen hacia abajo; en el drop se corta en seco. Sin música no dibuja nada.",
@@ -9987,6 +10323,54 @@
             "tamano": 0.45,
             "oscuridad": 0.25,
             "disparo": "Golpe grande"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_carrera_neon_rechazo_critica",
+      "name": "Reactiva · Carrera de Neón (rechazada por la crítica)",
+      "description": "Con el golpe dos cometas de neón recorren el contorno redondeado de la pantalla en sentidos opuestos, con núcleo blanco y estela roja anaranjada que se apaga, y se desvanecen al cruzarse. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "club",
+        "energetic",
+        "graphic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "neon",
+        "led chase",
+        "edge light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Circuito",
+          "values": {
+            "estela": 0.95,
+            "rapidez": 0.8
+          }
+        },
+        {
+          "name": "Chispazo",
+          "values": {
+            "estela": 0.35,
+            "rapidez": 1.7
           }
         }
       ]
@@ -10352,6 +10736,198 @@
       ]
     },
     {
+      "id": "reactiva_chorro_criogenico_rechazo_critica",
+      "name": "Reactiva · Chorro Criogénico (rechazada por la crítica)",
+      "description": "En el golpe disparan desde abajo de dos a cuatro chorros de CO2: núcleo blanco que sale de la boquilla y columna turbulenta con filo violeta; al cortarse, la niebla sube y se deshace en jirones. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "energetic",
+        "festival",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "co2 jet",
+        "cryo",
+        "stage effects"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Muro de Niebla",
+          "values": {
+            "chorros": 4,
+            "altura": 1
+          }
+        },
+        {
+          "name": "Disparo Central",
+          "values": {
+            "chorros": 1,
+            "altura": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_cielo_liquido",
+      "name": "Reactiva · Cielo Líquido (aprobada por la crítica)",
+      "description": "Con el golpe se enciende por encima de la escena una lámina de láser rojo que corta el humo: un techo de olas de luz en perspectiva que ruedan hacia ti, con crestas rojas finas y un velo de humo encendido; se abre barriendo y se apaga adelgazando. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "club",
+        "dramatic",
+        "hypnotic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "liquid sky",
+        "laser sheet",
+        "haze"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Techo Bajo",
+          "values": {
+            "altura": 0.58,
+            "olas": 1.3
+          }
+        },
+        {
+          "name": "Mar Lejano",
+          "values": {
+            "altura": 0.32,
+            "olas": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_cinta_seda_rechazo_critica",
+      "name": "Reactiva · Cinta de Seda (rechazada por la crítica)",
+      "description": "Con el golpe una cinta ancha de seda de luz esmeralda se despliega de lado a lado ondeando en una S: los pliegues atrapan brillos blancos que corren por la tela y el filo brilla; se va estrechando hasta desaparecer. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "elegant",
+        "fluid",
+        "luxurious"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "silk",
+        "ribbon",
+        "fabric light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Estola",
+          "values": {
+            "ancho": 1.45,
+            "caida": 1.6
+          }
+        },
+        {
+          "name": "Lazo",
+          "values": {
+            "ancho": 0.65,
+            "caida": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_corona_gota_rechazo_critica",
+      "name": "Reactiva · Corona de Gota (rechazada por la crítica)",
+      "description": "Con el golpe cae una gota de luz líquida y salpica en corona: anillo en perspectiva, pared translúcida de luz esmeralda con el borde rematado en puntas que sueltan gotitas, y un chorro que rebota en el centro. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "elegant",
+        "energetic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "crown splash",
+        "liquid light",
+        "high speed"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Salpicadura",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Gotita",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_cortina_svoboda",
       "name": "Reactiva · Cortina Svoboda",
       "description": "Al empezar una frase se materializa desde arriba una cortina de decenas de haces finísimos casi blancos a distancias irregulares, con su lámpara caliente arriba, venas más intensas y polvo flotando; se mantiene un instante y se recoge hacia arriba. Sin música no dibuja nada.",
@@ -10451,6 +11027,54 @@
             "ramas": 0.7,
             "velocidad": 0.6,
             "pulso": "Graves"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_dedos_rayleigh_rechazo_critica",
+      "name": "Reactiva · Dedos de Rayleigh (rechazada por la crítica)",
+      "description": "Con el golpe una capa de tinte luminoso se descuelga desde arriba en dedos que caen cada vez más deprisa y se ensanchan en cabezas que se enrollan, como en la inestabilidad de Rayleigh-Taylor; carmesí y magenta. Luego se despegan y se deshacen. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "fluid",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "rayleigh taylor",
+        "fluid instability",
+        "ink fingers"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Cortina",
+          "values": {
+            "dedos": 0.65,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Gotas Gordas",
+          "values": {
+            "dedos": 1.35,
+            "caida": 0.6
           }
         }
       ]
@@ -10643,6 +11267,198 @@
       ]
     },
     {
+      "id": "reactiva_diamantes_mach_rechazo_critica",
+      "name": "Reactiva · Diamantes de Mach (rechazada por la crítica)",
+      "description": "Con el golpe entra desde un borde un chorro supersónico con una fila de diamantes de choque, celdas de luz en rombo amarillas y blancas unidas por un chorro naranja que acaba en una cola turbulenta; se apaga recogiéndose hacia el borde. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "powerful",
+        "intense",
+        "energetic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "mach diamonds",
+        "shock diamonds",
+        "exhaust plume"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Despegue",
+          "values": {
+            "largo": 1,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Encendido Corto",
+          "values": {
+            "largo": 0.55,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_digitacion_viscosa_rechazo_critica",
+      "name": "Reactiva · Digitación Viscosa (rechazada por la crítica)",
+      "description": "Con el golpe un líquido de luz azul eléctrico se inyecta en un punto y avanza abriéndose en dedos que se parten por la punta, con el frente brillante, como en una celda de Hele-Shaw; al final se recoge hacia el punto. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "organic",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "viscous fingering",
+        "hele-shaw",
+        "fluid instability"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Mancha",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Chispazo Azul",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_duendes_rojos_rechazo_critica",
+      "name": "Reactiva · Duendes Rojos (rechazada por la crítica)",
+      "description": "Con el golpe estallan en medio de la escena unos duendes rojos: columnas de luz carmesí difusa de distintos tamaños que se deshilachan hacia abajo en zarcillos que acaban en azul violeta; se recogen hacia arriba y se desvanecen. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "dramatic",
+        "electric"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "red sprites",
+        "upper atmosphere",
+        "discharge"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Tormenta Alta",
+          "values": {
+            "duendes": 1,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Duende Solo",
+          "values": {
+            "duendes": 0.4,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_escalera_jacob_rechazo_critica",
+      "name": "Reactiva · Escalera de Jacob (rechazada por la crítica)",
+      "description": "Con el golpe salta un arco eléctrico con un fogonazo y sube como en una escalera de Jacob: se estira entre dos raíles invisibles, tiembla, lleva una llama naranja encima, deja peldaños de luz por debajo y arriba se rompe. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "electric",
+        "dramatic",
+        "strange"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "jacobs ladder",
+        "electric arc",
+        "high voltage"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Escalera Alta",
+          "values": {
+            "subida": 1,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Chispazo Bajo",
+          "values": {
+            "subida": 0.45,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_estrella_difraccion",
       "name": "Reactiva · Estrella de Difracción",
       "description": "Con la caja se abre en un punto alto la estrella de una lente ante una luz fuerte: núcleo quemado, picos que salen disparados y se recogen desde la punta, blancos junto al núcleo y en bandas de azul, verde y rojo hacia fuera, con anillos de Airy al principio. Sin música no dibuja nada.",
@@ -10789,6 +11605,102 @@
           "values": {
             "tono": "Sombra",
             "rafaga": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_figura_lichtenberg_rechazo_critica",
+      "name": "Reactiva · Figura de Lichtenberg (rechazada por la crítica)",
+      "description": "Con el golpe una descarga dibuja desde un punto un árbol fractal de luz que se ramifica, blanco en el núcleo con resplandor lima y verde; parpadea y se recoge desde las puntas. Cada golpe dibuja un árbol distinto. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "electric",
+        "strange",
+        "intense"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "lichtenberg figure",
+        "fractal",
+        "discharge"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Rayo Seco",
+          "values": {
+            "ramas": 0.55,
+            "caida": 0.45
+          }
+        },
+        {
+          "name": "Helecho",
+          "values": {
+            "ramas": 1,
+            "caida": 1.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_fisura_dimensional_rechazo_critica",
+      "name": "Reactiva · Fisura Dimensional (rechazada por la crítica)",
+      "description": "Con el golpe se rasga el aire: una grieta alargada se abre como un ojo, con bordes dentados de luz blanca que tiemblan, energía violeta que corre dentro, rayos que escapan y motas absorbidas; al final se cierra encogiéndose. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "dramatic",
+        "mystic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "dimensional rift",
+        "tear",
+        "energy"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Desgarro",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Parpadeo",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
           }
         }
       ]
@@ -10945,6 +11857,54 @@
       ]
     },
     {
+      "id": "reactiva_fuente_danzante_rechazo_critica",
+      "name": "Reactiva · Fuente Danzante (rechazada por la crítica)",
+      "description": "Con el golpe una fila de surtidores lanza chorros de agua iluminados como en un espectáculo de fuentes: columnas y arcos que se cruzan, que suben continuos y arriba se rompen en lluvia de gotas, azul cobalto y blanco. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "elegant",
+        "festive",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "musical fountain",
+        "water show",
+        "light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Final",
+          "values": {
+            "chorros": 9,
+            "altura": 1
+          }
+        },
+        {
+          "name": "Tres Arcos",
+          "values": {
+            "chorros": 3,
+            "altura": 0.6
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_fuga_carrete",
       "name": "Reactiva · Fuga de Luz de Carrete",
       "description": "Al empezar una frase entra desde un borde una fuga de luz de cámara de película: lóbulos orgánicos que se deslizan, respiran y se van, amarillo blanco junto al borde, naranja y rojo vivo hacia dentro, con grano y un leve parpadeo. Sin música no dibuja nada.",
@@ -10995,6 +11955,54 @@
       ]
     },
     {
+      "id": "reactiva_gobo_ruptura_rechazo_critica",
+      "name": "Reactiva · Gobo de Ruptura (rechazada por la crítica)",
+      "description": "Con el golpe aparece el círculo de un foco con gobo de ruptura: una docena de manchas de luz de bordes enfocados que giran mientras el círculo se desliza, blanco azulado en el centro y azul intenso hacia el borde; se cierra como un iris. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "cinematic",
+        "cool",
+        "energetic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "gobo",
+        "moving head",
+        "breakup light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Foco Grande",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Ráfaga",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.6
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_golpe_cine",
       "name": "Reactiva · Golpe de Cine",
       "description": "En el golpe grande la escena se encuadra un instante como una película: franjas negras finas que entran deslizándose con el borde suave y un hilo de luz cálida en el filo, y se retiran enseguida. Sin música no dibuja nada.",
@@ -11039,6 +12047,54 @@
           "values": {
             "barras": "Laterales",
             "cierre": 0.06
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_grieta_luz_rechazo_critica",
+      "name": "Reactiva · Grieta de Luz (rechazada por la crítica)",
+      "description": "Con el golpe la pantalla se raja como un cristal desde un punto: grietas quebradas que corren hacia fuera y anillos que las unen como una tela de araña, con luz blanca, ámbar y roja; se enfrían y se apagan desde las puntas. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "dramatic",
+        "intense",
+        "cinematic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "glass crack",
+        "fracture",
+        "light leak"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Estallido",
+          "values": {
+            "grietas": 12,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Impacto Seco",
+          "values": {
+            "grietas": 5,
+            "caida": 0.55
           }
         }
       ]
@@ -11126,6 +12182,102 @@
       ]
     },
     {
+      "id": "reactiva_hilos_corriente_rechazo_critica",
+      "name": "Reactiva · Hilos de Corriente (rechazada por la crítica)",
+      "description": "Con el golpe entra un peine de hilos de humo luminoso azul eléctrico e índigo, como en un túnel de viento: se apartan al pasar junto a obstáculos invisibles y detrás ondean y se deshilachan; al cortarse, la cola se va con la corriente. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "elegant",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "wind tunnel",
+        "smoke streaklines",
+        "flow visualization"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Peine Denso",
+          "values": {
+            "hilos": 1,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Pocos Hilos",
+          "values": {
+            "hilos": 0.5,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_hilos_luz_rechazo_critica",
+      "name": "Reactiva · Hilos de Luz (rechazada por la crítica)",
+      "description": "Con el golpe se tienden 160 hilos de luz entre puntos de un círculo y, donde se cruzan, dibujan una curva brillante (cardioide, nefroide o flor) distinta en cada golpe, que gira y fluye; se recoge cerrándose hacia el centro. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "elegant",
+        "hypnotic",
+        "geometric"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "string art",
+        "cardioid",
+        "times tables"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Mandala",
+          "values": {
+            "tamano": 1.25,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Destello Geométrico",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_hiperespacio_premium",
       "name": "Reactiva · Hiperespacio Premium",
       "description": "Versión reactiva: sin música no dibuja nada y sólo aparece un instante con el golpe grande (o el momento que elijas en Ajustes) y desaparece. Salto al hiperespacio: estrellas que nacen tenues en el centro y salen disparadas hacia los bordes, acelerando y estirándose en rayos de luz. Sin fondo, encima de cualquier visual.",
@@ -11173,6 +12325,150 @@
             "giro": 1,
             "estela": 0.35,
             "tamano": 1.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_humo_laser_rechazo_critica",
+      "name": "Reactiva · Humo Láser (rechazada por la crítica)",
+      "description": "Con el golpe sube una columna de humo cortada por una lámina de láser azul: un hilo liso que empieza a ondular, se enrolla y se rompe arriba en una maraña de filamentos con un velo encendido; luego se despega y se deshace. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "hypnotic",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "laser sheet",
+        "smoke plume",
+        "turbulence"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Hilo Largo",
+          "values": {
+            "ruptura": 0.38,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Bocanada",
+          "values": {
+            "ruptura": 0.12,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_ikebana_sonora_rechazo_critica",
+      "name": "Reactiva · Ikebana Sonora (rechazada por la crítica)",
+      "description": "Con el golpe, como si el sonido lanzara pintura desde un altavoz, salen disparadas lenguas de pintura de luz roja, amarilla y violeta que suben en arco a cámara lenta, se rizan y acaban en gotas con brillo húmedo; al caer se adelgazan y se recogen. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "dynamic",
+        "artistic",
+        "bold"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "sound of ikebana",
+        "paint splash",
+        "high speed"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Ramo",
+          "values": {
+            "lenguas": 1,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Salpicón",
+          "values": {
+            "lenguas": 0.45,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_laser_espejos_rechazo_critica",
+      "name": "Reactiva · Láser de Espejos (rechazada por la crítica)",
+      "description": "Con el golpe un rayo láser verde rebota entre espejos invisibles alrededor de la escena y dibuja en un instante una estrella de líneas con un destello en cada espejo; luego se recoge desde el principio. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "club",
+        "geometric",
+        "energetic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "laser",
+        "mirror bounce",
+        "star polygon"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Telaraña",
+          "values": {
+            "rebotes": 12,
+            "rapidez": 0.8
+          }
+        },
+        {
+          "name": "Pentagrama",
+          "values": {
+            "rebotes": 5,
+            "rapidez": 1.6
           }
         }
       ]
@@ -11278,6 +12574,102 @@
       ]
     },
     {
+      "id": "reactiva_latigo_luz_rechazo_critica",
+      "name": "Reactiva · Látigo de Luz (rechazada por la crítica)",
+      "description": "Con el golpe un látigo de luz roja y naranja barre un arco desde un borde dejando una estela en abanico, un bucle rueda hasta la punta y restalla con un chasquido de luz, rayos, un anillo de choque y chispas; luego se apaga desde el mango. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "energetic",
+        "dramatic",
+        "intense"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "whip crack",
+        "sonic boom",
+        "light stroke"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Látigo Largo",
+          "values": {
+            "largo": 1.2,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Chasquido Seco",
+          "values": {
+            "largo": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_leche_magica_rechazo_critica",
+      "name": "Reactiva · Leche Mágica (rechazada por la crítica)",
+      "description": "Con el golpe una gota de jabón empuja hacia fuera gotas de tinte rojo, ámbar y azul eléctrico, que salen disparadas en vetas y lenguas dejando el centro limpio, como en la leche mágica; luego se adelgazan en hilos hasta desaparecer. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "playful",
+        "psychedelic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "magic milk",
+        "dye burst",
+        "marangoni"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Estallido",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Gota Rápida",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_luciernagas_transparente",
       "name": "Reactiva · Luciérnagas Sincronizadas",
       "description": "Versión reactiva: sin música no dibuja nada y sólo aparece un instante con el golpe grande (o el momento que elijas en Ajustes) y desaparece. Cientos de luciérnagas que parpadean al azar y poco a poco se ponen de acuerdo hasta encenderse todas a la vez; con música, cada golpe las sincroniza con el ritmo sobre fondo transparente.",
@@ -11311,6 +12703,54 @@
       "reactivity": "music"
     },
     {
+      "id": "reactiva_luminiscencia_rechazo_critica",
+      "name": "Reactiva · Luminiscencia (rechazada por la crítica)",
+      "description": "Con el golpe se mezclan dos líquidos invisibles y sólo donde se tocan se enciende la luz, como en una barra luminosa: velos y remolinos de verde lima que se enroscan y se doblan; al agotarse se adelgazan y se encogen. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "fluid",
+        "electric"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "chemiluminescence",
+        "glow reaction",
+        "mixing"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Reacción",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Chispa Verde",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_luz_bordes_transparente",
       "name": "Reactiva · Luz de Bordes",
       "description": "Versión reactiva: sin música no dibuja nada y sólo aparece un instante con el golpe grande (o el momento que elijas en Ajustes) y desaparece. Resplandor de colores que recorre los bordes de la pantalla y se engrosa con cada banda de la música, con pulsos que corren con el ritmo sobre fondo transparente.",
@@ -11342,6 +12782,102 @@
       "publication": "draft",
       "role": "overlay",
       "reactivity": "music"
+    },
+    {
+      "id": "reactiva_mejorada_acuarela_florece_rechazo_critica",
+      "name": "Reactiva Mejorada · Acuarela que Florece (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe caen dos gotas de pigmento de luz, magenta y amarillo limón, que se abren como acuarela en papel mojado: bordes plumosos que se ramifican, grano por dentro y rojo coral donde se funden; al secarse se pierden en grano. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "artistic",
+        "dreamy"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "watercolor",
+        "wet on wet",
+        "pigment bloom"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Mancha",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Gota Rápida",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_aura_kirlian_rechazo_critica",
+      "name": "Reactiva Mejorada · Aura Kirlian (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe aparece el aura eléctrica de una forma invisible, como en una fotografía Kirlian: decenas de filamentos de descarga violeta y magenta que brotan de un contorno que no se ve, cambian sin parar y se acortan hasta desaparecer. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "electric",
+        "mystic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "kirlian",
+        "corona discharge",
+        "aura"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Aura Grande",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Chispazo",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
     },
     {
       "id": "reactiva_mejorada_aurora_enciende",
@@ -11493,6 +13029,102 @@
       ]
     },
     {
+      "id": "reactiva_mejorada_bengala_humo",
+      "name": "Reactiva Mejorada · Bengala de Humo (aprobada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe revienta desde un lado una bengala de humo verde esmeralda encendido: una columna espesa que sale a borbotones y se hincha en volutas que ruedan, brillante cerca de la boca; al cortarse se despega y se aclara hasta desaparecer. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "bold",
+        "warm",
+        "dramatic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "smoke bomb",
+        "colored smoke",
+        "billows"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Humareda",
+          "values": {
+            "largo": 1.2,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Bocanada",
+          "values": {
+            "largo": 0.55,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_bioluminiscencia_rechazo_critica",
+      "name": "Reactiva Mejorada · Bioluminiscencia (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe una ola cruza la escena y se enciende el plancton: una cresta de espuma de luz azul rota en tramos con salpicaduras, y detrás puntos que destellan y se apagan en unos cuadros. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "calm",
+        "magical",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "bioluminescence",
+        "plankton",
+        "glow wave"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Marea Viva",
+          "values": {
+            "plancton": 1,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Chispas de Agua",
+          "values": {
+            "plancton": 0.4,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_mejorada_bokeh_luces_2_transparente",
       "name": "Reactiva Mejorada · Bokeh 2",
       "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Luces desenfocadas rojas, naranjas y amarillas intensas que laten con los graves y saltan hacia la cámara con cada golpe sobre fondo transparente.",
@@ -11572,6 +13204,54 @@
             "marco": "Arriba y abajo",
             "apertura": 0.35,
             "caida": 0.28
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_burbujas_iridiscentes_rechazo_critica",
+      "name": "Reactiva Mejorada · Burbujas Iridiscentes (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe aparecen burbujas de jabón que suben bamboleándose, con bandas de color de interferencia que fluyen en la película, un reflejo blanco y el centro casi transparente; revientan una a una en un anillo de gotas. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "playful",
+        "dreamy",
+        "iridescent"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "soap bubbles",
+        "thin film",
+        "iridescence"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Nube de Burbujas",
+          "values": {
+            "burbujas": 8,
+            "caida": 1.8
+          }
+        },
+        {
+          "name": "Pompas Rápidas",
+          "values": {
+            "burbujas": 3,
+            "caida": 0.7
           }
         }
       ]
@@ -11678,6 +13358,102 @@
       ]
     },
     {
+      "id": "reactiva_mejorada_calle_vortices",
+      "name": "Reactiva Mejorada · Calle de Vórtices (aprobada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe algo invisible cruza la escena y deja una calle de remolinos de luz: dos hilos de tinte, carmesí y ámbar, que se enrollan en espirales alternas, cada vez más difusas, como el humo detrás de un cilindro; se borra desde el extremo más viejo. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "hypnotic",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "von karman",
+        "vortex street",
+        "flow visualization"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Remolinos Grandes",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Estela Corta",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_camara_niebla_rechazo_critica",
+      "name": "Reactiva Mejorada · Cámara de Niebla (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe aparecen trazas de partículas como en una cámara de niebla: una estrella de trazas gruesas, espirales finas, rayas que cruzan la pantalla y rizos cortos, hechas de gotitas de luz blanca con halo azul frío que se dispersan y se pierden. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "scientific",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "cloud chamber",
+        "particle tracks",
+        "radiation"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Tormenta Cósmica",
+          "values": {
+            "trazas": 1,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Rayo Cósmico",
+          "values": {
+            "trazas": 0.45,
+            "caida": 0.6
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_mejorada_candilejas_ascenso",
       "name": "Reactiva Mejorada · Candilejas en Ascenso",
       "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Durante la subida de energía cada bombo enciende una fila de focos en el borde inferior que lanzan conos de luz blanca cálida hacia arriba, más altos y más blancos cuanto más sube, que se recogen hacia abajo; en el drop se corta en seco. Sin música no dibuja nada.",
@@ -11775,6 +13551,54 @@
             "tamano": 0.45,
             "oscuridad": 0.25,
             "disparo": "Golpes acentuados"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_carrera_neon_rechazo_critica",
+      "name": "Reactiva Mejorada · Carrera de Neón (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe dos cometas de neón recorren el contorno redondeado de la pantalla en sentidos opuestos, con núcleo blanco y estela roja anaranjada que se apaga, y se desvanecen al cruzarse. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "club",
+        "energetic",
+        "graphic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "neon",
+        "led chase",
+        "edge light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Circuito",
+          "values": {
+            "estela": 0.95,
+            "rapidez": 0.8
+          }
+        },
+        {
+          "name": "Chispazo",
+          "values": {
+            "estela": 0.35,
+            "rapidez": 1.7
           }
         }
       ]
@@ -12142,6 +13966,198 @@
       ]
     },
     {
+      "id": "reactiva_mejorada_chorro_criogenico_rechazo_critica",
+      "name": "Reactiva Mejorada · Chorro Criogénico (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe disparan desde abajo de dos a cuatro chorros de CO2: núcleo blanco que sale de la boquilla y columna turbulenta con filo violeta; al cortarse, la niebla sube y se deshace en jirones. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "energetic",
+        "festival",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "co2 jet",
+        "cryo",
+        "stage effects"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Muro de Niebla",
+          "values": {
+            "chorros": 4,
+            "altura": 1
+          }
+        },
+        {
+          "name": "Disparo Central",
+          "values": {
+            "chorros": 1,
+            "altura": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_cielo_liquido",
+      "name": "Reactiva Mejorada · Cielo Líquido (aprobada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe se enciende por encima de la escena una lámina de láser rojo que corta el humo: un techo de olas de luz en perspectiva que ruedan hacia ti, con crestas rojas finas y un velo de humo encendido; se abre barriendo y se apaga adelgazando. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "club",
+        "dramatic",
+        "hypnotic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "liquid sky",
+        "laser sheet",
+        "haze"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Techo Bajo",
+          "values": {
+            "altura": 0.58,
+            "olas": 1.3
+          }
+        },
+        {
+          "name": "Mar Lejano",
+          "values": {
+            "altura": 0.32,
+            "olas": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_cinta_seda_rechazo_critica",
+      "name": "Reactiva Mejorada · Cinta de Seda (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe una cinta ancha de seda de luz esmeralda se despliega de lado a lado ondeando en una S: los pliegues atrapan brillos blancos que corren por la tela y el filo brilla; se va estrechando hasta desaparecer. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "elegant",
+        "fluid",
+        "luxurious"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "silk",
+        "ribbon",
+        "fabric light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Estola",
+          "values": {
+            "ancho": 1.45,
+            "caida": 1.6
+          }
+        },
+        {
+          "name": "Lazo",
+          "values": {
+            "ancho": 0.65,
+            "caida": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_corona_gota_rechazo_critica",
+      "name": "Reactiva Mejorada · Corona de Gota (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe cae una gota de luz líquida y salpica en corona: anillo en perspectiva, pared translúcida de luz esmeralda con el borde rematado en puntas que sueltan gotitas, y un chorro que rebota en el centro. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "elegant",
+        "energetic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "crown splash",
+        "liquid light",
+        "high speed"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Salpicadura",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Gotita",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_mejorada_cortina_svoboda",
       "name": "Reactiva Mejorada · Cortina Svoboda",
       "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar una frase se materializa desde arriba una cortina de decenas de haces finísimos casi blancos a distancias irregulares, con su lámpara caliente arriba, venas más intensas y polvo flotando; se mantiene un instante y se recoge hacia arriba. Sin música no dibuja nada.",
@@ -12242,6 +14258,54 @@
             "ramas": 0.7,
             "velocidad": 0.6,
             "pulso": "Graves"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_dedos_rayleigh_rechazo_critica",
+      "name": "Reactiva Mejorada · Dedos de Rayleigh (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe una capa de tinte luminoso se descuelga desde arriba en dedos que caen cada vez más deprisa y se ensanchan en cabezas que se enrollan, como en la inestabilidad de Rayleigh-Taylor; carmesí y magenta. Luego se despegan y se deshacen. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "fluid",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "rayleigh taylor",
+        "fluid instability",
+        "ink fingers"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Cortina",
+          "values": {
+            "dedos": 0.65,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Gotas Gordas",
+          "values": {
+            "dedos": 1.35,
+            "caida": 0.6
           }
         }
       ]
@@ -12437,6 +14501,198 @@
       ]
     },
     {
+      "id": "reactiva_mejorada_diamantes_mach_rechazo_critica",
+      "name": "Reactiva Mejorada · Diamantes de Mach (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe entra desde un borde un chorro supersónico con una fila de diamantes de choque, celdas de luz en rombo amarillas y blancas unidas por un chorro naranja que acaba en una cola turbulenta; se apaga recogiéndose hacia el borde. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "powerful",
+        "intense",
+        "energetic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "mach diamonds",
+        "shock diamonds",
+        "exhaust plume"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Despegue",
+          "values": {
+            "largo": 1,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Encendido Corto",
+          "values": {
+            "largo": 0.55,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_digitacion_viscosa_rechazo_critica",
+      "name": "Reactiva Mejorada · Digitación Viscosa (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe un líquido de luz azul eléctrico se inyecta en un punto y avanza abriéndose en dedos que se parten por la punta, con el frente brillante, como en una celda de Hele-Shaw; al final se recoge hacia el punto. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "organic",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "viscous fingering",
+        "hele-shaw",
+        "fluid instability"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Mancha",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Chispazo Azul",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_duendes_rojos_rechazo_critica",
+      "name": "Reactiva Mejorada · Duendes Rojos (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe estallan en medio de la escena unos duendes rojos: columnas de luz carmesí difusa de distintos tamaños que se deshilachan hacia abajo en zarcillos que acaban en azul violeta; se recogen hacia arriba y se desvanecen. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "dramatic",
+        "electric"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "red sprites",
+        "upper atmosphere",
+        "discharge"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Tormenta Alta",
+          "values": {
+            "duendes": 1,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Duende Solo",
+          "values": {
+            "duendes": 0.4,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_escalera_jacob_rechazo_critica",
+      "name": "Reactiva Mejorada · Escalera de Jacob (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe salta un arco eléctrico con un fogonazo y sube como en una escalera de Jacob: se estira entre dos raíles invisibles, tiembla, lleva una llama naranja encima, deja peldaños de luz por debajo y arriba se rompe. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "electric",
+        "dramatic",
+        "strange"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "jacobs ladder",
+        "electric arc",
+        "high voltage"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Escalera Alta",
+          "values": {
+            "subida": 1,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Chispazo Bajo",
+          "values": {
+            "subida": 0.45,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_mejorada_estrella_difraccion",
       "name": "Reactiva Mejorada · Estrella de Difracción",
       "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con la caja se abre en un punto alto la estrella de una lente ante una luz fuerte: núcleo quemado, picos que salen disparados y se recogen desde la punta, blancos junto al núcleo y en bandas de azul, verde y rojo hacia fuera, con anillos de Airy al principio. Sin música no dibuja nada.",
@@ -12584,6 +14840,102 @@
           "values": {
             "tono": "Sombra",
             "rafaga": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_figura_lichtenberg_rechazo_critica",
+      "name": "Reactiva Mejorada · Figura de Lichtenberg (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe una descarga dibuja desde un punto un árbol fractal de luz que se ramifica, blanco en el núcleo con resplandor lima y verde; parpadea y se recoge desde las puntas. Cada golpe dibuja un árbol distinto. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "electric",
+        "strange",
+        "intense"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "lichtenberg figure",
+        "fractal",
+        "discharge"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Rayo Seco",
+          "values": {
+            "ramas": 0.55,
+            "caida": 0.45
+          }
+        },
+        {
+          "name": "Helecho",
+          "values": {
+            "ramas": 1,
+            "caida": 1.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_fisura_dimensional_rechazo_critica",
+      "name": "Reactiva Mejorada · Fisura Dimensional (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe se rasga el aire: una grieta alargada se abre como un ojo, con bordes dentados de luz blanca que tiemblan, energía violeta que corre dentro, rayos que escapan y motas absorbidas; al final se cierra encogiéndose. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "dramatic",
+        "mystic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "dimensional rift",
+        "tear",
+        "energy"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Desgarro",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Parpadeo",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
           }
         }
       ]
@@ -12741,6 +15093,54 @@
       ]
     },
     {
+      "id": "reactiva_mejorada_fuente_danzante_rechazo_critica",
+      "name": "Reactiva Mejorada · Fuente Danzante (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe una fila de surtidores lanza chorros de agua iluminados como en un espectáculo de fuentes: columnas y arcos que se cruzan, que suben continuos y arriba se rompen en lluvia de gotas, azul cobalto y blanco. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "elegant",
+        "festive",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "musical fountain",
+        "water show",
+        "light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Final",
+          "values": {
+            "chorros": 9,
+            "altura": 1
+          }
+        },
+        {
+          "name": "Tres Arcos",
+          "values": {
+            "chorros": 3,
+            "altura": 0.6
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_mejorada_fuga_carrete",
       "name": "Reactiva Mejorada · Fuga de Luz de Carrete",
       "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Al empezar una frase entra desde un borde una fuga de luz de cámara de película: lóbulos orgánicos que se deslizan, respiran y se van, amarillo blanco junto al borde, naranja y rojo vivo hacia dentro, con grano y un leve parpadeo. Sin música no dibuja nada.",
@@ -12791,6 +15191,54 @@
       ]
     },
     {
+      "id": "reactiva_mejorada_gobo_ruptura_rechazo_critica",
+      "name": "Reactiva Mejorada · Gobo de Ruptura (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe aparece el círculo de un foco con gobo de ruptura: una docena de manchas de luz de bordes enfocados que giran mientras el círculo se desliza, blanco azulado en el centro y azul intenso hacia el borde; se cierra como un iris. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "cinematic",
+        "cool",
+        "energetic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "gobo",
+        "moving head",
+        "breakup light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Foco Grande",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Ráfaga",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.6
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_mejorada_golpe_cine",
       "name": "Reactiva Mejorada · Golpe de Cine",
       "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. En el golpe grande la escena se encuadra un instante como una película: franjas negras finas que entran deslizándose con el borde suave y un hilo de luz cálida en el filo, y se retiran enseguida. Sin música no dibuja nada.",
@@ -12835,6 +15283,54 @@
           "values": {
             "barras": "Laterales",
             "cierre": 0.06
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_grieta_luz_rechazo_critica",
+      "name": "Reactiva Mejorada · Grieta de Luz (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe la pantalla se raja como un cristal desde un punto: grietas quebradas que corren hacia fuera y anillos que las unen como una tela de araña, con luz blanca, ámbar y roja; se enfrían y se apagan desde las puntas. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "dramatic",
+        "intense",
+        "cinematic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "glass crack",
+        "fracture",
+        "light leak"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Estallido",
+          "values": {
+            "grietas": 12,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Impacto Seco",
+          "values": {
+            "grietas": 5,
+            "caida": 0.55
           }
         }
       ]
@@ -12923,6 +15419,102 @@
       ]
     },
     {
+      "id": "reactiva_mejorada_hilos_corriente_rechazo_critica",
+      "name": "Reactiva Mejorada · Hilos de Corriente (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe entra un peine de hilos de humo luminoso azul eléctrico e índigo, como en un túnel de viento: se apartan al pasar junto a obstáculos invisibles y detrás ondean y se deshilachan; al cortarse, la cola se va con la corriente. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "elegant",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "wind tunnel",
+        "smoke streaklines",
+        "flow visualization"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Peine Denso",
+          "values": {
+            "hilos": 1,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Pocos Hilos",
+          "values": {
+            "hilos": 0.5,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_hilos_luz_rechazo_critica",
+      "name": "Reactiva Mejorada · Hilos de Luz (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe se tienden 160 hilos de luz entre puntos de un círculo y, donde se cruzan, dibujan una curva brillante (cardioide, nefroide o flor) distinta en cada golpe, que gira y fluye; se recoge cerrándose hacia el centro. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "elegant",
+        "hypnotic",
+        "geometric"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "string art",
+        "cardioid",
+        "times tables"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Mandala",
+          "values": {
+            "tamano": 1.25,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Destello Geométrico",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_mejorada_hiperespacio_premium",
       "name": "Reactiva Mejorada · Hiperespacio Premium",
       "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Salto al hiperespacio: estrellas que nacen tenues en el centro y salen disparadas hacia los bordes, acelerando y estirándose en rayos de luz. Sin fondo, encima de cualquier visual.",
@@ -12971,6 +15563,150 @@
             "giro": 1,
             "estela": 0.35,
             "tamano": 1.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_humo_laser_rechazo_critica",
+      "name": "Reactiva Mejorada · Humo Láser (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe sube una columna de humo cortada por una lámina de láser azul: un hilo liso que empieza a ondular, se enrolla y se rompe arriba en una maraña de filamentos con un velo encendido; luego se despega y se deshace. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "hypnotic",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "laser sheet",
+        "smoke plume",
+        "turbulence"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Hilo Largo",
+          "values": {
+            "ruptura": 0.38,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Bocanada",
+          "values": {
+            "ruptura": 0.12,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_ikebana_sonora_rechazo_critica",
+      "name": "Reactiva Mejorada · Ikebana Sonora (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe, como si el sonido lanzara pintura desde un altavoz, salen disparadas lenguas de pintura de luz roja, amarilla y violeta que suben en arco a cámara lenta, se rizan y acaban en gotas con brillo húmedo; al caer se adelgazan y se recogen. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "dynamic",
+        "artistic",
+        "bold"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "sound of ikebana",
+        "paint splash",
+        "high speed"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Ramo",
+          "values": {
+            "lenguas": 1,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Salpicón",
+          "values": {
+            "lenguas": 0.45,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_laser_espejos_rechazo_critica",
+      "name": "Reactiva Mejorada · Láser de Espejos (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe un rayo láser verde rebota entre espejos invisibles alrededor de la escena y dibuja en un instante una estrella de líneas con un destello en cada espejo; luego se recoge desde el principio. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "club",
+        "geometric",
+        "energetic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "laser",
+        "mirror bounce",
+        "star polygon"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Telaraña",
+          "values": {
+            "rebotes": 12,
+            "rapidez": 0.8
+          }
+        },
+        {
+          "name": "Pentagrama",
+          "values": {
+            "rebotes": 5,
+            "rapidez": 1.6
           }
         }
       ]
@@ -13076,6 +15812,102 @@
       ]
     },
     {
+      "id": "reactiva_mejorada_latigo_luz_rechazo_critica",
+      "name": "Reactiva Mejorada · Látigo de Luz (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe un látigo de luz roja y naranja barre un arco desde un borde dejando una estela en abanico, un bucle rueda hasta la punta y restalla con un chasquido de luz, rayos, un anillo de choque y chispas; luego se apaga desde el mango. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "energetic",
+        "dramatic",
+        "intense"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "whip crack",
+        "sonic boom",
+        "light stroke"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Látigo Largo",
+          "values": {
+            "largo": 1.2,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Chasquido Seco",
+          "values": {
+            "largo": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_leche_magica_rechazo_critica",
+      "name": "Reactiva Mejorada · Leche Mágica (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe una gota de jabón empuja hacia fuera gotas de tinte rojo, ámbar y azul eléctrico, que salen disparadas en vetas y lenguas dejando el centro limpio, como en la leche mágica; luego se adelgazan en hilos hasta desaparecer. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "playful",
+        "psychedelic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "magic milk",
+        "dye burst",
+        "marangoni"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Estallido",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Gota Rápida",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_mejorada_luciernagas_transparente",
       "name": "Reactiva Mejorada · Luciérnagas Sincronizadas",
       "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Cientos de luciérnagas que parpadean al azar y poco a poco se ponen de acuerdo hasta encenderse todas a la vez; con música, cada golpe las sincroniza con el ritmo sobre fondo transparente.",
@@ -13110,6 +15942,54 @@
       "reactivity": "music"
     },
     {
+      "id": "reactiva_mejorada_luminiscencia_rechazo_critica",
+      "name": "Reactiva Mejorada · Luminiscencia (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe se mezclan dos líquidos invisibles y sólo donde se tocan se enciende la luz, como en una barra luminosa: velos y remolinos de verde lima que se enroscan y se doblan; al agotarse se adelgazan y se encogen. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "strange",
+        "fluid",
+        "electric"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "chemiluminescence",
+        "glow reaction",
+        "mixing"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Reacción",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Chispa Verde",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_mejorada_luz_bordes_transparente",
       "name": "Reactiva Mejorada · Luz de Bordes",
       "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Resplandor de colores que recorre los bordes de la pantalla y se engrosa con cada banda de la música, con pulsos que corren con el ritmo sobre fondo transparente.",
@@ -13142,6 +16022,54 @@
       "publication": "draft",
       "role": "overlay",
       "reactivity": "music"
+    },
+    {
+      "id": "reactiva_mejorada_muro_cromatico_rechazo_critica",
+      "name": "Reactiva Mejorada · Muro Cromático (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe entra por un lado una gran masa de niebla de luz violeta eléctrico y naranja que se enrolla mientras avanza, con los colores fundidos en rosa intenso y volutas que cambian cada instante; al final se aclara desde dentro y se deshace. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "immersive",
+        "psychedelic",
+        "bold"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "chromatic fog",
+        "color mass",
+        "volumetric light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Muro Grande",
+          "values": {
+            "tamano": 1.3,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Nube Rápida",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
     },
     {
       "id": "reactiva_mejorada_onda_choque_espectral",
@@ -13239,6 +16167,54 @@
             "ondas": 5,
             "profundidad": 0.5,
             "disparo": "Graves fuertes"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_polvo_holi_rechazo_critica",
+      "name": "Reactiva Mejorada · Polvo Holi (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe estallan nubes de polvo de color (rojo, naranja y amarillo encendido) que se abren rápido, turbulentas, con el núcleo brillante y los bordes en jirones, y luego se deshacen. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "festive",
+        "warm",
+        "explosive"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "holi powder",
+        "color burst",
+        "dust cloud"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Estallido",
+          "values": {
+            "nubes": 3,
+            "caida": 1.8
+          }
+        },
+        {
+          "name": "Bocanada",
+          "values": {
+            "nubes": 1,
+            "caida": 0.7
           }
         }
       ]
@@ -13389,6 +16365,150 @@
             "cada": 8,
             "caida": 0.8,
             "borde": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_prisma_dispersor_rechazo_critica",
+      "name": "Reactiva Mejorada · Prisma Dispersor (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe un haz blanco finísimo llega a un punto de la escena y se abre en abanico el espectro saturado, quemado junto al punto y cayendo con la distancia; el abanico se abre, gira un poco y se cierra. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "dramatic",
+        "colorful",
+        "elegant"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "prism",
+        "dispersion",
+        "spectrum"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Abanico Ancho",
+          "values": {
+            "apertura": 0.65,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Rayo Fino",
+          "values": {
+            "apertura": 0.22,
+            "caida": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_proyeccion_aceite_rechazo_critica",
+      "name": "Reactiva Mejorada · Proyección de Aceite (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe florece una mancha de tintes de aceite (rojo, ámbar y violeta) con contornos vivos que fluyen y se montan unos sobre otros, como en los light shows de los 60; se recoge encogiendo y juntando las cadenas. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "psychedelic",
+        "fluid",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "liquid light show",
+        "oil projection",
+        "dye"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Placa Grande",
+          "values": {
+            "celulas": 1.35,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Gotas",
+          "values": {
+            "celulas": 0.7,
+            "caida": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_pulsar_rechazo_critica",
+      "name": "Reactiva Mejorada · Púlsar (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe una estrella diminuta lanza dos haces opuestos de luz verde lima que giran como un faro y barren la pantalla con una estela en abanico; al final se acortan hasta apagarse. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "cosmic",
+        "energetic",
+        "hypnotic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "pulsar",
+        "lighthouse beams",
+        "magnetic field"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Faro Rápido",
+          "values": {
+            "giro": 1.6,
+            "caida": 1.2
+          }
+        },
+        {
+          "name": "Destello Fijo",
+          "values": {
+            "giro": 0.45,
+            "caida": 0.55
           }
         }
       ]
@@ -13546,6 +16666,102 @@
       ]
     },
     {
+      "id": "reactiva_mejorada_rizos_kelvin_rechazo_critica",
+      "name": "Reactiva Mejorada · Rizos de Kelvin (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe se enciende a lo ancho la frontera entre dos corrientes de luz, turquesa y rosa intenso, que se enrolla en una fila de rizos de tamaños distintos como las olas de Kelvin-Helmholtz; crecen, avanzan y se rompen hasta deshacerse. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "hypnotic",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "kelvin helmholtz",
+        "shear flow",
+        "billows"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Olas Grandes",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Rizo Rápido",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_salpicadura_uv_rechazo_critica",
+      "name": "Reactiva Mejorada · Salpicadura UV (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe aparece una salpicadura de pintura fluorescente que brilla como bajo luz negra: mancha con espesor, gotas y regueros en verde neón, naranja o violeta UV, con halo; se apaga encogiéndose. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "party",
+        "neon",
+        "playful"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "uv paint",
+        "blacklight",
+        "splatter"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Lienzo UV",
+          "values": {
+            "tamano": 1.45,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Gotitas",
+          "values": {
+            "tamano": 0.65,
+            "caida": 0.5
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_mejorada_show_laser_transparente",
       "name": "Reactiva Mejorada · Show Láser",
       "description": "Versión reactiva mejorada: sin música no dibuja nada; con música se ve tanto como suena y cada golpe la enciende más. Espectáculo de láseres de festival: abanicos de rayos de colores que barren el humo, se abren y destellan con cada golpe sobre fondo transparente.",
@@ -13577,6 +16793,150 @@
       "publication": "draft",
       "role": "overlay",
       "reactivity": "music"
+    },
+    {
+      "id": "reactiva_mejorada_tajo_luz_rechazo_critica",
+      "name": "Reactiva Mejorada · Tajo de Luz (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe un tajo de luz corta la escena en media luna: un arco que se traza en un parpadeo, filo blanco nítido, cuerpo carmesí que se desvanece hacia dentro, líneas de velocidad y chispas al final; luego adelgaza hasta desaparecer. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "energetic",
+        "dramatic",
+        "intense"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "slash",
+        "crescent",
+        "speed lines"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Corte",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Corte Rápido",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_tinta_luz_rechazo_critica",
+      "name": "Reactiva Mejorada · Tinta de Luz (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe se suelta tinta luminosa como en agua: dos tintas, escarlata y azul real, que brotan de un punto y se arremolinan en filamentos finos, sumándose en violeta donde se cruzan; se deshace adelgazando. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "elegant",
+        "mysterious"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "ink in water",
+        "swirl",
+        "fluid light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Nube",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.7
+          }
+        },
+        {
+          "name": "Gota de Tinta",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_mejorada_trazo_luz",
+      "name": "Reactiva Mejorada · Trazo de Luz (aprobada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe una luz pinta en el aire un trazo caligráfico con un bucle, como en el light painting: cabeza quemada, trazo que sigue encendido y cambia de grosor con la dirección, blanco, oro, naranja y rojo; luego la cola se recoge. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "energetic",
+        "warm",
+        "graphic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "light painting",
+        "long exposure",
+        "calligraphy"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Firma",
+          "values": {
+            "tamano": 1.25,
+            "rapidez": 0.8
+          }
+        },
+        {
+          "name": "Látigo",
+          "values": {
+            "tamano": 0.75,
+            "rapidez": 1.7
+          }
+        }
+      ]
     },
     {
       "id": "reactiva_mejorada_v10_supernova_transparente",
@@ -13683,6 +17043,54 @@
       ]
     },
     {
+      "id": "reactiva_mejorada_vertido_acrilico_rechazo_critica",
+      "name": "Reactiva Mejorada · Vertido Acrílico (rechazada por la crítica)",
+      "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe se vierte un charco de pintura de luz turquesa y rojo coral, como en el vertido acrílico: bandas estiradas que se curvan al extenderse y celdas de muchos tamaños por las que asoma el otro color; al final las celdas crecen hasta que no queda nada. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "artistic",
+        "psychedelic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "acrylic pour",
+        "fluid art",
+        "cells"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Vertido",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Gota de Pintura",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_mejorada_vineta_late",
       "name": "Reactiva Mejorada · Viñeta que Late",
       "description": "Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el golpe, los bordes de la escena se oscurecen un instante como al mirar por un objetivo: viñeta sin color de caída larga y suave (óvalo, laterales o arriba y abajo) con el centro intacto. Sin música no dibuja nada.",
@@ -13728,6 +17136,54 @@
             "marco": "Arriba y abajo",
             "apertura": 0.55,
             "disparo": "Cada pulso"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_muro_cromatico_rechazo_critica",
+      "name": "Reactiva · Muro Cromático (rechazada por la crítica)",
+      "description": "Con el golpe entra por un lado una gran masa de niebla de luz violeta eléctrico y naranja que se enrolla mientras avanza, con los colores fundidos en rosa intenso y volutas que cambian cada instante; al final se aclara desde dentro y se deshace. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "immersive",
+        "psychedelic",
+        "bold"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "chromatic fog",
+        "color mass",
+        "volumetric light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Muro Grande",
+          "values": {
+            "tamano": 1.3,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Nube Rápida",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
           }
         }
       ]
@@ -13828,6 +17284,54 @@
             "ondas": 5,
             "profundidad": 0.5,
             "disparo": "Graves fuertes"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_polvo_holi_rechazo_critica",
+      "name": "Reactiva · Polvo Holi (rechazada por la crítica)",
+      "description": "Con el golpe estallan nubes de polvo de color (rojo, naranja y amarillo encendido) que se abren rápido, turbulentas, con el núcleo brillante y los bordes en jirones, y luego se deshacen. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "festive",
+        "warm",
+        "explosive"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "holi powder",
+        "color burst",
+        "dust cloud"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Estallido",
+          "values": {
+            "nubes": 3,
+            "caida": 1.8
+          }
+        },
+        {
+          "name": "Bocanada",
+          "values": {
+            "nubes": 1,
+            "caida": 0.7
           }
         }
       ]
@@ -13978,6 +17482,150 @@
             "cada": 8,
             "caida": 0.8,
             "borde": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_prisma_dispersor_rechazo_critica",
+      "name": "Reactiva · Prisma Dispersor (rechazada por la crítica)",
+      "description": "Con el golpe un haz blanco finísimo llega a un punto de la escena y se abre en abanico el espectro saturado, quemado junto al punto y cayendo con la distancia; el abanico se abre, gira un poco y se cierra. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "dramatic",
+        "colorful",
+        "elegant"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "prism",
+        "dispersion",
+        "spectrum"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Abanico Ancho",
+          "values": {
+            "apertura": 0.65,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Rayo Fino",
+          "values": {
+            "apertura": 0.22,
+            "caida": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_proyeccion_aceite_rechazo_critica",
+      "name": "Reactiva · Proyección de Aceite (rechazada por la crítica)",
+      "description": "Con el golpe florece una mancha de tintes de aceite (rojo, ámbar y violeta) con contornos vivos que fluyen y se montan unos sobre otros, como en los light shows de los 60; se recoge encogiendo y juntando las cadenas. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "psychedelic",
+        "fluid",
+        "warm"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "liquid light show",
+        "oil projection",
+        "dye"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Placa Grande",
+          "values": {
+            "celulas": 1.35,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Gotas",
+          "values": {
+            "celulas": 0.7,
+            "caida": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_pulsar_rechazo_critica",
+      "name": "Reactiva · Púlsar (rechazada por la crítica)",
+      "description": "Con el golpe una estrella diminuta lanza dos haces opuestos de luz verde lima que giran como un faro y barren la pantalla con una estela en abanico; al final se acortan hasta apagarse. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "cosmic",
+        "energetic",
+        "hypnotic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "pulsar",
+        "lighthouse beams",
+        "magnetic field"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Faro Rápido",
+          "values": {
+            "giro": 1.6,
+            "caida": 1.2
+          }
+        },
+        {
+          "name": "Destello Fijo",
+          "values": {
+            "giro": 0.45,
+            "caida": 0.55
           }
         }
       ]
@@ -14135,6 +17783,102 @@
       ]
     },
     {
+      "id": "reactiva_rizos_kelvin_rechazo_critica",
+      "name": "Reactiva · Rizos de Kelvin (rechazada por la crítica)",
+      "description": "Con el golpe se enciende a lo ancho la frontera entre dos corrientes de luz, turquesa y rosa intenso, que se enrolla en una fila de rizos de tamaños distintos como las olas de Kelvin-Helmholtz; crecen, avanzan y se rompen hasta deshacerse. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "hypnotic",
+        "cool"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "kelvin helmholtz",
+        "shear flow",
+        "billows"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Olas Grandes",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Rizo Rápido",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_salpicadura_uv_rechazo_critica",
+      "name": "Reactiva · Salpicadura UV (rechazada por la crítica)",
+      "description": "Con el golpe aparece una salpicadura de pintura fluorescente que brilla como bajo luz negra: mancha con espesor, gotas y regueros en verde neón, naranja o violeta UV, con halo; se apaga encogiéndose. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "party",
+        "neon",
+        "playful"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "uv paint",
+        "blacklight",
+        "splatter"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Lienzo UV",
+          "values": {
+            "tamano": 1.45,
+            "caida": 1.5
+          }
+        },
+        {
+          "name": "Gotitas",
+          "values": {
+            "tamano": 0.65,
+            "caida": 0.5
+          }
+        }
+      ]
+    },
+    {
       "id": "reactiva_show_laser_transparente",
       "name": "Reactiva · Show Láser",
       "description": "Versión reactiva: sin música no dibuja nada y sólo aparece un instante con el golpe grande (o el momento que elijas en Ajustes) y desaparece. Espectáculo de láseres de festival: abanicos de rayos de colores que barren el humo, se abren y destellan con cada golpe sobre fondo transparente.",
@@ -14165,6 +17909,150 @@
       "publication": "draft",
       "role": "overlay",
       "reactivity": "music"
+    },
+    {
+      "id": "reactiva_tajo_luz_rechazo_critica",
+      "name": "Reactiva · Tajo de Luz (rechazada por la crítica)",
+      "description": "Con el golpe un tajo de luz corta la escena en media luna: un arco que se traza en un parpadeo, filo blanco nítido, cuerpo carmesí que se desvanece hacia dentro, líneas de velocidad y chispas al final; luego adelgaza hasta desaparecer. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "energetic",
+        "dramatic",
+        "intense"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "slash",
+        "crescent",
+        "speed lines"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Corte",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.3
+          }
+        },
+        {
+          "name": "Corte Rápido",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_tinta_luz_rechazo_critica",
+      "name": "Reactiva · Tinta de Luz (rechazada por la crítica)",
+      "description": "Con el golpe se suelta tinta luminosa como en agua: dos tintas, escarlata y azul real, que brotan de un punto y se arremolinan en filamentos finos, sumándose en violeta donde se cruzan; se deshace adelgazando. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "elegant",
+        "mysterious"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "ink in water",
+        "swirl",
+        "fluid light"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Nube",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.7
+          }
+        },
+        {
+          "name": "Gota de Tinta",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_trazo_luz",
+      "name": "Reactiva · Trazo de Luz (aprobada por la crítica)",
+      "description": "Con el golpe una luz pinta en el aire un trazo caligráfico con un bucle, como en el light painting: cabeza quemada, trazo que sigue encendido y cambia de grosor con la dirección, blanco, oro, naranja y rojo; luego la cola se recoge. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "energetic",
+        "warm",
+        "graphic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "light painting",
+        "long exposure",
+        "calligraphy"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Firma",
+          "values": {
+            "tamano": 1.25,
+            "rapidez": 0.8
+          }
+        },
+        {
+          "name": "Látigo",
+          "values": {
+            "tamano": 0.75,
+            "rapidez": 1.7
+          }
+        }
+      ]
     },
     {
       "id": "reactiva_v10_supernova_transparente",
@@ -14264,6 +18152,54 @@
             "aberracion": 0.4,
             "pulso": "Graves",
             "speed": 0.8
+          }
+        }
+      ]
+    },
+    {
+      "id": "reactiva_vertido_acrilico_rechazo_critica",
+      "name": "Reactiva · Vertido Acrílico (rechazada por la crítica)",
+      "description": "Con el golpe se vierte un charco de pintura de luz turquesa y rojo coral, como en el vertido acrílico: bandas estiradas que se curvan al extenderse y celdas de muchos tamaños por las que asoma el otro color; al final las celdas crecen hasta que no queda nada. Sin música no dibuja nada.",
+      "purposes": [
+        "visualizer",
+        "overlay",
+        "momentary"
+      ],
+      "moods": [
+        "fluid",
+        "artistic",
+        "psychedelic"
+      ],
+      "concepts": [
+        "aparición momentánea",
+        "acrylic pour",
+        "fluid art",
+        "cells"
+      ],
+      "credits": {
+        "author": "Chic Apps",
+        "license": "",
+        "source": ""
+      },
+      "thumbnail": {
+        "timeSeconds": 1.0
+      },
+      "publication": "draft",
+      "role": "overlay",
+      "reactivity": "music",
+      "variations": [
+        {
+          "name": "Gran Vertido",
+          "values": {
+            "tamano": 1.35,
+            "caida": 1.4
+          }
+        },
+        {
+          "name": "Gota de Pintura",
+          "values": {
+            "tamano": 0.7,
+            "caida": 0.55
           }
         }
       ]
