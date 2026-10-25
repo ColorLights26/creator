@@ -163,20 +163,113 @@ enum SceneRenderSignalFrameV2Codec {
     )
   }
 
-  private static func readUInt16(_ bytes: [UInt8], at offset: Int) -> UInt16 {
+  fileprivate static func readUInt16(_ bytes: [UInt8], at offset: Int) -> UInt16 {
     UInt16(bytes[offset]) |
       UInt16(bytes[offset + 1]) << 8
   }
 
-  private static func readUInt32(_ bytes: [UInt8], at offset: Int) -> UInt32 {
+  fileprivate static func readUInt32(_ bytes: [UInt8], at offset: Int) -> UInt32 {
     UInt32(bytes[offset]) |
       UInt32(bytes[offset + 1]) << 8 |
       UInt32(bytes[offset + 2]) << 16 |
       UInt32(bytes[offset + 3]) << 24
   }
 
-  private static func readUInt64(_ bytes: [UInt8], at offset: Int) -> UInt64 {
+  fileprivate static func readUInt64(_ bytes: [UInt8], at offset: Int) -> UInt64 {
     UInt64(readUInt32(bytes, at: offset)) |
       UInt64(readUInt32(bytes, at: offset + 4)) << 32
+  }
+}
+
+enum SceneRenderMusicCueTypeV1: UInt8 {
+  case none = 0
+  case beat = 1
+  case accent = 2
+  case impact = 3
+  case transition = 4
+  case drop = 5
+  case release = 6
+}
+
+/// Resolved MusicMap structure that travels with one V2 frame
+/// (`SceneRenderMusicStructureV1` in visual_contract). An untrusted block
+/// carries zeros only, so family policies read it only when `mappedTrusted`.
+struct SceneRenderMusicStructureV1: Equatable {
+  let sessionId: Int64
+  let sequence: Int64
+  let mappedTrusted: Bool
+  let energy: Float
+  let tension: Float
+  let anticipation: Float
+  let beatPhase: Float
+  let barPhase: Float
+  let confidence: Float
+  let motionScale: Float
+  let cueSerial: Int64
+  let cueType: SceneRenderMusicCueTypeV1
+  let cueStrength: Float
+
+  func pairs(with frame: SceneRenderSignalFrameV2) -> Bool {
+    sessionId == frame.sessionId && sequence == frame.sequence
+  }
+}
+
+enum SceneRenderMusicStructureV1Codec {
+  static let magic: UInt32 = 0x314D_5253
+  static let version: UInt16 = 1
+  static let byteLength = 80
+
+  private static let knownFlags: UInt16 = 0x0001
+
+  static func decode(_ data: Data) -> SceneRenderMusicStructureV1? {
+    let bytes = [UInt8](data)
+    guard bytes.count == byteLength,
+          SceneRenderSignalFrameV2Codec.readUInt32(bytes, at: 0) == magic,
+          SceneRenderSignalFrameV2Codec.readUInt16(bytes, at: 4) == version,
+          SceneRenderSignalFrameV2Codec.readUInt32(bytes, at: 8) == UInt32(byteLength),
+          SceneRenderSignalFrameV2Codec.readUInt32(bytes, at: 12) == 0,
+          bytes[73..<byteLength].allSatisfy({ $0 == 0 })
+    else {
+      return nil
+    }
+    let flags = SceneRenderSignalFrameV2Codec.readUInt16(bytes, at: 6)
+    guard flags & ~knownFlags == 0,
+          let cueType = SceneRenderMusicCueTypeV1(rawValue: bytes[72])
+    else {
+      return nil
+    }
+    let sessionId = Int64(bitPattern: SceneRenderSignalFrameV2Codec.readUInt64(bytes, at: 16))
+    let sequence = Int64(bitPattern: SceneRenderSignalFrameV2Codec.readUInt64(bytes, at: 24))
+    let cueSerial = Int64(bitPattern: SceneRenderSignalFrameV2Codec.readUInt64(bytes, at: 64))
+    // energy, tension, anticipation, beatPhase, barPhase, confidence,
+    // motionScale, cueStrength.
+    let values = stride(from: 32, through: 60, by: 4).map {
+      Float(bitPattern: SceneRenderSignalFrameV2Codec.readUInt32(bytes, at: $0))
+    }
+    let mappedTrusted = flags & 0x0001 != 0
+    let cuePresent = cueType != .none
+    guard sessionId >= 0, sequence >= 0, cueSerial >= 0,
+          values.allSatisfy({ $0.isFinite && $0 >= 0 && $0 <= 1 }),
+          cuePresent == (cueSerial > 0),
+          cuePresent || values[7] == 0,
+          mappedTrusted || (!cuePresent && values.allSatisfy { $0 == 0 })
+    else {
+      return nil
+    }
+    return SceneRenderMusicStructureV1(
+      sessionId: sessionId,
+      sequence: sequence,
+      mappedTrusted: mappedTrusted,
+      energy: values[0],
+      tension: values[1],
+      anticipation: values[2],
+      beatPhase: values[3],
+      barPhase: values[4],
+      confidence: values[5],
+      motionScale: values[6],
+      cueSerial: cueSerial,
+      cueType: cueType,
+      cueStrength: values[7]
+    )
   }
 }

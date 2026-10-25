@@ -2093,6 +2093,10 @@ struct SceneRenderV2WaveformLayer {
 
 /// Exact, bounded replay of MusicWaveformField. Quality transitions retain this
 /// authority; only sampling density, glow count and cadence change.
+///
+/// The family policy (`MusicWaveformSignalReplay` in Dart) reads a trusted
+/// MusicMap structure through the waveform's own musical response and every
+/// other input through the generic V2 projection. Change both together.
 final class SceneRenderV2WaveformState {
   static let sampleCount = 127
   static let spectralNodeCount = 15
@@ -2116,6 +2120,7 @@ final class SceneRenderV2WaveformState {
   private var signalSessionID: Int64 = -1
   private var lastAudioTimestampMicros: Int64 = -1
   private var lastEventSerials = Array(repeating: Int64(-1), count: 4)
+  private var lastCueSerial: Int64 = 0
   private var excitation = 0.0
   private var width = 0.155
   private var targetWidth = 0.155
@@ -2135,8 +2140,24 @@ final class SceneRenderV2WaveformState {
 
   init(layerID: String) { self.layerID = layerID }
 
+  /// What the waveform family reads from one signal frame.
+  private struct Input {
+    var bass = 0.0
+    var body = 0.0
+    var spark = 0.0
+    var flow = 0.0
+    var level = 0.0
+    var spectrum: [Float] = []
+    var rhythmPhase = 0.0
+    var rhythmConfidence = 0.0
+    var onsets = [0.0, 0.0, 0.0, 0.0]
+    var eventStrength = 0.0
+    var eventBand: SceneRenderSignalEventBandV2?
+  }
+
   func consume(
     _ frame: SceneRenderSignalFrameV2,
+    structure: SceneRenderMusicStructureV1?,
     layer: SceneRenderV2WaveformLayer
   ) -> Bool {
     let oldSamples = samples
@@ -2155,47 +2176,57 @@ final class SceneRenderV2WaveformState {
       )
     lastAudioTimestampMicros = frame.audioTimestampMicros
     let reactive = frame.available && frame.fresh && frame.musicActive
+    // Events and cues are read only while reacting, so a serial that arrives
+    // while the field rests is still new when music resumes.
+    let input: Input
+    if !reactive {
+      input = Input()
+    } else if let structure, structure.mappedTrusted {
+      input = mappedInput(frame, structure)
+    } else {
+      input = genericInput(frame)
+    }
 
     updateTransientDrive(
       delta: delta,
       active: reactive,
-      bassValue: unit(frame.channels[0]),
-      bodyValue: unit(frame.channels[1]),
-      levelValue: unit(frame.dynamics[2])
+      bassValue: input.bass,
+      bodyValue: input.body,
+      levelValue: input.level
     )
     updateStandingPulse(
       delta: delta,
       active: reactive,
-      bodyValue: unit(frame.channels[1]),
-      flowValue: unit(frame.channels[3]),
-      levelValue: unit(frame.dynamics[2]),
-      rhythmPhase: unit(frame.rhythm[1]),
-      rhythmConfidence: max(unit(frame.rhythm[2]), unit(frame.rhythm[3]))
+      bodyValue: input.body,
+      flowValue: input.flow,
+      levelValue: input.level,
+      rhythmPhase: input.rhythmPhase,
+      rhythmConfidence: input.rhythmConfidence
     )
     bass = responseFollow(
-      bass, reactive ? unit(frame.channels[0]) : 0, delta,
+      bass, input.bass, delta,
       layer.responseSeconds[0], layer.responseSeconds[1]
     )
     body = responseFollow(
-      body, reactive ? unit(frame.channels[1]) : 0, delta,
+      body, input.body, delta,
       layer.responseSeconds[2], layer.responseSeconds[3]
     )
     spark = responseFollow(
-      spark, reactive ? unit(frame.channels[2]) : 0, delta,
+      spark, input.spark, delta,
       layer.responseSeconds[4], layer.responseSeconds[5]
     )
     flow = responseFollow(
-      flow, reactive ? unit(frame.channels[3]) : 0, delta,
+      flow, input.flow, delta,
       layer.responseSeconds[6], layer.responseSeconds[7]
     )
     level = responseFollow(
-      level, reactive ? unit(frame.dynamics[2]) : 0, delta,
+      level, input.level, delta,
       layer.responseSeconds[8], layer.responseSeconds[9]
     )
 
     if reactive {
-      rebuildSpectralModifiers(frame.smoothedSpectrum)
-      updateDeformation(delta: delta, frame: frame)
+      rebuildSpectralModifiers(input.spectrum)
+      updateDeformation(delta: delta, input: input)
       let musicalDrive = max(level, max(bass * 0.90, body * 0.72))
       rebuildTargets(
         displacementGain: min(
@@ -2231,6 +2262,98 @@ final class SceneRenderV2WaveformState {
     )
     return oldEnergy != lineEnergy || oldVisibility != lineVisibility ||
       oldImpact != impactLight || oldSamples != samples
+  }
+
+  /// Generic V2 reading: channels, intensity, the 31-band spectrum, rhythm,
+  /// onsets and the strongest new impact/accent/beat/flash event.
+  private func genericInput(_ frame: SceneRenderSignalFrameV2) -> Input {
+    var input = Input()
+    input.bass = unit(frame.channels[0])
+    input.body = unit(frame.channels[1])
+    input.spark = unit(frame.channels[2])
+    input.flow = unit(frame.channels[3])
+    input.level = unit(frame.dynamics[2])
+    input.spectrum = frame.smoothedSpectrum
+    input.rhythmPhase = unit(frame.rhythm[1])
+    input.rhythmConfidence = max(unit(frame.rhythm[2]), unit(frame.rhythm[3]))
+    input.onsets = frame.onsets.map { unit($0) }
+    let gains = [1.0, 0.92, 1.0, 0.82]
+    for (index, event) in slotEvents(frame).enumerated() where event.serial > lastEventSerials[index] {
+      lastEventSerials[index] = event.serial
+      selectEvent(event.active ? unit(event.strength) * gains[index] : 0, event.band, into: &input)
+    }
+    return input
+  }
+
+  /// The waveform's own response to a trusted MusicMap (MusicWaveform's mapped
+  /// mode), inside the runtime's motion envelope. Impact/accent/beat slots
+  /// carry the runtime's single resolved cue, read here by type; flash stays
+  /// the safety-gated slot.
+  private func mappedInput(
+    _ frame: SceneRenderSignalFrameV2,
+    _ structure: SceneRenderMusicStructureV1
+  ) -> Input {
+    let energy = Double(structure.energy)
+    let tension = Double(structure.tension)
+    let anticipation = Double(structure.anticipation)
+    let motion = Double(structure.motionScale)
+    var input = Input()
+    input.bass = unitValue(0.28 + energy * 0.66) * motion
+    input.body = unitValue(0.24 + energy * 0.38 + tension * 0.30) * motion
+    input.spark = unitValue(0.10 + tension * 0.34 + anticipation * 0.48) * motion
+    input.flow = unitValue(0.30 + energy * 0.28 + Double(structure.barPhase) * 0.18) * motion
+    input.level = unitValue(0.26 + energy * 0.70)
+    input.spectrum = (0..<Self.spectralNodeCount).map { index in
+      let position = Double(index) / Double(Self.spectralNodeCount - 1)
+      return Float(
+        unitValue(
+          0.12 + Foundation.exp(-position * 2.4) * energy * 0.62 +
+            Foundation.sin(Double.pi * position) * tension * 0.30 +
+            position * anticipation * 0.34
+        )
+      )
+    }
+    input.rhythmPhase = Double(structure.beatPhase)
+    input.rhythmConfidence = Double(structure.confidence)
+    input.onsets = frame.onsets.map { unit($0) }
+    if structure.cueType != .none, structure.cueSerial != lastCueSerial {
+      lastCueSerial = structure.cueSerial
+      let strength = unit(structure.cueStrength) * motion
+      input.onsets[3] = max(input.onsets[3], strength)
+      selectEvent(strength, Self.band(for: structure.cueType), into: &input)
+    }
+    for (index, event) in slotEvents(frame).enumerated() where event.serial > lastEventSerials[index] {
+      lastEventSerials[index] = event.serial
+      if index == 3 {
+        selectEvent(event.active ? unit(event.strength) * 0.82 : 0, event.band, into: &input)
+      }
+    }
+    return input
+  }
+
+  private func slotEvents(_ frame: SceneRenderSignalFrameV2) -> [SceneRenderSignalEventV2] {
+    [frame.impact, frame.accent, frame.beat, frame.flash]
+  }
+
+  /// Strongest candidate wins; a later candidate wins a tie.
+  private func selectEvent(
+    _ strength: Double,
+    _ band: SceneRenderSignalEventBandV2,
+    into input: inout Input
+  ) {
+    guard strength >= input.eventStrength else { return }
+    input.eventStrength = strength
+    input.eventBand = band
+  }
+
+  private static func band(for cue: SceneRenderMusicCueTypeV1) -> SceneRenderSignalEventBandV2 {
+    switch cue {
+    case .beat: return .low
+    case .accent: return .body
+    case .impact, .drop: return .broadband
+    case .transition, .release: return .high
+    case .none: return .none
+    }
   }
 
   private func updateStandingPulse(
@@ -2325,11 +2448,11 @@ final class SceneRenderV2WaveformState {
     spectralNodes[0] = 1
   }
 
-  private func updateDeformation(delta: Double, frame: SceneRenderSignalFrameV2) {
-    var low = max(unit(frame.onsets[0]), bass * unit(frame.onsets[3]))
-    var middle = max(unit(frame.onsets[1]), body * unit(frame.onsets[3]))
-    var high = max(unit(frame.onsets[2]), spark * unit(frame.onsets[3]))
-    let onset = max(unit(frame.onsets[3]), max(low * 0.92, max(middle * 0.84, high * 0.72)))
+  private func updateDeformation(delta: Double, input: Input) {
+    var low = max(input.onsets[0], bass * input.onsets[3])
+    var middle = max(input.onsets[1], body * input.onsets[3])
+    var high = max(input.onsets[2], spark * input.onsets[3])
+    let onset = max(input.onsets[3], max(low * 0.92, max(middle * 0.84, high * 0.72)))
     let continuousWidth = min(
       0.285,
       max(
@@ -2354,20 +2477,8 @@ final class SceneRenderV2WaveformState {
           transientDrive * 0.24 - standingPulse * 0.12
       )
     )
-    let events = [frame.impact, frame.accent, frame.beat, frame.flash]
-    let gains = [1.0, 0.92, 1.0, 0.82]
-    var selected: SceneRenderSignalEventV2?
-    var selectedStrength = 0.0
-    for (index, event) in events.enumerated() where event.serial > lastEventSerials[index] {
-      lastEventSerials[index] = event.serial
-      let strength = event.active ? unit(event.strength) * gains[index] : 0
-      if strength >= selectedStrength {
-        selected = event
-        selectedStrength = strength
-      }
-    }
-    let impactDrive = min(1, max(0, selectedStrength))
-    switch selected?.band {
+    let impactDrive = min(1, max(0, input.eventStrength))
+    switch input.eventBand {
     case .some(.low): low = max(low, impactDrive)
     case .some(.body): middle = max(middle, impactDrive)
     case .some(.high): high = max(high, impactDrive)
@@ -2483,6 +2594,7 @@ final class SceneRenderV2WaveformState {
     spectralNodes = Array(repeating: 0, count: Self.spectralNodeCount)
     lastAudioTimestampMicros = -1
     lastEventSerials = Array(repeating: -1, count: 4)
+    lastCueSerial = 0
     bass = 0; body = 0; spark = 0; flow = 0; level = 0
     lineEnergy = 0; peakAmplitude = 0; lineVisibility = 0
     excitation = 0; impactLight = 0
@@ -2516,13 +2628,23 @@ final class SceneRenderV2WaveformState {
   }
 
   private func unit(_ value: Float) -> Double { min(1, max(0, Double(value))) }
+  private func unitValue(_ value: Double) -> Double { min(1, max(0, value)) }
 }
 
 @available(iOS 15.0, *)
 private final class SceneRenderV2WaveformMetalRenderer {
   private let device: MTLDevice
   private let queue: MTLCommandQueue
-  private let pipeline: MTLRenderPipelineState
+  private let maskPipeline: MTLRenderPipelineState
+  private let blurPipeline: MTLRenderPipelineState
+  private let compositePipeline: MTLRenderPipelineState
+  /// Bound in the slot of a glow that is off this frame; never sampled.
+  private let unusedGlow: MTLTexture
+  /// Targets of the last configuration, reused frame to frame and dropped on
+  /// any size or quality change, so at most one set is resident. `lock`
+  /// serialises renders sharing them; each render waits for its GPU work.
+  private let lock = NSLock()
+  private var scratch: Scratch?
 
   init(device: MTLDevice) throws {
     self.device = device
@@ -2531,19 +2653,33 @@ private final class SceneRenderV2WaveformMetalRenderer {
     }
     self.queue = queue
     let library = try device.makeLibrary(source: Self.metalSource, options: nil)
-    guard
-      let vertex = library.makeFunction(name: "waveformVertex"),
-      let fragment = library.makeFunction(name: "waveformFragment")
-    else { throw RendererError("waveform_shader_missing") }
-    let descriptor = MTLRenderPipelineDescriptor()
-    descriptor.vertexFunction = vertex
-    descriptor.fragmentFunction = fragment
-    descriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
-    pipeline = try device.makeRenderPipelineState(descriptor: descriptor)
+    func pipeline(
+      _ fragmentName: String,
+      _ formats: [MTLPixelFormat]
+    ) throws -> MTLRenderPipelineState {
+      guard
+        let vertex = library.makeFunction(name: "waveformVertex"),
+        let fragment = library.makeFunction(name: fragmentName)
+      else { throw RendererError("waveform_shader_missing") }
+      let descriptor = MTLRenderPipelineDescriptor()
+      descriptor.vertexFunction = vertex
+      descriptor.fragmentFunction = fragment
+      for (index, format) in formats.enumerated() {
+        descriptor.colorAttachments[index].pixelFormat = format
+      }
+      return try device.makeRenderPipelineState(descriptor: descriptor)
+    }
+    maskPipeline = try pipeline("waveformMaskFragment", [.rgba8Unorm, .rg8Unorm])
+    blurPipeline = try pipeline("waveformBlurFragment", [.r16Float])
+    compositePipeline = try pipeline("waveformFragment", [.bgra8Unorm])
+    guard let unused = device.makeTexture(
+      descriptor: Self.targetDescriptor(.r16Float, width: 1, height: 1, levels: 1)
+    ) else { throw RendererError("waveform_target_failed") }
+    unusedGlow = unused
   }
 
   /// One frame of waveform input. `peakAmplitude` must bound every |sample|
-  /// (the state guarantees it): the shader skips rows outside that band.
+  /// (the state guarantees it): the shaders skip rows outside that band.
   struct Signal {
     let samples: [Float]
     let lineEnergy: Double
@@ -2576,6 +2712,69 @@ private final class SceneRenderV2WaveformMetalRenderer {
     }
   }
 
+  /// MusicWaveformPainter's blurred strokes in mask channel order (r, g, b, a):
+  /// outer bloom, halo, peak glow, hot core. Their MaskFilter sigmas are fixed
+  /// logical points (only widths follow the artistic viewport factor), and a
+  /// quality draws a glow only from this many glow passes up.
+  private static let glowSigmaPoints: [Float] = [24, 8, 13, 3]
+  private static let glowMinimumPasses = [4, 3, 5, 5]
+
+  /// Scratch geometry. Canvas blurs each stroke's whole coverage, including
+  /// round caps and lines past the output edges, so the mask is padded by the
+  /// widest possible half width and rounded up for exact mip halving.
+  private struct Plan: Equatable {
+    let pad: Int
+    let maskWidth: Int
+    let maskHeight: Int
+    /// Mip level each glow is blurred at; nil when this quality never draws it.
+    let levels: [Int?]
+
+    init(width: Int, height: Int, pointScale: Float, glowPasses: Int) {
+      let scale = max(pointScale, 0.0001)
+      let widthScale = min(max(Float(min(width, height)) / scale / 390, 0.78), 1.35) * scale
+      // Outer bloom at full peak and impact: (11 + 23 + 18) / 2 points.
+      pad = Int((26 * widthScale).rounded(.up)) + 2
+      levels = (0..<4).map { glow in
+        glowPasses >= SceneRenderV2WaveformMetalRenderer.glowMinimumPasses[glow]
+          ? SceneRenderV2WaveformMetalRenderer.level(
+            sigma: SceneRenderV2WaveformMetalRenderer.glowSigmaPoints[glow] * scale)
+          : nil
+      }
+      let alignment = 1 << (levels.compactMap { $0 }.max() ?? 0)
+      maskWidth = (width + 2 * pad + alignment - 1) / alignment * alignment
+      maskHeight = (height + 2 * pad + alignment - 1) / alignment * alignment
+    }
+
+    var mipCount: Int { (levels.compactMap { $0 }.max() ?? 0) + 1 }
+  }
+
+  private struct Scratch {
+    let plan: Plan
+    /// Coverage of the four blurred strokes, box-reduced by mip generation.
+    let mask: MTLTexture
+    /// One single-level view per mip, read at lod 0 by the blur.
+    let maskLevels: [MTLTexture]
+    /// Coverage of the unblurred inner and core strokes.
+    let lines: MTLTexture
+    /// Per glow: the horizontal pass, then the finished blur.
+    let horizontal: [MTLTexture?]
+    let blurred: [MTLTexture?]
+  }
+
+  /// A glow is blurred on the mip where its sigma is still >= 4 texels, so a
+  /// kernel spans at most ~57 taps whatever the density.
+  private static func level(sigma: Float) -> Int {
+    sigma >= 8 ? Int(Foundation.log2(Double(sigma) / 4).rounded(.down)) : 0
+  }
+
+  /// Box reduction and bilinear reconstruction add ~D^2/4 of variance (full
+  /// pixels); the reduced kernel leaves it out so the total stays sigma^2.
+  private static func texelSigma(sigma: Float, level: Int) -> Float {
+    guard level > 0 else { return sigma }
+    let reduction = Float(1 << level)
+    return max(sigma * sigma - reduction * reduction / 4, 0.25).squareRoot() / reduction
+  }
+
   func render(
     width: Int,
     height: Int,
@@ -2596,6 +2795,11 @@ private final class SceneRenderV2WaveformMetalRenderer {
     )
   }
 
+  /// Canvas's pipeline, not an approximation of its result: rasterise each
+  /// stroke's coverage, blur it with a true 2D Gaussian (MaskFilter.blur), then
+  /// composite the painter's passes in order. Blurring the nearest-path distance
+  /// instead is only exact for an infinite straight band; at peaks and folds it
+  /// misses light from nearby arms and spreads too much past tips.
   func render(
     width: Int,
     height: Int,
@@ -2612,45 +2816,119 @@ private final class SceneRenderV2WaveformMetalRenderer {
     guard signal.samples.count == SceneRenderV2WaveformState.sampleCount else {
       throw RendererError("waveform_samples_invalid")
     }
+    guard width > 0, height > 0 else { throw RendererError("waveform_target_failed") }
+    lock.lock()
+    defer { lock.unlock() }
+    let plan = Plan(
+      width: width, height: height, pointScale: pointScale, glowPasses: glowPasses
+    )
+    let scratch = try scratch(for: plan)
     guard
       let texture = try SceneSurfaceNativeOutputAllocator.makeTexture(
         device: device, width: width, height: height, allocator: outputAllocator
       ),
       let command = queue.makeCommandBuffer()
     else { throw RendererError("waveform_target_failed") }
-    let pass = MTLRenderPassDescriptor()
-    pass.colorAttachments[0].texture = texture
-    pass.colorAttachments[0].loadAction = .clear
-    pass.colorAttachments[0].storeAction = .store
-    pass.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0)
-    guard let encoder = command.makeRenderCommandEncoder(descriptor: pass) else {
-      throw RendererError("waveform_encoder_failed")
+    let peak = min(max(Float(signal.peakAmplitude), 0), 1)
+    let scale = max(pointScale, 0.0001)
+    // The painter adds the peak glow and its hot core only above 0.18 peak.
+    let drawn = plan.levels.enumerated().map { glow, level in
+      level != nil && (glow < 2 || peak > 0.18)
     }
+    var flags: Int32 = 0
+    for (glow, on) in drawn.enumerated() where on { flags |= 1 << glow }
+    let sigmas = Self.glowSigmaPoints.map { $0 * scale }
     var viewport = SIMD2<Float>(Float(width), Float(height))
     let metrics = [
       Float(layer.opacity), Float(signal.lineEnergy), Float(signal.peakAmplitude),
       Float(signal.impactLight), Float(signal.lineVisibility),
       Float(layer.maximumDisplacementHeightFraction),
       Float(layer.maximumDisplacementWidthFraction),
-      pointScale,
-    ]
-    var counts = SIMD2<Int32>(Int32(sampleCount), Int32(glowPasses))
+      pointScale, Float(plan.pad), Float(plan.maskWidth), Float(plan.maskHeight),
+    ] + sigmas
+    var counts = SIMD2<Int32>(Int32(sampleCount), flags)
     let colors = [
       Self.rgb(layer.outerARGB), Self.rgb(layer.peakARGB),
       Self.rgb(layer.hotCoreARGB), Self.rgb(layer.innerARGB),
       Self.rgb(layer.coreARGB),
     ]
-    encoder.setRenderPipelineState(pipeline)
-    encoder.setFragmentBytes(&viewport, length: MemoryLayout<SIMD2<Float>>.stride, index: 0)
-    metrics.withUnsafeBytes {
-      encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 1)
+    func bindFrame(_ encoder: MTLRenderCommandEncoder) {
+      encoder.setFragmentBytes(&viewport, length: MemoryLayout<SIMD2<Float>>.stride, index: 0)
+      metrics.withUnsafeBytes {
+        encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 1)
+      }
+      encoder.setFragmentBytes(&counts, length: MemoryLayout<SIMD2<Int32>>.stride, index: 2)
+      colors.withUnsafeBytes {
+        encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 3)
+      }
+      signal.samples.withUnsafeBytes {
+        encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 4)
+      }
     }
-    encoder.setFragmentBytes(&counts, length: MemoryLayout<SIMD2<Int32>>.stride, index: 2)
-    colors.withUnsafeBytes {
-      encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 3)
+
+    guard
+      let maskEncoder = command.makeRenderCommandEncoder(
+        descriptor: Self.pass([scratch.mask, scratch.lines])
+      )
+    else { throw RendererError("waveform_encoder_failed") }
+    maskEncoder.setRenderPipelineState(maskPipeline)
+    bindFrame(maskEncoder)
+    maskEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    maskEncoder.endEncoding()
+
+    if plan.mipCount > 1 {
+      guard let blit = command.makeBlitCommandEncoder() else {
+        throw RendererError("waveform_encoder_failed")
+      }
+      blit.generateMipmaps(for: scratch.mask)
+      blit.endEncoding()
     }
-    signal.samples.withUnsafeBytes {
-      encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 4)
+
+    // Separable Gaussian per glow. Rows farther from the amplitude band than
+    // the widest stroke are empty and skip their taps.
+    let displacement = min(
+      Float(height) * Float(layer.maximumDisplacementHeightFraction),
+      Float(width) * Float(layer.maximumDisplacementWidthFraction)
+    )
+    let bandCentre = Float(plan.pad) + Float(height) * 0.5
+    let bandHalf = peak * displacement + Float(plan.pad)
+    for glow in 0..<4 where drawn[glow] {
+      guard
+        let level = plan.levels[glow],
+        let horizontal = scratch.horizontal[glow],
+        let blurred = scratch.blurred[glow]
+      else { continue }
+      let reduction = Float(1 << level)
+      let sigma = Self.texelSigma(sigma: sigmas[glow], level: level)
+      let radius = Int((3.5 * sigma).rounded(.up))
+      var weights = (0...radius).map { Foundation.exp(-0.5 * Float($0 * $0) / (sigma * sigma)) }
+      let total = weights.dropFirst().reduce(weights[0]) { $0 + 2 * $1 }
+      weights = weights.map { $0 / total }
+      var channel = [Float](repeating: 0, count: 4)
+      channel[glow] = 1
+      let low = (bandCentre - bandHalf) / reduction - 1
+      let high = (bandCentre + bandHalf) / reduction + 1
+      try blur(
+        command, source: scratch.maskLevels[level], target: horizontal,
+        parameters: channel + [1, 0, low, high, Float(radius)] + weights
+      )
+      try blur(
+        command, source: horizontal, target: blurred,
+        parameters: [1, 0, 0, 0, 0, 1, low - Float(radius), high + Float(radius), Float(radius)]
+          + weights
+      )
+    }
+
+    guard let encoder = command.makeRenderCommandEncoder(descriptor: Self.pass([texture])) else {
+      throw RendererError("waveform_encoder_failed")
+    }
+    encoder.setRenderPipelineState(compositePipeline)
+    bindFrame(encoder)
+    encoder.setFragmentTexture(scratch.lines, index: 0)
+    for glow in 0..<4 {
+      encoder.setFragmentTexture(
+        drawn[glow] ? scratch.blurred[glow] ?? unusedGlow : unusedGlow, index: glow + 1
+      )
     }
     encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
     encoder.endEncoding()
@@ -2660,6 +2938,95 @@ private final class SceneRenderV2WaveformMetalRenderer {
       throw command.error ?? RendererError("waveform_gpu_failed")
     }
     return texture
+  }
+
+  private func blur(
+    _ command: MTLCommandBuffer,
+    source: MTLTexture,
+    target: MTLTexture,
+    parameters: [Float]
+  ) throws {
+    guard let encoder = command.makeRenderCommandEncoder(descriptor: Self.pass([target])) else {
+      throw RendererError("waveform_encoder_failed")
+    }
+    encoder.setRenderPipelineState(blurPipeline)
+    encoder.setFragmentTexture(source, index: 0)
+    parameters.withUnsafeBytes {
+      encoder.setFragmentBytes($0.baseAddress!, length: $0.count, index: 0)
+    }
+    encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    encoder.endEncoding()
+  }
+
+  private func scratch(for plan: Plan) throws -> Scratch {
+    if let scratch, scratch.plan == plan { return scratch }
+    scratch = nil
+    guard
+      let mask = device.makeTexture(descriptor: Self.targetDescriptor(
+        .rgba8Unorm, width: plan.maskWidth, height: plan.maskHeight, levels: plan.mipCount
+      )),
+      let lines = device.makeTexture(descriptor: Self.targetDescriptor(
+        .rg8Unorm, width: plan.maskWidth, height: plan.maskHeight, levels: 1
+      ))
+    else { throw RendererError("waveform_target_failed") }
+    var maskLevels = [MTLTexture]()
+    for level in 0..<plan.mipCount {
+      guard let view = mask.makeTextureView(
+        pixelFormat: .rgba8Unorm, textureType: .type2D,
+        levels: level..<(level + 1), slices: 0..<1
+      ) else { throw RendererError("waveform_target_failed") }
+      maskLevels.append(view)
+    }
+    var horizontal = [MTLTexture?]()
+    var blurred = [MTLTexture?]()
+    for level in plan.levels {
+      guard let level else {
+        horizontal.append(nil)
+        blurred.append(nil)
+        continue
+      }
+      let descriptor = Self.targetDescriptor(
+        .r16Float, width: plan.maskWidth >> level, height: plan.maskHeight >> level, levels: 1
+      )
+      guard
+        let pass = device.makeTexture(descriptor: descriptor),
+        let result = device.makeTexture(descriptor: descriptor)
+      else { throw RendererError("waveform_target_failed") }
+      horizontal.append(pass)
+      blurred.append(result)
+    }
+    let next = Scratch(
+      plan: plan, mask: mask, maskLevels: maskLevels, lines: lines,
+      horizontal: horizontal, blurred: blurred
+    )
+    scratch = next
+    return next
+  }
+
+  private static func targetDescriptor(
+    _ format: MTLPixelFormat,
+    width: Int,
+    height: Int,
+    levels: Int
+  ) -> MTLTextureDescriptor {
+    let descriptor = MTLTextureDescriptor.texture2DDescriptor(
+      pixelFormat: format, width: width, height: height, mipmapped: levels > 1
+    )
+    descriptor.mipmapLevelCount = levels
+    descriptor.usage = [.shaderRead, .renderTarget]
+    descriptor.storageMode = .private
+    return descriptor
+  }
+
+  private static func pass(_ targets: [MTLTexture]) -> MTLRenderPassDescriptor {
+    let pass = MTLRenderPassDescriptor()
+    for (index, target) in targets.enumerated() {
+      pass.colorAttachments[index].texture = target
+      pass.colorAttachments[index].loadAction = .clear
+      pass.colorAttachments[index].storeAction = .store
+      pass.colorAttachments[index].clearColor = MTLClearColorMake(0, 0, 0, 0)
+    }
+    return pass
   }
 
   private static func rgb(_ argb: UInt32) -> SIMD3<Float> {
@@ -2701,6 +3068,17 @@ private final class SceneRenderV2WaveformMetalRenderer {
       float maximum; float2 viewport; float displacement;
       float2 pixel; float column; float stepX; float sourceStep;
     };
+    WaveformGrid waveformGridAt(float2 viewport,int sampleCount,float displacement,float2 pixel) {
+      WaveformGrid grid;
+      grid.maximum=float(max(sampleCount,3)-1);
+      grid.viewport=viewport;
+      grid.displacement=displacement;
+      grid.pixel=pixel;
+      grid.column=clamp(pixel.x/viewport.x,0.0,1.0)*grid.maximum;
+      grid.stepX=viewport.x/grid.maximum;
+      grid.sourceStep=126.0/grid.maximum;
+      return grid;
+    }
     float waveformGridSample(WaveformGrid grid,constant float *samples,int index) {
       int clamped=clamp(index,0,int(grid.maximum));
       return samples[clamp(int(round(float(clamped)*grid.sourceStep)),0,126)];
@@ -2754,15 +3132,11 @@ private final class SceneRenderV2WaveformMetalRenderer {
       }
       return best;
     }
-    // Nearest distance to the reconstructed stroke, not to its local tangent,
-    // so a steep slope cannot smear glow along its whole column. Segments are
-    // visited outward from the fragment's column, each side carrying the three
-    // grid points its next segment needs (one new point per side and step).
-    // The walk stops when every remaining segment is farther than the best so
-    // far, or than `reach`, beyond which the pass is transparent anyway (the
-    // result is therefore capped at `reach`). Cost contract: at most 73
-    // segments, one capsule test each, plus two more and up to 8 chords only
-    // for a bent segment that may still win (see waveformQuadDistance).
+    // Nearest distance to the reconstructed stroke, not to its local tangent.
+    // Segments are visited outward from the fragment's column, each side
+    // carrying the three grid points its next segment needs. The walk stops
+    // when every remaining segment is farther than the best so far, or than
+    // `reach` (a stroke half width + 1 px), so the result is capped at `reach`.
     float waveformPathDistance(WaveformGrid grid,constant float *samples,float reach) {
       int last=int(grid.maximum);
       int center=clamp(int(floor(grid.column+0.5)),1,last);
@@ -2831,32 +3205,14 @@ private final class SceneRenderV2WaveformMetalRenderer {
       }
       return best;
     }
+    // Pixel coverage of a stroke of `widthPixels` whose centre line passes
+    // `distancePixels` away: the length a unit pixel shares with the band
+    // [-h, h]. Exact for a horizontal edge, which is how Flutter's AA reaches
+    // 50 % at d = h (not 100 %), and a sub-pixel stroke never exceeds its
+    // own width.
     float waveformStroke(float distancePixels,float widthPixels) {
-      float halfWidth=max(widthPixels*0.5,0.35);
-      return 1-smoothstep(halfWidth,halfWidth+1.0,distancePixels);
-    }
-    // erf to 1.5e-7 (Abramowitz-Stegun 7.1.26); MSL has no erf.
-    float waveformErf(float x) {
-      float t=1.0/(1.0+0.3275911*abs(x));
-      float y=1.0-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t
-        -0.284496736)*t+0.254829592)*t*exp(-x*x);
-      return x<0.0 ? -y : y;
-    }
-    // Flutter blurs the stroke's coverage with a Gaussian of `blurPixels` sigma.
-    // At distance d from the centre of a stroke of half width h that is the
-    // Gaussian integral over [d-h, d+h]: a faint wide haze whose peak
-    // erf(h/(sigma*sqrt2)) stays well below 1 whenever the blur is wider than
-    // the stroke. A plateau of 1 inside the stroke would add ~3x the light.
-    float waveformBloom(float distancePixels,float widthPixels,float blurPixels) {
-      float halfWidth=max(widthPixels*0.5,0.35);
-      float scale=0.70710678/max(blurPixels,0.5);
-      return 0.5*(waveformErf((distancePixels+halfWidth)*scale)
-        -waveformErf((distancePixels-halfWidth)*scale));
-    }
-    // Beyond this distance a pass contributes under 1/255 (3.5 sigma) or the
-    // anti-aliased stroke edge has ended.
-    float waveformReach(float widthPixels,float blurPixels) {
-      return max(widthPixels*0.5,0.35)+3.5*max(blurPixels,0.5)+1.0;
+      float halfWidth=widthPixels*0.5;
+      return clamp(min(2.0*halfWidth,halfWidth-distancePixels+0.5),0.0,1.0);
     }
     void waveformAdd(thread float3 &premultiplied,thread float &alpha,
       float3 color,float coverage) {
@@ -2864,69 +3220,146 @@ private final class SceneRenderV2WaveformMetalRenderer {
       premultiplied=clamp(premultiplied+color*sourceAlpha,0.0,1.0);
       alpha=clamp(alpha+sourceAlpha,0.0,1.0);
     }
+    // The frame's widths, shared by the mask and composite passes. Flutter
+    // scales stroke widths by its artistic viewport factor but keeps blur
+    // sigmas at fixed logical points; both then meet the pixel density.
+    // flags: drawn glows, 1 outer, 2 halo, 4 peak, 8 hot (set by render()).
+    struct WaveformStyle {
+      float energy,peak,impact,visibility,displacement,pad;
+      float2 maskSize; float4 sigma; int flags;
+      float outerWidth,haloWidth,peakWidth,hotWidth,innerWidth,coreWidth;
+    };
+    WaveformStyle waveformStyle(float2 viewport,constant float *metrics,int flags) {
+      WaveformStyle style;
+      style.energy=clamp(metrics[1],0.0,1.0);
+      style.peak=clamp(metrics[2],0.0,1.0);
+      style.impact=clamp(metrics[3],0.0,1.0);
+      style.visibility=clamp(metrics[4]*metrics[0],0.0,1.0);
+      style.displacement=min(viewport.y*metrics[5],viewport.x*metrics[6]);
+      float pointScale=max(metrics[7],0.0001);
+      style.pad=metrics[8];
+      style.maskSize=float2(metrics[9],metrics[10]);
+      style.sigma=float4(metrics[11],metrics[12],metrics[13],metrics[14]);
+      style.flags=flags;
+      float widthScale=clamp(min(viewport.x,viewport.y)/pointScale/390.0,0.78,1.35)*pointScale;
+      float peak=style.peak,energy=style.energy,impact=style.impact;
+      style.outerWidth=(11+peak*23+impact*18)*widthScale;
+      style.haloWidth=(5.8+energy*7.2+impact*4.8)*widthScale;
+      style.peakWidth=(5.5+peak*12+impact*9)*widthScale;
+      style.hotWidth=(1.4+peak*2.2+impact*1.8)*widthScale;
+      style.innerWidth=(2.1+energy*1.9+impact*1.4)*widthScale;
+      style.coreWidth=(1.15+energy*0.95+impact*0.75)*widthScale;
+      return style;
+    }
+    struct WaveformMask { float4 glow [[color(0)]]; float2 lines [[color(1)]]; };
+    // Pass 1, over the padded mask: the anti-aliased coverage Canvas rasterises
+    // for each stroke before its MaskFilter runs. A stroke is the union of its
+    // segments' capsules, i.e. nearest path distance <= half width, so arms
+    // that overlap near a peak count once, as in Canvas.
+    fragment WaveformMask waveformMaskFragment(
+      WaveformOut in [[stage_in]],constant float2 &viewport [[buffer(0)]],
+      constant float *metrics [[buffer(1)]],constant int2 &counts [[buffer(2)]],
+      constant float *samples [[buffer(4)]]) {
+      WaveformStyle style=waveformStyle(viewport,metrics,counts.y);
+      bool outer=(style.flags&1)!=0,halo=(style.flags&2)!=0;
+      bool peak=(style.flags&4)!=0,hot=(style.flags&8)!=0;
+      float pathWidth=max(style.innerWidth,style.coreWidth);
+      if(outer) pathWidth=max(pathWidth,style.outerWidth);
+      if(halo) pathWidth=max(pathWidth,style.haloWidth);
+      float pathReach=pathWidth*0.5+1.0;
+      float peakReach=0.0;
+      if(peak) peakReach=style.peakWidth*0.5+1.0;
+      if(hot) peakReach=max(peakReach,style.hotWidth*0.5+1.0);
+      float2 pixel=in.position.xy-style.pad;
+      if(abs(pixel.y-0.5*viewport.y)-style.peak*style.displacement>max(pathReach,peakReach)) {
+        discard_fragment();
+      }
+      WaveformGrid grid=waveformGridAt(viewport,counts.x,style.displacement,pixel);
+      float pathDistance=waveformPathDistance(grid,samples,pathReach);
+      float peakDistance=peak||hot
+        ? waveformPeakDistance(grid,samples,max(0.12,style.peak*0.44),peakReach) : 0.0;
+      WaveformMask out;
+      out.glow=float4(
+        outer ? waveformStroke(pathDistance,style.outerWidth) : 0.0,
+        halo ? waveformStroke(pathDistance,style.haloWidth) : 0.0,
+        peak ? waveformStroke(peakDistance,style.peakWidth) : 0.0,
+        hot ? waveformStroke(peakDistance,style.hotWidth) : 0.0);
+      out.lines=float2(waveformStroke(pathDistance,style.innerWidth),
+        waveformStroke(pathDistance,style.coreWidth));
+      return out;
+    }
+    // Pass 2, one axis of a normalised Gaussian over one mask channel at the
+    // glow's mip; texels past the mask are zero, as around Canvas's mask.
+    // parameters: channel (4), direction (2), output rows [low, high] outside
+    // which the source band is empty, radius, then weights 0...radius.
+    fragment float waveformBlurFragment(
+      WaveformOut in [[stage_in]],texture2d<float,access::read> source [[texture(0)]],
+      constant float *parameters [[buffer(0)]]) {
+      if(in.position.y<parameters[6]||in.position.y>parameters[7]) return 0.0;
+      float4 channel=float4(parameters[0],parameters[1],parameters[2],parameters[3]);
+      int2 direction=int2(int(parameters[4]),int(parameters[5]));
+      int radius=int(parameters[8]);
+      constant float *weights=parameters+9;
+      int2 size=int2(int(source.get_width()),int(source.get_height()));
+      int2 origin=int2(in.position.xy);
+      float total=0.0;
+      for(int k=-radius;k<=radius;k++) {
+        int2 texel=origin+direction*k;
+        if(any(texel<int2(0))||any(texel>=size)) continue;
+        total+=weights[abs(k)]*dot(source.read(uint2(texel)),channel);
+      }
+      return total;
+    }
+    // Pass 3: the painter's passes in its order. Each adds (BlendMode.plus,
+    // clamped like the 8-bit target). Flutter paints the white core srcOver;
+    // it stays additive here: same alpha at best, and a sub-pixel core at
+    // reduced quality must still saturate where best draws it.
     fragment half4 waveformFragment(
       WaveformOut in [[stage_in]],constant float2 &viewport [[buffer(0)]],
       constant float *metrics [[buffer(1)]],constant int2 &counts [[buffer(2)]],
-      constant float3 *colors [[buffer(3)]],constant float *samples [[buffer(4)]]) {
-      float opacity=metrics[0],energy=clamp(metrics[1],0.0,1.0);
-      float peak=clamp(metrics[2],0.0,1.0),impact=clamp(metrics[3],0.0,1.0);
-      float visibility=clamp(metrics[4]*opacity,0.0,1.0);
-      float displacement=min(viewport.y*metrics[5],viewport.x*metrics[6]);
-      float pointScale=max(metrics[7],0.0001);
-      // Flutter scales stroke widths by its artistic viewport factor but keeps
-      // blur sigmas at fixed logical points; both then meet the pixel density.
-      float widthScale=clamp(min(viewport.x,viewport.y)/pointScale/390.0,0.78,1.35)*pointScale;
-      float blurScale=pointScale;
-      float outerWidth=(11+peak*23+impact*18)*widthScale,outerBlur=24*blurScale;
-      float peakWidth=(5.5+peak*12+impact*9)*widthScale,peakBlur=13*blurScale;
-      float hotWidth=(1.4+peak*2.2+impact*1.8)*widthScale,hotBlur=3*blurScale;
-      float haloWidth=(5.8+energy*7.2+impact*4.8)*widthScale,haloBlur=8*blurScale;
-      float innerWidth=(2.1+energy*1.9+impact*1.4)*widthScale;
-      float coreWidth=(1.15+energy*0.95+impact*0.75)*widthScale;
-      bool peakPasses=counts.y>=5&&peak>0.18;
-      float pathReach=max(waveformReach(innerWidth,0.0),waveformReach(coreWidth,0.0));
-      if(counts.y>=3) pathReach=max(pathReach,waveformReach(haloWidth,haloBlur));
-      if(counts.y>=4) pathReach=max(pathReach,waveformReach(outerWidth,outerBlur));
-      float peakReach=peakPasses
-        ? max(waveformReach(peakWidth,peakBlur),waveformReach(hotWidth,hotBlur)) : 0.0;
-      WaveformGrid grid;
-      grid.maximum=float(max(counts.x,3)-1);
-      grid.viewport=viewport;
-      grid.displacement=displacement;
-      grid.pixel=in.uv*viewport;
-      grid.column=clamp(in.uv.x,0.0,1.0)*grid.maximum;
-      grid.stepX=viewport.x/grid.maximum;
-      grid.sourceStep=126.0/grid.maximum;
-      // Every stroke lies inside the amplitude band: rows beyond its reach are
-      // transparent without visiting a single segment.
-      if(abs(grid.pixel.y-0.5*viewport.y)-peak*displacement>max(pathReach,peakReach)) {
+      constant float3 *colors [[buffer(3)]],
+      texture2d<float,access::read> lines [[texture(0)]],
+      texture2d<float> outerGlow [[texture(1)]],texture2d<float> haloGlow [[texture(2)]],
+      texture2d<float> peakGlow [[texture(3)]],texture2d<float> hotGlow [[texture(4)]]) {
+      constexpr sampler smooth(coord::normalized,filter::linear,address::clamp_to_zero);
+      WaveformStyle style=waveformStyle(viewport,metrics,counts.y);
+      bool outer=(style.flags&1)!=0,halo=(style.flags&2)!=0;
+      bool peak=(style.flags&4)!=0,hot=(style.flags&8)!=0;
+      // A glow adds under 1/255 beyond 3.5 sigma past its stroke.
+      float reach=max(style.innerWidth,style.coreWidth)*0.5+1.0;
+      if(outer) reach=max(reach,style.outerWidth*0.5+3.5*style.sigma.x+1.0);
+      if(halo) reach=max(reach,style.haloWidth*0.5+3.5*style.sigma.y+1.0);
+      if(peak) reach=max(reach,style.peakWidth*0.5+3.5*style.sigma.z+1.0);
+      if(hot) reach=max(reach,style.hotWidth*0.5+3.5*style.sigma.w+1.0);
+      if(abs(in.position.y-0.5*viewport.y)-style.peak*style.displacement>reach) {
         discard_fragment();
       }
-      float pathDistance=waveformPathDistance(grid,samples,pathReach);
+      float2 mask=in.position.xy+style.pad;
+      float2 uv=mask/style.maskSize;
+      float2 line=lines.read(uint2(mask)).rg;
+      float energy=style.energy,amplitude=style.peak,impact=style.impact;
+      float visibility=style.visibility;
       float3 premultiplied=float3(0); float alpha=0;
-      if(counts.y>=4) {
-        float a=min((0.14+peak*0.28+energy*0.18+impact*0.24)*visibility,0.78);
-        waveformAdd(premultiplied,alpha,colors[0],
-          waveformBloom(pathDistance,outerWidth,outerBlur)*a);
+      if(outer) {
+        float a=min((0.14+amplitude*0.28+energy*0.18+impact*0.24)*visibility,0.78);
+        waveformAdd(premultiplied,alpha,colors[0],outerGlow.sample(smooth,uv).r*a);
       }
-      if(peakPasses) {
-        float peakDistance=waveformPeakDistance(grid,samples,max(0.12,peak*0.44),peakReach);
-        float a=min((0.10+peak*0.42+energy*0.10+impact*0.30)*visibility,0.82);
-        waveformAdd(premultiplied,alpha,colors[1],
-          waveformBloom(peakDistance,peakWidth,peakBlur)*a);
-        a=min((0.12+peak*0.48+impact*0.24)*visibility,0.88);
-        waveformAdd(premultiplied,alpha,colors[2],
-          waveformBloom(peakDistance,hotWidth,hotBlur)*a);
+      if(peak) {
+        float a=min((0.10+amplitude*0.42+energy*0.10+impact*0.30)*visibility,0.82);
+        waveformAdd(premultiplied,alpha,colors[1],peakGlow.sample(smooth,uv).r*a);
       }
-      if(counts.y>=3) {
+      if(hot) {
+        float a=min((0.12+amplitude*0.48+impact*0.24)*visibility,0.88);
+        waveformAdd(premultiplied,alpha,colors[2],hotGlow.sample(smooth,uv).r*a);
+      }
+      if(halo) {
         float a=min((0.18+energy*0.28+impact*0.16)*visibility,0.62);
-        waveformAdd(premultiplied,alpha,colors[0],
-          waveformBloom(pathDistance,haloWidth,haloBlur)*a);
+        waveformAdd(premultiplied,alpha,colors[0],haloGlow.sample(smooth,uv).r*a);
       }
       float a=min((0.70+energy*0.25)*visibility,0.96);
-      waveformAdd(premultiplied,alpha,colors[3],waveformStroke(pathDistance,innerWidth)*a);
+      waveformAdd(premultiplied,alpha,colors[3],line.x*a);
       a=min((0.92+energy*0.08)*visibility,1.0);
-      waveformAdd(premultiplied,alpha,colors[4],waveformStroke(pathDistance,coreWidth)*a);
+      waveformAdd(premultiplied,alpha,colors[4],line.y*a);
       if(alpha<=0.00001) discard_fragment();
       return half4(half3(clamp(premultiplied,0.0,alpha)),half(alpha));
     }
@@ -5292,7 +5725,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
         return embeddedScreen.consume(frame, layer: layer)
       }
       if case .waveform(let layer) = node, let waveform {
-        return waveform.consume(frame, layer: layer)
+        // The complete-signal path carries no MusicMap structure.
+        return waveform.consume(frame, structure: nil, layer: layer)
       }
       return false
     }
@@ -5717,6 +6151,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
     let scale: CGFloat
     let rotation: CGFloat
     let flipped: Bool
+    var sourceAlignment: SceneMediaSourceAlignment = .center
     let playbackRate: Float
     let renderScales: [String: Double]
     let framesPerSecondByQuality: [String: Int]
@@ -5735,6 +6170,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
     let scale: CGFloat
     let rotation: CGFloat
     let flipped: Bool
+    var sourceAlignment: SceneMediaSourceAlignment = .center
     let framesPerSecondByQuality: [String: Int]
     let naturalReactiveLight: SceneRenderV2NaturalReactiveLightConfig?
   }
@@ -8159,13 +8595,30 @@ final class SceneRenderV2ImageSurfaceRuntime {
   func updateSignal(arguments: Any?, result: @escaping FlutterResult) {
     guard
       let arguments = arguments as? [String: Any],
-      Set(arguments.keys) == Set(["sessionId", "frameBytes"]),
+      Set(arguments.keys) == Set(["sessionId", "frameBytes"]) ||
+        Set(arguments.keys) == Set(["sessionId", "frameBytes", "musicStructureBytes"]),
       let sessionID = arguments["sessionId"] as? String,
       let bytes = (arguments["frameBytes"] as? FlutterStandardTypedData)?.data,
       let frame = SceneRenderSignalFrameV2Codec.decode(bytes)
     else {
       result(error("signal_v2_invalid", "Invalid V2 signal frame."))
       return
+    }
+    // The optional MusicMap structure must name exactly this frame; a block
+    // that is present but invalid or unpaired rejects the whole message.
+    let structure: SceneRenderMusicStructureV1?
+    if arguments.keys.contains("musicStructureBytes") {
+      guard
+        let structureBytes = (arguments["musicStructureBytes"] as? FlutterStandardTypedData)?.data,
+        let decoded = SceneRenderMusicStructureV1Codec.decode(structureBytes),
+        decoded.pairs(with: frame)
+      else {
+        result(error("signal_v2_invalid", "Invalid V2 music structure."))
+        return
+      }
+      structure = decoded
+    } else {
+      structure = nil
     }
     queue.async { [weak self] in
       guard let self, let session = self.sessions[sessionID] else {
@@ -8254,7 +8707,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
       let waveformChanged = session.plan.nodes.reduce(false) { changed, node in
         guard case .waveform(let layer) = node,
               let state = session.waveformStates[layer.id] else { return changed }
-        return state.consume(frame, layer: layer) || changed
+        return state.consume(frame, structure: structure, layer: layer) || changed
       }
       let installedProgramChanged = session.installedProgramStates.values.reduce(false) {
         $1.consume(frame) || $0
@@ -9960,7 +10413,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
           height: height
         )
         let source = imageReactiveStates[layer.id]?.apply(to: layer.source) ?? layer.source
-        var rendered = Self.aspectFill(source, targetRect: layerRect)
+        var rendered = layer.sourceAlignment.fit(source, to: layerRect)
         let center = CGPoint(x: layerRect.midX, y: layerRect.midY)
         var affine = CGAffineTransform(translationX: center.x, y: center.y)
         affine = affine.rotated(by: -layer.rotation)
@@ -12486,6 +12939,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
         scale: transform.scale,
         rotation: transform.rotation,
         flipped: transform.flipped,
+        sourceAlignment: transform.sourceAlignment,
         framesPerSecondByQuality: variants.framesPerSecond,
         naturalReactiveLight: naturalReactiveLight
       ))
@@ -12582,6 +13036,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
       scale: transform.scale,
       rotation: transform.rotation,
       flipped: transform.flipped,
+      sourceAlignment: transform.sourceAlignment,
       playbackRate: playbackRateNumber.floatValue,
       renderScales: variants.scales,
       framesPerSecondByQuality: variants.framesPerSecond,
@@ -13132,11 +13587,12 @@ final class SceneRenderV2ImageSurfaceRuntime {
     offsetY: CGFloat,
     scale: CGFloat,
     rotation: CGFloat,
-    flipped: Bool
+    flipped: Bool,
+    sourceAlignment: SceneMediaSourceAlignment
   )? {
     guard let transform = value as? [String: Any] else { return nil }
     guard
-      Set(transform.keys) == Set([
+      Set(transform.keys).subtracting(["sourceAlignment"]) == Set([
         "width", "height", "scale", "rotation", "offsetX", "offsetY", "flipped",
       ]),
       let width = Self.finite(transform["width"]),
@@ -13146,6 +13602,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
       let offsetX = Self.finite(transform["offsetX"]),
       let offsetY = Self.finite(transform["offsetY"]),
       let flipped = transform["flipped"] as? Bool,
+      let sourceAlignment = SceneMediaSourceAlignment.parse(transform["sourceAlignment"]),
       width > 0,
       height > 0,
       scale > 0,
@@ -13156,7 +13613,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
       abs(offsetY) <= 16,
       abs(rotation) <= 100
     else { return nil }
-    return (width, height, offsetX, offsetY, scale, rotation, flipped)
+    return (width, height, offsetX, offsetY, scale, rotation, flipped, sourceAlignment)
   }
 
   private static func aspectFill(_ image: CIImage, targetRect: CGRect) -> CIImage {
@@ -13192,7 +13649,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
       width: width,
       height: height
     )
-    var rendered = Self.aspectFill(source, targetRect: layerRect)
+    var rendered = layer.sourceAlignment.fit(source, to: layerRect)
     let center = CGPoint(x: layerRect.midX, y: layerRect.midY)
     var affine = CGAffineTransform(translationX: center.x, y: center.y)
     affine = affine.rotated(by: -layer.rotation)

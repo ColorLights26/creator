@@ -9,6 +9,41 @@ import ImageIO
 import Metal
 import UIKit
 
+/// Normalized source overflow alignment; y=0 means the visual top, also in CI.
+struct SceneMediaSourceAlignment: Equatable {
+    var x: CGFloat = 0.5
+    var y: CGFloat = 0.5
+    static let center = SceneMediaSourceAlignment()
+
+    static func parse(_ value: Any?) -> SceneMediaSourceAlignment? {
+        guard let value else { return .center }
+        guard let map = value as? [String: Any], Set(map.keys) == Set(["x", "y"]),
+              let x = map["x"] as? NSNumber, let y = map["y"] as? NSNumber,
+              CFGetTypeID(x) != CFBooleanGetTypeID(), CFGetTypeID(y) != CFBooleanGetTypeID(),
+              x.doubleValue.isFinite, y.doubleValue.isFinite,
+              (0...1).contains(x.doubleValue), (0...1).contains(y.doubleValue)
+        else { return nil }
+        return SceneMediaSourceAlignment(x: CGFloat(x.doubleValue), y: CGFloat(y.doubleValue))
+    }
+
+    func fit(_ image: CIImage, to target: CGRect) -> CIImage {
+        let extent = image.extent
+        guard extent.width > 0, extent.height > 0 else { return image.cropped(to: target) }
+        let scale = max(target.width / extent.width, target.height / extent.height)
+        let scaled = image.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+        if self == .center {
+            return scaled.transformed(by: CGAffineTransform(
+                translationX: target.midX - scaled.extent.midX,
+                y: target.midY - scaled.extent.midY
+            )).cropped(to: target)
+        }
+        return scaled.transformed(by: CGAffineTransform(
+            translationX: target.minX + (target.width - scaled.extent.width) * x - scaled.extent.minX,
+            y: target.minY + (target.height - scaled.extent.height) * (1 - y) - scaled.extent.minY
+        )).cropped(to: target)
+    }
+}
+
 /// Queue-confined, reusable deadline. A completed delivery disarms the timer
 /// instead of leaving an asyncAfter closure queued for every musical frame.
 final class SceneSurfaceSignalDeadline {
@@ -355,6 +390,30 @@ func sceneSurfaceLayerSemanticsAreExplicit(
     _ definition: [String: Any]
 ) -> Bool {
     definition["alphaMode"] is String && definition["audioReactive"] is Bool
+}
+
+/// Opt-in source orientation. The ordinary source keeps its historical graph;
+/// content-referenced windows can match Flutter's EXIF-aware image dimensions.
+func sceneSurfaceLoadImage(
+    path: String,
+    applyImageOrientation: Bool
+) -> CIImage? {
+    let url = URL(fileURLWithPath: path)
+    let loaded: CIImage?
+    if applyImageOrientation {
+        loaded = CIImage(contentsOf: url, options: [.applyOrientationProperty: true])
+    } else {
+        loaded = CIImage(contentsOf: url)
+    }
+    guard let image = loaded?.oriented(.up) else { return nil }
+    guard applyImageOrientation else { return image }
+    let extent = image.extent
+    guard extent.origin.x.isFinite, extent.origin.y.isFinite,
+          extent.width.isFinite, extent.height.isFinite,
+          extent.width > 0, extent.height > 0 else { return nil }
+    if extent.origin == .zero { return image }
+    return image.transformed(by: CGAffineTransform(
+        translationX: -extent.minX, y: -extent.minY))
 }
 
 /// A process-wide reservation precedes every V1 AVPlayer (including paused
@@ -1295,10 +1354,8 @@ final class SceneSurfaceMetalContext {
     }
 
     var supportsOnePassPackedVideoRendering: Bool {
-        onePassInfernoPipeline != nil &&
-            packedVideoPipeline != nil &&
-            textureCache != nil &&
-            device.areRasterOrderGroupsSupported
+        SceneSurfaceBackendCapabilities(metalContext: self)
+            .supportsOnePassPackedVideoRendering
     }
 
     func pipeline(
@@ -6092,6 +6149,7 @@ private final class PictureInPictureSceneLayerRuntime {
         let scale: CGFloat
         let rotation: CGFloat
         let flipped: Bool
+        var sourceAlignment: SceneMediaSourceAlignment = .center
     }
 
     struct AudioBinding {
@@ -6215,7 +6273,8 @@ private final class PictureInPictureSceneLayerRuntime {
                 abs(transform.offsetY) < 0.000_001 &&
                 abs(transform.scale - 1) < 0.000_001 &&
                 abs(transform.rotation) < 0.000_001 &&
-                !transform.flipped,
+                !transform.flipped &&
+                transform.sourceAlignment == .center,
             hasExternalEffect:
                 rgbGainEffect != nil || naturalReactiveLightEffect != nil,
             hasExternalAudioBinding: audioBinding.isReactive,
@@ -6239,7 +6298,10 @@ private final class PictureInPictureSceneLayerRuntime {
             let role = definition["role"] as? String,
             role == "background" || role == "overlay",
             let sourceKind = definition["sourceKind"] as? String,
-            let transformDefinition = definition["transform"] as? [String: Any]
+            definition["applyImageOrientation"] == nil ||
+                definition["applyImageOrientation"] is Bool,
+            let transformDefinition = definition["transform"] as? [String: Any],
+            let sourceAlignment = SceneMediaSourceAlignment.parse(transformDefinition["sourceAlignment"])
         else {
             return nil
         }
@@ -6300,7 +6362,8 @@ private final class PictureInPictureSceneLayerRuntime {
                     maximum: Double.pi * 8
                 )
             ),
-            flipped: transformDefinition["flipped"] as? Bool ?? false
+            flipped: transformDefinition["flipped"] as? Bool ?? false,
+            sourceAlignment: sourceAlignment
         )
         self.audioBinding = Self.decodeAudioBinding(
             definition["audioBinding"] as? [String: Any]
@@ -6360,12 +6423,13 @@ private final class PictureInPictureSceneLayerRuntime {
         case "image":
             guard let path = Self.resolvePath(definition) else { return nil }
             if constructionMode == .runtime {
-                guard let loaded = CIImage(
-                    contentsOf: URL(fileURLWithPath: path)
+                guard let loaded = sceneSurfaceLoadImage(
+                    path: path,
+                    applyImageOrientation: definition["applyImageOrientation"] as? Bool == true
                 ) else {
                     return nil
                 }
-                image = loaded.oriented(.up)
+                image = loaded
             }
         case "animatedImage":
             guard let path = Self.resolvePath(definition) else { return nil }
@@ -6583,7 +6647,7 @@ private final class PictureInPictureSceneLayerRuntime {
             naturalReactiveLightEffect == nil &&
             transform.width == 1 && transform.height == 1 &&
             transform.offsetX == 0 && transform.offsetY == 0 &&
-            transform.scale == 1 && transform.rotation == 0 && !transform.flipped
+            transform.scale == 1 && transform.rotation == 0 && !transform.flipped && transform.sourceAlignment == .center
         return stableRasterCache?.image(
             for: prepared, bounds: targetRect, eligible: rasterEligible
         ) ?? prepared
@@ -7085,10 +7149,11 @@ private final class PictureInPictureSceneLayerRuntime {
               let width = value["width"] as? NSNumber, let height = value["height"] as? NSNumber,
               let x = value["offsetX"] as? NSNumber, let y = value["offsetY"] as? NSNumber,
               let scale = value["scale"] as? NSNumber, let rotation = value["rotation"] as? NSNumber,
-              let flipped = value["flipped"] as? Bool else { return nil }
+              let flipped = value["flipped"] as? Bool,
+              let sourceAlignment = SceneMediaSourceAlignment.parse(value["sourceAlignment"]) else { return nil }
         let nextTransform = Transform(width: CGFloat(width.doubleValue), height: CGFloat(height.doubleValue),
             offsetX: CGFloat(x.doubleValue), offsetY: CGFloat(y.doubleValue), scale: CGFloat(scale.doubleValue),
-            rotation: CGFloat(rotation.doubleValue), flipped: flipped)
+            rotation: CGFloat(rotation.doubleValue), flipped: flipped, sourceAlignment: sourceAlignment)
         let oldOpacity = self.opacity, oldTransform = transform
         let install: (CGFloat, Transform) -> Void = { [weak self] opacity, transform in
             self?.opacity = opacity
@@ -7748,15 +7813,33 @@ private struct PictureInPictureSceneFilterRuntime {
     }
 }
 
+/// AVKit's `setPlaying` callback carries the user's transport control in the
+/// active window, but it also arrives around AVKit's own transitions: while
+/// the window starts, while it closes (a teardown `false`) and while a return
+/// to the app is pending before `willStop`. Only the user's control may change
+/// playback. One decision governs the native mutation and the Dart event, so
+/// an ignored callback can never pause the shared source behind the scene's
+/// Play intent.
 struct PictureInPicturePlaybackIntentGate {
-    static func shouldForward(
+    enum Decision: Equatable {
+        /// A user control: apply it natively and report it to Dart.
+        case apply
+        /// A transition callback: nothing changes.
+        case ignore
+    }
+
+    static func decide(
         lifecycleActive: Bool,
         foregroundStopRequested: Bool,
-        stopRequestedDuringStart: Bool
-    ) -> Bool {
+        stopRequestedDuringStart: Bool,
+        returnRequested: Bool
+    ) -> Decision {
         lifecycleActive &&
             !foregroundStopRequested &&
-            !stopRequestedDuringStart
+            !stopRequestedDuringStart &&
+            !returnRequested
+            ? .apply
+            : .ignore
     }
 }
 
@@ -7815,6 +7898,263 @@ enum PictureInPictureCompositionSource: Equatable {
     }
 }
 
+/// Whether a PiP source keeps presenting the live scene while AVKit finishes a
+/// stop that returns the user to the app. Sources that mirror the foreground
+/// session, or render the same native state, continue so the PiP window and
+/// the Flutter texture show the same composition until `didStop`. A source
+/// with decoders of its own pauses as before; a paused intent or an emergency
+/// recovery keeps its frozen frame.
+func pictureInPictureKeepsPresentationThroughStop(
+    sourceKind: String,
+    foregroundReturn: Bool,
+    playbackActive: Bool,
+    emergencyRecoveryActive: Bool
+) -> Bool {
+    guard foregroundReturn, playbackActive, !emergencyRecoveryActive else { return false }
+    switch sourceKind {
+    case "sceneV1Shared", "sceneV2Shared", "realtimeRenderer": return true
+    default: return false
+    }
+}
+
+/// Holds AVKit's restore completion until the foreground acknowledges that it
+/// presents the same scene, bounded by a deadline. The completion is called
+/// exactly once and always with `true`; the acknowledgement only decides when.
+/// Confined to the thread that created it (main in the handler).
+final class PictureInPictureRestoreBarrier {
+    enum Outcome: Equatable {
+        case completed(reason: String, elapsedMilliseconds: Int)
+        case stale
+    }
+
+    private struct Pending {
+        let token: String
+        let startedAt: TimeInterval
+        let completion: (Bool) -> Void
+        let cancelDeadline: () -> Void
+    }
+
+    private let deadline: TimeInterval
+    private let now: () -> TimeInterval
+    private let schedule: (TimeInterval, @escaping () -> Void) -> () -> Void
+    private var pending: Pending?
+    private var generation = 0
+
+    /// `schedule` runs `work` after a delay and returns its cancellation.
+    init(
+        deadline: TimeInterval,
+        now: @escaping () -> TimeInterval,
+        schedule: @escaping (TimeInterval, @escaping () -> Void) -> () -> Void
+    ) {
+        self.deadline = deadline
+        self.now = now
+        self.schedule = schedule
+    }
+
+    var pendingToken: String? { pending?.token }
+
+    /// Starts holding `completion`. A completion still held from an earlier
+    /// restore is finished first, so every completion is answered once.
+    func begin(completion: @escaping (Bool) -> Void) -> String {
+        _ = finish(reason: "superseded")
+        generation += 1
+        let token = "restore-\(generation)"
+        let cancel = schedule(deadline) { [weak self] in
+            guard let self, self.pending?.token == token else { return }
+            _ = self.finish(reason: "deadline")
+        }
+        pending = Pending(
+            token: token, startedAt: now(), completion: completion, cancelDeadline: cancel
+        )
+        return token
+    }
+
+    /// The foreground answered. Only the pending token completes; anything
+    /// else is stale and leaves a held completion to its own deadline.
+    func acknowledge(token: String) -> Outcome {
+        guard pending?.token == token else { return .stale }
+        return finish(reason: "acknowledged")
+    }
+
+    /// Finishes the held completion, if any. Safe from every path that leaves
+    /// PiP: stop completion, start failure, teardown.
+    @discardableResult
+    func finish(reason: String) -> Outcome {
+        guard let pending else { return .stale }
+        self.pending = nil
+        pending.cancelDeadline()
+        let elapsed = Int(((now() - pending.startedAt) * 1000).rounded())
+        pending.completion(true)
+        return .completed(reason: reason, elapsedMilliseconds: max(elapsed, 0))
+    }
+}
+
+/// The handler's return-to-app presentation policy. Every callback order
+/// AVKit produces (foreground notification, restore request, `willStop`, the
+/// did-become-active fallback, the stop watchdog, `didStop`) reaches the same
+/// decision here, so a source that mirrors the foreground neither freezes
+/// before the app takes over nor outlives the stop it waited for.
+/// Confined to the handler's main thread.
+final class PictureInPictureReturnPresentation {
+    enum Phase: String {
+        case idle
+        case starting
+        case active
+        case stopping
+    }
+
+    /// What the handler does with its render timer and dynamic sources.
+    enum Action: Equatable {
+        case unchanged
+        /// They were paused by an earlier stop callback; present again.
+        case resume
+        /// Stop the timer and pause the sources.
+        case pause
+    }
+
+    struct Context: Equatable {
+        var phase: Phase
+        var sourceKind: String
+        var playbackActive: Bool
+        var emergencyRecoveryActive: Bool
+        /// The render timer is running right now.
+        var presenting: Bool
+    }
+
+    /// A return to the app is in progress.
+    private(set) var continuityRequested = false
+
+    func continues(_ context: Context) -> Bool {
+        pictureInPictureKeepsPresentationThroughStop(
+            sourceKind: context.sourceKind,
+            foregroundReturn: continuityRequested,
+            playbackActive: context.playbackActive,
+            emergencyRecoveryActive: context.emergencyRecoveryActive
+        )
+    }
+
+    /// The user is coming back: foreground notification, restore request or
+    /// the did-become-active fallback, before or after AVKit's `willStop`.
+    func returnRequested(_ context: Context) -> Action {
+        continuityRequested = true
+        guard context.phase == .stopping, continues(context) else { return .unchanged }
+        return context.presenting ? .unchanged : .resume
+    }
+
+    /// The stop begins (`beginStopping` or AVKit's `willStop`).
+    func stopping(_ context: Context) -> Action {
+        guard continues(context) else { return .pause }
+        return context.presenting ? .unchanged : .resume
+    }
+
+    /// The return ended: `didStop`, a failed or unconfirmed start, cleared
+    /// content or a stop watchdog that gave up. Ownership ends with it.
+    func returnFinished() -> Action {
+        continuityRequested = false
+        return .pause
+    }
+
+    /// The app went to the background again while PiP stays up. Unless a stop
+    /// is already in flight, no return is pending any more.
+    func backgrounded(phase: Phase) {
+        if phase != .stopping { continuityRequested = false }
+    }
+}
+
+/// Where the AVKit source layer sits in its host: the output's aspect ratio,
+/// fitted and centered. AVKit shapes the PiP window from this layer (an iPhone
+/// window measured 103 x 223 points, the screen's aspect, while every buffer
+/// was 360 x 640), so the layer must agree with the buffers it receives. A
+/// layer spanning the whole iPad window showed the 9:16 buffer beside a black
+/// band instead of the composition.
+func pictureInPictureSourceLayerFrame(
+    outputWidth: Int,
+    outputHeight: Int,
+    host: CGRect
+) -> CGRect {
+    guard outputWidth > 0, outputHeight > 0, host.width > 0, host.height > 0 else {
+        return host
+    }
+    let scale = min(
+        host.width / CGFloat(outputWidth),
+        host.height / CGFloat(outputHeight)
+    )
+    let width = (CGFloat(outputWidth) * scale).rounded()
+    let height = (CGFloat(outputHeight) * scale).rounded()
+    return CGRect(
+        x: (host.minX + (host.width - width) / 2).rounded(),
+        y: (host.minY + (host.height - height) / 2).rounded(),
+        width: width,
+        height: height
+    )
+}
+
+/// What a host layout pass does with the attached source layer: the fitted
+/// frame when it differs from the current one, nil when nothing moves.
+func pictureInPictureSourceLayerUpdate(
+    outputWidth: Int,
+    outputHeight: Int,
+    host: CGRect,
+    current: CGRect
+) -> CGRect? {
+    let frame = pictureInPictureSourceLayerFrame(
+        outputWidth: outputWidth,
+        outputHeight: outputHeight,
+        host: host
+    )
+    return frame == current ? nil : frame
+}
+
+/// Hosts the AVKit source layer behind Flutter. UIKit resizes the view with
+/// its window (rotation, Split View, a scene resize) but a sublayer has no
+/// autoresizing, so every layout pass hands the fit back to the handler before
+/// AVKit, automatic or explicit, reads the layer.
+final class PictureInPictureSourceHostView: UIView {
+    var onLayout: (() -> Void)?
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        onLayout?()
+    }
+}
+
+/// One bounded receipt per handoff step (`prepared`, `source`, `layout`,
+/// `will_start`, `render_size`): the source extent, the output, the source
+/// layer in its host and AVKit's render size that shaped a PiP window. Never
+/// per frame.
+struct PictureInPictureGeometryReceipt: Equatable, CustomStringConvertible {
+    var step: String
+    var sessionId: String
+    var source: CGSize
+    var outputWidth: Int
+    var outputHeight: Int
+    var layer: CGRect
+    var host: CGRect
+    var renderWidth: Int
+    var renderHeight: Int
+
+    /// Output, layer and (once reported) AVKit render size share one aspect.
+    var consistent: Bool {
+        guard outputWidth > 0, outputHeight > 0, layer.width > 0, layer.height > 0 else {
+            return false
+        }
+        let output = Double(outputWidth) / Double(outputHeight)
+        let layerAspect = Double(layer.width) / Double(layer.height)
+        guard abs(output - layerAspect) <= 0.02 else { return false }
+        guard renderWidth > 0, renderHeight > 0 else { return true }
+        return abs(output - Double(renderWidth) / Double(renderHeight)) <= 0.02
+    }
+
+    var description: String {
+        "[MusicVibePiP] geometry step=\(step) session=\(sessionId) " +
+            "source=\(Int(source.width))x\(Int(source.height)) " +
+            "output=\(outputWidth)x\(outputHeight) " +
+            "layer=\(Int(layer.minX)),\(Int(layer.minY)),\(Int(layer.width))x\(Int(layer.height)) " +
+            "host=\(Int(host.width))x\(Int(host.height)) " +
+            "render=\(renderWidth)x\(renderHeight) consistent=\(consistent)"
+    }
+}
+
 @available(iOS 15.0, *)
 final class PictureInPictureHandler: NSObject {
     private enum LifecycleState: String {
@@ -7854,7 +8194,7 @@ final class PictureInPictureHandler: NSObject {
     private let metalContext: SceneSurfaceMetalContext?
     private let ciContext: CIContext
     private let outputColorSpace = CGColorSpaceCreateDeviceRGB()
-    private var sourceHostView: UIView?
+    private var sourceHostView: PictureInPictureSourceHostView?
 
     private var eventSink: FlutterEventSink?
     private var pictureInPictureController: AVPictureInPictureController?
@@ -7915,6 +8255,27 @@ final class PictureInPictureHandler: NSObject {
     private var v2RecoveryWorkItem: DispatchWorkItem?
     private var v2EmergencyRecoveryActive = false
     private var v2QualityTransitionInFlight = false
+    /// Return-to-app policy shared by every stop callback order: a source
+    /// that mirrors the foreground keeps presenting through the stop instead
+    /// of freezing its last frame, and never outlives the stop.
+    private let returnPresentation = PictureInPictureReturnPresentation()
+    /// Geometry receipts (read on the render queue, written on main).
+    private var sourceLayerFrame = CGRect.zero
+    private var sourceHostBounds = CGRect.zero
+    private var avkitRenderSize = CGSize.zero
+    /// Render queue only: the last shared source extent reported.
+    private var reportedSourceExtent = CGSize.zero
+    /// Bounded below the system's own restore patience, so a late or missing
+    /// acknowledgement adds no visible delay over the previous behavior.
+    private let restoreBarrier = PictureInPictureRestoreBarrier(
+        deadline: 0.8,
+        now: CACurrentMediaTime,
+        schedule: { delay, work in
+            let item = DispatchWorkItem(block: work)
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: item)
+            return { item.cancel() }
+        }
+    )
 
     init(
         windowProvider: @escaping () -> UIWindow?,
@@ -8019,6 +8380,9 @@ final class PictureInPictureHandler: NSObject {
             case "setPlaybackActive":
                 let arguments = call.arguments as? [String: Any]
                 self.setPlaybackActive(arguments?["active"] as? Bool ?? true)
+                result(nil)
+            case "acknowledgeRestore":
+                self.acknowledgeRestore(arguments: call.arguments)
                 result(nil)
             case "updateReactiveFrame":
                 self.updateReactiveFrame(arguments: call.arguments)
@@ -8189,6 +8553,11 @@ final class PictureInPictureHandler: NSObject {
         releaseRendererSessionIfNeeded()
         releaseV2SharedSourceIfNeeded()
         tearDownSceneDocument()
+        // The layer is emptied until this preparation renders its first frame.
+        // The system must not start PiP from it meanwhile; the user's automatic
+        // preference is applied again below, from `automaticStartEnabled`.
+        pictureInPictureController?.canStartPictureInPictureAutomaticallyFromInline = false
+        finishForegroundReturn(reason: "prepare")
         sampleLayer.flushAndRemoveImage()
         sessionId = rawSessionId
         sceneMetricsScope = "pip:\(rawSessionId)"
@@ -8289,14 +8658,11 @@ final class PictureInPictureHandler: NSObject {
             result(false)
             return
         }
-        NSLog(
-            "[MusicVibePiP] source poster=%dx%d target=%dx%d layer=%@",
-            Int(ciImage.extent.width),
-            Int(ciImage.extent.height),
-            width,
-            height,
-            NSCoder.string(for: sampleLayer.frame)
-        )
+        stateLock.lock()
+        avkitRenderSize = .zero
+        stateLock.unlock()
+        renderQueue.async { [weak self] in self?.reportedSourceExtent = .zero }
+        NSLog("%@", geometryReceipt(step: "prepared", source: ciImage.extent.size).description)
         if sourceKind == "video" {
             configureVideoIfAvailable(
                 path: arguments["videoPath"] as? String,
@@ -8404,6 +8770,7 @@ final class PictureInPictureHandler: NSObject {
             result(false)
             return
         }
+        layoutSourceLayer()
 
         guard controller.isPictureInPicturePossible else {
             waitForPictureInPictureAvailability(controller, result: result)
@@ -8501,6 +8868,7 @@ final class PictureInPictureHandler: NSObject {
         stopRequestedDuringStart = false
         stopCompletionPending = false
         observedBackgroundSinceStart = false
+        finishForegroundReturn(reason: "start_failed")
         emit(type: "startFailed", message: reason)
         result(false)
     }
@@ -8567,6 +8935,7 @@ final class PictureInPictureHandler: NSObject {
             pauseDynamicSources()
             detachSampleLayer()
             lifecycleState = .idle
+            finishForegroundReturn(reason: "stop_without_controller")
             return false
         }
 
@@ -8601,6 +8970,7 @@ final class PictureInPictureHandler: NSObject {
             lifecycleState = .idle
             stopRequestedDuringStart = false
             observedBackgroundSinceStart = false
+            finishForegroundReturn(reason: "stop_inactive")
             return false
         }
 
@@ -8639,6 +9009,7 @@ final class PictureInPictureHandler: NSObject {
                 self.stopRequestedDuringStart = false
                 self.observedBackgroundSinceStart = false
                 self.foregroundStopRequested = false
+                self.finishForegroundReturn(reason: "start_unconfirmed")
                 self.prepared = false
                 self.stopRenderTimer()
                 self.pauseDynamicSources()
@@ -8663,8 +9034,14 @@ final class PictureInPictureHandler: NSObject {
         stopRequestedDuringStart = false
         stopCompletionPending = true
         stopWatchdogAttempts = 0
-        stopRenderTimer()
-        pauseDynamicSources()
+        // The PiP window mirrors the same session the foreground resumes;
+        // freezing it here is what made the return jump. Playback stays owned
+        // by PiP until didStop, when the foreground authority takes over the
+        // identical session, playhead and intent.
+        applyReturnPresentation(
+            returnPresentation.stopping(returnContext),
+            reason: "begin_stopping:\(reason)"
+        )
         NSLog("[MusicVibePiP] requesting stop reason=%@", reason)
         controller.stopPictureInPicture()
         scheduleStopWatchdog(for: controller)
@@ -8699,6 +9076,11 @@ final class PictureInPictureHandler: NSObject {
                 // isPictureInPictureActive can become false before AVKit removes
                 // its window. Only didStop is allowed to detach the source layer.
                 self.stopWatchdog = nil
+                // A presentation kept alive for the return must not outlive
+                // the stop it waited for.
+                self.stopRenderTimer()
+                self.pauseDynamicSources()
+                self.finishForegroundReturn(reason: "stop_unconfirmed")
                 NSLog("[MusicVibePiP] stop delegate still pending")
             }
         }
@@ -8720,8 +9102,12 @@ final class PictureInPictureHandler: NSObject {
         observedBackgroundSinceStart = false
         foregroundStopRequested = false
         stopRenderTimer()
+        // A presentation kept alive through the stop may have one frame in
+        // flight. Let it land before the sources pause and the layer leaves.
+        renderQueue.sync {}
         pauseDynamicSources()
         detachSampleLayer()
+        finishForegroundReturn(reason: "stopped")
         emit(type: "stopped", message: reason)
         stoppingReason = "system"
     }
@@ -8730,6 +9116,7 @@ final class PictureInPictureHandler: NSObject {
         if lifecycleState == .starting || lifecycleState == .active {
             observedBackgroundSinceStart = true
         }
+        returnPresentation.backgrounded(phase: returnContext.phase)
         if sourceKind == "sceneV2Shared", lifecycleState == .active {
             handleSharedV2ThermalStateChange()
         }
@@ -8761,6 +9148,7 @@ final class PictureInPictureHandler: NSObject {
                 pictureInPictureController?.isPictureInPictureActive == true
         else { return }
         foregroundStopRequested = true
+        requestReturnPresentation(reason: "foreground_\(source)")
         setAutomaticStartEnabled(false)
         NSLog(
             "[MusicVibePiP] foreground source=%@ state=%@; stopping",
@@ -8774,6 +9162,13 @@ final class PictureInPictureHandler: NSObject {
     }
 
     @objc private func handleApplicationDidBecomeActive() {
+        if let token = restoreBarrier.pendingToken {
+            NSLog(
+                "[MusicVibePiP] did become active with restore pending token=%@ state=%@",
+                token,
+                lifecycleState.rawValue
+            )
+        }
         guard
             foregroundStopRequested ||
                 (observedBackgroundSinceStart &&
@@ -8787,6 +9182,9 @@ final class PictureInPictureHandler: NSObject {
             lifecycleState.rawValue
         )
         foregroundStopRequested = false
+        // A direct activation is a return too: the shared source keeps
+        // presenting until didStop, exactly like the notification path.
+        requestReturnPresentation(reason: "did_become_active")
         DispatchQueue.main.async { [weak self] in
             _ = self?.stop(reason: "foreground_restored_native")
         }
@@ -8830,11 +9228,7 @@ final class PictureInPictureHandler: NSObject {
                 }
                 return
             }
-            if
-                !stopRequestedDuringStart,
-                lifecycleState == .starting ||
-                    lifecycleState == .active
-            {
+            if !stopRequestedDuringStart, presentationOwnershipActive {
                 startRenderTimer()
                 playDynamicSources()
             } else {
@@ -8847,6 +9241,146 @@ final class PictureInPictureHandler: NSObject {
         pictureInPictureController?.invalidatePlaybackState()
         if emitPlaybackIntent {
             emit(type: "playbackChanged", playing: active)
+        }
+    }
+
+    private var returnContext: PictureInPictureReturnPresentation.Context {
+        PictureInPictureReturnPresentation.Context(
+            phase: PictureInPictureReturnPresentation.Phase(rawValue: lifecycleState.rawValue) ?? .idle,
+            sourceKind: sourceKind,
+            playbackActive: playbackActive,
+            emergencyRecoveryActive: v2EmergencyRecoveryActive,
+            presenting: renderTimer != nil
+        )
+    }
+
+    private var keepsPresentationThroughStop: Bool {
+        returnPresentation.continues(returnContext)
+    }
+
+    /// Foreground notification, restore request or activation fallback, in
+    /// whatever order AVKit's stop callbacks arrive around it.
+    private func requestReturnPresentation(reason: String) {
+        dispatchPrecondition(condition: .onQueue(.main))
+        applyReturnPresentation(
+            returnPresentation.returnRequested(returnContext),
+            reason: reason
+        )
+    }
+
+    private func applyReturnPresentation(
+        _ action: PictureInPictureReturnPresentation.Action,
+        reason: String
+    ) {
+        switch action {
+        case .unchanged:
+            if lifecycleState == .stopping, keepsPresentationThroughStop {
+                NSLog(
+                    "[MusicVibePiP] presentation continues through stop source=%@ reason=%@",
+                    sourceKind,
+                    reason
+                )
+            }
+        case .resume:
+            NSLog(
+                "[MusicVibePiP] presentation resumes for the return source=%@ reason=%@",
+                sourceKind,
+                reason
+            )
+            startRenderTimer()
+            playDynamicSources()
+        case .pause:
+            stopRenderTimer()
+            pauseDynamicSources()
+        }
+    }
+
+    /// PiP owns presentation while starting or active, and while a return to
+    /// the app finishes the stop of a source that mirrors the foreground.
+    private var presentationOwnershipActive: Bool {
+        switch lifecycleState {
+        case .starting, .active: return true
+        case .stopping: return keepsPresentationThroughStop
+        case .idle: return false
+        }
+    }
+
+    private var sharedSourceIdentityDescription: String {
+        if let v1SharedSource {
+            return "v1:\(v1SharedSource.sessionID):\(v1SharedSource.generation):\(v1SharedSource.revision)"
+        }
+        if let v2SharedSessionId { return "v2:\(v2SharedSessionId)" }
+        if let rendererSessionId { return "renderer:\(rendererSessionId)" }
+        return "none"
+    }
+
+    /// Every path that leaves the return (stop completed, failed, cleared)
+    /// ends continuity and answers a restore completion still held.
+    private func finishForegroundReturn(reason: String) {
+        applyReturnPresentation(returnPresentation.returnFinished(), reason: reason)
+        if case .completed(let completedReason, let elapsed) = restoreBarrier.finish(reason: reason) {
+            NSLog(
+                "[MusicVibePiP] restore completed reason=%@ elapsedMs=%d state=%@",
+                completedReason,
+                elapsed,
+                lifecycleState.rawValue
+            )
+        }
+    }
+
+    private func sharedSourceMatches(
+        sceneSessionId: String?,
+        generation: String?,
+        revision: Int?
+    ) -> Bool {
+        guard let sceneSessionId else { return false }
+        if let v1SharedSource {
+            return v1SharedSource.sessionID == sceneSessionId &&
+                (generation == nil || v1SharedSource.generation == generation) &&
+                (revision == nil || v1SharedSource.revision == revision)
+        }
+        if let v2SharedSessionId { return v2SharedSessionId == sceneSessionId }
+        return false
+    }
+
+    /// Dart reports whether the foreground output submitted frames of the
+    /// scene PiP mirrors. Any answer for the pending token completes the
+    /// restore now; identity is recorded, never used to wait longer.
+    private func acknowledgeRestore(arguments: Any?) {
+        dispatchPrecondition(condition: .onQueue(.main))
+        guard
+            let arguments = arguments as? [String: Any],
+            let token = arguments["token"] as? String
+        else {
+            NSLog("[MusicVibePiP] restore acknowledgement ignored: invalid arguments")
+            return
+        }
+        let ready = arguments["ready"] as? Bool ?? false
+        let outcome = arguments["outcome"] as? String ?? "unknown"
+        let identityMatches = sharedSourceMatches(
+            sceneSessionId: arguments["sceneSessionId"] as? String,
+            generation: arguments["surfaceGeneration"] as? String,
+            revision: (arguments["appliedRevision"] as? NSNumber)?.intValue
+        )
+        switch restoreBarrier.acknowledge(token: token) {
+        case .completed(_, let elapsed):
+            NSLog(
+                "[MusicVibePiP] restore acknowledged token=%@ ready=%@ outcome=%@ identityMatches=%@ elapsedMs=%d state=%@ source=%@",
+                token,
+                ready ? "true" : "false",
+                outcome,
+                identityMatches ? "true" : "false",
+                elapsed,
+                lifecycleState.rawValue,
+                sharedSourceIdentityDescription
+            )
+        case .stale:
+            NSLog(
+                "[MusicVibePiP] restore acknowledgement stale token=%@ pending=%@ outcome=%@",
+                token,
+                restoreBarrier.pendingToken ?? "none",
+                outcome
+            )
         }
     }
 
@@ -8871,6 +9405,7 @@ final class PictureInPictureHandler: NSObject {
             )
             return
         }
+        layoutSourceLayer()
         pictureInPictureController?
             .canStartPictureInPictureAutomaticallyFromInline = true
         stopRenderTimer()
@@ -9005,11 +9540,12 @@ final class PictureInPictureHandler: NSObject {
         if let existingHost = sourceHostView {
             hostView = existingHost
         } else {
-            let createdHost = UIView(frame: window.bounds)
+            let createdHost = PictureInPictureSourceHostView(frame: window.bounds)
             createdHost.backgroundColor = .clear
             createdHost.isUserInteractionEnabled = false
             createdHost.accessibilityElementsHidden = true
             createdHost.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            createdHost.onLayout = { [weak self] in self?.fitSourceLayer() }
             sourceHostView = createdHost
             hostView = createdHost
         }
@@ -9027,14 +9563,105 @@ final class PictureInPictureHandler: NSObject {
         sampleLayer.removeFromSuperlayer()
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        // AVKit derives source geometry from this layer. Keep it at the real
-        // portrait size, but host it behind Flutter so its black background can
-        // never cover the app while a new scene is prepared.
-        sampleLayer.frame = hostView.bounds
+        // AVKit derives source geometry from this layer. Give it the output's
+        // aspect, centered in the window, and host it behind Flutter so its
+        // black background can never cover the app while a scene is prepared.
+        sampleLayer.frame = pictureInPictureSourceLayerFrame(
+            outputWidth: width,
+            outputHeight: height,
+            host: hostView.bounds
+        )
         sampleLayer.isHidden = false
         hostView.layer.addSublayer(sampleLayer)
         CATransaction.commit()
+        recordSourceLayerGeometry(host: hostView.bounds)
         return sampleLayer.superlayer === hostView.layer
+    }
+
+    /// Explicit start, automatic prewarm and `willStart`: sync the host to
+    /// its window, then fit the layer, so the geometry AVKit reads matches the
+    /// buffers even before UIKit's own layout pass runs.
+    private func layoutSourceLayer() {
+        dispatchPrecondition(condition: .onQueue(.main))
+        guard let hostView = sourceHostView, sampleLayer.superlayer === hostView.layer else {
+            return
+        }
+        if let window = windowProvider(), hostView.frame != window.bounds {
+            hostView.frame = window.bounds
+        }
+        fitSourceLayer()
+    }
+
+    /// Every host layout pass (rotation, Split View) and every explicit sync
+    /// re-fit the attached layer to the host's current bounds. Only the
+    /// layer's frame moves: buffers, sources and session are untouched, and a
+    /// frame that already fits records nothing.
+    private func fitSourceLayer() {
+        dispatchPrecondition(condition: .onQueue(.main))
+        guard let hostView = sourceHostView, sampleLayer.superlayer === hostView.layer else {
+            return
+        }
+        guard
+            let frame = pictureInPictureSourceLayerUpdate(
+                outputWidth: width,
+                outputHeight: height,
+                host: hostView.bounds,
+                current: sampleLayer.frame
+            )
+        else { return }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        sampleLayer.frame = frame
+        CATransaction.commit()
+        recordSourceLayerGeometry(host: hostView.bounds)
+        // Bounded: one receipt per layout change, never per frame. The source
+        // extent lives on the render queue and a layout pass never waits for
+        // it, so this step reports source=0x0.
+        NSLog("%@", geometryReceipt(step: "layout", source: .zero).description)
+    }
+
+    private func recordSourceLayerGeometry(host: CGRect) {
+        stateLock.lock()
+        sourceLayerFrame = sampleLayer.frame
+        sourceHostBounds = host
+        stateLock.unlock()
+    }
+
+    /// Safe from any queue: every field is a plain copy under the lock.
+    private func geometryReceipt(step: String, source: CGSize) -> PictureInPictureGeometryReceipt {
+        stateLock.lock()
+        let layer = sourceLayerFrame
+        let host = sourceHostBounds
+        let render = avkitRenderSize
+        stateLock.unlock()
+        return PictureInPictureGeometryReceipt(
+            step: step,
+            sessionId: sessionId ?? "none",
+            source: source,
+            outputWidth: width,
+            outputHeight: height,
+            layer: layer,
+            host: host,
+            renderWidth: Int(render.width),
+            renderHeight: Int(render.height)
+        )
+    }
+
+    /// Main thread: the extent the render queue reported last (a short sync
+    /// hop; receipts are per handoff step, never per frame).
+    private var reportedSourceExtentSnapshot: CGSize {
+        renderQueue.sync { reportedSourceExtent }
+    }
+
+    /// Render queue: one receipt per distinct shared-source extent.
+    private func reportSourceExtent(of buffer: CVPixelBuffer) {
+        let extent = CGSize(
+            width: CVPixelBufferGetWidth(buffer),
+            height: CVPixelBufferGetHeight(buffer)
+        )
+        guard extent != reportedSourceExtent else { return }
+        reportedSourceExtent = extent
+        NSLog("%@", geometryReceipt(step: "source", source: extent).description)
     }
 
     private func detachSampleLayer() {
@@ -9114,8 +9741,7 @@ final class PictureInPictureHandler: NSObject {
         guard
             playbackActive,
             !stopRequestedDuringStart,
-            lifecycleState == .starting ||
-                lifecycleState == .active
+            presentationOwnershipActive
         else {
             pauseDynamicSources()
             return
@@ -9245,6 +9871,16 @@ final class PictureInPictureHandler: NSObject {
         posterOnly: Bool = false
     ) {
         guard renderTimer == nil, playbackActive else { return }
+        // Only the idle prewarm presents without ownership. A late thermal or
+        // recovery callback must not revive a stopped or stale session.
+        guard requestedFPS != nil || presentationOwnershipActive else {
+            NSLog(
+                "[MusicVibePiP] render timer refused without ownership state=%@ source=%@",
+                lifecycleState.rawValue,
+                sourceKind
+            )
+            return
+        }
         let fps = requestedFPS ?? effectiveFramesPerSecond
         let timer = DispatchSource.makeTimerSource(queue: renderQueue)
         timer.schedule(
@@ -9419,15 +10055,24 @@ final class PictureInPictureHandler: NSObject {
             self.v2ImageRuntime.ensurePictureInPictureMinimumFunctional(
                 sessionID: v2SharedSessionId
             ) { [weak self] accepted, _ in
-                guard let self, accepted else { return }
+                guard
+                    let self,
+                    accepted,
+                    self.v2SharedSessionId == v2SharedSessionId,
+                    self.v2EmergencyRecoveryActive
+                else { return }
                 self.v2EmergencyRecoveryActive = false
-                if self.playbackActive {
-                    self.dynamicSourcesPlaybackRequested = true
-                    self.v2ImageRuntime.setPictureInPictureSourcePlaying(
-                        sessionID: v2SharedSessionId,
-                        playing: true
+                guard self.presentationOwnershipActive else {
+                    // PiP already stopped: the foreground owns this session.
+                    NSLog(
+                        "[MusicVibePiP] emergency recovery ended without ownership state=%@",
+                        self.lifecycleState.rawValue
                     )
+                    return
+                }
+                if self.playbackActive {
                     self.startRenderTimer()
+                    self.playDynamicSources()
                 }
                 self.emit(
                     type: "thermalStateChanged",
@@ -9563,6 +10208,7 @@ final class PictureInPictureHandler: NSObject {
                 incrementDroppedFrames()
                 return false
             }
+            reportSourceExtent(of: frame.buffer)
             if v1ConvertedRevision == frame.revision, let cached = v1ConvertedBuffer {
                 outputBuffer = cached
             } else {
@@ -9616,6 +10262,7 @@ final class PictureInPictureHandler: NSObject {
                     incrementDroppedFrames()
                     return false
                 }
+                reportSourceExtent(of: sharedBuffer)
                 renderedImage = aspectFill(
                     CIImage(cvPixelBuffer: sharedBuffer),
                     targetRect: targetRect
@@ -9623,8 +10270,9 @@ final class PictureInPictureHandler: NSObject {
             } else if sourceKind == "sceneComposition" {
                 let hostTime = CACurrentMediaTime()
                 let frame = freshReactiveFrame()
-                let graphEligible = sceneOnePassLayers != nil
-                let attemptedOnePass = graphEligible && metalContext != nil
+                let attemptedOnePass =
+                    sceneOnePassLayers?.packedVideo.videoAssetSupportsOnePass == true &&
+                    metalContext?.supportsOnePassPackedVideoRendering == true
                 let fallbackBaseline = metalContext?.renderPathMetrics
                     .snapshot(scope: sceneMetricsScope).fallback ?? 0
                 let onePassResult = renderSceneSurfaceOnePass(
@@ -9637,7 +10285,7 @@ final class PictureInPictureHandler: NSObject {
                     bodyDrive: frame.bodyDrive,
                     sparkDrive: frame.sparkDrive,
                     sourcesPrepared: false,
-                    compositor: graphEligible ? metalContext?.onePassCompositor : nil,
+                    compositor: attemptedOnePass ? metalContext?.onePassCompositor : nil,
                     metricsScope: sceneMetricsScope
                 )
                 sceneRenderInput = (
@@ -9930,7 +10578,7 @@ final class PictureInPictureHandler: NSObject {
             width: width,
             height: height
         )
-        var image = aspectFill(input, targetRect: layerRect)
+        var image = transform.sourceAlignment.fit(input, to: layerRect)
         let binding = layer.audioBinding
         let reaction = frame.reactivity
         let pulse = min(
@@ -10455,6 +11103,7 @@ final class PictureInPictureHandler: NSObject {
         stopCompletionPending = false
         stopRenderTimer()
         pauseDynamicSources()
+        finishForegroundReturn(reason: "cleared")
         renderQueue.sync {}
         tearDownVideo()
         releaseRendererSessionIfNeeded()
@@ -10586,7 +11235,11 @@ extension PictureInPictureHandler: AVPictureInPictureControllerDelegate {
         _ pictureInPictureController: AVPictureInPictureController
     ) {
         lifecycleState = .starting
+        // Automatic entry has no explicit start: fit the layer now so the
+        // receipt below shows what AVKit reads (a changed frame logs `layout`).
+        layoutSourceLayer()
         NSLog("[MusicVibePiP] will start")
+        NSLog("%@", geometryReceipt(step: "will_start", source: reportedSourceExtentSnapshot).description)
         stopRenderTimer()
         if playbackActive && !stopRequestedDuringStart {
             startRenderTimer()
@@ -10636,6 +11289,7 @@ extension PictureInPictureHandler: AVPictureInPictureControllerDelegate {
         stopRequestedDuringStart = false
         stopCompletionPending = false
         observedBackgroundSinceStart = false
+        finishForegroundReturn(reason: "start_failed")
         emit(type: "startFailed", message: error.localizedDescription)
         takePendingStartResult()?(false)
         if wasStopping {
@@ -10653,8 +11307,17 @@ extension PictureInPictureHandler: AVPictureInPictureControllerDelegate {
         else { return }
         lifecycleState = .stopping
         stopCompletionPending = true
-        stopRenderTimer()
-        pauseDynamicSources()
+        applyReturnPresentation(
+            returnPresentation.stopping(returnContext),
+            reason: "will_stop"
+        )
+        // A stop AVKit began on its own has no watchdog yet. Presentation
+        // ownership must end even if didStop never arrives; the layer itself
+        // stays attached because only didStop proves AVKit released it.
+        if stopWatchdog == nil {
+            stopWatchdogAttempts = 0
+            scheduleStopWatchdog(for: pictureInPictureController)
+        }
         NSLog("[MusicVibePiP] will stop reason=%@", stoppingReason)
         emit(type: "willStop", message: stoppingReason)
     }
@@ -10671,8 +11334,30 @@ extension PictureInPictureHandler: AVPictureInPictureControllerDelegate {
         _ pictureInPictureController: AVPictureInPictureController,
         restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
     ) {
-        emit(type: "restoreRequested")
-        completionHandler(true)
+        dispatchPrecondition(condition: .onQueue(.main))
+        // The user is coming back. A mirrored source keeps presenting and the
+        // PiP window waits, bounded, for the foreground to submit frames of
+        // the same scene; the completion is always answered with `true`.
+        requestReturnPresentation(reason: "restore")
+        if let superseded = restoreBarrier.pendingToken {
+            NSLog("[MusicVibePiP] restore superseded token=%@", superseded)
+        }
+        let token = restoreBarrier.begin { restored in
+            if Thread.isMainThread {
+                completionHandler(restored)
+            } else {
+                DispatchQueue.main.async { completionHandler(restored) }
+            }
+        }
+        NSLog(
+            "[MusicVibePiP] restore requested token=%@ state=%@ source=%@ identity=%@ playing=%@",
+            token,
+            lifecycleState.rawValue,
+            sourceKind,
+            sharedSourceIdentityDescription,
+            playbackActive ? "true" : "false"
+        )
+        emit(type: "restoreRequested", message: token)
     }
 }
 
@@ -10682,21 +11367,32 @@ extension PictureInPictureHandler: AVPictureInPictureSampleBufferPlaybackDelegat
         _ pictureInPictureController: AVPictureInPictureController,
         setPlaying playing: Bool
     ) {
-        let shouldForwardIntent = PictureInPicturePlaybackIntentGate.shouldForward(
+        let decision = PictureInPicturePlaybackIntentGate.decide(
             lifecycleActive: lifecycleState == .active,
             foregroundStopRequested: foregroundStopRequested,
-            stopRequestedDuringStart: stopRequestedDuringStart
+            stopRequestedDuringStart: stopRequestedDuringStart,
+            returnRequested: returnPresentation.continuityRequested
         )
-        setPlaybackActive(playing, emitPlaybackIntent: shouldForwardIntent)
-        if !shouldForwardIntent {
+        switch decision {
+        case .ignore:
             NSLog(
                 "[MusicVibePiP] ignored playback callback during transition " +
-                    "state=%@ foregroundStop=%@ startStop=%@ playing=%@",
+                    "state=%@ foregroundStop=%@ startStop=%@ return=%@ playing=%@",
                 lifecycleState.rawValue,
                 foregroundStopRequested.description,
                 stopRequestedDuringStart.description,
+                returnPresentation.continuityRequested.description,
                 playing.description
             )
+            // Nothing changed; AVKit re-reads the scene's real playback state.
+            pictureInPictureController.invalidatePlaybackState()
+        case .apply:
+            NSLog(
+                "[MusicVibePiP] playback callback applied state=%@ playing=%@",
+                lifecycleState.rawValue,
+                playing.description
+            )
+            setPlaybackActive(playing, emitPlaybackIntent: true)
         }
     }
 
@@ -10716,6 +11412,13 @@ extension PictureInPictureHandler: AVPictureInPictureSampleBufferPlaybackDelegat
         _ pictureInPictureController: AVPictureInPictureController,
         didTransitionToRenderSize newRenderSize: CMVideoDimensions
     ) {
+        stateLock.lock()
+        avkitRenderSize = CGSize(
+            width: Int(newRenderSize.width),
+            height: Int(newRenderSize.height)
+        )
+        stateLock.unlock()
+        NSLog("%@", geometryReceipt(step: "render_size", source: reportedSourceExtentSnapshot).description)
         emit(
             type: "thermalStateChanged",
             message: "render_\(newRenderSize.width)x\(newRenderSize.height)",
@@ -10745,7 +11448,7 @@ final class PictureInPictureHandlerUnavailable: NSObject, FlutterStreamHandler {
             case "releaseSceneContinuation":
                 result(FlutterError(code: "continuation_unavailable", message: "Native continuation is unavailable.", details: nil))
             case "release", "setAutomaticStartEnabled", "setPlaybackActive",
-                 "updateReactiveFrame", "dispose": result(nil)
+                 "updateReactiveFrame", "acknowledgeRestore", "dispose": result(nil)
             default: result(FlutterMethodNotImplemented)
             }
         }
@@ -11940,6 +12643,189 @@ private final class SceneSurfaceFlutterTexture: NSObject, FlutterTexture {
     }
 }
 
+/// An immutable copy of a frame a session already published, shown by Flutter
+/// while that session changes canvas or sources underneath. Holding the buffer
+/// keeps its pool from reusing it; the session's published-buffer budget
+/// counts it like any frame a consumer still owns.
+private final class SceneSurfacePresentationCoverTexture: NSObject, FlutterTexture {
+    private let lock = NSLock()
+    private var pixelBuffer: CVPixelBuffer?
+    private var copied = false
+
+    func hold(_ buffer: CVPixelBuffer) {
+        lock.lock()
+        pixelBuffer = buffer
+        lock.unlock()
+    }
+
+    /// True once Flutter took the frame for the screen.
+    var hasBeenCopied: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return copied
+    }
+
+    func copyPixelBuffer() -> Unmanaged<CVPixelBuffer>? {
+        lock.lock()
+        defer { lock.unlock() }
+        guard let pixelBuffer else { return nil }
+        copied = true
+        return Unmanaged.passRetained(pixelBuffer)
+    }
+
+    func onTextureUnregistered(_ texture: FlutterTexture) {
+        lock.lock()
+        pixelBuffer = nil
+        lock.unlock()
+    }
+}
+
+private final class SceneSurfacePresentationCover {
+    let id = UUID().uuidString
+    let sessionID: String
+    let textureId: Int64
+    let texture: SceneSurfacePresentationCoverTexture
+    /// Flutter painted it and its caller confirmed so: from then on only the
+    /// caller's release or the engine's disposal ends it. Confined to
+    /// `renderQueue`.
+    var displayed = false
+
+    init(sessionID: String, textureId: Int64, texture: SceneSurfacePresentationCoverTexture) {
+        self.sessionID = sessionID
+        self.textureId = textureId
+        self.texture = texture
+    }
+}
+
+@available(iOS 15.0, *)
+extension SceneSurfaceRenderEngine {
+    /// A capture its caller never confirmed on screen expires after this,
+    /// well past the caller's confirmation (a 2 s retain, then ten frames of
+    /// at most 1 s). A confirmed cover never expires on a timer.
+    fileprivate static let unconfirmedPresentationCoverLease: TimeInterval = 30
+    /// The outgoing and incoming presentation of one overlapping change.
+    fileprivate static let presentationCoversPerSession = 2
+    /// Confirmed covers outlive their session; this bounds what callers that
+    /// fail to release can hold. A new capture is refused, never a shown one.
+    fileprivate static let presentationCoversTotal = 4
+
+    /// Freezes the session's last applied frame into its own texture, with
+    /// the guards of `offerCurrentPublishedFrame`: never a candidate
+    /// document, a pending edit or a preparation. Answers nil otherwise.
+    fileprivate func retainPresentationCover(arguments: Any?, result: @escaping FlutterResult) {
+        guard
+            let arguments = arguments as? [String: Any],
+            let sessionID = Self.nonEmpty(arguments["sessionId"]),
+            let generation = Self.nonEmpty(arguments["documentGeneration"])
+        else {
+            result(Self.error("cover_invalid", "A session and its generation are required."))
+            return
+        }
+        let texture = SceneSurfacePresentationCoverTexture()
+        let registry = textureRegistry
+        let textureId = registry.register(texture)
+        guard textureId >= 0 else {
+            result(nil)
+            return
+        }
+        renderQueue.async { [weak self] in
+            guard
+                let self,
+                let session = self.sessions[sessionID],
+                session.documentGeneration == generation,
+                session.foregroundAttached, session.preparationId == nil,
+                session.editStatus != "pending", session.publishedFrameCount > 0,
+                session.lastPublishedDocument === session.document,
+                session.lastPublishedRevision == session.editAppliedRevision,
+                self.presentationCovers.values.filter({ $0.sessionID == sessionID }).count
+                    < Self.presentationCoversPerSession,
+                self.presentationCovers.count < Self.presentationCoversTotal,
+                let buffer = session.texture.copyPixelBuffer()?.takeRetainedValue()
+            else {
+                DispatchQueue.main.async {
+                    registry.unregisterTexture(textureId)
+                    result(nil)
+                }
+                return
+            }
+            texture.hold(buffer)
+            let cover = SceneSurfacePresentationCover(
+                sessionID: sessionID, textureId: textureId, texture: texture
+            )
+            self.presentationCovers[cover.id] = cover
+            self.renderQueue.asyncAfter(
+                deadline: .now() + Self.unconfirmedPresentationCoverLease
+            ) { [weak self, weak cover] in
+                guard let self, let cover, !cover.displayed else { return }
+                self.discardPresentationCover(cover)
+            }
+            let payload: [String: Any] = [
+                "coverId": cover.id,
+                "textureId": textureId,
+                "pixelWidth": CVPixelBufferGetWidth(buffer),
+                "pixelHeight": CVPixelBufferGetHeight(buffer),
+            ]
+            DispatchQueue.main.async {
+                registry.textureFrameAvailable(textureId)
+                result(payload)
+            }
+        }
+    }
+
+    fileprivate func confirmPresentationCover(arguments: Any?, result: @escaping FlutterResult) {
+        guard
+            let arguments = arguments as? [String: Any],
+            let sessionID = Self.nonEmpty(arguments["sessionId"]),
+            let coverID = Self.nonEmpty(arguments["coverId"])
+        else {
+            result(Self.error("cover_invalid", "A session and a cover are required."))
+            return
+        }
+        renderQueue.async { [weak self] in
+            let cover = self?.presentationCovers[coverID]
+            let copied = cover?.sessionID == sessionID && cover?.texture.hasBeenCopied == true
+            if copied { cover?.displayed = true }
+            DispatchQueue.main.async { result(copied) }
+        }
+    }
+
+    fileprivate func releasePresentationCover(arguments: Any?, result: @escaping FlutterResult) {
+        guard
+            let arguments = arguments as? [String: Any],
+            let sessionID = Self.nonEmpty(arguments["sessionId"]),
+            let coverID = Self.nonEmpty(arguments["coverId"])
+        else {
+            result(Self.error("cover_invalid", "A session and a cover are required."))
+            return
+        }
+        renderQueue.async { [weak self] in
+            if let self, let cover = self.presentationCovers[coverID], cover.sessionID == sessionID {
+                self.discardPresentationCover(cover)
+            }
+            DispatchQueue.main.async { result(nil) }
+        }
+    }
+
+    /// Confined to `renderQueue`.
+    fileprivate func discardPresentationCover(_ cover: SceneSurfacePresentationCover) {
+        guard presentationCovers[cover.id] === cover else { return }
+        presentationCovers.removeValue(forKey: cover.id)
+        let registry = textureRegistry
+        DispatchQueue.main.async { registry.unregisterTexture(cover.textureId) }
+    }
+
+    /// Confined to `renderQueue`; nil discards the covers of every session.
+    fileprivate func discardPresentationCovers(
+        sessionID: String?,
+        keepingDisplayed: Bool = false
+    ) {
+        presentationCovers.values
+            .filter { sessionID == nil || $0.sessionID == sessionID }
+            .filter { !(keepingDisplayed && $0.displayed) }
+            .forEach { self.discardPresentationCover($0) }
+    }
+}
+
 @available(iOS 15.0, *)
 struct SceneSurfaceBackendCapabilities: Equatable {
     static let protocolVersion = 1
@@ -11952,6 +12838,13 @@ struct SceneSurfaceBackendCapabilities: Equatable {
     let packedVideoPipelineAvailable: Bool
     let textureCacheAvailable: Bool
     let rasterOrderGroupsSupported: Bool
+
+    var supportsOnePassPackedVideoRendering: Bool {
+        onePassInfernoPipelineAvailable &&
+            packedVideoPipelineAvailable &&
+            textureCacheAvailable &&
+            rasterOrderGroupsSupported
+    }
 
     init(
         metalContextAvailable: Bool,
@@ -12202,11 +13095,7 @@ enum SceneSurfacePreflightBackendSelector {
                 issueCodes: ["renderer_unavailable"]
             )
         }
-        let onePassAvailable = capabilities.onePassInfernoPipelineAvailable &&
-            capabilities.packedVideoPipelineAvailable &&
-            capabilities.textureCacheAvailable &&
-            capabilities.rasterOrderGroupsSupported
-        if graphSupportsOnePass && onePassAvailable {
+        if graphSupportsOnePass && capabilities.supportsOnePassPackedVideoRendering {
             return SceneSurfacePreflightBackendSelection(
                 backendClass: "one_pass_gpu",
                 issueCodes: []
@@ -12487,6 +13376,8 @@ final class SceneSurfaceRenderEngine: NSObject {
     private static let initialVideoFrameWait: CFTimeInterval = 2
     private static let initialVideoFramePollInterval: TimeInterval = 1.0 / 120.0
     private var sessions = [String: Session]()
+    /// Presentation covers by cover ID. Confined to `renderQueue`.
+    fileprivate var presentationCovers = [String: SceneSurfacePresentationCover]()
     private var documentInspections = [String: (
         id: UUID, operation: SceneSurfaceInspectionOperation<[String: SceneSurfaceVideoAssetInspection]>
     )]()
@@ -12615,6 +13506,9 @@ final class SceneSurfaceRenderEngine: NSObject {
         metalContext?.renderPathMetrics.removeScope(session.id)
         session.pools.removeAll()
         unregisterTexture(session)
+        // A cover Flutter still shows outlives a recovery detach: its caller
+        // releases it once something safe replaces it.
+        discardPresentationCovers(sessionID: session.id, keepingDisplayed: true)
     }
     private var renderTimer: DispatchSourceTimer?
     private var renderTimerFramesPerSecond: Int?
@@ -12835,6 +13729,12 @@ final class SceneSurfaceRenderEngine: NSObject {
                     arguments: call.arguments,
                     result: result
                 )
+            case "retainPresentationCover":
+                self.retainPresentationCover(arguments: call.arguments, result: result)
+            case "confirmPresentationCover":
+                self.confirmPresentationCover(arguments: call.arguments, result: result)
+            case "releasePresentationCover":
+                self.releasePresentationCover(arguments: call.arguments, result: result)
             case "detach":
                 self.detach(arguments: call.arguments, result: result)
             case "dispose":
@@ -14173,6 +15073,7 @@ final class SceneSurfaceRenderEngine: NSObject {
                 $0.pools.removeAll()
             }
             attached.forEach { self.unregisterTexture($0) }
+            self.discardPresentationCovers(sessionID: nil)
             DispatchQueue.main.async { result?(nil) }
         }
     }
@@ -14378,8 +15279,8 @@ final class SceneSurfaceRenderEngine: NSObject {
                     document.layers.forEach { $0.invalidateStableSourceRaster() }
                 }
             }
-            let graphEligible = document.onePassLayers != nil
-            let attemptedOnePass = graphEligible && metalContext != nil
+            let attemptedOnePass = document.supportsOnePassGraph &&
+                metalContext?.supportsOnePassPackedVideoRendering == true
             let fallbackBaseline = metalContext?.renderPathMetrics.snapshot(
                 scope: session.id
             ).fallback ?? 0
@@ -14393,7 +15294,7 @@ final class SceneSurfaceRenderEngine: NSObject {
                 bodyDrive: frame.bodyDrive,
                 sparkDrive: frame.sparkDrive,
                 sourcesPrepared: sourcesPrepared,
-                compositor: graphEligible ? metalContext?.onePassCompositor : nil,
+                compositor: attemptedOnePass ? metalContext?.onePassCompositor : nil,
                 metricsScope: session.id
             )
             if onePassResult != .rendered {
@@ -14716,7 +15617,7 @@ final class SceneSurfaceRenderEngine: NSObject {
             width: width,
             height: height
         )
-        var image = aspectFill(input, targetRect: layerRect)
+        var image = definition.sourceAlignment.fit(input, to: layerRect)
         let binding = layer.audioBinding
         let pulse = min(
             max(

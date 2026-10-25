@@ -74,8 +74,12 @@ enum SceneCatalogControlUpdatePlan {
       return (low...high).contains(value.doubleValue)
     }
     guard number(layer["opacity"], 0, 1), let transform = layer["transform"] as? [String: Any],
-      Set(transform.keys) == ["width", "height", "offsetX", "offsetY", "scale", "rotation", "flipped"],
+      Set(transform.keys).subtracting(["sourceAlignment"]) == ["width", "height", "offsetX", "offsetY", "scale", "rotation", "flipped"],
       transform["flipped"] is Bool else { return false }
+    if let alignment = transform["sourceAlignment"] {
+      guard let map = alignment as? [String: Any], Set(map.keys) == Set(["x", "y"]),
+        number(map["x"], 0, 1), number(map["y"], 0, 1) else { return false }
+    }
     return number(transform["width"], 0.01, 4) && number(transform["height"], 0.01, 4) &&
       number(transform["offsetX"], -4, 4) && number(transform["offsetY"], -4, 4) &&
       number(transform["scale"], 0.05, 10) && number(transform["rotation"], -Double.pi * 8, Double.pi * 8)
