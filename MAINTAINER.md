@@ -76,6 +76,13 @@ El exportador la prepara y la incluye en el kit; los builds sin `.git` conservan
 esa copia. Un historial superficial nunca se usa para asignar fechas falsas.
 CI obtiene el historial completo y prepara las entregas antes de probar Studio.
 Las revisiones de visuales, los votos y las aprobaciones no incluyen estos lotes.
+La selección editorial del selector vive en
+`studio/assets/visual_collection_curation.json`: excluye IDs de colecciones,
+sin modificar la procedencia generada, los visuales ni sus votos. El 29 de
+octubre de 2026 se retiraron del selector los grupos generales y las Reactivas
+originales de Franco del 21 al 23; se conservan las Reactivas mejoradas del 22
+y del 23, completadas por Pavel. Las entregas anteriores y futuras conservan
+su agrupación automática. Este cambio llega a colaboradores al actualizar Creator.
 Las familias existentes con IDs `reactiva_` y `reactiva_mejorada_` ofrecen además
 subgrupos automáticos dentro de cada entrega. La familia mejorada se resuelve
 primero y no se mezcla con la original; los demás visuales conservan el lote

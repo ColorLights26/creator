@@ -19,15 +19,38 @@ class StudioVisualCollection {
 
 Future<List<StudioVisualCollection>> loadStudioVisualCollections({
   AssetBundle? bundle,
-}) async => buildStudioVisualCollections(
-  decodeStudioVisualUploads(
-    await (bundle ?? rootBundle).loadString('assets/visual_uploads.json'),
-  ),
-);
+}) async {
+  final assets = bundle ?? rootBundle;
+  return buildStudioVisualCollections(
+    decodeStudioVisualUploads(
+      await assets.loadString('assets/visual_uploads.json'),
+    ),
+    hiddenCollectionIds: decodeHiddenStudioCollectionIds(
+      await assets.loadString('assets/visual_collection_curation.json'),
+    ),
+  );
+}
+
+Set<String> decodeHiddenStudioCollectionIds(String source) {
+  final data = jsonDecode(source);
+  if (data is! Map ||
+      data['schemaVersion'] != 1 ||
+      data['hiddenCollectionIds'] is! List) {
+    throw const FormatException('La selección de colecciones no es válida.');
+  }
+  final ids = <String>{};
+  for (final id in data['hiddenCollectionIds'] as List) {
+    if (id is! String || id.trim().isEmpty || !ids.add(id)) {
+      throw const FormatException('ID de colección inválido o repetido.');
+    }
+  }
+  return Set.unmodifiable(ids);
+}
 
 List<StudioVisualCollection> buildStudioVisualCollections(
-  Iterable<StudioVisualUpload> uploads,
-) {
+  Iterable<StudioVisualUpload> uploads, {
+  Set<String> hiddenCollectionIds = const {},
+}) {
   final groups = <String, List<StudioVisualUpload>>{};
   final pending = <String>{};
   for (final upload in uploads) {
@@ -65,7 +88,7 @@ List<StudioVisualCollection> buildStudioVisualCollections(
       '${int.parse(upload.date!.substring(8))} '
       '${months[int.parse(upload.date!.substring(5, 7)) - 1]} '
       '${upload.date!.substring(0, 4)}';
-  return List.unmodifiable([
+  final collections = <StudioVisualCollection>[
     for (final group in ordered) ...[
       StudioVisualCollection(
         id: group.key,
@@ -91,7 +114,12 @@ List<StudioVisualCollection> buildStudioVisualCollections(
         visualIds: Set.unmodifiable(pending),
       ),
     ..._legacyStudioVisualCollections,
-  ]);
+  ];
+  return List.unmodifiable(
+    collections.where(
+      (collection) => !hiddenCollectionIds.contains(collection.id),
+    ),
+  );
 }
 
 // Historical editorial subsets remain available alongside automatic deliveries.

@@ -30,5 +30,6 @@ flutter:
   assets:
     - assets/recordings.json
     - assets/visual_uploads.json
+    - assets/visual_collection_curation.json
     - assets/accepted_visuals.json
     - assets/measured_creator_build_manifest.json
