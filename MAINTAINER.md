@@ -81,8 +81,13 @@ La selección editorial del selector vive en
 sin modificar la procedencia generada, los visuales ni sus votos. El 29 de
 octubre de 2026 se retiraron del selector los grupos generales y las Reactivas
 originales de Franco del 21 al 23; se conservan las Reactivas mejoradas del 22
-y del 23, completadas por Pavel. Las entregas anteriores y futuras conservan
-su agrupación automática. Este cambio llega a colaboradores al actualizar Creator.
+y del 23, completadas por Pavel. Luego se recuperaron los **101** visuales que
+habían quedado fuera de esos grupos en «Recuperadas · 21–23 oct». La configuración
+`mergedCollections` une las seis colecciones ocultas y excluye las dos mejoradas
+que siguen visibles (95 visuales), sin duplicar IDs ni tocar revisiones o votos.
+Las referencias a grupos inexistentes fallan explícitamente para no omitir
+material en silencio. Las entregas anteriores y futuras conservan su agrupación
+automática. Este cambio llega a colaboradores al actualizar Creator.
 Las familias existentes con IDs `reactiva_` y `reactiva_mejorada_` ofrecen además
 subgrupos automáticos dentro de cada entrega. La familia mejorada se resuelve
 primero y no se mezcla con la original; los demás visuales conservan el lote

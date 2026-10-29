@@ -17,39 +17,105 @@ class StudioVisualCollection {
   final Set<String> visualIds;
 }
 
+class StudioVisualCollectionMerge {
+  const StudioVisualCollectionMerge({
+    required this.id,
+    required this.label,
+    required this.sourceCollectionIds,
+    this.excludeCollectionIds = const {},
+  });
+
+  final String id;
+  final String label;
+  final Set<String> sourceCollectionIds;
+  final Set<String> excludeCollectionIds;
+}
+
 Future<List<StudioVisualCollection>> loadStudioVisualCollections({
   AssetBundle? bundle,
 }) async {
   final assets = bundle ?? rootBundle;
+  final curation = decodeStudioCollectionCuration(
+    await assets.loadString('assets/visual_collection_curation.json'),
+  );
   return buildStudioVisualCollections(
     decodeStudioVisualUploads(
       await assets.loadString('assets/visual_uploads.json'),
     ),
-    hiddenCollectionIds: decodeHiddenStudioCollectionIds(
-      await assets.loadString('assets/visual_collection_curation.json'),
-    ),
+    hiddenCollectionIds: curation.hiddenCollectionIds,
+    mergedCollections: curation.mergedCollections,
   );
 }
 
-Set<String> decodeHiddenStudioCollectionIds(String source) {
+({
+  Set<String> hiddenCollectionIds,
+  List<StudioVisualCollectionMerge> mergedCollections,
+})
+decodeStudioCollectionCuration(String source) {
   final data = jsonDecode(source);
   if (data is! Map ||
       data['schemaVersion'] != 1 ||
       data['hiddenCollectionIds'] is! List) {
     throw const FormatException('La selección de colecciones no es válida.');
   }
-  final ids = <String>{};
-  for (final id in data['hiddenCollectionIds'] as List) {
-    if (id is! String || id.trim().isEmpty || !ids.add(id)) {
-      throw const FormatException('ID de colección inválido o repetido.');
+  Set<String> readIds(Object? values) {
+    if (values is! List) {
+      throw const FormatException('Se esperaba una lista de colecciones.');
     }
+    final ids = <String>{};
+    for (final id in values) {
+      if (id is! String || id.trim().isEmpty || !ids.add(id)) {
+        throw const FormatException('ID de colección inválido o repetido.');
+      }
+    }
+    return Set.unmodifiable(ids);
   }
-  return Set.unmodifiable(ids);
+
+  final merges = data['mergedCollections'] ?? const <Object?>[];
+  if (merges is! List) {
+    throw const FormatException('Las colecciones agrupadas no son válidas.');
+  }
+  final mergedIds = <String>{};
+  final mergedCollections = <StudioVisualCollectionMerge>[];
+  for (final merge in merges) {
+    if (merge is! Map ||
+        merge['id'] is! String ||
+        (merge['id'] as String).trim().isEmpty ||
+        !mergedIds.add(merge['id'] as String) ||
+        merge['label'] is! String ||
+        (merge['label'] as String).trim().isEmpty) {
+      throw const FormatException(
+        'La colección agrupada necesita ID y nombre únicos.',
+      );
+    }
+    final sources = readIds(merge['sourceCollectionIds']);
+    if (sources.isEmpty) {
+      throw const FormatException('La colección agrupada no tiene origen.');
+    }
+    mergedCollections.add(
+      StudioVisualCollectionMerge(
+        id: merge['id'] as String,
+        label: merge['label'] as String,
+        sourceCollectionIds: sources,
+        excludeCollectionIds: readIds(
+          merge['excludeCollectionIds'] ?? const [],
+        ),
+      ),
+    );
+  }
+  return (
+    hiddenCollectionIds: readIds(data['hiddenCollectionIds']),
+    mergedCollections: List.unmodifiable(mergedCollections),
+  );
 }
+
+Set<String> decodeHiddenStudioCollectionIds(String source) =>
+    decodeStudioCollectionCuration(source).hiddenCollectionIds;
 
 List<StudioVisualCollection> buildStudioVisualCollections(
   Iterable<StudioVisualUpload> uploads, {
   Set<String> hiddenCollectionIds = const {},
+  List<StudioVisualCollectionMerge> mergedCollections = const [],
 }) {
   final groups = <String, List<StudioVisualUpload>>{};
   final pending = <String>{};
@@ -115,11 +181,40 @@ List<StudioVisualCollection> buildStudioVisualCollections(
       ),
     ..._legacyStudioVisualCollections,
   ];
-  return List.unmodifiable(
-    collections.where(
+  final byId = {
+    for (final collection in collections) collection.id: collection,
+  };
+  Set<String> members(Set<String> ids) => {
+    for (final id in ids)
+      ...(byId[id] ??
+              (throw FormatException('No existe la colección de origen: $id.')))
+          .visualIds,
+  };
+  final merged = <StudioVisualCollection>[];
+  final ids = byId.keys.toSet();
+  for (final merge in mergedCollections) {
+    if (!ids.add(merge.id) || hiddenCollectionIds.contains(merge.id)) {
+      throw FormatException(
+        'ID de colección agrupada en conflicto: ${merge.id}.',
+      );
+    }
+    merged.add(
+      StudioVisualCollection(
+        id: merge.id,
+        label: merge.label,
+        visualIds: Set.unmodifiable(
+          members(merge.sourceCollectionIds)
+            ..removeAll(members(merge.excludeCollectionIds)),
+        ),
+      ),
+    );
+  }
+  return List.unmodifiable([
+    ...merged,
+    ...collections.where(
       (collection) => !hiddenCollectionIds.contains(collection.id),
     ),
-  );
+  ]);
 }
 
 // Historical editorial subsets remain available alongside automatic deliveries.

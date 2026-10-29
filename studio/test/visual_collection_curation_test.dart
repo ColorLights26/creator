@@ -9,13 +9,17 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test(
-    'the bundled October cleanup retains only the two completed groups',
+    'recovery restores every hidden visual without repeating completed groups',
     () async {
       final uploads = decodeStudioVisualUploads(
         File('assets/visual_uploads.json').readAsStringSync(),
       );
       final all = buildStudioVisualCollections(uploads);
       final curated = await loadStudioVisualCollections();
+      final recovered = curated.first;
+      expect(recovered.id, 'recovered_20261021_23');
+      expect(recovered.label, 'Recuperadas · 21–23 oct');
+      expect(recovered.visualIds, hasLength(101));
       bool inPeriod(StudioVisualCollection group) =>
           RegExp(r' · 2[123] oct 2026$').hasMatch(group.label);
 
@@ -27,8 +31,29 @@ void main() {
         46,
         49,
       ]);
+      final hidden = decodeHiddenStudioCollectionIds(
+        File('assets/visual_collection_curation.json').readAsStringSync(),
+      );
+      final previouslyHidden = {
+        for (final group in all.where((group) => hidden.contains(group.id)))
+          ...group.visualIds,
+      };
+      final completed = {
+        for (final group in curated.where(inPeriod)) ...group.visualIds,
+      };
+      expect(recovered.visualIds.intersection(completed), isEmpty);
+      expect({...recovered.visualIds, ...completed}, previouslyHidden);
       expect(
-        curated.where((group) => !inPeriod(group)).map((group) => group.id),
+        recovered.visualIds.every(
+          (id) => uploads.any((upload) => upload.visualId == id),
+        ),
+        isTrue,
+        reason: 'Recovery uses the original IDs that own the existing votes.',
+      );
+      expect(
+        curated
+            .where((group) => !inPeriod(group) && group != recovered)
+            .map((group) => group.id),
         all.where((group) => !inPeriod(group)).map((group) => group.id),
       );
     },
@@ -56,6 +81,10 @@ void main() {
       '{"schemaVersion":1,"hiddenCollectionIds":[""]}',
       '{"schemaVersion":1,"hiddenCollectionIds":[4]}',
       '{"schemaVersion":1,"hiddenCollectionIds":["a","a"]}',
+      '{"schemaVersion":1,"hiddenCollectionIds":[],"mergedCollections":{}}',
+      '{"schemaVersion":1,"hiddenCollectionIds":[],"mergedCollections":[{"id":"r","label":"Recuperadas","sourceCollectionIds":[]}]}',
+      '{"schemaVersion":1,"hiddenCollectionIds":[],"mergedCollections":[{"id":"r","label":"","sourceCollectionIds":["a"]}]}',
+      '{"schemaVersion":1,"hiddenCollectionIds":[],"mergedCollections":[{"id":"r","label":"Recuperadas","sourceCollectionIds":["a","a"]}]}',
     ]) {
       expect(
         () => decodeHiddenStudioCollectionIds(source),
@@ -63,4 +92,23 @@ void main() {
       );
     }
   });
+
+  test(
+    'a missing recovery source fails rather than silently dropping visuals',
+    () {
+      expect(
+        () => buildStudioVisualCollections(
+          const [],
+          mergedCollections: const [
+            StudioVisualCollectionMerge(
+              id: 'recovered',
+              label: 'Recuperadas',
+              sourceCollectionIds: {'missing_delivery'},
+            ),
+          ],
+        ),
+        throwsFormatException,
+      );
+    },
+  );
 }

@@ -7,5 +7,23 @@
     "upload_ZnJhbmNvIGRhdmlk_20261022_original",
     "upload_ZnJhbmNvIGRhdmlk_20261023",
     "upload_ZnJhbmNvIGRhdmlk_20261023_original"
+  ],
+  "mergedCollections": [
+    {
+      "id": "recovered_20261021_23",
+      "label": "Recuperadas · 21–23 oct",
+      "sourceCollectionIds": [
+        "upload_ZnJhbmNvIGRhdmlk_20261021",
+        "upload_ZnJhbmNvIGRhdmlk_20261021_original",
+        "upload_ZnJhbmNvIGRhdmlk_20261022",
+        "upload_ZnJhbmNvIGRhdmlk_20261022_original",
+        "upload_ZnJhbmNvIGRhdmlk_20261023",
+        "upload_ZnJhbmNvIGRhdmlk_20261023_original"
+      ],
+      "excludeCollectionIds": [
+        "upload_ZnJhbmNvIGRhdmlk_20261022_improved",
+        "upload_ZnJhbmNvIGRhdmlk_20261023_improved"
+      ]
+    }
   ]
 }
