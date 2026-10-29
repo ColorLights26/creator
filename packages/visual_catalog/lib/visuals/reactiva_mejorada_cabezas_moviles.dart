@@ -1,15 +1,17 @@
-// Reactiva Mejorada · Mirada de Cabezas Móviles — transparencia momentánea. Con la caja, varios haces
-// finos de cabezas móviles que cuelgan sobre el cuadro giran y apuntan a
-// cámara: cada haz se vuelve un disco cegador con estrella de seis puntas y un
-// anillo fantasma, la escena se vela un instante y los haces vuelven a
-// inclinarse y se apagan. Referentes: demo de Robe MegaPointe y las Ayrton
-// NandoBeam disparando al público.
+// Reactiva Mejorada · Mirada de Cabezas Móviles — transparencia momentánea. Con la caja, varias
+// cabezas móviles de haz estrecho (como un Clay Paky Sharpy) escondidas en el
+// borde inferior barren el humo: cada haz es un núcleo blanco de 2-3 px que
+// quema aunque el haz sea de color, con el color sólo en un halo fino, y se
+// apaga con la distancia entre manchas de humo que derivan. Giran hasta mirar
+// a cámara: la lente se vuelve un disco nítido con su aro, dos anillos
+// internos y una estrella de seis puntas, y durante dos cuadros florece a su
+// alrededor; luego siguen girando y se retiran. Blanco, rojo y oro. La luz se
+// suma a la escena. Referente: un drop de festival con Sharpies a cámara.
 // Versión mejorada: sigue el ritmo (cada golpe o cada tiempo) y su fuerza
-// depende del volumen de la música; los pulsos son cortos para que se
-// vean con el compás. La original («Reactiva · Mirada de Cabezas Móviles») no se toca.
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// depende del volumen de la música.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -250,70 +252,151 @@ class Visual final : public Scene {
   }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
-    const float W = f.width, H = f.height, S = std::min(W, H);
-    const int n = std::clamp(int(std::lround(g.cabezas)), 3, 5);
-    const Color red = f.colors[1], amber = f.colors[2], hot = f.colors[3];
-    const double life = 0.45 / double(pace(f));
+    const float W = f.width, H = f.height;
+    // La pasada más reciente: cuánto lleva y con qué fuerza.
+    float age = 100.0f, amp = 0.0f;
+    uint32_t id = 0u;
     for (const Pulse& p : slots) {
-      const double age = now - p.start;
-      if (age < 0.0 || age > life) continue;
-      const double t = age / life * 0.45;
-      const float align = t < 0.12 ? easeOut(float(t / 0.12)) : t < 0.18 ? 1.0f : 1.0f - easeOut(float((t - 0.18) / 0.27));
-      const float k = amount(p.power) * f.intensity * (t < 0.18 ? 1.0f : 1.0f - float((t - 0.18) / 0.27));
-      const float a = std::min(k, 1.3f);
-      if (a < kMin) continue;
-      for (int i = 0; i < n; i++) {
-        const float x = W * (0.18f + 0.64f * float(i) / float(n - 1));
-        const Vec2 src = {x, -0.02f * H};
-        const float side = (i % 2 == 0) ? 1.0f : -1.0f;
-        const float th = side * (0.45f + 0.25f * rnd(p.id * 13u + uint32_t(i))) * (1.0f - align);
-        const float len = H * 0.95f * (1.0f - 0.92f * align);
-        const float dx = std::sin(th), dy = std::cos(th);
-        const float hw0 = W * 0.01f, hw1 = W * 0.05f * (1.0f - 0.5f * align);
-        const Vec2 end = {src.x + dx * len, src.y + dy * len};
-        if (len > 2.0f) {
-          Path beam;
-          beam.moveTo(src.x - dy * hw0, src.y + dx * hw0).lineTo(src.x + dy * hw0, src.y - dx * hw0)
-              .lineTo(end.x + dy * hw1, end.y - dx * hw1).lineTo(end.x - dy * hw1, end.y + dx * hw1).close();
-          Paint bp = Paint::linear(src, end, {tint(hot, 0.45f * a), tint(amber, 0.15f * a), tint(red, 0.0f)}, {0.0f, 0.5f, 1.0f});
-          bp.blend = Blend::plus;
-          c.path(beam, bp);
-        }
-        // Al mirar a cámara, el haz se vuelve un disco cegador con estrella.
-        const Vec2 disc = {x, 0.04f * H};
-        const float rd = S * (0.03f + 0.11f * align * g.deslumbre);
-        glow(c, disc, rd * 3.0f, hot, amber, 0.6f * a * align);
-        glow(c, disc, rd, white(), hot, a * align);
-        const float sl = S * 0.26f * align * g.deslumbre, sw = S * 0.006f;
-        if (sl > 2.0f) {
-          Path st;
-          for (int r = 0; r < 3; r++) {
-            const float ang = float(pi) * float(r) / 3.0f + 0.3f;
-            const float cx = std::cos(ang), sy = std::sin(ang);
-            st.moveTo(disc.x + cx * sl, disc.y + sy * sl).lineTo(disc.x - sy * sw, disc.y + cx * sw)
-              .lineTo(disc.x - cx * sl, disc.y - sy * sl).lineTo(disc.x + sy * sw, disc.y - cx * sw).close();
-          }
-          Paint sp = Paint::radial(disc, sl, {tint(white(), 0.8f * a * align), tint(hot, 0.3f * a * align), tint(red, 0.0f)}, {0.0f, 0.4f, 1.0f});
-          sp.blend = Blend::plus;
-          c.path(st, sp);
-        }
-        if (align > 0.05f) {
-          Paint ghost;
-          ghost.color = tint(red, 0.15f * a * align);
-          ghost.blend = Blend::plus;
-          ghost.strokeWidth = S * 0.004f;
-          Path gp;
-          gp.circle(disc, rd * 2.2f);
-          c.path(gp, ghost);
-        }
-      }
-      if (t > 0.11 && t < 0.18) {
-        Paint v;
-        v.color = tint(mixc(amber, hot, 0.7f), std::min(0.2f * g.deslumbre * k, 0.25f));
-        v.blend = Blend::plus;
-        c.rect({0.0f, 0.0f, W, H}, v);
-      }
+      const float a = float(now - p.start) * pace(f);
+      if (a < 0.0f || a > 1.05f || a >= age) continue;
+      age = a;
+      amp = std::min(amount(p.power) * f.intensity, 1.3f);
+      id = p.id;
     }
+    if (amp <= 0.0f) return;
+    const Color red = f.colors[1], gold = f.colors[2], white = f.colors[3];
+    c.material("heads", {0.0f, 0.0f, W, H},
+               {age, amp, std::clamp(std::round(g.cabezas), 3.0f, 5.0f), g.deslumbre, float(now), float(id % 2u),
+                red.r, red.g, red.b, gold.r, gold.g, gold.b, white.r, white.g, white.b},
+               {"smoke"});
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'heads': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform float uAge;
+uniform float uAmp;
+uniform float uCount;
+uniform float uGlare;
+uniform float uTime;
+uniform float uFlip;
+uniform vec3 uRed;
+uniform vec3 uGold;
+uniform vec3 uWhite;
+uniform sampler2D uTex;
+out vec4 fragColor;
+
+float hash(float n) {
+  return fract(sin(n * 12.9898) * 43758.5453);
+}
+float hash2(vec2 p) {
+  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+void main() {
+  vec2 p = FlutterFragCoord().xy;
+  float W = uSize.x;
+  float px1 = W / 360.0;
+  vec3 light = vec3(0.0);
+  vec3 glare = vec3(0.0);
+  // Sólo la cabeza que más mira a cámara da el resplandor ancho.
+  float best = -1.0;
+  float bestFace = 0.0;
+  for (int i = 0; i < 5; i++) {
+    float fi = float(i);
+    if (fi >= uCount) continue;
+    float az = (uAge - fi * 0.035 - 0.22) / 0.09;
+    float fc = exp(-az * az);
+    if (fc > bestFace) {
+      bestFace = fc;
+      best = fi;
+    }
+  }
+  for (int i = 0; i < 5; i++) {
+    float fi = float(i);
+    if (fi >= uCount) continue;
+    float a = uAge - fi * 0.035;  // un poco escalonadas
+    if (a < 0.0) continue;
+    float side = mod(fi + uFlip, 2.0) < 0.5 ? -1.0 : 1.0;
+    vec2 S = vec2((fi + 0.5) / uCount * W, uSize.y - 0.035 * W);
+    // Barren, miran a cámara hacia los 0,22 s y siguen girando.
+    float th = mix(side * (0.45 + 0.15 * hash(fi)), -side * 0.3, smoothstep(0.0, 0.55, a));
+    float fz = (a - 0.22) / 0.09;
+    float face = exp(-fz * fz);
+    float on = smoothstep(0.0, 0.04, a) * (1.0 - smoothstep(0.65, 1.0, a)) * uAmp;
+    vec3 col = i == 0 || i == 3 ? uRed : (i == 1 || i == 4 ? uGold : uWhite);
+    float haze = 1.0;
+    vec2 dir = vec2(sin(th), -cos(th));
+    vec2 q = p - S;
+    float along = dot(q, dir);
+    float across = abs(q.x * dir.y - q.y * dir.x) / px1;
+    // Haz: núcleo blanco de 2-3 px y el color sólo en un halo de 4 px; nada
+    // más allá de 12 px. Se acorta cuando apunta a cámara.
+    float len = ((1.0 - face) * 2.2 + 0.02) * W;
+    float vis = smoothstep(-2.0 * px1, 2.0 * px1, along) * smoothstep(len, len * 0.6, along);
+    float dim = 1.0 / (1.0 + max(along, 0.0) / (400.0 * px1));
+    // Se ensancha de 3 px junto a la lente a 7-9 px a 700 px; el núcleo es
+    // blanco sólo cerca de la lente y luego toma el color del haz.
+    float alongPx = max(along, 0.0) / px1;
+    float wk = 1.0 + alongPx / 700.0 * 1.8;
+    float acr = across / wk;
+    float core = exp(-acr * acr / 1.4);
+    float halo = 0.9 * exp(-acr * acr / 16.0) * step(acr, 12.0);
+    vec3 csat = pow(col / max(max(col.r, col.g), max(col.b, 0.01)), vec3(1.5));
+    vec3 coreCol = mix(vec3(1.0), mix(csat, vec3(1.0), 0.1), smoothstep(80.0, 160.0, alongPx));
+    float hz = texture(uTex, fract(vec2(q.x / W * 1.5 + fi * 0.17, along / W * 0.35 - uTime * 0.18))).r;
+    haze = 1.0 + 0.5 * (hz * hz * 2.0 - 0.6);
+    vec3 beam = (core * 2.4 * coreCol + halo * csat) * dim * haze * vis * (1.0 - 0.7 * face);
+    // La lente mirando a cámara: disco de 17 px con aro nítido de 1,5 px, dos
+    // anillos internos tenues, núcleo quemado y estrella de seis puntas.
+    vec3 lens = vec3(0.0);
+    float r = length(q) / px1;
+    // Cuando mira casi de frente el disco crece de 6 a 17 px a pleno brillo;
+    // antes, sólo un punto de 3 px.
+    float f4 = face * face * face * face;
+    lens += exp(-r * r / 4.5) * smoothstep(0.05, 0.3, face) * 2.0 * mix(col, vec3(1.0), 0.7);
+    if (face > 0.6) {
+      float dr = mix(6.0, 17.0, smoothstep(0.6, 1.0, face));
+      float rz = (r - dr) / 0.75;
+      float disc = smoothstep(dr + 0.75, dr - 0.75, r) * 0.75 + exp(-rz * rz) * 0.15;
+      float i1 = (r - 7.0) / 0.6;
+      float i2 = (r - 12.0) / 0.6;
+      disc += 0.15 * exp(-i1 * i1) + 0.15 * exp(-i2 * i2) + 8.0 * exp(-r * r / 16.0);
+      float spikes = 0.0;
+      float lenS = 80.0 + 60.0 * hash(fi + 4.0);
+      for (int k = 0; k < 3; k++) {
+        float ang = fi * 0.26 + float(k) * 1.0472;
+        vec2 dk = vec2(cos(ang), sin(ang));
+        float sa = abs(dot(q, dk)) / px1;
+        float sx = abs(q.x * dk.y - q.y * dk.x) / px1;
+        float taper = max(1.0 - sa / lenS, 0.0);
+        float w = 1.0 * taper + 0.05;
+        spikes += exp(-sx * sx / (w * w)) * taper * 1.6;
+      }
+      lens += (disc + spikes * f4) * mix(col, vec3(1.0), 0.7);
+    }
+    // Durante dos cuadros, un resplandor sobre la lente: blanco hasta 30 px y
+    // luego cae teñido (blanco hacia azul, rojo, oro hacia naranja) hasta 200 px.
+    float bz = (a - 0.22) / 0.035;
+    // Sólo en los dos cuadros en que mira de frente: nada de velo alrededor.
+    float bloomAmt = max(exp(-bz * bz) - 0.06, 0.0) / 0.94 * (0.5 + 0.5 * uGlare);
+    float gp = r < 30.0 ? 1.0 : (r < 60.0 ? mix(1.0, 0.92, (r - 30.0) / 30.0) : (r < 100.0 ? mix(0.92, 0.67, (r - 60.0) / 40.0)
+             : (r < 150.0 ? mix(0.67, 0.31, (r - 100.0) / 50.0) : mix(0.31, 0.0, clamp((r - 150.0) / 50.0, 0.0, 1.0)))));
+    vec3 fallCol = i == 2 ? vec3(0.23, 0.42, 1.0) : (i == 1 || i == 4 ? vec3(1.0, 0.42, 0.06) : csat);
+    // Las demás, como mucho 80 px; los resplandores no se suman, manda el mayor.
+    if (fi != best) gp *= smoothstep(80.0, 40.0, r);
+    vec3 bloom = gp * bloomAmt * mix(fallCol, vec3(1.0), smoothstep(100.0, 30.0, r));
+    glare = max(glare, bloom * on);
+    light += (beam + lens) * on;
+  }
+  light += glare;
+  vec3 tone = min(light, vec3(1.0)) * 0.6 + (vec3(1.0) - exp(-light)) * 0.4;
+  fragColor = vec4(tone, 0.1 * max(tone.r, max(tone.g, tone.b)));
+}
+''',
+
+};

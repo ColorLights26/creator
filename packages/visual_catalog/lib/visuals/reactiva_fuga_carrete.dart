@@ -1,12 +1,13 @@
 // Reactiva · Fuga de Luz de Carrete — transparencia momentánea. Al empezar una frase entra
-// desde un borde una fuga de luz cálida y orgánica, como la que se cuela por el
-// cuerpo de una cámara de película: manchas superpuestas rojo anaranjado, naranja
-// y ámbar con núcleo amarillo blanco, que se desplazan por el borde, respiran y
-// se van, con grano encima. Referentes: el pack de light leaks 4K de
-// RocketStock y las Modern Light Hits de Lens Distortions.
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// desde un borde la fuga de luz de una cámara de película: dos lóbulos de luz
+// orgánicos, de borde irregular, que se deslizan a lo largo del borde,
+// respiran y se van. Junto al borde la luz quema a amarillo blanco, se abre a
+// naranja y termina en rojo vivo, y cae rápido para no dejar velo apagado;
+// encima, grano de película y un leve parpadeo. La luz se suma a la escena.
+// Referente: las fugas de luz de Kodak Super 8 y de Portra en 35 mm.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -241,45 +242,116 @@ class Visual final : public Scene {
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
     const auto m = modifiers(f);
-    const float W = f.width, H = f.height, S = std::min(W, H);
-    const Color cols[4] = {f.colors[1], f.colors[2], mixc(f.colors[2], f.colors[3], 0.4f), f.colors[3]};
-    const float alphas[4] = {0.5f, 0.55f, 0.45f, 0.4f};
+    const float W = f.width, H = f.height;
+    const float T = 1.0f / pace(f);
+    float age = 100.0f, amp = 0.0f;
+    uint32_t id = 0u;
     for (const Pulse& p : slots) {
-      const double age = now - p.start;
-      const float T = (p.kind == 1 ? 1.5f : 1.2f) / pace(f);
-      if (age <= 0.0 || age >= double(T)) continue;
-      const float q = float(age / double(T));
-      const float v = std::pow(std::max(0.0f, std::sin(float(pi) * q)), 0.8f) * (1.0f + 0.08f * std::sin(float(age) * 9.0f)) * amount(p.power) * f.intensity;
-      const int side = m.lado == 0 ? int(p.id % 3u) : m.lado - 1;  // 0 izquierda, 1 derecha, 2 arriba
-      const float along = 0.25f + 0.5f * (0.5f * rnd(p.id * 5u) + 0.5f * q);
-      for (int j = 0; j < 4; j++) {
-        const float fj = float(j);
-        const float slide = along + 0.08f * std::sin(float(age) * (0.9f + 0.4f * fj) + fj * 1.3f);
-        const float rx = g.tamano * W * (0.75f + 0.12f * fj) * (j == 3 ? 0.55f : 1.0f);
-        const float ry = g.tamano * H * (0.32f + 0.05f * fj) * (j == 3 ? 0.6f : 1.0f);
-        Vec2 o;
-        if (side == 0) o = {-0.08f * W, H * slide};
-        else if (side == 1) o = {1.08f * W, H * slide};
-        else o = {W * slide, -0.06f * H};
-        c.save();
-        c.translate(o.x, o.y);
-        c.scale(rx / ry, 1.0f);
-        softGlow(c, {0.0f, 0.0f}, ry, cols[j], cols[j], alphas[j] * v);
-        c.restore();
-      }
-      // Grano de película sobre la fuga.
-      clearBins();
-      const uint32_t frame = uint32_t(now * 30.0);
-      for (int j = 0; j < 220; j++) {
-        const float u = rnd(frame * 131u + uint32_t(j) * 7u), w = rnd(frame * 197u + uint32_t(j) * 11u);
-        Vec2 pt;
-        if (side == 0) pt = {W * 0.6f * u * u, H * w};
-        else if (side == 1) pt = {W * (1.0f - 0.6f * u * u), H * w};
-        else pt = {W * w, H * 0.5f * u * u};
-        bins_[0].push_back(pt);
-      }
-      drawBin(c, 0, std::max(0.8f, S * 0.0012f), f.colors[3], 0.35f * v * g.grano);
+      const float a = float(now - p.start);
+      if (a < 0.0f || a > T || a >= age) continue;
+      age = a;
+      amp = std::min(amount(p.power) * f.intensity, 1.3f);
+      id = p.id;
     }
+    if (amp <= 0.0f) return;
+    const float q = age / T;
+    // Entra en tres cuadros, deriva y se retira por el borde.
+    const float e = (q < 0.08f ? easeOut(q / 0.08f) : 1.0f - 0.6f * easeInOut((q - 0.5f) / 0.5f)) * amp;
+    if (e < kMin) return;
+    const int side = m.lado == 0 ? int(id % 3u) : m.lado - 1;  // 0 izquierda, 1 derecha, 2 arriba
+    const Color red = f.colors[1], orange = f.colors[2], hot = f.colors[3];
+    c.material("leak", {0.0f, 0.0f, W, H},
+               {float(side), q, e, g.tamano, g.grano, float(now), rnd(id * 7u + 1u),
+                red.r, red.g, red.b, orange.r, orange.g, orange.b, hot.r, hot.g, hot.b},
+               {"noise"});
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'leak': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform float uSide;
+uniform float uQ;
+uniform float uAmp;
+uniform float uSizeK;
+uniform float uGrain;
+uniform float uTime;
+uniform float uSeed;
+uniform vec3 uRed;
+uniform vec3 uOrange;
+uniform vec3 uHot;
+uniform sampler2D uTex;
+out vec4 fragColor;
+
+float hash(float n) {
+  return fract(sin(n * 12.9898) * 43758.5453);
+}
+float hash2(vec2 p) {
+  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+void main() {
+  vec2 p = FlutterFragCoord().xy;
+  float px1 = uSize.x / 360.0;
+  // Coordenadas del borde en px: u a lo largo del borde, v hacia dentro.
+  float u = (uSide < 1.5 ? p.y : p.x) / px1;
+  float v = (uSide < 0.5 ? p.x : (uSide < 1.5 ? uSize.x - p.x : p.y)) / px1;
+  float edgeLen = (uSide < 1.5 ? uSize.y : uSize.x) / px1;
+  // Al final se retira: se encoge y sale por el borde a unos 10 px por cuadro.
+  float rec = smoothstep(0.48, 1.0, uQ);
+  float slide = max(uQ - 0.48, 0.0) / 0.52 * 160.0;
+  float k = uSizeK * (1.0 - 0.45 * rec);
+  // Un lóbulo grande (unos 250 px) y otro menor que derivan por el borde,
+  // con una caída larga y suave.
+  vec2 c1 = vec2(edgeLen * (0.32 + 0.2 * uSeed + 0.12 * uQ), -30.0 - slide);
+  vec2 c2 = vec2(edgeLen * (0.68 - 0.15 * uSeed - 0.08 * uQ), -50.0 - slide);
+  vec2 d1 = (vec2(u, v) - c1) / vec2(1.8, 1.0);
+  vec2 d2 = (vec2(u, v) - c2) / vec2(1.6, 1.0);
+  float q1 = length(d1) - 30.0;
+  float q2 = length(d2) - 50.0;
+  // Caída de potencia: blanco sólo en los primeros 15-20 px desde el borde,
+  // oro y naranja en relevos de unos 12 px y una cola roja larga.
+  float L1 = 185.0 * k;
+  float L2 = 120.0 * k;
+  float I = pow(1.0 + max(q1, 0.0) / L1, -1.2) * exp(-(q1 * q1) / (220.0 * 220.0 * k * k));
+  I = max(I, 0.8 * pow(1.0 + max(q2, 0.0) / L2, -1.2) * exp(-(q2 * q2) / (150.0 * 150.0 * k * k)));
+  // Bandas verticales tenues junto al borde (20-50 px de ancho, extremos
+  // suaves), en rojo.
+  float bands = 0.0;
+  for (int i = 0; i < 3; i++) {
+    float fi = float(i);
+    float bv = 15.0 + 70.0 * hash(fi + uSeed * 3.0);
+    float bw = 10.0 + 15.0 * hash(fi + uSeed * 7.0);
+    float bu = edgeLen * (0.2 + 0.6 * hash(fi + 5.0 + uSeed));
+    float bl = 90.0 + 80.0 * hash(fi + 9.0 + uSeed);
+    float zv = (v + slide - bv) / bw;
+    float zu = (u - bu) / bl;
+    bands += exp(-zv * zv) * exp(-zu * zu * zu * zu) * 0.13;
+  }
+  bands *= 1.0 - rec;
+  // Parpadeo de ±6 % por cuadro y variación suave a gran escala, sólo en el
+  // brillo (no mueve los contornos de color).
+  float frame = floor(uTime * 24.0);
+  float n = texture(uTex, fract(vec2(u, v) / 600.0 + vec2(uSeed, uTime * 0.01))).g;
+  float bright = (0.92 + 0.16 * n) * (1.0 + 0.06 * (2.0 * hash(frame + uSeed * 9.0) - 1.0)) * uAmp;
+  // Rampa por intensidad: blanco cálido, oro, naranja, naranja rojizo y rojo.
+  vec3 white = mix(vec3(1.0, 0.957, 0.878), uHot, 0.3);
+  vec3 gold = vec3(1.0, 0.784, 0.314);
+  vec3 orange = mix(vec3(1.0, 0.541, 0.063), uOrange, 0.1);
+  vec3 orRed = vec3(1.0, 0.29, 0.063);
+  vec3 red = vec3(1.0, 0.118, 0.063) * mix(vec3(1.0), uRed / max(uRed.r, 0.01), 0.2);
+  vec3 col = mix(red, orRed, smoothstep(0.3, 0.55, I));
+  col = mix(col, orange, smoothstep(0.6, 0.75, I));
+  col = mix(col, gold, smoothstep(0.75, 0.82, I));
+  col = mix(col, white, smoothstep(0.83, 0.9, I));
+  // Grano de película fino.
+  float grain = 1.0 + (hash2(p * 1.37 + frame) - 0.5) * 0.12 * uGrain;
+  vec3 light = (col * min(I, 1.0) + bands * red) * bright * grain;
+  fragColor = vec4(light, 0.1 * max(light.r, max(light.g, light.b)));
+}
+''',
+
+};

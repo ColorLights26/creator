@@ -1160,76 +1160,7 @@ vec4 creator_364_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_365_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_366_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_367_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec2 creator_368_rotate2D(vec2 p, float a) {
-  float c = cos(a);
-  float s = sin(a);
-  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
-}
-
-vec4 creator_368_paintVisual(vec2 uv, CreatorFrame f) {
-  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
-  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;
-
-  float bass = clamp(f.bass, 0.0, 1.0);
-  float energy = clamp(f.energy, 0.0, 1.0);
-  float spark = clamp(f.spark, 0.0, 1.0);
-  float flow = clamp(f.flow, 0.0, 1.0);
-
-  float t = f.time * f.speed * 0.38;
-
-  
-  vec2 q = vec2(
-    sin(p.x * 1.8 + t * 0.45 + bass * 0.2),
-    cos(p.y * 1.8 + t * 0.38 + flow * 0.3)
-  );
-
-  vec2 r = vec2(
-    sin(p.x * 2.8 + q.y * 2.4 + t * 0.52),
-    cos(p.y * 2.8 + q.x * 2.4 + t * 0.44)
-  );
-
-  
-  vec2 warpedP = p + r * (0.35 + 0.15 * flow);
-  warpedP = creator_368_rotate2D(warpedP, t * 0.12 + bass * 0.2);
-
-  float ribbon1 = sin(warpedP.y * 4.2 + warpedP.x * 2.1 + t * 1.2);
-  float ribbon2 = cos(warpedP.y * 5.6 - warpedP.x * 2.8 - t * 0.95);
-  float ribbon3 = sin(length(warpedP) * 5.0 - t * 1.6);
-
-  float sheet1 = 1.0 / (abs(ribbon1) * 14.0 + 1.0);
-  float sheet2 = 1.0 / (abs(ribbon2) * 16.0 + 1.0);
-  float sheet3 = 1.0 / (abs(ribbon3) * 12.0 + 1.0);
-
-  
-  vec3 deepNavy = vec3(0.008, 0.024, 0.070);
-  vec3 bioEmerald = vec3(0.08, 0.96, 0.60);
-  vec3 bioCyan = vec3(0.15, 0.85, 1.0);
-  vec3 bioViolet = vec3(0.62, 0.10, 0.95);
-  vec3 warmSparkle = vec3(1.0, 0.95, 0.80);
-
-  
-  vec3 col = deepNavy;
-  col += bioCyan * sheet1 * (0.75 + 0.55 * bass);
-  col += bioEmerald * sheet2 * (0.65 + 0.65 * energy);
-  col += bioViolet * sheet3 * (0.55 + 0.45 * flow);
-
-  
-  float sporeGrid = sin(warpedP.x * 32.0 + t * 4.0) * cos(warpedP.y * 32.0 - t * 3.5);
-  float spores = smoothstep(0.72, 0.98, sporeGrid) * (sheet1 + sheet2);
-  col += warmSparkle * spores * (0.4 + 2.2 * spark);
-
-  
-  float rays = sin(p.x * 6.0 + p.y * 3.0 + t * 0.8) * 0.5 + 0.5;
-  col += bioCyan * rays * 0.12 * (1.0 + bass * 0.6);
-
-  
-  col = col / (col + vec3(0.9));
-  float vignette = 1.0 - smoothstep(0.5, 1.45, length(p));
-  col *= vignette;
-
-  return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);
-}
-
+vec4 creator_368_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_369_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_370_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_371_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
@@ -1283,17 +1214,184 @@ vec4 creator_418_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_419_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_420_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 vec4 creator_421_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec2 creator_422_rotate2D(vec2 p, float a) {
+vec4 creator_422_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_423_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_424_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_425_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_426_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_427_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_428_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_429_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_430_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_431_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_432_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_433_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_434_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_435_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_436_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_437_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_438_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_439_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_440_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_441_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_442_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_443_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_444_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_445_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_446_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_447_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_448_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_449_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_450_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_451_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_452_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_453_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_454_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_455_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_456_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_457_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_458_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_459_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_460_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_461_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_462_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_463_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_464_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_465_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec2 creator_466_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-float creator_422_hash21(vec2 p) {
+vec4 creator_466_paintVisual(vec2 uv, CreatorFrame f) {
+  float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
+  vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.2;
+
+  float bass = clamp(f.bass, 0.0, 1.0);
+  float energy = clamp(f.energy, 0.0, 1.0);
+  float spark = clamp(f.spark, 0.0, 1.0);
+  float flow = clamp(f.flow, 0.0, 1.0);
+
+  float t = f.time * f.speed * 0.38;
+
+  
+  vec2 q = vec2(
+    sin(p.x * 1.8 + t * 0.45 + bass * 0.2),
+    cos(p.y * 1.8 + t * 0.38 + flow * 0.3)
+  );
+
+  vec2 r = vec2(
+    sin(p.x * 2.8 + q.y * 2.4 + t * 0.52),
+    cos(p.y * 2.8 + q.x * 2.4 + t * 0.44)
+  );
+
+  
+  vec2 warpedP = p + r * (0.35 + 0.15 * flow);
+  warpedP = creator_466_rotate2D(warpedP, t * 0.12 + bass * 0.2);
+
+  float ribbon1 = sin(warpedP.y * 4.2 + warpedP.x * 2.1 + t * 1.2);
+  float ribbon2 = cos(warpedP.y * 5.6 - warpedP.x * 2.8 - t * 0.95);
+  float ribbon3 = sin(length(warpedP) * 5.0 - t * 1.6);
+
+  float sheet1 = 1.0 / (abs(ribbon1) * 14.0 + 1.0);
+  float sheet2 = 1.0 / (abs(ribbon2) * 16.0 + 1.0);
+  float sheet3 = 1.0 / (abs(ribbon3) * 12.0 + 1.0);
+
+  
+  vec3 deepNavy = vec3(0.008, 0.024, 0.070);
+  vec3 bioEmerald = vec3(0.08, 0.96, 0.60);
+  vec3 bioCyan = vec3(0.15, 0.85, 1.0);
+  vec3 bioViolet = vec3(0.62, 0.10, 0.95);
+  vec3 warmSparkle = vec3(1.0, 0.95, 0.80);
+
+  
+  vec3 col = deepNavy;
+  col += bioCyan * sheet1 * (0.75 + 0.55 * bass);
+  col += bioEmerald * sheet2 * (0.65 + 0.65 * energy);
+  col += bioViolet * sheet3 * (0.55 + 0.45 * flow);
+
+  
+  float sporeGrid = sin(warpedP.x * 32.0 + t * 4.0) * cos(warpedP.y * 32.0 - t * 3.5);
+  float spores = smoothstep(0.72, 0.98, sporeGrid) * (sheet1 + sheet2);
+  col += warmSparkle * spores * (0.4 + 2.2 * spark);
+
+  
+  float rays = sin(p.x * 6.0 + p.y * 3.0 + t * 0.8) * 0.5 + 0.5;
+  col += bioCyan * rays * 0.12 * (1.0 + bass * 0.6);
+
+  
+  col = col / (col + vec3(0.9));
+  float vignette = 1.0 - smoothstep(0.5, 1.45, length(p));
+  col *= vignette;
+
+  return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);
+}
+
+vec4 creator_467_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_468_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_469_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_470_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_471_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_472_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_473_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_474_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_475_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_476_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_477_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_478_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_479_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_480_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_481_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_482_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_483_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_484_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_485_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_486_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_487_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_488_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_489_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_490_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_491_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_492_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_493_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_494_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_495_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_496_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_497_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_498_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_499_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_500_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_501_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_502_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_503_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_504_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_505_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_506_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_507_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_508_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_509_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_510_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_511_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_512_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_513_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_514_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_515_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_516_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_517_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_518_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_519_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec2 creator_520_rotate2D(vec2 p, float a) {
+  float c = cos(a);
+  float s = sin(a);
+  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
+}
+
+float creator_520_hash21(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 }
 
-vec4 creator_422_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_520_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.3;
 
@@ -1317,7 +1415,7 @@ vec4 creator_422_paintVisual(vec2 uv, CreatorFrame f) {
   
   vec2 diskP = lensP;
   diskP.y *= 2.35; 
-  diskP = creator_422_rotate2D(diskP, 0.38);
+  diskP = creator_520_rotate2D(diskP, 0.38);
 
   float diskR = length(diskP);
   
@@ -1353,7 +1451,7 @@ vec4 creator_422_paintVisual(vec2 uv, CreatorFrame f) {
 
   
   vec2 starGrid = floor(lensP * 28.0);
-  float starHash = creator_422_hash21(starGrid);
+  float starHash = creator_520_hash21(starGrid);
   if (starHash > 0.962) {
     if (r > eventHorizon * 1.15) {
       vec2 starFrac = fract(lensP * 28.0) - 0.5;
@@ -1382,17 +1480,17 @@ vec4 creator_422_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), 1.0);
 }
 
-vec2 creator_423_rotate2D(vec2 p, float a) {
+vec2 creator_521_rotate2D(vec2 p, float a) {
   float c = cos(a);
   float s = sin(a);
   return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-float creator_423_hash21(vec2 p) {
+float creator_521_hash21(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 }
 
-vec4 creator_423_paintVisual(vec2 uv, CreatorFrame f) {
+vec4 creator_521_paintVisual(vec2 uv, CreatorFrame f) {
   float aspect = max(f.size.x, 1.0) / max(f.size.y, 1.0);
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.3;
 
@@ -1416,7 +1514,7 @@ vec4 creator_423_paintVisual(vec2 uv, CreatorFrame f) {
   
   vec2 diskP = lensP;
   diskP.y *= 2.35; 
-  diskP = creator_423_rotate2D(diskP, 0.38);
+  diskP = creator_521_rotate2D(diskP, 0.38);
 
   float diskR = length(diskP);
   
@@ -1452,7 +1550,7 @@ vec4 creator_423_paintVisual(vec2 uv, CreatorFrame f) {
 
   
   vec2 starGrid = floor(lensP * 28.0);
-  float starHash = creator_423_hash21(starGrid);
+  float starHash = creator_521_hash21(starGrid);
   if (starHash > 0.962) {
     if (r > eventHorizon * 1.15) {
       vec2 starFrac = fract(lensP * 28.0) - 0.5;
@@ -1483,10 +1581,10 @@ vec4 creator_423_paintVisual(vec2 uv, CreatorFrame f) {
   return vec4(clamp(col * f.intensity * f.glow, 0.0, 1.0), alpha);
 }
 
-vec4 creator_424_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_425_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_426_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
-vec4 creator_427_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_522_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_523_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_524_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
+vec4 creator_525_paintVisual(vec2 uv, CreatorFrame f) { return vec4(0.0); }
 void main() {
   CreatorFrame f;
   f.size=uSize; f.time=uTime; f.seedLow=uSeedLow; f.seedHigh=uSeedHigh;
@@ -1924,6 +2022,104 @@ void main() {
   if (abs(uVisualIndex - 425.0) < 0.5) color=creator_425_paintVisual(uv,f);
   if (abs(uVisualIndex - 426.0) < 0.5) color=creator_426_paintVisual(uv,f);
   if (abs(uVisualIndex - 427.0) < 0.5) color=creator_427_paintVisual(uv,f);
+  if (abs(uVisualIndex - 428.0) < 0.5) color=creator_428_paintVisual(uv,f);
+  if (abs(uVisualIndex - 429.0) < 0.5) color=creator_429_paintVisual(uv,f);
+  if (abs(uVisualIndex - 430.0) < 0.5) color=creator_430_paintVisual(uv,f);
+  if (abs(uVisualIndex - 431.0) < 0.5) color=creator_431_paintVisual(uv,f);
+  if (abs(uVisualIndex - 432.0) < 0.5) color=creator_432_paintVisual(uv,f);
+  if (abs(uVisualIndex - 433.0) < 0.5) color=creator_433_paintVisual(uv,f);
+  if (abs(uVisualIndex - 434.0) < 0.5) color=creator_434_paintVisual(uv,f);
+  if (abs(uVisualIndex - 435.0) < 0.5) color=creator_435_paintVisual(uv,f);
+  if (abs(uVisualIndex - 436.0) < 0.5) color=creator_436_paintVisual(uv,f);
+  if (abs(uVisualIndex - 437.0) < 0.5) color=creator_437_paintVisual(uv,f);
+  if (abs(uVisualIndex - 438.0) < 0.5) color=creator_438_paintVisual(uv,f);
+  if (abs(uVisualIndex - 439.0) < 0.5) color=creator_439_paintVisual(uv,f);
+  if (abs(uVisualIndex - 440.0) < 0.5) color=creator_440_paintVisual(uv,f);
+  if (abs(uVisualIndex - 441.0) < 0.5) color=creator_441_paintVisual(uv,f);
+  if (abs(uVisualIndex - 442.0) < 0.5) color=creator_442_paintVisual(uv,f);
+  if (abs(uVisualIndex - 443.0) < 0.5) color=creator_443_paintVisual(uv,f);
+  if (abs(uVisualIndex - 444.0) < 0.5) color=creator_444_paintVisual(uv,f);
+  if (abs(uVisualIndex - 445.0) < 0.5) color=creator_445_paintVisual(uv,f);
+  if (abs(uVisualIndex - 446.0) < 0.5) color=creator_446_paintVisual(uv,f);
+  if (abs(uVisualIndex - 447.0) < 0.5) color=creator_447_paintVisual(uv,f);
+  if (abs(uVisualIndex - 448.0) < 0.5) color=creator_448_paintVisual(uv,f);
+  if (abs(uVisualIndex - 449.0) < 0.5) color=creator_449_paintVisual(uv,f);
+  if (abs(uVisualIndex - 450.0) < 0.5) color=creator_450_paintVisual(uv,f);
+  if (abs(uVisualIndex - 451.0) < 0.5) color=creator_451_paintVisual(uv,f);
+  if (abs(uVisualIndex - 452.0) < 0.5) color=creator_452_paintVisual(uv,f);
+  if (abs(uVisualIndex - 453.0) < 0.5) color=creator_453_paintVisual(uv,f);
+  if (abs(uVisualIndex - 454.0) < 0.5) color=creator_454_paintVisual(uv,f);
+  if (abs(uVisualIndex - 455.0) < 0.5) color=creator_455_paintVisual(uv,f);
+  if (abs(uVisualIndex - 456.0) < 0.5) color=creator_456_paintVisual(uv,f);
+  if (abs(uVisualIndex - 457.0) < 0.5) color=creator_457_paintVisual(uv,f);
+  if (abs(uVisualIndex - 458.0) < 0.5) color=creator_458_paintVisual(uv,f);
+  if (abs(uVisualIndex - 459.0) < 0.5) color=creator_459_paintVisual(uv,f);
+  if (abs(uVisualIndex - 460.0) < 0.5) color=creator_460_paintVisual(uv,f);
+  if (abs(uVisualIndex - 461.0) < 0.5) color=creator_461_paintVisual(uv,f);
+  if (abs(uVisualIndex - 462.0) < 0.5) color=creator_462_paintVisual(uv,f);
+  if (abs(uVisualIndex - 463.0) < 0.5) color=creator_463_paintVisual(uv,f);
+  if (abs(uVisualIndex - 464.0) < 0.5) color=creator_464_paintVisual(uv,f);
+  if (abs(uVisualIndex - 465.0) < 0.5) color=creator_465_paintVisual(uv,f);
+  if (abs(uVisualIndex - 466.0) < 0.5) color=creator_466_paintVisual(uv,f);
+  if (abs(uVisualIndex - 467.0) < 0.5) color=creator_467_paintVisual(uv,f);
+  if (abs(uVisualIndex - 468.0) < 0.5) color=creator_468_paintVisual(uv,f);
+  if (abs(uVisualIndex - 469.0) < 0.5) color=creator_469_paintVisual(uv,f);
+  if (abs(uVisualIndex - 470.0) < 0.5) color=creator_470_paintVisual(uv,f);
+  if (abs(uVisualIndex - 471.0) < 0.5) color=creator_471_paintVisual(uv,f);
+  if (abs(uVisualIndex - 472.0) < 0.5) color=creator_472_paintVisual(uv,f);
+  if (abs(uVisualIndex - 473.0) < 0.5) color=creator_473_paintVisual(uv,f);
+  if (abs(uVisualIndex - 474.0) < 0.5) color=creator_474_paintVisual(uv,f);
+  if (abs(uVisualIndex - 475.0) < 0.5) color=creator_475_paintVisual(uv,f);
+  if (abs(uVisualIndex - 476.0) < 0.5) color=creator_476_paintVisual(uv,f);
+  if (abs(uVisualIndex - 477.0) < 0.5) color=creator_477_paintVisual(uv,f);
+  if (abs(uVisualIndex - 478.0) < 0.5) color=creator_478_paintVisual(uv,f);
+  if (abs(uVisualIndex - 479.0) < 0.5) color=creator_479_paintVisual(uv,f);
+  if (abs(uVisualIndex - 480.0) < 0.5) color=creator_480_paintVisual(uv,f);
+  if (abs(uVisualIndex - 481.0) < 0.5) color=creator_481_paintVisual(uv,f);
+  if (abs(uVisualIndex - 482.0) < 0.5) color=creator_482_paintVisual(uv,f);
+  if (abs(uVisualIndex - 483.0) < 0.5) color=creator_483_paintVisual(uv,f);
+  if (abs(uVisualIndex - 484.0) < 0.5) color=creator_484_paintVisual(uv,f);
+  if (abs(uVisualIndex - 485.0) < 0.5) color=creator_485_paintVisual(uv,f);
+  if (abs(uVisualIndex - 486.0) < 0.5) color=creator_486_paintVisual(uv,f);
+  if (abs(uVisualIndex - 487.0) < 0.5) color=creator_487_paintVisual(uv,f);
+  if (abs(uVisualIndex - 488.0) < 0.5) color=creator_488_paintVisual(uv,f);
+  if (abs(uVisualIndex - 489.0) < 0.5) color=creator_489_paintVisual(uv,f);
+  if (abs(uVisualIndex - 490.0) < 0.5) color=creator_490_paintVisual(uv,f);
+  if (abs(uVisualIndex - 491.0) < 0.5) color=creator_491_paintVisual(uv,f);
+  if (abs(uVisualIndex - 492.0) < 0.5) color=creator_492_paintVisual(uv,f);
+  if (abs(uVisualIndex - 493.0) < 0.5) color=creator_493_paintVisual(uv,f);
+  if (abs(uVisualIndex - 494.0) < 0.5) color=creator_494_paintVisual(uv,f);
+  if (abs(uVisualIndex - 495.0) < 0.5) color=creator_495_paintVisual(uv,f);
+  if (abs(uVisualIndex - 496.0) < 0.5) color=creator_496_paintVisual(uv,f);
+  if (abs(uVisualIndex - 497.0) < 0.5) color=creator_497_paintVisual(uv,f);
+  if (abs(uVisualIndex - 498.0) < 0.5) color=creator_498_paintVisual(uv,f);
+  if (abs(uVisualIndex - 499.0) < 0.5) color=creator_499_paintVisual(uv,f);
+  if (abs(uVisualIndex - 500.0) < 0.5) color=creator_500_paintVisual(uv,f);
+  if (abs(uVisualIndex - 501.0) < 0.5) color=creator_501_paintVisual(uv,f);
+  if (abs(uVisualIndex - 502.0) < 0.5) color=creator_502_paintVisual(uv,f);
+  if (abs(uVisualIndex - 503.0) < 0.5) color=creator_503_paintVisual(uv,f);
+  if (abs(uVisualIndex - 504.0) < 0.5) color=creator_504_paintVisual(uv,f);
+  if (abs(uVisualIndex - 505.0) < 0.5) color=creator_505_paintVisual(uv,f);
+  if (abs(uVisualIndex - 506.0) < 0.5) color=creator_506_paintVisual(uv,f);
+  if (abs(uVisualIndex - 507.0) < 0.5) color=creator_507_paintVisual(uv,f);
+  if (abs(uVisualIndex - 508.0) < 0.5) color=creator_508_paintVisual(uv,f);
+  if (abs(uVisualIndex - 509.0) < 0.5) color=creator_509_paintVisual(uv,f);
+  if (abs(uVisualIndex - 510.0) < 0.5) color=creator_510_paintVisual(uv,f);
+  if (abs(uVisualIndex - 511.0) < 0.5) color=creator_511_paintVisual(uv,f);
+  if (abs(uVisualIndex - 512.0) < 0.5) color=creator_512_paintVisual(uv,f);
+  if (abs(uVisualIndex - 513.0) < 0.5) color=creator_513_paintVisual(uv,f);
+  if (abs(uVisualIndex - 514.0) < 0.5) color=creator_514_paintVisual(uv,f);
+  if (abs(uVisualIndex - 515.0) < 0.5) color=creator_515_paintVisual(uv,f);
+  if (abs(uVisualIndex - 516.0) < 0.5) color=creator_516_paintVisual(uv,f);
+  if (abs(uVisualIndex - 517.0) < 0.5) color=creator_517_paintVisual(uv,f);
+  if (abs(uVisualIndex - 518.0) < 0.5) color=creator_518_paintVisual(uv,f);
+  if (abs(uVisualIndex - 519.0) < 0.5) color=creator_519_paintVisual(uv,f);
+  if (abs(uVisualIndex - 520.0) < 0.5) color=creator_520_paintVisual(uv,f);
+  if (abs(uVisualIndex - 521.0) < 0.5) color=creator_521_paintVisual(uv,f);
+  if (abs(uVisualIndex - 522.0) < 0.5) color=creator_522_paintVisual(uv,f);
+  if (abs(uVisualIndex - 523.0) < 0.5) color=creator_523_paintVisual(uv,f);
+  if (abs(uVisualIndex - 524.0) < 0.5) color=creator_524_paintVisual(uv,f);
+  if (abs(uVisualIndex - 525.0) < 0.5) color=creator_525_paintVisual(uv,f);
   if (any(isnan(color)) || any(isinf(color))) color=vec4(0.0);
   color=clamp(color,0.0,1.0);
   fragColor=vec4(color.rgb*color.a,color.a);

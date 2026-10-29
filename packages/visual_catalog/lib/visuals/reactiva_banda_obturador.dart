@@ -1,11 +1,13 @@
-// Reactiva · Banda de Obturador — transparencia momentánea. Con la caja aparece el artefacto
-// real de un flash grabado con obturador rodante: en un cuadro se ilumina sólo
-// una franja de la imagen, con un corte nítido, y en el siguiente la parte
-// complementaria más débil. Es pura exposición, seca como el chasquido.
-// Referente: análisis de bandas parciales de flashes y rayos (Metabunk).
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// Reactiva · Banda de Obturador — transparencia momentánea. Con la caja aparece el
+// artefacto de un flash grabado con obturador rodante: en un cuadro se ilumina
+// una franja de la imagen con un corte nítido y apenas inclinado, y en el
+// siguiente la parte complementaria. En el corte, una línea más brillante y un
+// filo rojo del sensor; la luz es blanca fría y cae un poco hacia el centro de
+// la franja. La luz se suma a la escena. Referente: los flashes de los
+// fotógrafos captados por cámaras de cine digital en conciertos.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -237,73 +239,89 @@ class Visual final : public Scene {
     const int d = modifiers(f).disparo;
     fire(d == 0 ? h.snare : d == 1 ? h.kick : h.hat, d);
   }
-  // Franja iluminada desde el corte hasta un borde; edge = suavidad del corte.
-  static void band(Canvas& c, float W, float H, bool vertical, float cut, bool toEnd, float edge, Color col, float a) {
-    if (a < kMin) return;
-    const float len = vertical ? W : H, across = vertical ? H : W;
-    const float s0 = cut * len - edge, s1 = cut * len + edge;
-    // Más brillante junto al corte y cayendo hacia el borde de la imagen.
-    const float start = toEnd ? s0 : s1, stop = toEnd ? len : 0.0f;
-    const float span = std::max(std::fabs(stop - start), 1.0f);
-    const float knee = clamp01(2.0f * edge / span);
-    const Vec2 p0 = vertical ? Vec2{start, 0.0f} : Vec2{0.0f, start};
-    const Vec2 p1 = vertical ? Vec2{stop, 0.0f} : Vec2{0.0f, stop};
-    Paint q = Paint::linear(p0, p1, {tint(col, 0.0f), tint(col, a), tint(col, a * 0.85f), tint(col, a * 0.6f)}, {0.0f, knee, std::min(1.0f, knee + 0.25f), 1.0f});
-    q.blend = Blend::plus;
-    const float from = toEnd ? std::max(0.0f, s0) : 0.0f, to = toEnd ? len : std::min(len, s1);
-    if (to <= from) return;
-    if (vertical) c.rect({from, 0.0f, to - from, across}, q);
-    else c.rect({0.0f, from, across, to - from}, q);
-  }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
+    const auto m = modifiers(f);
     const float W = f.width, H = f.height;
-    const float dur = g.duracion / pace(f);
-    const Color cold = f.colors[3], tinted = mixc(f.colors[3], f.colors[2], 0.3f);
+    const float D = g.duracion / pace(f);
+    const Color red = f.colors[1], cool = f.colors[2], white = f.colors[3];
     for (const Pulse& p : slots) {
-      const double age = now - p.start;
-      if (age < 0.0 || age > 2.0 * double(dur) + 0.1) continue;
-      const float k = std::min(amount(p.power) * f.intensity, 1.5f);
-      const float cut = 0.35f + 0.35f * rnd(p.id * 7u + 1u);
-      const bool lowerFirst = (p.id & 1u) != 0u;
-      const float edgeFrac = 0.004f + 0.08f * (1.0f - g.corte);
-      float a1 = 0.0f, a2 = 0.0f;
-      if (age < double(dur)) a1 = 0.26f * k;
-      else if (age < 2.0 * double(dur)) a2 = 0.11f * k;
-      else a2 = 0.11f * k * clamp01(1.0f - float((age - 2.0 * double(dur)) / 0.1));
-      for (int o = 0; o < 2; o++) {
-        const float w = g.orientacion.weight(o);
-        if (w < 0.002f) continue;
-        const bool vertical = o == 1;
-        const float edge = edgeFrac * (vertical ? W : H);
-        band(c, W, H, vertical, cut, lowerFirst, edge, cold, a1 * w);
-        band(c, W, H, vertical, cut, !lowerFirst, edge, tinted, a2 * w);
-        if (a1 > 0.0f) {
-          // Filo de color justo en el corte, como en un sensor real.
-          const float len = vertical ? W : H, across = vertical ? H : W, at = cut * len;
-          const float lw = std::max(1.0f, len * 0.004f), gap = std::max(1.0f, len * 0.003f);
-          for (int s = 0; s < 2; s++) {
-            Paint fr;
-            fr.color = tint(s == 0 ? f.colors[1] : f.colors[2], (s == 0 ? 0.5f : 0.4f) * a1 * w);
-            fr.blend = Blend::plus;
-            const float pos = at + (s == 0 ? -gap - lw : gap);
-            if (vertical) c.rect({pos, 0.0f, lw, across}, fr);
-            else c.rect({0.0f, pos, across, lw}, fr);
-          }
-        }
-      }
-      if (a1 > 0.0f) {
-        Paint v;
-        v.color = tint(cold, 0.06f * k);
-        v.blend = Blend::plus;
-        c.rect({0.0f, 0.0f, W, H}, v);
-        // Grano del sensor dentro del destello.
-        clearBins();
-        const uint32_t frame = uint32_t(now * 30.0);
-        for (int j = 0; j < 260; j++) bins_[0].push_back({W * rnd(frame * 17u + uint32_t(j) * 5u), H * rnd(frame * 23u + uint32_t(j) * 7u)});
-        drawBin(c, 0, std::max(0.8f, std::min(W, H) * 0.0013f), cold, 0.35f * a1);
-      }
+      const float age = float(now - p.start);
+      if (age < 0.0f || age > 2.0f * D) continue;
+      const float k = std::min(amount(p.power) * f.intensity, 1.2f);
+      // Primero se ilumina una parte con un corte nítido; en el siguiente
+      // cuadro, la parte complementaria.
+      const float cut = 0.3f + 0.4f * rnd(p.id * 7u + 1u);
+      const float second = age < D ? 0.0f : 1.0f;
+      c.material("shutter", {0.0f, 0.0f, W, H},
+                 {cut, second, float(m.orientacion), g.corte, k * (1.0f - 0.3f * second), rnd(p.id * 3u + 2u),
+                  red.r, red.g, red.b, cool.r, cool.g, cool.b, white.r, white.g, white.b});
     }
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'shutter': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform float uCut;
+uniform float uSecond;
+uniform float uVertical;
+uniform float uHard;
+uniform float uAmp;
+uniform float uTilt;
+uniform vec3 uRed;
+uniform vec3 uCool;
+uniform vec3 uWhite;
+out vec4 fragColor;
+
+float hash(float n) {
+  return fract(sin(n * 12.9898) * 43758.5453);
+}
+float hash2(vec2 p) {
+  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+void main() {
+  vec2 p = FlutterFragCoord().xy;
+  float px1 = uSize.x / 360.0;
+  // Coordenada a lo largo del barrido (px de 360) con el corte un poco
+  // inclinado.
+  float L = (uVertical > 0.5 ? uSize.x : uSize.y) / px1;
+  float u = (uVertical > 0.5 ? p.x : p.y) / px1;
+  float v = (uVertical > 0.5 ? p.y / uSize.y : p.x / uSize.x);
+  float cut = (uCut + (uTilt - 0.5) * 0.04 * (v - 0.5)) * L;
+  // Distancia al corte hacia el lado encendido.
+  float dl = uSecond > 0.5 ? u - cut : cut - u;
+  float litLen = uSecond > 0.5 ? L - cut : cut;
+  // Quemado en los primeros 16 px junto al corte y caída suave hasta +120
+  // en el otro extremo.
+  float I = dl < 12.0 ? 1.05 : (dl < 40.0 ? mix(1.0, 0.8, (dl - 12.0) / 28.0) : (dl < 100.0 ? mix(0.8, 0.62, (dl - 40.0) / 60.0)
+          : (dl < 200.0 ? mix(0.62, 0.5, (dl - 100.0) / 100.0) : mix(0.5, 0.45, clamp((dl - 200.0) / 100.0, 0.0, 1.0)))));
+  I *= smoothstep(-0.5, 0.5, dl) * step(0.0, litLen);
+  // Bandas de filas de 1-3 px (nuevas en cada cuadro) y grano fino.
+  float row = floor(u / 2.0);
+  float band = 1.0 + 0.05 * (2.0 * hash(row + uTilt * 131.0 + uSecond * 7.0) - 1.0);
+  float grain = 1.0 + 0.03 * (2.0 * hash2(floor(p) + uTilt * 17.0 + uSecond) - 1.0);
+  // Color continuo por el brillo final: blanco desde +230, de +230 a +170
+  // se enfría poco a poco y por debajo azul saturado.
+  float Lf = min(I, 1.0) * uAmp * band * grain;
+  float tc = clamp((0.9 - Lf) / 0.233, 0.0, 1.0);
+  vec3 cool = mix(vec3(0.28, 0.52, 1.0), uCool / max(uCool.b, 0.01), 0.1);
+  vec3 col = Lf >= 0.9 ? mix(uWhite, vec3(1.0), 0.6) : (Lf > 0.667 ? vec3(mix(0.9, 0.3, tc), mix(0.95, 0.55, tc), 1.0) : cool);
+  // Línea quemada de 1,5-2 px y filo rojo de 2-3 px justo fuera, en el lado
+  // apagado, que acaba en 2 px.
+  float lw = mix(1.0, 0.6, uHard);
+  float line = 1.25 * exp(-dl * dl / lw);
+  float re = (dl + 1.8) / 1.2;
+  float red = 0.85 * exp(-re * re) * step(dl, 0.0);
+  vec3 redC = mix(vec3(1.0, 0.165, 0.063), uRed / max(uRed.r, 0.01), 0.15);
+  vec3 light = col * Lf + (line * vec3(1.0) + red * redC) * uAmp;
+  vec3 tone = min(light, vec3(1.0));
+  fragColor = vec4(tone, 0.1 * max(tone.r, max(tone.g, tone.b)));
+}
+''',
+
+};

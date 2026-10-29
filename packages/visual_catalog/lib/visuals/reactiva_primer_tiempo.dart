@@ -1,8 +1,13 @@
 // Reactiva · Primer Tiempo — transparencia momentánea. Sólo en el primer pulso de cada
-// compás la escena se oscurece (o se aclara) un instante y vuelve: marca el
-// ritmo sin parpadear en cada golpe. Sin música no dibuja nada.
-// Funciona encima de cualquier escena sin conocerla: sólo sombra o luz neutra,
-// sin objetos nuevos. Nunca más de tres destellos por segundo.
+// compás (o cada los tiempos que se elijan) la escena respira una vez, lenta,
+// como una frase: baja la luz sin color a fondo en el mismo pulso y vuelve
+// en medio segundo, primero en el centro; o se abre desde el centro una luz
+// cálida (blanco quemado, oro y rojo anaranjado) que se apaga encogiéndose.
+// El «uno» se recoloca con cada golpe grande o al volver tras una pausa.
+// Referente: los cambios de luz en el uno de un directo de electrónica.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -14,13 +19,13 @@ const modifiers = [
   // FORMA: de toda la pantalla (0) a sólo los bordes (1).
   CreatorModifier.slider('borde', 'Hacia los bordes', min: 0, max: 1, value: .3),
   // MOVIMIENTO: cuánto tarda en volver.
-  CreatorModifier.slider('caida', 'Caída', min: .1, max: .6, value: .28),
+  CreatorModifier.slider('caida', 'Caída', min: .25, max: .9, value: .55),
 ];
 
 // Combinaciones con nombre que parecen otro visual.
 const variations = [
   CreatorVariation('Compás de Luz', {'tono': 'Luz', 'cada': 4, 'borde': 0}),
-  CreatorVariation('Frase', {'cada': 8, 'caida': .5, 'borde': .7}),
+  CreatorVariation('Frase', {'cada': 8, 'caida': .8, 'borde': .7}),
 ];
 
 const nativeSource = r'''
@@ -28,46 +33,66 @@ class Visual final : public Scene {
   // Fotosensibilidad: nunca más de 3 destellos por segundo.
   static constexpr double kGap = 0.34;
   static constexpr double kStep = 1.0 / 60.0;
-  // Por debajo de esta opacidad no se pinta nada: sin su momento, la capa
+  // Por debajo de esta opacidad no se pinta nada: sin su momento la capa
   // queda vacía y no cuesta nada.
   static constexpr float kMin = 0.004f;
   static constexpr int kSlots = 8;
-  struct Pulse { double start = -100.0; float power = 0.0f; int kind = 0; };
+  struct Pulse { double start = -100.0; float power = 0.0f; int kind = 0; uint32_t id = 0; };
   // Lo que la música trae en este cuadro.
   struct Hits {
-    float kick = 0.0f, snare = 0.0f, hat = 0.0f, beat = 0.0f, big = 0.0f, jump = 0.0f, bassUp = 0.0f;
+    float kick = 0.0f, snare = 0.0f, hat = 0.0f, hatBig = 0.0f, beat = 0.0f, big = 0.0f, jump = 0.0f, back = 0.0f, bassUp = 0.0f;
+    bool drop = false;
     int beats = 0;               // pulsos nuevos en este cuadro
     std::array<int, 4> tick{};   // número de cada pulso nuevo desde el inicio
   };
   std::array<Pulse, kSlots> slots{};
   int cursor = 0, beatCount = 0, flip = 0;
+  uint32_t fired = 0;
   double now = 0.0, acc = 0.0, lastFire = -100.0, lastImpact = -100.0, lastBig = -100.0, lastJump = -100.0;
-  float eFast = 0.0f, eSlow = 0.0f, impactMean = 0.0f;
+  double lastSound = -100.0, lastHatBig = -100.0;
+  float eFast = 0.0f, eMid = 0.0f, eSlow = 0.0f, bassSlow = 0.0f, build = 0.0f, impactMean = 0.0f, hatMean = 0.0f;
   bool bassHigh = false;
+  // Lotes de puntos reutilizados cada cuadro (reservados en reset).
+  mutable std::array<std::vector<Vec2>, 12> bins_;
 
   Hits listen(const Frame& f) {
     Hits h;
     const Music& mu = f.music;
+    const double quiet = now - lastSound;
     now += f.delta;
     acc += f.delta;
     while (acc >= kStep) {
       acc -= kStep;
       eFast += (mu.energy - eFast) * 0.19f;
+      eMid += (mu.energy - eMid) * 0.033f;
       eSlow += (mu.energy - eSlow) * 0.0042f;
+      bassSlow += (mu.bass - bassSlow) * (mu.bass > bassSlow ? 0.15f : 0.047f);
+      // Subida: la energía de medio plazo crece por encima de la lenta.
+      if (eMid > eSlow * 1.12f + 0.015f) build = std::min(1.0f, build + float(kStep) * 0.7f);
+      else build = std::max(0.0f, build - float(kStep) * 0.9f);
     }
     for (const Event& e : mu.events[0]) {  // bombo
       const float s = std::max(e.strength, 0.05f);
       h.kick = std::max(h.kick, s);
-      // Golpe grande: el primero tras una pausa o uno claramente más fuerte
-      // que los últimos; así no depende del volumen de la canción.
+      // Golpe grande: el primero tras una pausa o uno claramente más fuerte que los últimos.
       if (now - lastImpact > 1.5 || s > std::max(0.3f, impactMean * 1.3f)) h.big = std::max(h.big, std::max(s, 0.5f));
+      // Vuelta tras una pausa: el primer golpe después de un silencio.
+      if (quiet > 1.2) h.back = std::max(h.back, std::max(s, 0.5f));
       impactMean = impactMean <= 0.0f ? s : impactMean + (s - impactMean) * 0.25f;
       lastImpact = now;
     }
     for (const Event& e : mu.events[1]) {  // caja o palmada; platillos en la banda alta
       const float s = std::max(e.strength, 0.05f);
-      if (e.band == 3) h.hat = std::max(h.hat, s);
-      else h.snare = std::max(h.snare, s);
+      if (e.band == 3) {
+        h.hat = std::max(h.hat, s);
+        if (s > std::max(0.12f, hatMean * 1.35f) && now - lastHatBig > 1.0) {
+          h.hatBig = std::max(h.hatBig, s);
+          lastHatBig = now;
+        }
+        hatMean = hatMean <= 0.0f ? s : hatMean + (s - hatMean) * 0.2f;
+      } else {
+        h.snare = std::max(h.snare, s);
+      }
     }
     for (const Event& e : mu.events[2]) {  // pulso
       h.beat = std::max(h.beat, std::max(e.strength, 0.05f));
@@ -76,10 +101,16 @@ class Visual final : public Scene {
     }
     for (const Event& e : mu.events[3]) h.big = std::max(h.big, std::max(e.strength, 0.6f));  // gran momento
     if (h.big > 0.0f) {
-      if (now - lastBig < 2.5) h.big = 0.0f;
-      else lastBig = now;
+      if (now - lastBig < 2.5) {
+        h.big = 0.0f;
+      } else {
+        lastBig = now;
+        if (build > 0.5f) {  // golpe grande al final de una subida: el drop
+          h.drop = true;
+          build = 0.0f;
+        }
+      }
     }
-    // Subida de energía: la energía inmediata salta muy por encima de la media lenta.
     if (eFast > 0.12f && eFast > eSlow * 1.6f + 0.05f && now - lastJump > 6.0) {
       h.jump = std::clamp(eFast * 2.0f, 0.5f, 1.0f);
       lastJump = now;
@@ -90,136 +121,228 @@ class Visual final : public Scene {
     } else if (bassHigh && mu.bass < 0.5f) {
       bassHigh = false;
     }
+    if (mu.active && (mu.energy > 0.06f || !mu.events[0].empty() || !mu.events[1].empty())) lastSound = now;
     return h;
   }
 
-  // Guarda un destello. Con gated, respeta la pausa mínima entre destellos.
-  bool fire(float power, int kind, double delay = 0.0, bool gated = true) {
+  // Guarda un momento. Con gated respeta la pausa mínima entre destellos.
+  bool fire(float power, int kind = 0, double delay = 0.0, bool gated = true) {
     if (power <= 0.0f) return false;
     if (gated) {
       if (now - lastFire < kGap) return false;
       lastFire = now + delay;
     }
-    slots[cursor] = Pulse{now + delay, power, kind};
+    slots[cursor] = Pulse{now + delay, power, kind, fired++};
     cursor = (cursor + 1) % kSlots;
     return true;
   }
+  // Primer pulso de cada grupo de n (n = 4: compás; n = 16: frase).
+  static float every(const Hits& h, int n) {
+    for (int i = 0; i < h.beats; i++)
+      if (h.tick[i] % n == 0) return std::max(h.beat, 0.5f);
+    return 0.0f;
+  }
 
-  // Entra en 25 ms y se apaga en dur segundos.
-  static float envelope(double age, float dur) {
+  static uint32_t mixh(uint32_t x) {
+    x ^= x >> 16; x *= 0x7feb352du; x ^= x >> 15; x *= 0x846ca68bu; x ^= x >> 16;
+    return x;
+  }
+  static float rnd(uint32_t x) { return float(mixh(x) & 0xffffffu) / 16777216.0f; }
+  // Un golpe más fuerte se nota un poco más, nunca el doble.
+  static float amount(float power) { return std::clamp(0.65f + 0.7f * power, 0.65f, 1.25f); }
+  static float pace(const Frame& f) { return std::clamp(f.speed, 0.5f, 2.0f); }
+  static float clamp01(float x) { return std::clamp(x, 0.0f, 1.0f); }
+  static float easeOut(float t) {
+    t = clamp01(t);
+    const float k = 1.0f - t;
+    return 1.0f - k * k * k;
+  }
+  static float easeInOut(float t) {
+    t = clamp01(t);
+    return t * t * (3.0f - 2.0f * t);
+  }
+  // Entra en attack segundos y se apaga en dur (caída cuadrática).
+  static float env(double age, float attack, float dur) {
     if (age < 0.0) return 0.0f;
-    const double attack = 0.025;
-    if (age < attack) return float(age / attack);
-    const float x = float((age - attack) / double(std::max(dur, 0.02f)));
+    if (age < double(attack)) return float(age / double(attack));
+    const float x = float((age - double(attack)) / double(std::max(dur, 0.02f)));
     if (x >= 1.0f) return 0.0f;
     const float k = 1.0f - x;
     return k * k;
   }
-  // Un golpe más fuerte se nota un poco más, nunca el doble.
-  static float amount(float power) { return std::clamp(0.65f + 0.7f * power, 0.65f, 1.25f); }
-  float level(int kind, float dur) const {
-    float v = 0.0f;
-    for (const Pulse& p : slots)
-      if (kind < 0 || p.kind == kind) v = std::max(v, amount(p.power) * envelope(now - p.start, dur));
-    return v;
+  // Sube y baja suave en dur segundos.
+  static float arc(double age, float dur) {
+    if (age <= 0.0 || age >= double(dur)) return 0.0f;
+    return std::sin(float(pi) * float(age / double(dur)));
   }
-  static float pace(const Frame& f) { return std::clamp(f.speed, 0.5f, 2.0f); }
   static Color mixc(Color a, Color b, float t) {
     return {a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, a.a + (b.a - a.a) * t};
   }
   static Color tint(Color c, float a) { return c.opacity(std::clamp(a, 0.0f, 1.0f)); }
-  static float ease(float t) {
-    t = std::clamp(t, 0.0f, 1.0f);
-    return t * t * (3.0f - 2.0f * t);
+  static Color white() { return Color{1.0f, 1.0f, 1.0f, 1.0f}; }
+  static Color spectral(float t) {
+    const float k = 2.0f * float(pi);
+    return {0.5f + 0.5f * std::cos(k * t), 0.5f + 0.5f * std::cos(k * (t - 0.333f)), 0.5f + 0.5f * std::cos(k * (t - 0.667f)), 1.0f};
   }
-
-  // Toda la pantalla de un tono (edge 0) o cada vez más hacia los bordes (edge 1).
-  static void shade(Canvas& c, const Frame& f, Color col, float a, float edge) {
-    if (a < kMin) return;
-    const float W = f.width, H = f.height;
-    if (edge < 0.01f) {
-      Paint p;
-      p.color = tint(col, a);
-      c.rect({0.0f, 0.0f, W, H}, p);
-      return;
-    }
-    const float inner = a * (1.0f - 0.9f * edge), outer = a * (1.0f + 0.7f * edge);
-    c.save();
-    c.translate(W * 0.5f, H * 0.5f);
-    c.scale(1.0f, H / W);
-    Paint p = Paint::radial({0.0f, 0.0f}, W * 0.7072f, {tint(col, inner), tint(col, inner), tint(col, outer)},
-                            {0.0f, 0.2f + 0.4f * edge, 1.0f});
-    c.rect({-W * 0.5f, -W * 0.5f, W, W}, p);
-    c.restore();
+  // Luz con caída real: núcleo, halo y velo muy tenue.
+  static void glow(Canvas& c, Vec2 p, float r, Color core, Color halo, float a) {
+    if (a < kMin || r < 0.5f) return;
+    Paint q = Paint::radial(p, r, {tint(core, a), tint(halo, a * 0.55f), tint(halo, a * 0.22f), tint(halo, a * 0.06f), tint(halo, 0.0f)},
+                            {0.0f, 0.08f, 0.2f, 0.45f, 1.0f});
+    q.blend = Blend::plus;
+    c.circle(p, r, q);
   }
-
-  // Sólo los bordes: 0 óvalo, 1 laterales, 2 arriba y abajo. open es la
-  // parte del centro que no se toca.
-  static void frameShade(Canvas& c, const Frame& f, Color col, float a, float open, int marco) {
-    if (a < kMin) return;
-    const float W = f.width, H = f.height;
-    if (marco == 0) {
-      c.save();
-      c.translate(W * 0.5f, H * 0.5f);
-      c.scale(1.0f, H / W);
-      Paint p = Paint::radial({0.0f, 0.0f}, W * 0.7072f, {tint(col, 0.0f), tint(col, 0.0f), tint(col, a)}, {0.0f, open, 1.0f});
-      c.rect({-W * 0.5f, -W * 0.5f, W, W}, p);
-      c.restore();
-    } else if (marco == 1) {
-      sideShade(c, f, col, a, open, false);
-      sideShade(c, f, col, a, open, true);
-    } else {
-      const float d = H * (1.0f - open) * 0.5f;
-      Paint top = Paint::linear({0.0f, 0.0f}, {0.0f, d}, {tint(col, a), tint(col, a * 0.4f), tint(col, 0.0f)}, {0.0f, 0.35f, 1.0f});
-      c.rect({0.0f, 0.0f, W, d}, top);
-      Paint bottom = Paint::linear({0.0f, H}, {0.0f, H - d}, {tint(col, a), tint(col, a * 0.4f), tint(col, 0.0f)}, {0.0f, 0.35f, 1.0f});
-      c.rect({0.0f, H - d, W, d}, bottom);
-    }
+  // Luz ancha y suave (fugas, quemaduras, humo): cae más despacio que glow.
+  static void softGlow(Canvas& c, Vec2 p, float r, Color core, Color halo, float a) {
+    if (a < kMin || r < 0.5f) return;
+    Paint q = Paint::radial(p, r, {tint(core, a), tint(halo, a * 0.75f), tint(halo, a * 0.32f), tint(halo, 0.0f)}, {0.0f, 0.25f, 0.6f, 1.0f});
+    q.blend = Blend::plus;
+    c.circle(p, r, q);
   }
-  static void sideShade(Canvas& c, const Frame& f, Color col, float a, float open, bool right) {
-    if (a < kMin) return;
-    const float W = f.width, H = f.height, d = W * (1.0f - open) * 0.5f;
-    const float x0 = right ? W : 0.0f, x1 = right ? W - d : d;
-    Paint p = Paint::linear({x0, 0.0f}, {x1, 0.0f}, {tint(col, a), tint(col, a * 0.4f), tint(col, 0.0f)}, {0.0f, 0.35f, 1.0f});
-    c.rect({right ? W - d : 0.0f, 0.0f, d, H}, p);
+  // Anillo de luz fino de radio r y ancho w.
+  static void ring(Canvas& c, const Frame& f, Vec2 o, float r, float w, Color col, float a) {
+    if (a < kMin || r <= w * 1.05f) return;
+    const float R = r + 2.0f * w;
+    Paint q = Paint::radial(o, R, {tint(col, 0.0f), tint(col, 0.0f), tint(col, a), tint(col, 0.0f), tint(col, 0.0f)},
+                            {0.0f, (r - w) / R, r / R, (r + w) / R, 1.0f});
+    q.blend = Blend::plus;
+    const float x0 = std::max(0.0f, o.x - R), y0 = std::max(0.0f, o.y - R);
+    const float x1 = std::min(f.width, o.x + R), y1 = std::min(f.height, o.y + R);
+    if (x1 > x0 && y1 > y0) c.rect({x0, y0, x1 - x0, y1 - y0}, q);
   }
-
-  // Una franja de luz suave que cruza la pantalla; pos va de 0 a 1.
-  static void sweep(Canvas& c, const Frame& f, Color lit, Color warm, float a, float pos, float band, float degrees) {
-    const float b = a * std::sin(float(pi) * std::clamp(pos, 0.0f, 1.0f));
-    if (b < kMin) return;
-    const float W = f.width, H = f.height, L = 0.5f * std::sqrt(W * W + H * H) + band;
-    const float x = -L + 2.0f * L * pos;
-    c.save();
-    c.translate(W * 0.5f, H * 0.5f);
-    c.rotate(degrees * float(pi) / 180.0f);
-    Paint p = Paint::linear({x - band * 0.5f, 0.0f}, {x + band * 0.5f, 0.0f},
-                            {tint(warm, 0.0f), tint(warm, b * 0.35f), tint(lit, b), tint(warm, b * 0.35f), tint(warm, 0.0f)},
-                            {0.0f, 0.3f, 0.5f, 0.7f, 1.0f});
-    c.rect({x - band * 0.5f, -L, band, 2.0f * L}, p);
-    c.restore();
+  void clearBins() const {
+    for (auto& b : bins_) b.clear();
+  }
+  void drawBin(Canvas& c, int i, float radius, Color col, float a) const {
+    if (bins_[size_t(i)].empty() || a < kMin) return;
+    Paint p;
+    p.color = tint(col, a);
+    p.blend = Blend::plus;
+    c.points(bins_[size_t(i)], radius, p);
   }
 
  public:
-  void reset(uint32_t) override {
+  void reset(uint32_t seed) override {
     slots = {};
     cursor = beatCount = flip = 0;
+    fired = 0;
     now = acc = 0.0;
-    lastFire = lastImpact = lastBig = lastJump = -100.0;
-    eFast = eSlow = impactMean = 0.0f;
+    lastFire = lastImpact = lastBig = lastJump = lastSound = lastHatBig = -100.0;
+    eFast = eMid = eSlow = bassSlow = build = impactMean = hatMean = 0.0f;
     bassHigh = false;
+    for (auto& b : bins_) b.reserve(2048);
+    resetOwn(seed);
+  }
+  const Pulse* latest(int kind = -1) const {
+    const Pulse* best = nullptr;
+    for (const Pulse& p : slots)
+      if (p.start <= now && (kind < 0 || p.kind == kind) && (best == nullptr || p.start > best->start)) best = &p;
+    return best;
+  }
+  int barBeat = 0;
+  double lastBeat = -100.0;
+  void resetOwn(uint32_t) {
+    barBeat = 0;
+    lastBeat = -100.0;
   }
   void update(const Frame& f) override {
     const Hits h = listen(f);
     const int every = std::max(1, modifiers(f).cada);
-    for (int i = 0; i < h.beats; i++)
-      if (h.tick[i] % every == 0) fire(std::max(h.beat, 0.5f), 0);
+    // El «uno» se recoloca con cada golpe grande o con el primer pulso tras
+    // una pausa.
+    if (h.big > 0.0f || (h.beats > 0 && now - lastBeat > 1.2)) barBeat = 0;
+    if (h.beats > 0) lastBeat = now;
+    for (int i = 0; i < h.beats; i++) {
+      if (barBeat % every == 0) fire(std::max(h.beat, 0.5f), 0);
+      barBeat++;
+    }
   }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
-    const float v = level(0, g.caida / pace(f)) * f.intensity;
-    shade(c, f, f.colors[1], std::min(0.14f * v, 0.22f) * g.tono.weight(0), g.borde);
-    shade(c, f, mixc(f.colors[3], f.colors[2], 0.2f), std::min(0.13f * v, 0.2f) * g.tono.weight(1), g.borde);
+    const auto m = modifiers(f);
+    const float W = f.width, H = f.height;
+    const Pulse* p = latest();
+    if (p == nullptr) return;
+    const float age = float(now - p->start);
+    const float rel = g.caida / pace(f);
+    if (age > rel + 0.15f) return;
+    const float k = std::min(amount(p->power) * f.intensity, 1.2f);
+    const bool light = m.tono == 1;
+    // La luz se abre en dos cuadros, se sostiene uno y se apaga encogiéndose.
+    float glowR = 0.0f;
+    if (light) glowR = age < 0.067f ? 0.3f + 0.7f * age / 0.067f : age < 0.1f ? 1.0f : 1.0f - easeInOut((age - 0.1f) / rel);
+    const float ox = (rnd(p->id * 3u + 1u) - 0.5f) * 40.0f;
+    const float oy = (rnd(p->id * 5u + 2u) - 0.5f) * 72.0f;
+    const Color shadow = f.colors[1], warm = f.colors[2], white = f.colors[3];
+    c.material("duck", {0.0f, 0.0f, W, H},
+               {light ? 0.0f : 0.34f * k, g.borde, age, rel, ox, oy, rnd(p->id * 7u + 3u) * 6.2832f, light ? k : 0.0f, glowR,
+                shadow.r, shadow.g, shadow.b, warm.r, warm.g, warm.b, white.r, white.g, white.b});
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'duck': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform float uDark;
+uniform float uEdge;
+uniform float uAge;
+uniform float uRel;
+uniform vec2 uOff;
+uniform float uPhi;
+uniform float uLight;
+uniform float uGlowR;
+uniform vec3 uShadow;
+uniform vec3 uWarm;
+uniform vec3 uWhite;
+out vec4 fragColor;
+
+void main() {
+  vec2 p = FlutterFragCoord().xy;
+  float px1 = uSize.x / 360.0;
+  vec2 hs = 0.5 * uSize;
+  vec2 c = p - hs - uOff * px1;
+  vec2 d = c / hs;
+  float rs = pow(pow(abs(d.x), 2.6) + pow(abs(d.y), 2.6), 1.0 / 2.6);
+  // Sombra sin color: el centro baja un 65 % de lo que bajan las esquinas, o
+  // sólo hacia los bordes; cada golpe con su propia forma (±10 %).
+  float whole = mix(0.64, 1.0, smoothstep(0.0, 1.3, length(d)));
+  float prof = mix(whole, smoothstep(0.25, 1.15, rs), uEdge) * (1.0 + 0.1 * cos(2.0 * atan(d.y, d.x) + uPhi));
+  // A fondo en el mismo cuadro del golpe, un cuadro más, y la luz vuelve
+  // primero en el centro y al final en las esquinas.
+  float hold = 0.034;
+  float Tr = uRel * (0.55 + 0.45 * smoothstep(0.0, 1.1, rs));
+  float e = uAge < hold ? 1.0 : 1.0 - smoothstep(0.0, Tr, uAge - hold);
+  float shade = uDark * prof * e;
+  // Luz: un círculo en px (como mucho 1,2 veces más alto que ancho) por la
+  // rampa cálida, que se apaga encogiéndose: quemado sólo en 16 px, +250 a
+  // 24, +240 a 34, +228 a 44, de blanco a oro en 44-58 px y de oro a rojo en
+  // 62-76 px, +153/+44 a 75, +102/+28 a 110, +51/+14 a 150 y nada a 230.
+  float rp = length(c / px1 * vec2(1.0, 1.0 / 1.2)) / max(uGlowR, 0.001);
+  // El brillo baja desde el mismo borde del quemado (16 px) sin mesetas:
+  // +250 a 16, +228 a 30, +205 a 45, +178 a 62, +150 a 80, +120 a 105,
+  // +85 a 135, +50 a 170, +20 a 210 y nada a 245.
+  float I = rp < 16.0 ? mix(1.12, 0.98, rp / 16.0) : (rp < 30.0 ? mix(0.98, 0.894, (rp - 16.0) / 14.0) : (rp < 45.0 ? mix(0.894, 0.804, (rp - 30.0) / 15.0)
+          : (rp < 62.0 ? mix(0.804, 0.698, (rp - 45.0) / 17.0) : (rp < 80.0 ? mix(0.698, 0.588, (rp - 62.0) / 18.0)
+          : (rp < 105.0 ? mix(0.588, 0.47, (rp - 80.0) / 25.0) : (rp < 135.0 ? mix(0.47, 0.333, (rp - 105.0) / 30.0)
+          : (rp < 170.0 ? mix(0.333, 0.196, (rp - 135.0) / 35.0) : (rp < 210.0 ? mix(0.196, 0.078, (rp - 170.0) / 40.0)
+          : mix(0.078, 0.0, clamp((rp - 210.0) / 35.0, 0.0, 1.0))))))))));
+  I *= step(0.001, uGlowR);
+  // El tono cambia a la vez que baja el brillo (sin disco blanco ni anillo
+  // de oro): G/R 0,95 -> 0,80 -> 0,64 -> 0,45 -> 0,30 y B/R 0,85 -> 0,45 ->
+  // 0,15 -> 0,05.
+  float L = I * uLight;
+  float gr = L > 0.894 ? mix(0.8, 0.95, (L - 0.894) / 0.086) : (L > 0.804 ? mix(0.64, 0.8, (L - 0.804) / 0.09)
+           : (L > 0.698 ? mix(0.45, 0.64, (L - 0.698) / 0.106) : (L > 0.588 ? mix(0.3, 0.45, (L - 0.588) / 0.11) : 0.3)));
+  float br = L > 0.894 ? mix(0.45, 0.85, (L - 0.894) / 0.086) : (L > 0.804 ? mix(0.15, 0.45, (L - 0.804) / 0.09)
+           : (L > 0.698 ? mix(0.05, 0.15, (L - 0.698) / 0.106) : mix(0.0, 0.05, clamp((L - 0.5) / 0.198, 0.0, 1.0))));
+  vec3 col = vec3(1.0, min(gr, 1.0), min(br, 1.0)) * mix(vec3(1.0), uWarm / max(uWarm.r, 0.01), 0.04) * mix(vec3(1.0), uWhite, 0.04);
+  vec3 light = col * min(L, 1.0);
+  float m = max(light.r, max(light.g, light.b));
+  fragColor = vec4(light + uShadow * shade, clamp(max(shade * (1.0 - m), 0.1 * m), 0.0, 1.0));
+}
+''',
+
+};

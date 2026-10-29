@@ -5,17 +5,18 @@ const metadata = CreatorVisualMetadata(
   name: 'Reactiva Mejorada · Latido Oscuro',
   publication: CreatorPublication.draft,
   description:
-      'Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con cada bombo toda la escena se oscurece un poco durante una décima de segundo y vuelve, como el sidechain de la música electrónica. No añade nada: sólo baja la luz de lo que haya detrás. Sin música no dibuja nada.',
+      'Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con cada bombo toda la escena baja de luz como con un compresor: a fondo en el mismo golpe, se sostiene un cuadro y vuelve suave, primero en el centro, con cada golpe un poco distinto; también puede oscurecer sólo los bordes. No añade nada. Sin música no dibuja nada.',
   purposes: ['visualizer', 'overlay', 'momentary'],
-  moods: ['subtle', 'rhythmic', 'dark'],
-  concepts: ['aparición momentánea', 'sidechain', 'pump', 'shadow pulse'],
+  moods: ['energetic', 'minimal', 'dark'],
+  concepts: ['aparición momentánea', 'sidechain', 'pump', 'darkening'],
   credits: CreatorCredits(author: 'Chic Apps', license: '', source: ''),
-  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.05),
+  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.0),
   role: CreatorRole.overlay,
   // Sólo con música: sin ella la capa queda vacía.
   reactivity: CreatorReactivity.music,
-  colors: [0x00000000, 0xff000000, 0xffffd6a0, 0xfffff7ea],
+  colors: [0x00000000, 0xff000000, 0xffffc27a, 0xfffff7ea],
+  images: {},
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
-  // Sin música no dibuja nada; sólo aparece un instante con su momento. Dibuja como mucho unos rectángulos con degradado.
+  // Sin música no dibuja nada; sólo aparece con su momento musical.
   framesPerSecond: 30,
 );

@@ -1,15 +1,15 @@
 // Reactiva Mejorada · Barrido Holográfico — transparencia momentánea. Al empezar una frase cruza en
-// diagonal una banda iridiscente, como al inclinar una carta holográfica:
-// franjas de interferencia arcoíris, una retícula fina que hace bailar el
-// color, una línea especular blanca en el centro y purpurina que destella.
-// Referente: las cartas holográficas de simeydotme (poke-holo) y las paletas
-// coseno de Íñigo Quílez.
+// diagonal una banda iridiscente, como al inclinar una carta holográfica: el
+// arcoíris de interferencia de una película fina, que cambia de color con la
+// posición, sobre una rejilla de difracción finísima, una línea especular
+// nítida en el centro y purpurina que destella dentro. Los bordes de la banda
+// caen suaves. La luz se suma a la escena. Referente: las cartas holográficas
+// y los hologramas de seguridad de los billetes.
 // Versión mejorada: sigue el ritmo (cada golpe o cada tiempo) y su fuerza
-// depende del volumen de la música; los pulsos son cortos para que se
-// vean con el compás. La original («Reactiva · Barrido Holográfico») no se toca.
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// depende del volumen de la música.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -252,66 +252,112 @@ class Visual final : public Scene {
   }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
-    const float W = f.width, H = f.height, S = std::min(W, H), D = std::sqrt(W * W + H * H);
-    const Color warm = f.colors[2];
+    const float W = f.width, H = f.height;
+    const float T = 0.9f / pace(f);
+    const Color red = f.colors[1], gold = f.colors[2], white = f.colors[3];
     for (const Pulse& p : slots) {
-      const double age = now - p.start;
-      const float T = (p.kind == 1 ? 0.45f : 0.65f) / pace(f);
-      if (age <= 0.0 || age >= double(T)) continue;
-      const float pos = easeInOut(float(age / double(T)));
-      const float a = 0.2f * std::sin(float(pi) * pos) * std::min(amount(p.power) * f.intensity, 1.5f);
-      if (a < kMin) continue;
-      const float bw = g.ancho * D * 0.5f, L = 0.5f * D + bw;
-      const float x0 = -L + 2.0f * L * pos;
-      const float hue0 = rnd(p.id * 3u);
-      c.save();
-      c.translate(W * 0.5f, H * 0.5f);
-      c.rotate(g.angulo * float(pi) / 180.0f);
-      // Dos capas de interferencia arcoíris con bordes suaves. El motor admite
-      // hasta 8 colores por degradado: cada capa se pinta en tramos.
-      for (int layer = 0; layer < 2; layer++) {
-        const int parts = layer == 0 ? 4 : 6;
-        const float cycles = layer == 0 ? 2.0f : 3.7f;
-        for (int s = 0; s < parts; s++) {
-          const float t0 = float(s) / float(parts), t1 = float(s + 1) / float(parts);
-          std::vector<Color> cols;
-          std::vector<float> at;
-          for (int k = 0; k < 7; k++) {
-            const float u = float(k) / 6.0f, t = t0 + (t1 - t0) * u;
-            const float edge = std::pow(std::max(0.0f, std::sin(float(pi) * t)), 1.5f);
-            cols.push_back(tint(mixc(spectral(hue0 + t * cycles + 0.3f * float(layer)), warm, 0.2f), a * edge * (layer == 0 ? 1.0f : 0.5f)));
-            at.push_back(u);
-          }
-          const float xa = x0 - 0.5f * bw + bw * t0, xb = x0 - 0.5f * bw + bw * t1;
-          Paint q = Paint::linear({xa, 0.0f}, {xb, 0.0f}, cols, at);
-          q.blend = Blend::plus;
-          c.rect({xa, -L, xb - xa, 2.0f * L}, q);
-        }
-      }
-      // Línea especular blanca en el centro.
-      const float lw = bw * 0.05f;
-      Paint spec = Paint::linear({x0 - lw, 0.0f}, {x0 + lw, 0.0f}, {tint(white(), 0.0f), tint(white(), 2.7f * a), tint(white(), 0.0f)}, {0.0f, 0.5f, 1.0f});
-      spec.blend = Blend::plus;
-      c.rect({x0 - lw, -L, 2.0f * lw, 2.0f * L}, spec);
-      // Retícula fina que hace bailar el color.
-      Path grid;
-      const float step = std::max(3.0f, S * 0.006f);
-      for (float x = x0 - 0.45f * bw; x < x0 + 0.45f * bw; x += step) grid.moveTo(x, -L).lineTo(x + 0.3f * L, L);
-      Paint gp;
-      gp.color = tint(white(), 0.25f * a);
-      gp.blend = Blend::plus;
-      gp.strokeWidth = 1.0f;
-      c.path(grid, gp);
-      // Purpurina que destella dentro de la banda.
-      clearBins();
-      const uint32_t frame = uint32_t(now * 30.0);
-      for (int j = 0; j < 160; j++) {
-        if (rnd(frame * 7u + uint32_t(j) * 3u + p.id) < 0.45f) continue;
-        bins_[0].push_back({x0 + bw * (rnd(p.id * 101u + uint32_t(j)) - 0.5f) * 0.9f, -L + 2.0f * L * rnd(p.id * 103u + uint32_t(j))});
-      }
-      drawBin(c, 0, std::max(0.9f, S * 0.0018f), white(), std::min(3.5f * a * g.purpurina, 1.0f));
-      c.restore();
+      const float age = float(now - p.start);
+      if (age < 0.0f || age > T) continue;
+      const float k = std::min(amount(p.power) * f.intensity, 1.3f);
+      c.material("holo", {0.0f, 0.0f, W, H},
+                 {easeInOut(age / T), std::sin(float(pi) * age / T) * k, g.angulo * float(pi) / 180.0f, g.ancho, g.purpurina, float(p.id % 31u),
+                  red.r, red.g, red.b, gold.r, gold.g, gold.b, white.r, white.g, white.b},
+                 {"noise"});
     }
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'holo': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform float uS;
+uniform float uAmp;
+uniform float uAngle;
+uniform float uWidth;
+uniform float uGlitter;
+uniform float uSeed;
+uniform vec3 uRed;
+uniform vec3 uGold;
+uniform vec3 uWhite;
+uniform sampler2D uTex;
+out vec4 fragColor;
+
+float hash(float n) {
+  return fract(sin(n * 12.9898) * 43758.5453);
+}
+float hash2(vec2 p) {
+  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+// Arcoíris de la lámina: rojo, oro (sólo si es brillante), verde, azul y
+// violeta, con relevos de unos 7 px; el relevo cálido-verde baja un poco de
+// brillo para no pasar por oliva y el verde-azul no se agrisa.
+vec4 foil(float h, float B) {
+  h = fract(h) * 5.0;
+  float i = floor(h);
+  // Cada color sólo es puro en el centro de su franja (caída cos²).
+  float t = 0.5 - 0.5 * cos(3.14159 * fract(h));
+  vec3 red = mix(vec3(1.0, 0.165, 0.063), uRed / max(uRed.r, 0.01), 0.15);
+  vec3 gold = mix(red, mix(vec3(1.0, 0.784, 0.0), uGold / max(uGold.r, 0.01), 0.15), smoothstep(0.62, 0.7, B));
+  vec3 green = vec3(0.19, 1.0, 0.44);
+  vec3 blue = vec3(0.227, 0.42, 1.0);
+  vec3 violet = vec3(0.54, 0.165, 1.0);
+  vec3 a = i < 0.5 ? red : (i < 1.5 ? gold : (i < 2.5 ? green : (i < 3.5 ? blue : violet)));
+  vec3 b = i < 0.5 ? gold : (i < 1.5 ? green : (i < 2.5 ? blue : (i < 3.5 ? violet : red)));
+  vec3 c = mix(a, b, t);
+  float bump = 4.0 * t * (1.0 - t);
+  float dip = i > 0.5 && i < 1.5 ? 1.0 - 0.87 * bump : 1.0;
+  if (i > 1.5 && i < 2.5) c.r *= 1.0 - 0.5 * bump;
+  return vec4(c, dip);
+}
+
+void main() {
+  vec2 p = FlutterFragCoord().xy;
+  float px1 = uSize.x / 360.0;
+  vec2 n = vec2(cos(uAngle), sin(uAngle));
+  vec2 c = 0.5 * uSize;
+  float w = uWidth * uSize.x;
+  float span = 0.5 * (abs(uSize.x * n.x) + abs(uSize.y * n.y)) + w;
+  float xp = (dot(p - c, n) - mix(-span, span, uS)) / px1;  // > 0 delante
+  float along = dot(p - c, vec2(-n.y, n.x)) / px1;
+  float d = abs(xp);
+  // Brillo: pico +200..+220 a 6-10 px de la línea, +40 a 60 px y nada a
+  // 100 px delante o 150 px detrás.
+  float tail = xp > 0.0 ? 100.0 : 150.0;
+  float B = d < 8.0 ? mix(0.55, 0.82, d / 8.0) : (d < 60.0 ? mix(0.82, 0.157, smoothstep(8.0, 60.0, d)) : mix(0.157, 0.0, smoothstep(60.0, tail, d)));
+  // Microlíneas de la lámina: 3,5 px de paso a 25° de la banda, ±25 %, que
+  // derivan 1 px por cuadro; grano fino de ±5 %.
+  float g = 1.0 + 0.08 * sin(6.2832 * (xp + uS * 27.0) / 2.5);
+  g *= 1.0 + 0.05 * (2.0 * hash2(floor(p) + floor(uS * 27.0)) - 1.0);
+  float tex = texture(uTex, fract(p / uSize.x * 0.6 + vec2(uSeed * 0.07))).g;
+  vec4 hue = foil(xp / 50.0 + along / 600.0 + tex * 0.15 + uS * 0.6 + uSeed * 0.13, B);
+  vec3 film = hue.rgb * B * hue.a * g;
+  // Línea especular: 2 px quemada y un brillo del color local hasta 6 px.
+  float line = 1.25 * exp(-xp * xp / 1.4);
+  float lg = 0.6 * exp(-d / 1.8) * (1.0 - smoothstep(4.0, 6.0, d));
+  // Purpurina del color local, casi toda a ±30 px de la línea; cada copo
+  // dura 1-3 cuadros y sólo es blanco en su núcleo de 1 px.
+  vec2 cell = floor(p / (8.0 * px1));
+  vec2 cp = (cell + vec2(hash2(cell + 1.3), hash2(cell + 4.7))) * 8.0 * px1;
+  float on = step(hash2(cell + floor(uS * 13.5 + hash2(cell + 2.2) * 7.0)), 0.12 * uGlitter);
+  float near = exp(-xp * xp / 484.0) * step(0.08, B);
+  float rr = dot(p - cp, p - cp) / (px1 * px1);
+  float flake = on * near * exp(-rr / 1.45) * 1.5 * max(B, 0.3);
+  float wf = step(hash2(cell + 6.6), 0.3);
+  vec3 light = film + line * mix(uWhite, vec3(1.0), 0.7) + lg * hue.rgb
+             + mix(hue.rgb, vec3(1.0), wf * smoothstep(0.86, 0.95, flake)) * flake;
+  // El amarillo sólo desde +170; por debajo, el tramo cálido pasa a naranja
+  // (verde <= 0,45 del rojo entre +120 y +170, <= 0,30 por debajo).
+  float Lf = max(light.r, max(light.g, light.b)) * uAmp;
+  float gcap = Lf >= 0.667 ? 1.0 : mix(0.3, 0.45, smoothstep(0.43, 0.51, Lf));
+  if (light.r >= light.g && light.b < 0.3 * light.r) light.g = min(light.g, gcap * light.r);
+  light *= uAmp;
+  vec3 tone = min(light, vec3(1.0));
+  fragColor = vec4(tone, 0.1 * max(tone.r, max(tone.g, tone.b)));
+}
+''',
+
+};

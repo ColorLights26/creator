@@ -1,12 +1,13 @@
-// Reactiva · Onda en el Cristal — transparencia momentánea. Con el bombo, desde un punto se
-// abren ondas rápidas como en una lámina de agua sobre la escena: cada onda es
-// una cresta de luz junto a un valle de sombra, así que se lee como refracción
-// sin tocar los píxeles de debajo, y la amplitud se apaga enseguida. Es la que
-// mejor se integra: la escena parece vibrar. Referente: el efecto Ripple de
-// Apple (WWDC24), que además de desplazar aclara y oscurece según la onda.
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// Reactiva · Onda en el Cristal — transparencia momentánea. Con el bombo se abren sobre la
+// escena unas ondas rápidas como en una lámina de agua: cada anillo tiene una
+// cresta de luz fina y, justo dentro, un valle de sombra sin color, así que se
+// leen como refracción; la cresta tiene un filo de color apenas separado. Los
+// anillos se amortiguan al crecer y se apagan en medio segundo. La luz y la
+// sombra se suman a la escena. Referente: una gota sobre una lámina de agua
+// filmada a alta velocidad.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -240,31 +241,107 @@ class Visual final : public Scene {
   }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
-    const float W = f.width, H = f.height, S = std::min(W, H), D = std::sqrt(W * W + H * H);
-    const int n = std::clamp(int(std::lround(g.ondas)), 2, 5);
-    const float w0 = g.origen.weight(0), w1 = g.origen.weight(1), w2 = g.origen.weight(2);
-    const Color shade = f.colors[1], light = f.colors[3];
+    const auto m = modifiers(f);
+    const float W = f.width, H = f.height;
+    const float T = 0.6f / pace(f);
+    const Color shadow = f.colors[1], warm = f.colors[2], white = f.colors[3];
     for (const Pulse& p : slots) {
-      const double age = (now - p.start) * double(pace(f));
-      if (age <= 0.0 || age > 0.8) continue;
-      const Vec2 o = {w0 * W * (0.2f + 0.6f * rnd(p.id * 7u)) + (w1 + w2) * W * 0.5f,
-                      w0 * H * (0.25f + 0.5f * rnd(p.id * 11u + 2u)) + w1 * H * 0.5f + w2 * H * 0.9f};
-      const float base = amount(p.power) * f.intensity * g.profundidad * std::exp(-4.2f * float(age));
-      for (int k = 0; k < n; k++) {
-        const float r = 0.9f * D * float(age - 0.075 * double(k));
-        const float w = S * (0.012f + 0.012f * float(age));
-        if (r <= 2.3f * w) continue;
-        const float amp = base * (1.0f - 0.18f * float(k));
-        const float al = std::min(0.3f * amp, 0.38f), ad = std::min(0.24f * amp, 0.3f);
-        if (al < kMin) continue;
-        const float R = r + w;
-        // Valle de sombra y cresta de luz en el mismo degradado.
-        Paint q = Paint::radial(o, R, {tint(shade, 0.0f), tint(shade, 0.0f), tint(shade, ad), tint(shade, 0.0f), tint(light, al), tint(light, 0.0f)},
-                                {0.0f, (r - 2.2f * w) / R, (r - 1.2f * w) / R, (r - 0.35f * w) / R, r / R, 1.0f});
-        const float x0 = std::max(0.0f, o.x - R), y0 = std::max(0.0f, o.y - R), x1 = std::min(W, o.x + R), y1 = std::min(H, o.y + R);
-        if (x1 > x0 && y1 > y0) c.rect({x0, y0, x1 - x0, y1 - y0}, q);
-      }
+      const float age = float(now - p.start);
+      if (age < 0.0f || age > T) continue;
+      const float k = std::min(amount(p.power) * f.intensity, 1.3f);
+      const int at = m.origen == 0 ? 0 : m.origen;
+      const float ox = at == 0 ? W * (0.2f + 0.6f * rnd(p.id * 7u + 1u)) : 0.5f * W;
+      const float oy = at == 0 ? H * (0.2f + 0.6f * rnd(p.id * 9u + 2u)) : at == 1 ? 0.5f * H : 0.95f * H;
+      // El paquete de ondas crece rápido; sólo se pinta su cuadrado.
+      const float R = W * 0.08f + W * 1.1f * easeOut(age / T);
+      const float reach = R + 0.12f * W;
+      const float x0 = std::max(0.0f, ox - reach), y0 = std::max(0.0f, oy - reach);
+      const float x1 = std::min(W, ox + reach), y1 = std::min(H, oy + reach);
+      if (x1 <= x0 || y1 <= y0) continue;
+      c.material("ripple", {x0, y0, x1 - x0, y1 - y0},
+                 {x0, y0, W, ox, oy, R, age / T, k * g.profundidad, std::round(g.ondas),
+                  shadow.r, shadow.g, shadow.b, warm.r, warm.g, warm.b, white.r, white.g, white.b});
     }
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'ripple': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform vec2 uOffset;
+uniform float uWidth;
+uniform vec2 uOrigin;
+uniform float uR;
+uniform float uT;
+uniform float uAmp;
+uniform float uWaves;
+uniform vec3 uShadow;
+uniform vec3 uWarm;
+uniform vec3 uWhite;
+out vec4 fragColor;
+
+void main() {
+  vec2 p = FlutterFragCoord().xy + uOffset;
+  float px1 = uWidth / 360.0;
+  vec2 v = p - uOrigin;
+  float r = length(v) / px1;
+  float th = atan(v.y, v.x);
+  float age = uT * 0.6;
+  float Rf = uR / px1;
+  // Las crestas se ensanchan de 3 a 7-8 px mientras bajan.
+  float fw = clamp(3.0 + 19.0 * (age - 0.067), 2.5, 8.0);
+  float sg = fw / 2.355;
+  float damp = pow(1.0 - uT, 1.5);
+  // Desde unos 0,3 s cada cresta se rompe en un 10-20 % de su contorno.
+  float brk = 0.1 * smoothstep(0.28, 0.4, age);
+  vec2 L = normalize(vec2(-0.6, -0.8));
+  float lit = 0.8 + 0.2 * max(dot(v / max(length(v), 0.001), L), 0.0);
+  float crest = 0.0;
+  float redF = 0.0;
+  float shade = 0.0;
+  float off = 0.0;
+  for (int k = 0; k < 5; k++) {
+    float fk = float(k);
+    if (fk >= uWaves) continue;
+    // Separaciones de delante a atrás 30/24/19/16 px que crecen 2 px por cuadro.
+    float gap = (k == 1 ? 30.0 : (k == 2 ? 24.0 : (k == 3 ? 19.0 : 16.0))) + 60.0 * (age - 0.067);
+    if (k > 0) off += max(gap, 6.0);
+    float rk = Rf - off;
+    if (rk < 12.0) continue;
+    float A = k == 0 ? 0.7 : (k == 1 ? 1.0 : (k == 2 ? 0.6 : (k == 3 ? 0.3 : 0.15)));
+    // Borde orgánico: ±25 % de brillo en 3-5 lóbulos que giran y ±1,5 px de radio.
+    float n = 1.0 + 0.25 * (0.6 * sin(3.0 * th + age * 2.2 + fk * 1.7) + 0.4 * sin(5.0 * th - age * 1.8 + fk * 2.9));
+    float wob = 1.5 * min(1.0, rk / 60.0) * sin(4.0 * th + fk * 1.3 + age * 1.5);
+    float on = smoothstep(brk - 0.05, brk + 0.05, 0.5 + 0.5 * sin(2.0 * th + fk * 2.3 + 0.7));
+    float dr = r - rk - wob;
+    float a = A * n * on;
+    // Núcleo de 1-2 px quemado y flancos azules anchos.
+    float sf = max(sg, 2.2);
+    crest += a * (1.3 * exp(-dr * dr / 0.72) + 1.3 * exp(-dr * dr / (2.0 * sf * sf)));
+    // Filo exterior rojo (0,8 del azul de su cresta) sólo en crestas fuertes.
+    float pk = a * damp * uAmp * lit * 0.9;
+    float ro = dr - (0.5 * fw + 2.0);
+    redF += pk * 0.8 * exp(-ro * ro / 0.8) * smoothstep(0.45, 0.52, pk);
+    // Valle de sombra estrecho justo dentro de la cresta.
+    float ti = dr + 0.5 * fw + 2.0;
+    shade += a * exp(-ti * ti / 1.4);
+  }
+  float I = crest * damp * uAmp * lit;
+  // Color por intensidad: blanco sólo desde +200 (núcleo fino); por debajo,
+  // azul saturado. Fuera, rojo vivo.
+  vec3 blue = vec3(0.3, 0.5, 1.0);
+  vec3 white = mix(uWhite, vec3(1.0), 0.5);
+  vec3 col = mix(blue, white, smoothstep(0.78, 0.88, I));
+  vec3 red = mix(vec3(1.0, 0.165, 0.063), uWarm / max(uWarm.r, 0.01), 0.1);
+  vec3 light = col * min(I, 1.0) + red * min(redF, 1.0);
+  vec3 tone = min(light, vec3(1.0));
+  float sh = min(0.08 * shade * damp * uAmp, 0.08);
+  float m = max(tone.r, max(tone.g, tone.b));
+  fragColor = vec4(tone + uShadow * sh, clamp(max(sh * (1.0 - m), 0.1 * m), 0.0, 1.0));
+}
+''',
+
+};

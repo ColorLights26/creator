@@ -5,18 +5,18 @@ const metadata = CreatorVisualMetadata(
   name: 'Reactiva Mejorada · Cadena de Iris',
   publication: CreatorPublication.draft,
   description:
-      'Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el bombo, una luz fuera del cuadro hace que la lente proyecte su cadena de fantasmas heptagonales con los tintes rojo, verde y ámbar de los recubrimientos. Sin música no dibuja nada.',
+      'Versión mejorada: aparece con el ritmo de la música (cada golpe o cada tiempo) y crece con el volumen; sin música no dibuja nada. Con el bombo, una luz que entra por el borde hace que la lente proyecte su cadena de fantasmas del diafragma hacia el centro: polígonos casi transparentes con aro suave, filo de color y polvo, en rojo, verde y violeta, que se deslizan con la luz y se apagan. Sin música no dibuja nada.',
   purposes: ['visualizer', 'overlay', 'momentary'],
-  moods: ['cinematic', 'vintage', 'rhythmic'],
-  concepts: ['aparición momentánea', 'lens flare', 'iris ghosts', 'aperture'],
+  moods: ['cinematic', 'elegant', 'vivid'],
+  concepts: ['aparición momentánea', 'lens ghosts', 'iris', 'lens flare', 'optics'],
   credits: CreatorCredits(author: 'Chic Apps', license: '', source: ''),
-  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.04),
+  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.0),
   role: CreatorRole.overlay,
   // Sólo con música: sin ella la capa queda vacía.
   reactivity: CreatorReactivity.music,
-  colors: [0x00000000, 0xffff3b30, 0xff39ff88, 0xffffb02a],
+  colors: [0x00000000, 0xffff2a3a, 0xff30ff70, 0xff4a5bff],
+  images: {'dirt': 'assets/images/reactiva_suciedad_lente.png'},
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
-  // Sin música no dibuja nada; sólo aparece un instante con su momento.
-  // Degradados, trazos y puntos agrupados: sin shaders por píxel.
+  // Sin música no dibuja nada; sólo aparece con su momento musical.
   framesPerSecond: 30,
 );

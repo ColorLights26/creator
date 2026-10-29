@@ -1,12 +1,15 @@
 // Reactiva · Relámpago Fuera de Campo — transparencia momentánea. No se ve el rayo: en el
-// golpe grande entra rasante desde una esquina la luz azul blanca de una
-// tormenta fuera de plano, con precursor tenue, golpe principal, un segundo
-// rayo y una cola que titila entre nubes iluminadas por dentro. Referentes: la
-// máquina de relámpagos del cine y la receta de la lista CML (5500 K, varios
-// flashes con pequeños desfases).
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// golpe grande entra rasante desde una esquina la luz de una tormenta fuera de
+// plano, con la curva real de un relámpago (descarga, re-descarga a los 85 ms,
+// un segundo rayo desde otro punto del borde y una cola que titila). La luz es
+// blanca junto a la esquina, azul a media distancia y violeta lejos; dos o tres
+// nubes grandes arriba se encienden por el lado que mira a la esquina, con su
+// interior oscurecido sin color, y entre ellas salen rayos de luz suaves.
+// Como mucho un relámpago por segundo. La luz se suma a la escena. Referente:
+// tormentas nocturnas filmadas en cámara lenta.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -235,47 +238,128 @@ class Visual final : public Scene {
   void resetOwn(uint32_t) {}
   void update(const Frame& f) override {
     const Hits h = listen(f);
+    // Cada relámpago trae dos destellos: como mucho uno por segundo.
+    if (now - lastFire < 1.0) return;
     const int d = modifiers(f).disparo;
     fire(d == 0 ? h.big : d == 1 ? h.back : every(h, 16), d);
-  }
-  static float strike(double t, float decay) {
-    if (t < 0.0) return 0.0f;
-    if (t < 0.016) return 1.0f;
-    const float k = clamp01(1.0f - float((t - 0.016) / double(decay)));
-    return k * k;
   }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
     const auto m = modifiers(f);
-    const float W = f.width, H = f.height, S = std::min(W, H), D = std::sqrt(W * W + H * H);
-    const Color cold = f.colors[3], pale = f.colors[2], violet = f.colors[1];
+    const float W = f.width, H = f.height;
+    // El relámpago más reciente; su curva va en tiempo real.
+    float age = 100.0f, amp = 0.0f;
+    uint32_t id = 0u;
     for (const Pulse& p : slots) {
-      const double age = now - p.start;
-      if (age < 0.0 || age > 0.7) continue;
-      // Precursor tenue, golpe principal, segundo rayo y cola que titila.
-      float I = 0.22f * arc(age, 0.05f) + strike(age - 0.06, 0.12f) + 0.5f * g.segundo * strike(age - 0.16, 0.1f);
-      if (age > 0.3) I += 0.1f * (0.5f + 0.5f * std::sin(float(age) * 70.0f + float(p.id))) * clamp01(1.0f - float((age - 0.3) / 0.35));
-      const float a = std::min(I * amount(p.power) * f.intensity * (p.kind == 1 ? 1.15f : 1.0f), 0.8f);
-      if (a < kMin) continue;
-      bool right = (p.id & 1u) != 0u;
-      if (m.esquina == 1) right = false;
-      if (m.esquina == 2) right = true;
-      const Vec2 k = {right ? W : 0.0f, 0.0f};
-      Paint wash = Paint::linear(k, {right ? 0.0f : W, H}, {tint(pale, 0.45f * a), tint(violet, 0.14f * a), tint(violet, 0.0f)}, {0.0f, 0.35f, 1.0f});
-      wash.blend = Blend::plus;
-      c.rect({0.0f, 0.0f, W, H}, wash);
-      Paint burst = Paint::radial(k, D * 0.85f, {tint(cold, a), tint(pale, 0.4f * a), tint(violet, 0.1f * a), tint(violet, 0.0f)}, {0.0f, 0.15f, 0.45f, 1.0f});
-      burst.blend = Blend::plus;
-      c.rect({0.0f, 0.0f, W, H}, burst);
-      // Nubes iluminadas por dentro: cada cuadro cambia cuál brilla.
-      const uint32_t tick = uint32_t(age * 30.0);
-      for (int j = 0; j < 6; j++) {
-        const float fx = 0.08f + 0.6f * rnd(p.id * 41u + uint32_t(j));
-        const Vec2 q = {right ? W * (1.0f - fx) : W * fx, H * (0.02f + 0.22f * rnd(p.id * 43u + uint32_t(j)))};
-        glow(c, q, S * (0.18f + 0.14f * rnd(p.id * 47u + uint32_t(j))), cold, pale,
-             0.35f * a * g.nubes * (0.3f + 0.7f * rnd(tick * 7u + uint32_t(j) + p.id * 3u)));
-      }
+      const float a = float(now - p.start);
+      if (a < 0.0f || a > 0.8f || a >= age) continue;
+      age = a;
+      amp = std::min(amount(p.power) * f.intensity, 1.3f);
+      id = p.id;
     }
+    if (amp <= 0.0f) return;
+    const float right = m.esquina == 2 ? 1.0f : m.esquina == 1 ? 0.0f : float(id % 2u);
+    const Color violet = f.colors[1], blue = f.colors[2], white = f.colors[3];
+    c.material("storm", {0.0f, 0.0f, W, H},
+               {age, amp, right, g.nubes, m.segundo ? 1.0f : 0.0f, rnd(id * 13u + 5u), H / W,
+                violet.r, violet.g, violet.b, blue.r, blue.g, blue.b, white.r, white.g, white.b},
+               {"smoke"});
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'storm': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform float uAge;
+uniform float uAmp;
+uniform float uRight;
+uniform float uClouds;
+uniform float uSecond;
+uniform float uSeed;
+uniform float uAspect;
+uniform vec3 uViolet;
+uniform vec3 uBlue;
+uniform vec3 uWhite;
+uniform sampler2D uTex;
+out vec4 fragColor;
+
+float hash(float n) {
+  return fract(sin(n * 12.9898) * 43758.5453);
+}
+float hash2(vec2 p) {
+  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+// Curva de un relámpago: descarga, re-descarga, segundo rayo y cola.
+float flash(float a) {
+  float f = step(0.0, a) * exp(-max(a, 0.0) / 0.035);
+  f += 0.6 * step(0.085, a) * exp(-max(a - 0.085, 0.0) / 0.03);
+  f += uSecond * step(0.27, a) * exp(-max(a - 0.34, 0.0) / 0.04);
+  float tail = smoothstep(0.3, 0.36, a) * (1.0 - smoothstep(0.45, 0.75, a));
+  return f + tail * 0.1 * (0.6 + 0.4 * sin(a * 63.0) * sin(a * 37.0));
+}
+
+// Color por distancia a la fuente (px de 360): blanco, azul y violeta.
+vec3 tint(float r) {
+  vec3 c1 = mix(vec3(0.59, 0.69, 1.0), uWhite, 0.1);
+  vec3 c2 = mix(uBlue, uViolet, 0.25) * vec3(0.3, 0.32, 0.8);
+  vec3 c3 = uViolet * 0.47;
+  if (r < 80.0) return mix(vec3(1.0), c1, smoothstep(40.0, 80.0, r));
+  if (r < 200.0) return mix(c1, c2, (r - 80.0) / 120.0);
+  if (r < 400.0) return mix(c2, c3, (r - 200.0) / 200.0);
+  // Cola convexa: sin arco visible.
+  return c3 * exp(-(r - 400.0) / 185.0);
+}
+
+void main() {
+  vec2 p = FlutterFragCoord().xy;
+  float W = uSize.x;
+  float px1 = W / 360.0;
+  vec2 uv = p / W;
+  float fl = flash(uAge) * uAmp;
+  // El segundo rayo cae desde otro punto del borde, con los rayos girados y
+  // otras nubes encendidas.
+  float second = uSecond * step(0.25, uAge);
+  float dirX = uRight > 0.5 ? -1.0 : 1.0;
+  vec2 C = vec2(mix(-0.12, 1.12, uRight) + dirX * 0.17 * second, -0.15) * W;
+  float seed = uSeed + 0.37 * second;
+  vec2 v = p - C;
+  float r = length(v) / px1;
+  vec2 toL = -v / max(length(v), 0.001);
+  // Rayos suaves de 2-6 px entre las nubes: once, de anchos y brillos distintos.
+  float ang = atan(v.y, v.x) + 0.14 * second;
+  float rays = 0.0;
+  for (int i = 0; i < 11; i++) {
+    float fi = float(i);
+    float ra = mix(0.25, 1.3, hash(fi + seed * 7.0));
+    float rc = uRight > 0.5 ? 3.14159 - ra : ra;
+    float wpx = 2.0 + 4.0 * hash(fi + 3.3 + seed);
+    float da = (ang - rc) * r;
+    rays += exp(-da * da / (wpx * wpx)) * (0.5 + 0.5 * hash(fi + 8.1 + seed)) * (1.0 - smoothstep(250.0, 500.0, r));
+  }
+  // Bruma abstracta en vez de nubes: ruido de dos octavas (120-250 px y
+  // 40-60 px) que modula la luz entre x0,75 y x1,25, un poco más clara donde
+  // mira a la fuente. Nada más fino que 20 px.
+  vec2 hs = p / (185.0 * px1) + vec2(seed, seed * 0.37);
+  float n1 = texture(uTex, fract(hs * 0.25)).r;
+  float n2 = texture(uTex, fract(hs * 0.85 + 0.5)).r;
+  float hazeN = 0.7 * n1 + 0.3 * n2;
+  float hazeB = 0.7 * texture(uTex, fract((p - toL * 20.0 * px1) / (185.0 * px1) * 0.25 + vec2(seed, seed * 0.37) * 0.25)).r + 0.3 * n2;
+  float faces = clamp((hazeN - hazeB) * 6.0, 0.0, 1.0) * uClouds;
+  vec3 light = tint(r) * fl * (1.0 + 0.9 * rays) * mix(1.0, 0.75 + 0.5 * hazeN, uClouds) + tint(r * 0.6) * fl * faces * 0.1;
+  // El color sigue a la intensidad: por debajo de +170 de azul, azul
+  // saturado; sólo el núcleo quemado es blanco.
+  float lowB = 1.0 - smoothstep(0.62, 0.7, light.b);
+  light.r = mix(light.r, min(light.r, 0.25 * light.b), lowB);
+  light.g = mix(light.g, min(light.g, 0.35 * light.b), lowB);
+  vec3 tone = min(light, vec3(1.0));
+  float shade = 0.0;
+  float m = max(tone.r, max(tone.g, tone.b));
+  fragColor = vec4(tone, clamp(max(shade * (1.0 - m), 0.1 * m), 0.0, 1.0));
+}
+''',
+
+};

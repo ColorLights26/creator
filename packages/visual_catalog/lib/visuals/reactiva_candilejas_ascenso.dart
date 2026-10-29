@@ -1,12 +1,14 @@
-// Reactiva · Candilejas en Ascenso — transparencia momentánea. Durante la subida de energía,
-// cada bombo enciende un pulso corto de candilejas que están justo bajo el
-// cuadro: halos ámbar, conos hacia arriba y humo bajo que trepa. Cuanto más
-// avanza la subida, más alto llegan y más blancos son; en el drop la capa se
-// corta en seco. Referentes: Showtec Sunstrip, Eurolite Sunset dim2warm y los
-// cortes sincronizados con el drop en festivales.
-// Funciona encima de cualquier escena sin conocerla: sólo luz (y sombra
-// neutra), sin objetos que se queden. Sin música no dibuja nada. Nunca más de
-// tres destellos por segundo.
+// Reactiva · Candilejas en Ascenso — transparencia momentánea. Durante la subida de
+// energía cada bombo enciende una fila de focos escondidos en el borde inferior
+// que lanzan conos de luz blanca cálida hacia arriba, de unos 12° y borde
+// suave de 5 px, que se suman donde se cruzan, con el humo vivo sólo dentro de
+// ellos. Cuanto más sube la energía, más alto trepan y más blancos son; cada
+// cono se recoge hacia abajo en vez de apagarse, y en el drop se corta en seco.
+// Lo tenue de los bordes es rojo vivo, nunca cobre. La luz se suma a la escena.
+// Referente: candilejas de teatro y uplights de festival en una subida.
+// Funciona encima de cualquier escena sin conocerla: sólo luz, sin objetos que
+// se queden. Sin música no dibuja nada. Nunca más de tres destellos por segundo.
+// Su detalle sale de una textura propia de alta calidad que el shader anima.
 import 'package:scene_compositor/authoring.dart';
 
 // Ajustes propios de este visual. Studio los muestra en Ajustes.
@@ -14,7 +16,7 @@ const modifiers = [
   // MÚSICA: cuándo pulsan.
   CreatorModifier.choice('disparo', 'Lo dispara', options: ['Bombo en la subida', 'Cada bombo', 'Primer tiempo']),
   // FORMA: cuántas candilejas.
-  CreatorModifier.steps('luces', 'Luces', min: 4, max: 8, value: 7),
+  CreatorModifier.steps('luces', 'Luces', min: 4, max: 8, value: 6),
   // MOVIMIENTO: hasta dónde suben los conos.
   CreatorModifier.slider('altura', 'Altura', min: .3, max: .8, value: .55),
   // ATMÓSFERA: humo bajo.
@@ -248,46 +250,118 @@ class Visual final : public Scene {
   }
   void render(const Frame& f, Canvas& c) const override {
     auto g = glide(f);
-    const float W = f.width, H = f.height, S = std::min(W, H);
-    const int n = std::clamp(int(std::lround(g.luces)), 4, 8);
-    const Color red = f.colors[1], amber = f.colors[2], hot = f.colors[3];
+    const float W = f.width, H = f.height;
+    // El pulso más reciente: los conos suben, se mantienen un instante y se
+    // recogen hacia abajo (unos 40 px por cuadro) sin perder brillo.
+    float amp = 0.0f, heat = 0.0f, top = 0.0f;
+    float newest = 100.0f;
+    const float px1 = W / 360.0f;
     for (const Pulse& p : slots) {
-      const double age = now - p.start;
-      if (age < 0.0 || age > 0.4) continue;
-      const float e = env(age, 0.02f, 0.24f / pace(f));
+      const float a = float(now - p.start) * pace(f);
+      if (a < 0.0f || a > 1.0f || a >= newest) continue;
       const float b = clamp01(float(p.kind) / 100.0f);
-      const float a = std::min(e * amount(p.power) * f.intensity, 1.3f);
-      if (a < kMin) continue;
-      const float reach = g.altura * (0.45f + 0.55f * b);
-      const Color col = mixc(amber, hot, b);
-      for (int i = 0; i < n; i++) {
-        const float x = W * (float(i) + 0.5f) / float(n);
-        const float tilt = W * 0.05f * (rnd(uint32_t(i) * 7u + 3u) - 0.5f);
-        const float top = H * (1.0f - reach * (0.85f + 0.3f * rnd(uint32_t(i) * 11u + p.id)));
-        // Dos conos superpuestos, uno ancho y tenue y otro estrecho y brillante:
-        // el haz queda con bordes suaves.
-        for (int layer = 0; layer < 2; layer++) {
-          const float b0 = layer == 0 ? 0.05f : 0.018f, b1 = layer == 0 ? 0.17f : 0.065f;
-          const float al = layer == 0 ? 0.13f : 0.3f;
-          Path cone;
-          cone.moveTo(x - b0 * W, H).lineTo(x + b0 * W, H).lineTo(x + tilt + b1 * W, top).lineTo(x + tilt - b1 * W, top).close();
-          Paint cp = Paint::linear({x, H}, {x + tilt, top}, {tint(col, al * a), tint(col, al * 0.35f * a), tint(red, 0.0f)}, {0.0f, 0.45f, 1.0f});
-          cp.blend = Blend::plus;
-          c.path(cone, cp);
-        }
-        glow(c, {x, H}, S * 0.22f, hot, col, 0.7f * a);
-        glow(c, {x, H * 0.995f}, S * 0.05f, white(), hot, 0.9f * a);
-      }
-      for (int j = 0; j < 6; j++) {
-        const float fj = float(j);
-        const float rise = float(now) * 0.15f + fj * 0.37f;
-        const Vec2 q = {W * (0.1f + 0.16f * fj) + W * 0.03f * std::sin(float(now) * 0.5f + fj), H * (0.97f - 0.14f * (rise - std::floor(rise)))};
-        glow(c, q, S * 0.15f, col, col, 0.09f * a * g.humo);
-      }
-      Paint floorLight = Paint::linear({0.0f, H * 0.65f}, {0.0f, H}, {tint(col, 0.0f), tint(col, 0.06f * a)}, {0.0f, 1.0f});
-      floorLight.blend = Blend::plus;
-      c.rect({0.0f, H * 0.65f, W, H * 0.35f}, floorLight);
+      const float peak = g.altura * H * (0.6f + 0.4f * b);
+      const float h = peak * easeOut(a / 0.1f) - std::max(0.0f, a - 0.12f) * 1200.0f * px1;
+      if (h <= 0.0f) continue;
+      newest = a;
+      amp = std::min(amount(p.power) * f.intensity, 1.3f);
+      heat = b;
+      top = h;
     }
+    if (amp <= 0.0f) return;
+    // Sólo la franja de abajo hasta donde llegan los conos.
+    const float band = std::min(H, top + 0.08f * W);
+    const Color red = f.colors[1], amber = f.colors[2], white = f.colors[3];
+    c.material("footlights", {0.0f, H - band, W, band},
+               {H - band, W, H, std::clamp(std::round(g.luces), 4.0f, 8.0f), amp, top, heat, g.humo, float(now),
+                red.r, red.g, red.b, amber.r, amber.g, amber.b, white.r, white.g, white.b},
+               {"smoke"});
   }
 };
 ''';
+
+const shaderSources = <String, String>{
+  'footlights': r'''
+#version 460 core
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform float uTop;
+uniform float uWidth;
+uniform float uHeight;
+uniform float uCount;
+uniform float uAmp;
+uniform float uReach;
+uniform float uHeat;
+uniform float uSmoke;
+uniform float uTime;
+uniform vec3 uRed;
+uniform vec3 uAmber;
+uniform vec3 uWhite;
+uniform sampler2D uTex;
+out vec4 fragColor;
+
+float hash(float n) {
+  return fract(sin(n * 12.9898) * 43758.5453);
+}
+float hash2(vec2 p) {
+  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+void main() {
+  vec2 px = FlutterFragCoord().xy + vec2(0.0, uTop);
+  float px1 = uWidth / 360.0;
+  float up = uHeight - px.y;  // altura sobre el borde inferior
+  float upx = up / px1;
+  // Humo de dos octavas (25-60 px, ±25 %) que sube unos 2 px por cuadro.
+  vec2 hp = vec2(px.x, px.y + uTime * 60.0 * px1) / px1;
+  float n1 = texture(uTex, fract(hp / 200.0)).r;
+  float n2 = texture(uTex, fract(hp / 90.0 + 0.37)).r;
+  float H = 1.0 + mix(0.0, 0.2 * (0.6 * (2.0 * n1 - 1.0) + 0.4 * (2.0 * n2 - 1.0)), uSmoke);
+  // Con más energía, todo un poco más blanco y un núcleo oro-blanco en el
+  // eje hasta unos 90 px sobre la lente.
+  float energy = clamp((uAmp - 0.6) / 0.6, 0.0, 1.0);
+  float gain = mix(1.0, 1.15, energy);
+  float I = 0.0;
+  for (int i = 0; i < 8; i++) {
+    float fi = float(i);
+    if (fi >= uCount) continue;
+    float x0 = (fi + 0.5) / uCount * uWidth;
+    float ax = px.x - x0 + up * (hash(fi + 3.7) - 0.5) * 0.12;
+    // Paredes rectas: 24 px en la base y unos 110 px a 300 px, con el borde
+    // desvaneciéndose en 5 px.
+    float hw = 12.0 * px1 + max(up, 0.0) * 0.158;
+    float edge = smoothstep(hw + 2.5 * px1, hw - 2.5 * px1, abs(ax));
+    float rel = clamp(abs(ax) / hw, 0.0, 1.0);
+    // Recorrido de la luz a través del cono.
+    float C = sqrt(max(1.0 - rel * rel, 0.0));
+    // Altura de cada cono (escalonadas): del 100 % junto a la lente al 65 % a
+    // tres cuartos y a 0 en el último cuarto (al menos 60 px).
+    float topPx = (uReach + (hash(fi + 9.1) - 0.5) * 80.0 * px1) / px1;
+    float fadeStart = min(0.75 * topPx, topPx - 60.0);
+    float A = upx < fadeStart ? mix(1.0, 0.65, smoothstep(0.0, fadeStart, upx))
+                              : 0.65 * (1.0 - smoothstep(fadeStart, topPx, upx));
+    A *= step(-2.0, upx);
+    // Quemado a blanco sólo en los primeros 20 px sobre la lente.
+    float lens = 0.4 * (1.0 - smoothstep(0.0, 20.0, upx));
+    float hot = 0.18 * energy * (1.0 - smoothstep(60.0, 110.0, upx)) * C * C;
+    // El humo no entra en el color: sólo cambia el brillo al final.
+    I += (0.72 * A * gain + lens + hot) * C * edge;
+  }
+  // Color sólo por el brillo sumado: blanco cálido, oro, naranja, naranja
+  // rojizo y rojo vivo; el brillo visible se mantiene alto (+150 desde 0,5).
+  vec3 cWhite = mix(uWhite, vec3(1.0, 0.957, 0.878), 1.0 - uHeat);
+  vec3 cGold = vec3(1.0, 0.816, 0.314) * mix(vec3(1.0), uAmber / max(uAmber.r, 0.01), 0.15);
+  vec3 cOrange = vec3(1.0, 0.541, 0.063);
+  vec3 cOrRed = vec3(1.0, 0.29, 0.063);
+  vec3 cRed = vec3(1.0, 0.165, 0.063) * mix(vec3(1.0), uRed / max(uRed.r, 0.01), 0.2);
+  vec3 col = mix(cRed, cOrRed, smoothstep(0.44, 0.56, I));
+  col = mix(col, cOrange, smoothstep(0.66, 0.78, I));
+  col = mix(col, cGold, smoothstep(0.8, 0.9, I));
+  col = mix(col, cWhite, smoothstep(0.88, 0.96, I));
+  vec3 light = col * min(1.3 * I * H, 1.0);
+  light *= smoothstep(0.0, uSize.y * 0.12, FlutterFragCoord().y);
+  fragColor = vec4(light, 0.1 * max(light.r, max(light.g, light.b)));
+}
+''',
+
+};

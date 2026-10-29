@@ -5,18 +5,18 @@ const metadata = CreatorVisualMetadata(
   name: 'Reactiva · Relámpago Fuera de Campo',
   publication: CreatorPublication.draft,
   description:
-      'No se ve el rayo: en el golpe grande entra rasante desde una esquina la luz azul blanca de una tormenta fuera de plano, con golpe principal, segundo rayo y una cola que titila entre nubes. Sin música no dibuja nada.',
+      'No se ve el rayo: en el golpe grande entra desde una esquina la luz de una tormenta fuera de plano, con descarga, re-descarga, segundo rayo desde otro punto y cola que titila; blanca cerca, azul y violeta lejos, con nubes que se encienden por el borde y rayos entre ellas. Sin música no dibuja nada.',
   purposes: ['visualizer', 'overlay', 'momentary'],
   moods: ['dramatic', 'dark', 'cinematic'],
-  concepts: ['aparición momentánea', 'lightning', 'storm', 'off-screen light'],
+  concepts: ['aparición momentánea', 'lightning', 'storm', 'off-screen light', 'clouds'],
   credits: CreatorCredits(author: 'Chic Apps', license: '', source: ''),
-  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.08),
+  thumbnail: CreatorThumbnailSpec(timeSeconds: 1.0),
   role: CreatorRole.overlay,
   // Sólo con música: sin ella la capa queda vacía.
   reactivity: CreatorReactivity.music,
-  colors: [0x00000000, 0xff4b2bff, 0xff9ec0ff, 0xfff2f6ff],
+  colors: [0x00000000, 0xff7a1eff, 0xff6a8cff, 0xfff2f6ff],
+  images: {'smoke': 'assets/images/reactiva_humo.png'},
   controls: CreatorControls(intensity: 1, speed: 1, detail: 1, glow: 1),
-  // Sin música no dibuja nada; sólo aparece un instante con su momento.
-  // Degradados, trazos y puntos agrupados: sin shaders por píxel.
+  // Sin música no dibuja nada; sólo aparece con su momento musical.
   framesPerSecond: 30,
 );
