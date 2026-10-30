@@ -3130,6 +3130,9 @@ struct SceneSurfaceStatefulStormSnapshot: Equatable {
     let flashOpacity: Double
     let revealProgress: Double
     let boltLuminanceGain: Double
+    /// Master whose lit cloud glows for this episode; set for cloud-only
+    /// events too, where `family` is nil and no bolt is drawn.
+    var glowFamily: SceneSurfaceStatefulStormFamily? = nil
 
     static let idle = SceneSurfaceStatefulStormSnapshot(
         family: nil,
@@ -3299,6 +3302,7 @@ struct SceneSurfaceStatefulStormField {
     let recipe: SceneSurfaceStatefulStormRecipeV1
 
     private(set) var family: SceneSurfaceStatefulStormFamily?
+    private var glowFamily: SceneSurfaceStatefulStormFamily?
     private var previousFamily: SceneSurfaceStatefulStormFamily?
     private var audioSessionId = -1
     private var lastImpactSerial = 0
@@ -3376,11 +3380,16 @@ struct SceneSurfaceStatefulStormField {
                     eventSerial: eventSerial
                 )
                 family = selected
+                glowFamily = selected
                 previousFamily = selected
             } else {
                 // Cloud-only events replace, rather than retain, a previous
                 // visible master so no stale bolt can leak into the new event.
                 family = nil
+                let glowIndex = Int(
+                    entropy32(eventSerial: eventSerial, salt: 0x006c_0d61)
+                ) % SceneSurfaceStatefulStormFamily.allCases.count
+                glowFamily = SceneSurfaceStatefulStormFamily(rawValue: glowIndex)
             }
             previousEventWasVisibleLightning = visibleLightning
             eventStrength = max(
@@ -3460,7 +3469,8 @@ struct SceneSurfaceStatefulStormField {
             coreOpacity: core,
             flashOpacity: boundedFlash,
             revealProgress: reveal,
-            boltLuminanceGain: family == nil ? 0 : boltLuminanceGain
+            boltLuminanceGain: family == nil ? 0 : boltLuminanceGain,
+            glowFamily: glowFamily
         )
     }
 
@@ -3475,6 +3485,7 @@ struct SceneSurfaceStatefulStormField {
 
     private mutating func clearEpisode() {
         family = nil
+        glowFamily = nil
         lastEventTime = nil
         lastStepTime = nil
         eventStrength = 0
@@ -5655,11 +5666,41 @@ final class SceneSurfaceStatefulStormRuntime {
     let recipe: SceneSurfaceStatefulStormRecipeV1
 
     private let sourceMasters: [CIImage]
+    /// Built off the render thread; until ready, episodes draw no cloud glow.
+    private let glowLock = NSLock()
+    private var sourceGlows = [CIImage]()
     private let palette: [CIColor]
     private var field: SceneSurfaceStatefulStormField
     private var cachedTargetRect = CGRect.null
-    private var cachedBroadMasters = [CIImage]()
-    private var cachedCoreMasters = [CIImage]()
+    private var cachedMasters = [CIImage]()
+    private var cachedGlows = [CIImage]()
+
+    /// Lightning adds light instead of painting over the scene: the output
+    /// alpha is the brightest channel, so source-over behaves like screen and
+    /// dark sky stays dark. The bolt keeps the master's own colours.
+    private static let lightKernel = CIColorKernel(source: """
+      kernel vec4 statefulStormLightV2(
+        __sample master,
+        __sample core,
+        __sample glow,
+        __color broadTint,
+        __color coreTint,
+        __color glowTint,
+        vec3 weights
+      ) {
+        vec3 luma = vec3(0.2126, 0.7152, 0.0722);
+        vec3 broad = mix(vec3(dot(master.rgb, luma)), master.rgb, 0.7);
+        float peak = max(max(core.r, core.g), core.b);
+        vec3 hot = core.rgb * smoothstep(0.25, 0.8, peak);
+        vec3 light = broad * broadTint.rgb * weights.x +
+          hot * coreTint.rgb * weights.y +
+          glow.rgb * glowTint.rgb * weights.z;
+        light = light / (1.0 + light * 0.25);
+        float alpha = clamp(max(max(light.r, light.g), light.b), 0.0, 1.0);
+        return vec4(min(light, vec3(alpha)), alpha);
+      }
+    """)
+    private static let cloudGlowGain = 6.0
 
     init?(
         recipe: SceneSurfaceStatefulStormRecipeV1,
@@ -5679,13 +5720,24 @@ final class SceneSurfaceStatefulStormRuntime {
             }
             decoded.append(image.oriented(.up))
         }
-        guard decoded.count == SceneSurfaceStatefulStormFamily.allCases.count else {
+        guard decoded.count == SceneSurfaceStatefulStormFamily.allCases.count,
+              Self.lightKernel != nil else {
             return nil
         }
         self.recipe = recipe
         self.palette = palette
         sourceMasters = decoded
         field = SceneSurfaceStatefulStormField(recipe: recipe)
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            let context = CIContext(options: [.cacheIntermediates: false])
+            let glows = decoded.compactMap {
+                Self.cloudGlow(from: $0, context: context)
+            }
+            guard glows.count == decoded.count, let self else { return }
+            self.glowLock.lock()
+            self.sourceGlows = glows
+            self.glowLock.unlock()
+        }
     }
 
     var needsContinuousRendering: Bool { field.hasActiveEpisode }
@@ -5712,229 +5764,120 @@ final class SceneSurfaceStatefulStormRuntime {
         guard targetRect.width >= 2, targetRect.height >= 2 else { return nil }
         prepareCacheIfNeeded(targetRect: targetRect)
         let state = field.snapshot(at: hostTime)
-        var composed = transparentImage(targetRect)
-        let cloudOpacity = min(
-            max(state.broadOpacity * 0.58 + state.flashOpacity * 0.16, 0),
-            0.48
+        let empty = transparentImage(targetRect)
+        guard state.broadOpacity > 0.001 ||
+                state.coreOpacity > 0.001 ||
+                state.flashOpacity > 0.001,
+              let kernel = Self.lightKernel else {
+            return empty
+        }
+
+        var master = empty
+        var core = empty
+        var broadWeight = 0.0
+        var coreWeight = 0.0
+        if let family = state.family, family.rawValue < cachedMasters.count {
+            master = cachedMasters[family.rawValue]
+            broadWeight = state.broadOpacity *
+                (1 + recipe.boltHaloPassScale * state.boltLuminanceGain)
+            if state.coreOpacity > 0.001, state.revealProgress > 0.001 {
+                let revealHeight = targetRect.height * CGFloat(
+                    min(max(state.revealProgress, 0), 1)
+                )
+                core = master.cropped(to: CGRect(
+                    x: targetRect.minX,
+                    y: targetRect.maxY - revealHeight,
+                    width: targetRect.width,
+                    height: revealHeight
+                ))
+                coreWeight = state.coreOpacity *
+                    (1 + recipe.boltCorePassScale * state.boltLuminanceGain)
+            }
+        }
+        var glow = empty
+        var glowWeight = 0.0
+        if let glowFamily = state.glowFamily,
+           glowFamily.rawValue < cachedGlows.count {
+            glow = cachedGlows[glowFamily.rawValue]
+            glowWeight = Self.cloudGlowGain *
+                (state.broadOpacity * 0.9 + state.flashOpacity * 0.6)
+        }
+        let light = kernel.apply(
+            extent: targetRect,
+            arguments: [
+                master,
+                core,
+                glow,
+                paletteColor(at: 1, fallback: CIColor(red: 0.78, green: 0.81, blue: 1.0)),
+                paletteColor(at: 0, fallback: CIColor(red: 0.97, green: 0.96, blue: 1.0)),
+                paletteColor(at: 2, fallback: CIColor(red: 0.61, green: 0.66, blue: 1.0)),
+                CIVector(x: broadWeight, y: coreWeight, z: glowWeight),
+            ]
         )
-        if cloudOpacity > 0.001 {
-            let cloudColor = paletteColor(
-                at: 1,
-                fallback: CIColor(red: 0.67, green: 0.71, blue: 1.0)
-            )
-            composed = sourceOver(
-                cloudIllumination(
-                    targetRect: targetRect,
-                    color: cloudColor,
-                    opacity: cloudOpacity
-                ),
-                background: composed,
-                targetRect: targetRect
-            )
-        }
-
-        guard
-            let family = state.family,
-            family.rawValue < cachedCoreMasters.count,
-            family.rawValue < cachedBroadMasters.count
-        else {
-            if state.flashOpacity > 0.001 {
-                composed = sourceOver(
-                    flashImage(
-                        targetRect: targetRect,
-                        opacity: state.flashOpacity
-                    ),
-                    background: composed,
-                    targetRect: targetRect
-                )
-            }
-            return composed.cropped(to: targetRect)
-        }
-
-        if state.broadOpacity > 0.001 {
-            composed = sourceOver(
-                applyOpacity(
-                    cachedBroadMasters[family.rawValue],
-                    opacity: state.broadOpacity
-                ),
-                background: composed,
-                targetRect: targetRect
-            )
-            let haloOpacity = state.broadOpacity *
-                recipe.boltHaloPassScale * state.boltLuminanceGain
-            if haloOpacity > 0.001 {
-                composed = sourceOver(
-                    applyOpacity(
-                        cachedBroadMasters[family.rawValue],
-                        opacity: haloOpacity
-                    ),
-                    background: composed,
-                    targetRect: targetRect
-                )
-            }
-        }
-        if state.coreOpacity > 0.001, state.revealProgress > 0.001 {
-            let revealHeight = targetRect.height * CGFloat(
-                min(max(state.revealProgress, 0), 1)
-            )
-            let revealRect = CGRect(
-                x: targetRect.minX,
-                y: targetRect.maxY - revealHeight,
-                width: targetRect.width,
-                height: revealHeight
-            )
-            let revealedCore = applyOpacity(
-                cachedCoreMasters[family.rawValue].cropped(to: revealRect),
-                opacity: state.coreOpacity
-            )
-            composed = sourceOver(
-                revealedCore,
-                background: composed,
-                targetRect: targetRect
-            )
-            let glowCoreOpacity = state.coreOpacity *
-                recipe.boltCorePassScale * state.boltLuminanceGain
-            if glowCoreOpacity > 0.001 {
-                composed = sourceOver(
-                    applyOpacity(
-                        cachedCoreMasters[family.rawValue]
-                            .cropped(to: revealRect),
-                        opacity: glowCoreOpacity
-                    ),
-                    background: composed,
-                    targetRect: targetRect
-                )
-            }
-        }
-        if state.flashOpacity > 0.001 {
-            composed = sourceOver(
-                flashImage(
-                    targetRect: targetRect,
-                    opacity: state.flashOpacity
-                ),
-                background: composed,
-                targetRect: targetRect
-            )
-        }
-        return composed.cropped(to: targetRect)
+        return (light ?? empty).cropped(to: targetRect)
     }
 
-    private func cloudIllumination(
-        targetRect: CGRect,
-        color: CIColor,
-        opacity: Double
-    ) -> CIImage {
-        guard let gradient = CIFilter(name: "CILinearGradient") else {
-            return transparentImage(targetRect)
+    /// The cloud a bolt lit, without the bolt: erosion removes the thin
+    /// channel, a wide faint halo keeps the light diffuse. Rendered once at
+    /// half size because it is blurred anyway.
+    private static func cloudGlow(
+        from master: CIImage,
+        context: CIContext
+    ) -> CIImage? {
+        let extent = master.extent
+        guard extent.width >= 2, extent.height >= 2 else { return nil }
+        let clamped = master.clampedToExtent()
+        // The cap keeps a wide bolt that survives erosion from burning white.
+        let texture = clamped
+            .applyingFilter("CIMorphologyMinimum", parameters: [kCIInputRadiusKey: 3])
+            .applyingFilter("CIColorClamp", parameters: [
+                "inputMaxComponents": CIVector(x: 0.1, y: 0.1, z: 0.1, w: 1),
+            ])
+            .applyingFilter("CIGaussianBlur", parameters: [kCIInputRadiusKey: 3])
+        let halo = clamped
+            .applyingFilter("CIColorClamp", parameters: [
+                "inputMaxComponents": CIVector(x: 0.06, y: 0.06, z: 0.06, w: 1),
+            ])
+            .applyingFilter("CIGaussianBlur", parameters: [kCIInputRadiusKey: 44])
+        let glow = scaled(texture, by: 0.7)
+            .applyingFilter("CIAdditionCompositing", parameters: [
+                kCIInputBackgroundImageKey: scaled(halo, by: 0.3),
+            ])
+            .applyingFilter("CIColorControls", parameters: [
+                kCIInputSaturationKey: 0.45,
+            ])
+            .cropped(to: extent)
+            .transformed(by: CGAffineTransform(scaleX: 0.5, y: 0.5))
+        guard let rendered = context.createCGImage(glow, from: glow.extent) else {
+            return nil
         }
-        gradient.setValue(
-            CIVector(x: targetRect.midX, y: targetRect.maxY),
-            forKey: "inputPoint0"
-        )
-        gradient.setValue(
-            CIVector(
-                x: targetRect.midX,
-                y: targetRect.minY + targetRect.height * 0.18
-            ),
-            forKey: "inputPoint1"
-        )
-        gradient.setValue(
-            CIColor(
-                red: color.red,
-                green: color.green,
-                blue: color.blue,
-                alpha: CGFloat(opacity)
-            ),
-            forKey: "inputColor0"
-        )
-        gradient.setValue(
-            CIColor(red: color.red, green: color.green, blue: color.blue, alpha: 0),
-            forKey: "inputColor1"
-        )
-        return (gradient.outputImage ?? transparentImage(targetRect))
-            .cropped(to: targetRect)
+        return CIImage(cgImage: rendered)
     }
 
-    private func flashImage(
-        targetRect: CGRect,
-        opacity: Double
-    ) -> CIImage {
-        let color = paletteColor(
-            at: 2,
-            fallback: CIColor(red: 0.61, green: 0.66, blue: 1.0)
-        )
-        return CIImage(
-            color: CIColor(
-                red: color.red,
-                green: color.green,
-                blue: color.blue,
-                alpha: CGFloat(opacity * 0.18)
-            )
-        ).cropped(to: targetRect)
+    private static func scaled(_ image: CIImage, by gain: CGFloat) -> CIImage {
+        image.applyingFilter("CIColorMatrix", parameters: [
+            "inputRVector": CIVector(x: gain, y: 0, z: 0, w: 0),
+            "inputGVector": CIVector(x: 0, y: gain, z: 0, w: 0),
+            "inputBVector": CIVector(x: 0, y: 0, z: gain, w: 0),
+        ])
     }
 
     private func prepareCacheIfNeeded(targetRect: CGRect) {
-        guard cachedTargetRect != targetRect else { return }
-        cachedTargetRect = targetRect
-        cachedBroadMasters.removeAll(keepingCapacity: true)
-        cachedCoreMasters.removeAll(keepingCapacity: true)
-
-        let broadColor = paletteColor(
-            at: 1,
-            fallback: CIColor(red: 0.78, green: 0.81, blue: 1.0)
-        )
-        let coreColor = paletteColor(
-            at: 0,
-            fallback: CIColor(red: 0.97, green: 0.96, blue: 1.0)
-        )
-        for source in sourceMasters {
-            let fitted = aspectFill(source, targetRect: targetRect)
-            let mask = fitted.applyingFilter("CIMaskToAlpha")
-            cachedBroadMasters.append(tint(mask, color: broadColor))
-            cachedCoreMasters.append(tint(mask, color: coreColor))
+        if cachedTargetRect != targetRect {
+            cachedTargetRect = targetRect
+            cachedMasters = sourceMasters.map { aspectFill($0, targetRect: targetRect) }
+            cachedGlows = []
         }
+        guard cachedGlows.isEmpty else { return }
+        glowLock.lock()
+        let glows = sourceGlows
+        glowLock.unlock()
+        cachedGlows = glows.map { aspectFill($0, targetRect: targetRect) }
     }
 
     private func paletteColor(at index: Int, fallback: CIColor) -> CIColor {
         guard index >= 0, index < palette.count else { return fallback }
         return palette[index]
-    }
-
-    private func tint(_ image: CIImage, color: CIColor) -> CIImage {
-        image.applyingFilter(
-            "CIColorMatrix",
-            parameters: [
-                "inputRVector": CIVector(x: color.red, y: 0, z: 0, w: 0),
-                "inputGVector": CIVector(x: 0, y: color.green, z: 0, w: 0),
-                "inputBVector": CIVector(x: 0, y: 0, z: color.blue, w: 0),
-                "inputAVector": CIVector(x: 0, y: 0, z: 0, w: 1),
-            ]
-        )
-    }
-
-    private func applyOpacity(_ image: CIImage, opacity: Double) -> CIImage {
-        image.applyingFilter(
-            "CIColorMatrix",
-            parameters: [
-                "inputAVector": CIVector(
-                    x: 0,
-                    y: 0,
-                    z: 0,
-                    w: CGFloat(min(max(opacity, 0), 1))
-                ),
-            ]
-        )
-    }
-
-    private func sourceOver(
-        _ foreground: CIImage,
-        background: CIImage,
-        targetRect: CGRect
-    ) -> CIImage {
-        foreground.applyingFilter(
-            "CISourceOverCompositing",
-            parameters: [kCIInputBackgroundImageKey: background]
-        ).cropped(to: targetRect)
     }
 
     private func transparentImage(_ targetRect: CGRect) -> CIImage {
