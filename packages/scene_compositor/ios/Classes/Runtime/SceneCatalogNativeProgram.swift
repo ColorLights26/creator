@@ -77,8 +77,7 @@ enum SceneCatalogControlUpdatePlan {
       Set(transform.keys).subtracting(["sourceAlignment"]) == ["width", "height", "offsetX", "offsetY", "scale", "rotation", "flipped"],
       transform["flipped"] is Bool else { return false }
     if let alignment = transform["sourceAlignment"] {
-      guard let map = alignment as? [String: Any], Set(map.keys) == Set(["x", "y"]),
-        number(map["x"], 0, 1), number(map["y"], 0, 1) else { return false }
+      guard SceneMediaSourceAlignment.parse(alignment) != nil else { return false }
     }
     return number(transform["width"], 0.01, 4) && number(transform["height"], 0.01, 4) &&
       number(transform["offsetX"], -4, 4) && number(transform["offsetY"], -4, 4) &&

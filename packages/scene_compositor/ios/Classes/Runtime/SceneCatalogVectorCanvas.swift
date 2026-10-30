@@ -370,6 +370,14 @@ final class SceneCatalogVectorCanvas {
 final class SceneCatalogVectorRenderer {
   static let intermediateTextureBudgetBytes = 256 * 1024 * 1024
   static let intermediatePassBudget = 192
+  /// Largest side of every texture this renderer creates. The iOS Simulator's
+  /// Metal device aborts above 8192 and every supported device allows at least
+  /// that, so one bound gives simulator QA the same pages as a device.
+  static let maximumTextureDimension = 8192
+  /// Masks hold coverage only. Every tile has one paint, so blurring its
+  /// coverage and applying the paint afterwards equals blurring the paint;
+  /// four channels would cost four times the atlas and source memory.
+  static let coverageFormat = MTLPixelFormat.r8Unorm
   struct Statistics {
     let drawCount: Int
     let analyticBlurCount: Int
@@ -462,7 +470,6 @@ final class SceneCatalogVectorRenderer {
     var page = 0
     var origin = SIMD2<Int>(0, 0)
     var sourceScale: SIMD2<Float>? = nil
-    var color = SIMD4<Float>(repeating: 1)
     var sourceRegion: CGRect? = nil
     var rasterWidth: Int { Int(round(Float(region.width) * filterScale)) }
     var rasterHeight: Int { Int(round(Float(region.height) * filterScale)) }
@@ -478,7 +485,6 @@ final class SceneCatalogVectorRenderer {
     var radii: SIMD4<UInt32>
     var sampling = SIMD4<Float>.zero
   }
-  private struct TilePaint { var region: SIMD4<Float>; var color: SIMD4<Float> }
   private struct RoundedBlur {
     let kind: Float
     let region: CGRect
@@ -543,12 +549,12 @@ final class SceneCatalogVectorRenderer {
     horizontalBlur = try device.makeComputePipelineState(function: library.makeFunction(name: "vectorBlurHorizontal")!)
     verticalBlur = try device.makeComputePipelineState(function: library.makeFunction(name: "vectorBlurVertical")!)
     downsamplePipeline = try device.makeComputePipelineState(function: library.makeFunction(name: "vectorDownsample")!)
-    func pipeline(vertex: String, fragment: String, mask: Bool = false,
+    func pipeline(vertex: String, fragment: String, mask: Bool = false, format: MTLPixelFormat = .bgra8Unorm,
                   writes: Bool = true, additive: Bool = false, screen: Bool = false, resolve: Bool = false) throws -> MTLRenderPipelineState {
       let descriptor = MTLRenderPipelineDescriptor()
       descriptor.vertexFunction = library.makeFunction(name: vertex)
       descriptor.fragmentFunction = library.makeFunction(name: fragment)
-      descriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
+      descriptor.colorAttachments[0].pixelFormat = format
       if !resolve {
         descriptor.rasterSampleCount = 4
         descriptor.stencilAttachmentPixelFormat = .stencil8
@@ -563,8 +569,10 @@ final class SceneCatalogVectorRenderer {
       }
       return try device.makeRenderPipelineState(descriptor: descriptor)
     }
-    windingPipeline = try pipeline(vertex: "vectorPathVertex", fragment: "vectorMaskFragment", mask: true, writes: false)
-    maskPipeline = try pipeline(vertex: "vectorTileVertex", fragment: "vectorTileFragment", mask: true)
+    windingPipeline = try pipeline(vertex: "vectorPathVertex", fragment: "vectorMaskFragment", mask: true,
+      format: Self.coverageFormat, writes: false)
+    maskPipeline = try pipeline(vertex: "vectorTileVertex", fragment: "vectorMaskFragment", mask: true,
+      format: Self.coverageFormat)
     sourceOverPipeline = try pipeline(vertex: "vectorColorVertex", fragment: "vectorColorFragment")
     plusPipeline = try pipeline(vertex: "vectorColorVertex", fragment: "vectorColorFragment", additive: true)
     screenPipeline = try pipeline(vertex: "vectorColorVertex", fragment: "vectorColorFragment", screen: true)
@@ -623,7 +631,8 @@ final class SceneCatalogVectorRenderer {
               background: MTLTexture? = nil, clearColor: MTLClearColor? = nil,
               into target: MTLTexture? = nil, frame: SceneCatalogFrameCommand? = nil) throws -> MTLTexture {
     guard logicalWidth.isFinite, logicalHeight.isFinite, logicalWidth > 0, logicalHeight > 0,
-          width > 0, height > 0, width <= 8192, height <= 8192 else { throw Failure("vector_dimensions") }
+          width > 0, height > 0, width <= Self.maximumTextureDimension,
+          height <= Self.maximumTextureDimension else { throw Failure("vector_dimensions") }
     if let background, background.width != width || background.height != height { throw Failure("vector_background_size") }
     if let target, target.width != width || target.height != height || target.pixelFormat != .bgra8Unorm { throw Failure("vector_target_size") }
     activeFrame = frame
@@ -688,10 +697,6 @@ final class SceneCatalogVectorRenderer {
         drawTiles.append((-1, nil, nil)); continue
       }
       tile.sourceScale = filterScale
-      if draw.gradient == nil {
-        let rgba = draw.color.rgba
-        tile.color = SIMD4(rgba.x * rgba.w, rgba.y * rgba.w, rgba.z * rgba.w, rgba.w) * draw.alphaScale
-      }
       let maskIndex: Int
       let first = directVertices.count
       if ambientMeshes[drawIndex] != nil {
@@ -715,7 +720,7 @@ final class SceneCatalogVectorRenderer {
       }
       drawTiles.append((maskIndex, clipIndex, maskIndex == -2 ? tile : nil))
     }
-    let pages = Self.pack(&tiles)
+    let pages = try Self.pack(&tiles)
     for index in tiles.indices { tiles[index].identifier = index }
     let liveScratchKeys = Set(pages.enumerated().map { "\($0.offset):\($0.element.x)x\($0.element.y)" })
     scratch = scratch.filter { liveScratchKeys.contains($0.key) }
@@ -724,7 +729,7 @@ final class SceneCatalogVectorRenderer {
       physicalTiles[index].filterScale = 1
       if let source = physicalTiles[index].sourceRegion { physicalTiles[index].region = source }
     }
-    let physicalPages = Self.pack(&physicalTiles, pageLimit: 1024)
+    let physicalPages = try Self.pack(&physicalTiles, pageLimit: 1024)
     let downsamplePasses = physicalPages.indices.reduce(0) { count, page in
       count + Set(physicalTiles.filter { $0.page == page }.map { tiles[$0.identifier].page }).count
     }
@@ -916,7 +921,13 @@ final class SceneCatalogVectorRenderer {
   }
 
   private func makeIntermediateTexture(_ descriptor: MTLTextureDescriptor) throws -> MTLTexture {
-    let required = device.heapTextureSizeAndAlign(descriptor: descriptor).size
+    // Metal aborts the process on an oversized descriptor, even when only
+    // sizing it; it must reach the caller as a failed frame instead.
+    guard descriptor.width <= Self.maximumTextureDimension,
+          descriptor.height <= Self.maximumTextureDimension else { throw Failure("vector_texture_dimension") }
+    // Memoryless attachments live in tile memory and allocate nothing, as
+    // allocatedSize then confirms; the heap size would charge their full size.
+    let required = descriptor.storageMode == .memoryless ? 0 : device.heapTextureSizeAndAlign(descriptor: descriptor).size
     guard required <= textureBudgetBytes - allocationBytes else {
       throw Failure("vector_intermediate_texture_budget")
     }
@@ -945,18 +956,21 @@ final class SceneCatalogVectorRenderer {
   private func makeScratch(width: Int, height: Int, retained: Bool, page: Int = 0) throws -> Scratch {
     let key = "\(page):\(width)x\(height)"
     if !retained, let value = scratch[key] { return value }
-    let descriptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: .bgra8Unorm, width: width, height: height, mipmapped: false)
+    let descriptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: Self.coverageFormat, width: width, height: height, mipmapped: false)
     descriptor.storageMode = .private; descriptor.usage = [.shaderRead, .shaderWrite, .renderTarget]
-    let blurred = try makeIntermediateTexture(descriptor)
+    // The vertical pass consumes the mask into `horizontal`; the second pass
+    // writes the result back over it. Both read only inside each tile, and
+    // the downsample rewrites every tile texel per frame, so a third page-size
+    // texture would only add memory.
     let horizontal = try makeIntermediateTexture(descriptor)
     let mask = try makeIntermediateTexture(descriptor)
-    let result = Scratch(mask: mask, multisample: mask, stencil: mask, blurred: blurred, horizontal: horizontal)
+    let result = Scratch(mask: mask, multisample: mask, stencil: mask, blurred: mask, horizontal: horizontal)
     if !retained { scratch[key] = result }
     return result
   }
 
   private func makeSourceScratch(width: Int, height: Int) throws -> Scratch {
-    let descriptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: .bgra8Unorm, width: width, height: height, mipmapped: false)
+    let descriptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: Self.coverageFormat, width: width, height: height, mipmapped: false)
     descriptor.storageMode = .private; descriptor.usage = [.shaderRead, .renderTarget]
     let mask = try makeIntermediateTexture(descriptor)
     descriptor.textureType = .type2DMultisample; descriptor.sampleCount = 4
@@ -1037,27 +1051,48 @@ final class SceneCatalogVectorRenderer {
                 filterScale: factor)
   }
 
-  private static func pack(_ tiles: inout [Tile], pageLimit: Int = 8192) -> [SIMD2<Int>] {
-    guard !tiles.isEmpty else { return [] }
-    let widest = tiles.map { $0.rasterWidth + 4 }.max()!
-    let pageWidth = max(1024, Int(pow(2, ceil(log2(Double(widest))))))
-    let pageHeight = max(pageLimit, tiles.map { $0.rasterHeight + 4 }.max()!)
+  private static func pack(_ tiles: inout [Tile], pageLimit: Int = maximumTextureDimension) throws -> [SIMD2<Int>] {
+    let layout = try shelfLayout(tiles.map { SIMD2($0.rasterWidth, $0.rasterHeight) }, pageLimit: pageLimit)
+    for (index, placement) in layout.placements.enumerated() {
+      tiles[index].page = placement.page; tiles[index].origin = placement.origin
+    }
+    return layout.pages
+  }
+
+  /// Shelf-packs rasters into pages of at most maximumTextureDimension per
+  /// side, with 2 px borders and 4 px gutters. A page ends at its last placed
+  /// row: the gutter of a wrapped row that moves on to the next page is not
+  /// part of it, so rounding can never lift a full page past the bound.
+  static func shelfLayout(_ sizes: [SIMD2<Int>], pageLimit: Int) throws
+    -> (pages: [SIMD2<Int>], placements: [(page: Int, origin: SIMD2<Int>)]) {
+    guard let widest = sizes.map({ $0.x + 4 }).max(), let tallest = sizes.map({ $0.y + 4 }).max() else { return ([], []) }
+    let limit = maximumTextureDimension
+    guard widest <= limit, tallest <= limit else { throw Failure("vector_tile_dimension") }
+    // Sides rounded to 128 let consecutive frames reuse the same scratch. The
+    // page is only as wide as its widest raster: a power of two left up to
+    // half of every row empty and pushed large screens past the byte budget.
+    func rounded(_ side: Int) -> Int { min(limit, (side + 127) / 128 * 128) }
+    let pageWidth = rounded(max(1024, widest))
+    let pageHeight = min(limit, max(pageLimit, tallest))
     var pages: [SIMD2<Int>] = []
-    var x = 2, y = 2, rowHeight = 0, page = 0
-    // A stable shelf order preserves the authored draw order separately, while
-    // all independent coverage masks are built together before compositing.
-    for index in tiles.indices {
-      let width = tiles[index].rasterWidth, height = tiles[index].rasterHeight
-      if x + width + 2 > pageWidth { x = 2; y += rowHeight + 4; rowHeight = 0 }
-      if y + height + 2 > pageHeight {
-        pages.append(SIMD2(pageWidth, ((y + rowHeight + 2 + 127) / 128) * 128)); page += 1
+    var placements = [(page: Int, origin: SIMD2<Int>)](repeating: (0, .zero), count: sizes.count)
+    var x = 2, y = 2, rowHeight = 0, bottom = 0
+    // Rows of similar height waste the least area. Masks are addressed by
+    // index, so the shelf order is free of the authored draw order; the index
+    // tie-break keeps the layout deterministic.
+    let order = sizes.indices.sorted { sizes[$0].y != sizes[$1].y ? sizes[$0].y > sizes[$1].y : $0 < $1 }
+    for index in order {
+      let size = sizes[index]
+      if x + size.x + 2 > pageWidth { x = 2; y += rowHeight + 4; rowHeight = 0 }
+      if y + size.y + 2 > pageHeight {
+        pages.append(SIMD2(pageWidth, rounded(bottom)))
         x = 2; y = 2; rowHeight = 0
       }
-      tiles[index].page = page; tiles[index].origin = SIMD2(x, y)
-      x += width + 4; rowHeight = max(rowHeight, height)
+      placements[index] = (pages.count, SIMD2(x, y))
+      x += size.x + 4; rowHeight = max(rowHeight, size.y); bottom = y + rowHeight + 2
     }
-    pages.append(SIMD2(pageWidth, ((y + rowHeight + 2 + 127) / 128) * 128))
-    return pages
+    pages.append(SIMD2(pageWidth, rounded(bottom)))
+    return (pages, placements)
   }
 
   private func encodeCoverage(tiles: [Tile], atlas: Scratch, scale: SIMD2<Float>, command: MTLCommandBuffer) throws {
@@ -1105,9 +1140,8 @@ final class SceneCatalogVectorRenderer {
     encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: vertices.count)
     encoder.setRenderPipelineState(maskPipeline)
     encoder.setDepthStencilState(maskState)
-    let paints = tiles.map { tile in TilePaint(
-      region: SIMD4(Float(tile.origin.x), Float(tile.origin.y), Float(tile.rasterWidth), Float(tile.rasterHeight)),
-      color: tile.color) }
+    let paints = tiles.map { tile in
+      SIMD4(Float(tile.origin.x), Float(tile.origin.y), Float(tile.rasterWidth), Float(tile.rasterHeight)) }
     let paintBuffer = paints.withUnsafeBytes { device.makeBuffer(bytes: $0.baseAddress!, length: $0.count, options: .storageModeShared) }
     guard let paintBuffer else { throw Failure("vector_mask_paints") }
     try activeFrame?.retain(paintBuffer)
@@ -1392,16 +1426,13 @@ final class SceneCatalogVectorRenderer {
     fragment float4 vectorBackgroundFragment(V in [[stage_in]], texture2d<float> background [[texture(0)]]) {
       return background.read(uint2(in.position.xy));
     }
-    struct TilePaint { float4 region, color; };
-    struct TileVertex { float4 position [[position]]; half4 color [[flat]]; };
-    vertex TileVertex vectorTileVertex(uint id [[vertex_id]], constant TilePaint* paints [[buffer(0)]],
+    vertex V vectorTileVertex(uint id [[vertex_id]], constant float4* regions [[buffer(0)]],
         constant float4& target [[buffer(1)]]) {
       const float2 uv[6] = {float2(0,0),float2(1,0),float2(0,1),float2(1,0),float2(1,1),float2(0,1)};
-      TilePaint paint = paints[id / 6];
-      float2 screen = (paint.region.xy + uv[id % 6] * paint.region.zw) / target.zw;
-      return {float4(screen.x * 2 - 1, 1 - screen.y * 2, 0, 1), half4(paint.color)};
+      float4 region = regions[id / 6];
+      float2 screen = (region.xy + uv[id % 6] * region.zw) / target.zw;
+      return { float4(screen.x * 2 - 1, 1 - screen.y * 2, 0, 1) };
     }
-    fragment half4 vectorTileFragment(TileVertex in [[stage_in]]) { return in.color; }
     vertex V vectorColorVertex(uint id [[vertex_id]], constant Params& p [[buffer(0)]]) {
       const float2 uv[6] = {float2(0,0), float2(1,0), float2(0,1), float2(1,0), float2(1,1), float2(0,1)};
       float2 screen = (p.region.xy + uv[id] * p.region.zw) / p.target.xy;
@@ -1461,7 +1492,7 @@ final class SceneCatalogVectorRenderer {
         p.maskUV.xy + maskHalfPixel, p.maskUV.xy + p.maskUV.zw - maskHalfPixel);
       float4 filtered = p.flags.y <= 0 && all(maskPosition >= 0) && all(maskPosition <= 1)
         ? mask.sample(s, maskSample) : float4(0);
-      float coverage = p.flags.y > 0 ? 1.0f : filtered.a;
+      float coverage = p.flags.y > 0 ? 1.0f : filtered.r;
       if (p.flags.z > 1.5f) {
         // Flutter circle.frag: local-space SDF with a one-physical-pixel fade.
         float2 vectorToCenter = pixel / p.target.zw - p.blurCenterAdjust.xy;
@@ -1484,7 +1515,13 @@ final class SceneCatalogVectorRenderer {
           p.clipUV.xy + clipHalfPixel, p.clipUV.xy + p.clipUV.zw - clipHalfPixel);
         coverage *= all(clipPosition >= 0) && all(clipPosition <= 1) ? clip.sample(s, clipSample).r : 0;
       }
-      if (p.maskScale.w > 1.5) return filtered * (filtered.a > 0 ? coverage / filtered.a : 0);
+      if (p.maskScale.w > 1.5) {
+        // Impeller blurs the solid paint in an 8-bit target: quantize the
+        // painted blur as that texture did, then apply the clip.
+        float4 paint = float4(p.color.rgb * p.color.a, p.color.a) * p.flags.w;
+        float4 blurred = rint(clamp(paint * filtered.r, 0.0f, 1.0f) * 255.0f) / 255.0f;
+        return filtered.r > 0 ? blurred * (coverage / filtered.r) : float4(0);
+      }
       float4 result = vectorPaint(pixel, pixel, p, colors, stops);
       if (p.maskScale.w > 0 && p.maskScale.w < 1.5) {
         // Reproduce the linear-sampled offscreen gradient, including its own

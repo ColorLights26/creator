@@ -94,15 +94,21 @@ struct CreatorSceneTests {
     print("PASS modifiers creator_\(program.id): steps, slider, toggle and choice on Metal; invalid values refused; live palette")
   }
   static func signal(_ sequence: Int, music: Bool) -> SceneRenderSignalFrameV2 {
-    let event = SceneRenderSignalEventV2(serial: Int64(sequence / 12 + 1), active: music && sequence % 12 == 0,
+    let event = SceneRenderSignalEventV2(serial: Int64(sequence / 15 + 1), active: music && sequence % 15 == 0,
       timestampMicros: Int64(sequence * 33333), strength: music ? 0.8 : 0, band: .low)
-    let zero = SceneRenderSignalEventV2(serial: 0, active: false, timestampMicros: 0, strength: 0, band: .none)
+    // Authored triggers include snare/clap, cymbals and phrase accents, not
+    // just kick drums. The same deterministic history is replayed below.
+    let accent = SceneRenderSignalEventV2(serial: Int64(sequence / 5 + 1), active: music && sequence % 5 == 0,
+      timestampMicros: Int64(sequence * 33333), strength: music ? 0.9 : 0,
+      band: sequence % 30 == 15 ? .body : .high)
+    let flash = SceneRenderSignalEventV2(serial: Int64(sequence / 60 + 1), active: music && sequence % 60 == 0,
+      timestampMicros: Int64(sequence * 33333), strength: music ? 1 : 0, band: .broadband)
     return SceneRenderSignalFrameV2(sessionId: 2, sequence: Int64(sequence), audioTimestampMicros: Int64(sequence * 33333),
       available: music, fresh: true, musicActive: music, tonalAvailable: false,
       dynamics: [Float](repeating: music ? 0.8 : 0, count: 6), channels: [Float](repeating: music ? 0.8 : 0, count: 4),
-      spectrumSummary: [Float](repeating: 0, count: 7), instantSpectrum: [Float](repeating: 0, count: 31),
-      smoothedSpectrum: [Float](repeating: 0, count: 31), semantics: [Float](repeating: 0, count: 6),
-      rhythm: [music ? 120 : 0, 0.5, 0, 0], onsets: [0,0,0,0], tonal: [0,0,0], impact: event, accent: zero, beat: event, flash: zero)
+      spectrumSummary: [Float](repeating: music ? 0.6 : 0, count: 7), instantSpectrum: [Float](repeating: music ? 0.6 : 0, count: 31),
+      smoothedSpectrum: [Float](repeating: music ? 0.6 : 0, count: 31), semantics: [Float](repeating: 0, count: 6),
+      rhythm: [music ? 120 : 0, 0.5, 0, 0], onsets: [0,0,0,0], tonal: [0,0,0], impact: event, accent: accent, beat: event, flash: flash)
   }
   static func pixels(_ texture: MTLTexture, device: MTLDevice) throws -> [UInt8] {
     guard let queue = device.makeCommandQueue(), let command = queue.makeCommandBuffer(),
@@ -139,20 +145,27 @@ struct CreatorSceneTests {
       do { try autoreleasepool {
         try continuity(program, device: device)
         if program.id == "modifier_probe" { try modifiers(program, device: device) }
-        func render(music: Bool, disabled: Bool = false) throws -> [UInt8] {
+        let sampleFrames: Set<Int> = [0, 1, 2, 5, 6, 10, 12, 15, 16, 18, 20, 24, 30, 31, 36, 45, 46, 48, 60, 61, 62, 72, 75, 76, 84, 90]
+        func render(music: Bool, disabled: Bool = false) throws -> [[UInt8]] {
           let reactive = program.reactivity != "none" && !disabled
           let scene = try SceneCreatorNativeScene(program: program, options: [:], mode: nil, reactive: reactive, seed: nil, device: device)
           let allocator = SceneSurfaceNativeOutputAllocator(device: device, shaderWrite: true)
           scene.setPlaying(true, hostTime: 0)
-          var last: MTLTexture?
-          for i in 0...60 {
+          var frames = [[UInt8]]()
+          for i in 0...90 {
             _ = scene.consume(signal(i, music: music))
-            last = try autoreleasepool { try scene.render(size: CGSize(width: 320, height: 568), hostTime: Double(i)/30,
+            let frame = try autoreleasepool { try scene.render(size: CGSize(width: 320, height: 568), hostTime: Double(i)/30,
               reducedMotion: false, width: 320, height: 568, outputAllocator: allocator) }
+            if sampleFrames.contains(i) { frames.append(try pixels(frame, device: device)) }
           }
-          return try pixels(last!, device: device)
+          return frames
         }
-        let neutral = try render(music: false), active = try render(music: true)
+        let neutralFrames = try render(music: false), activeFrames = try render(music: true)
+        let differences = zip(neutralFrames, activeFrames).map { neutral, active in
+          zip(neutral, active).reduce(0) { $0 + (abs(Int($1.0) - Int($1.1)) > 2 ? 1 : 0) }
+        }
+        let representative = differences.indices.max(by: { differences[$0] < differences[$1] })!
+        let neutral = neutralFrames[representative], active = activeFrames[representative]
         if program.id == "composition_probe" {
           let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
@@ -172,17 +185,22 @@ struct CreatorSceneTests {
         }
         try png(active, width: 320, height: 568, url: output.appendingPathComponent("\(id).png"))
         try png(neutral, width: 320, height: 568, url: output.appendingPathComponent("\(id)_neutral.png"))
-        let different = zip(neutral, active).filter { abs(Int($0)-Int($1)) > 2 }.count
-        if program.reactivity == "none" { guard different == 0 else { throw SceneCreatorFailure("Ambient scene reacts: \(id)") } }
-        else { guard different > 16 else { throw SceneCreatorFailure("Musical scene has no visible reaction: \(id)") } }
+        if program.reactivity == "none" { guard differences.allSatisfy({$0 == 0}) else { throw SceneCreatorFailure("Ambient scene reacts: \(id)") } }
+        else { guard differences.contains(where: {$0 > 16}) else { throw SceneCreatorFailure("Musical scene has no visible reaction: \(id)") } }
         if program.reactivity == "optional" {
-          let disabled = try render(music: true, disabled: true)
-          guard zip(neutral,disabled).allSatisfy({ abs(Int($0)-Int($1)) <= 1 }) else { throw SceneCreatorFailure("Disabled reaction still changes pixels: \(id)") }
+          let disabledFrames = try render(music: true, disabled: true)
+          guard zip(neutralFrames, disabledFrames).allSatisfy({ neutral, disabled in
+            zip(neutral, disabled).allSatisfy({ abs(Int($0)-Int($1)) <= 1 })
+          }) else { throw SceneCreatorFailure("Disabled reaction still changes pixels: \(id)") }
         }
-        let alpha = stride(from: 3, to: active.count, by: 4).map { active[$0] }
+        let alpha = activeFrames.flatMap { frame in stride(from: 3, to: frame.count, by: 4).map { frame[$0] } }
         if program.role == "background" { guard alpha.allSatisfy({$0==255}) else { throw SceneCreatorFailure("Background is not opaque: \(id)") } }
         else { guard alpha.contains(where: {$0<16}), alpha.contains(where: {$0>16}) else { throw SceneCreatorFailure("Overlay lacks visible/translucent content: \(id)") } }
         try png(active, width: 320, height: 568, url: output.appendingPathComponent("\(id).png"))
+        for (index, sequence) in sampleFrames.sorted().enumerated() where sequence % 15 == 0 {
+          try png(activeFrames[index], width: 320, height: 568,
+            url: output.appendingPathComponent("\(id)_frame_\(sequence).png"))
+        }
         print("PASS authored \(id): native Metal scene, alpha and state replay")
         print("PASS behavior \(id): \(program.reactivity), identical-history musical/neutral probes")
       } } catch { throw SceneCreatorFailure("\(id): \(error.localizedDescription)") }

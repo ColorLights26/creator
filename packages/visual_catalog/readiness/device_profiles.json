@@ -1183,6 +1183,166 @@
               "sha256": "36f07e46e8cc66273b00c062d5f84f6bf10766589e73075dadc85e5911b63601"
             }
           }
+        },
+        {
+          "identity": {
+            "visualId": "cordillera_sonido",
+            "programHash": "6d87a6b3a7e269b6c4f845dbb784e92f8aa762def4079da48041af37ed7cf65e",
+            "revision": "74bc0286e6c594c3",
+            "buildHash": "a3dd6787d9bb27b113ad2fdbde11445cd38bf79d668f745b137e2fe7b66dad4c",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "role": "background",
+            "native": true,
+            "controls": {
+              "intensity": 1.0,
+              "speed": 1.0,
+              "detail": 1.0,
+              "glow": 1.0
+            },
+            "modifiers": {}
+          },
+          "card": {
+            "visualId": "cordillera_sonido",
+            "profile": {
+              "controls": {
+                "detail": 1.0,
+                "glow": 1.0,
+                "intensity": 1.0,
+                "speed": 1.0
+              },
+              "modifiers": {},
+              "name": "default",
+              "variation": null
+            },
+            "programHash": "6d87a6b3a7e269b6c4f845dbb784e92f8aa762def4079da48041af37ed7cf65e",
+            "revision": "74bc0286e6c594c3",
+            "buildHash": "a3dd6787d9bb27b113ad2fdbde11445cd38bf79d668f745b137e2fe7b66dad4c",
+            "framesPerSecond": 30,
+            "reactive": true,
+            "signal": "synthetic_loud",
+            "role": "background",
+            "host": "studio",
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "viewport": {
+              "devicePixelRatio": 2.0,
+              "logicalHeight": 1194.0,
+              "logicalWidth": 834.0
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "row": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-rated-20261029/physical-ipad/trace-diagnosis-v2/energy_probe.jsonl",
+              "fileSha256": "8142d2f569ef0f1b4a582670effdd77f3fe7dac776855b247a837d5ed90c3b85",
+              "id": "cordillera_sonido",
+              "scheduleIndex": 0,
+              "utc": "2026-10-29T07:37:44+00:00",
+              "status": "measured"
+            },
+            "log": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-rated-20261029/physical-ipad/trace-diagnosis-v2/logs/20261029T023406-000-cordillera_sonido-a1-console.log",
+              "sha256": "378b27ee6885aa9096e3bfce9b4ed03f331be22f6eeaf6b619a6e67d6755e4a8"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-rated-20261029/physical-ipad/trace-diagnosis-v2/logs/20261029T023406-000-cordillera_sonido-probe.jsonl",
+              "sha256": "d33ba4e431537034a17376972c4c9ded22aaac6b769abcc83b36daf79731fc12"
+            },
+            "traceEvidence": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-rated-20261029/physical-ipad/trace-diagnosis-v2/20261029T023406-000-cordillera_sonido-trace-samples.json",
+              "sha256": "b19da145167e50d7d028f5b9c749473aec9364290b452f35ff33882a10d1aa5f"
+            },
+            "protocol": {
+              "warmupSeconds": 15,
+              "cpuWindowSeconds": 26.139,
+              "gpuWindowSeconds": 26.138,
+              "startThermal": "nominal",
+              "thermalStates": [
+                "nominal"
+              ],
+              "energyLevel": "best",
+              "charging": true,
+              "lowPower": false,
+              "probeSamples": 13
+            },
+            "measured": {
+              "achievedFps": 30.01,
+              "gpuAppMsPerSecond": 408.37,
+              "gpuAppMsPerPublishedFrame": 13.608,
+              "efficiencyCorePercent": 29.03,
+              "performanceCorePercent": 11.97,
+              "renderThreadPercent": 32.31,
+              "memMb": 280.2
+            },
+            "warnings": [
+              "charging"
+            ],
+            "energyContract": {
+              "revision": "scene-energy-budget-v1",
+              "semanticHash": "f8cd0d04940e0cf0a80d6861d073ea6c061f353e4c442708ba22a53499d3f012"
+            }
+          },
+          "soak": {
+            "schemaVersion": 1,
+            "status": "recorded",
+            "detail": "",
+            "target": "cordillera_sonido",
+            "creator": {
+              "buildHash": "a3dd6787d9bb27b113ad2fdbde11445cd38bf79d668f745b137e2fe7b66dad4c",
+              "framesPerSecond": 30,
+              "kind": "native",
+              "profile": {
+                "controls": {
+                  "detail": 1.0,
+                  "glow": 1.0,
+                  "intensity": 1.0,
+                  "speed": 1.0
+                },
+                "modifiers": {},
+                "name": "default",
+                "variation": null
+              },
+              "programHash": "6d87a6b3a7e269b6c4f845dbb784e92f8aa762def4079da48041af37ed7cf65e",
+              "programId": "creator_cordillera_sonido",
+              "reactive": true,
+              "reactivity": "optional",
+              "revision": "74bc0286e6c594c3",
+              "role": "background",
+              "seed": 42,
+              "signal": "synthetic_loud",
+              "visualId": "cordillera_sonido"
+            },
+            "device": {
+              "displayHz": 120,
+              "isPhysical": true,
+              "model": "iPad13,4",
+              "systemName": "iPadOS",
+              "systemVersion": "27.0.1"
+            },
+            "surfacePx": {
+              "height": 1292,
+              "width": 902
+            },
+            "charging": true,
+            "durationSeconds": 3604.2323060035706,
+            "samples": 1803,
+            "minimumBrightness": 0.955312192440033,
+            "console": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-rated-20261029/physical-ipad/soak-v2-cordillera/logs/20261029T030253-000-cordillera_sonido-a1-console.log",
+              "sha256": "a7a9c310c240c93ddf0876c281ce8dfb9167196ba26e7ea97e226979d5e3087f"
+            },
+            "probe": {
+              "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-rated-20261029/physical-ipad/soak-v2-cordillera/sustained-probe.jsonl",
+              "sha256": "fd4019169432b538779741215b7d58a5f9b9688ea9bce04000feb2bb710c05df"
+            }
+          }
         }
       ]
     }

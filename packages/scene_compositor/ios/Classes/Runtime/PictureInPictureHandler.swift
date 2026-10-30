@@ -13,23 +13,79 @@ import UIKit
 struct SceneMediaSourceAlignment: Equatable {
     var x: CGFloat = 0.5
     var y: CGFloat = 0.5
+    /// Scales the aspect-filled source inside its layer (0.5...3, 1 = fill).
+    var zoom: CGFloat = 1
+    /// Mirrors the source horizontally, after [quarterTurns].
+    var flipX = false
+    /// Clockwise quarter turns of the source (0...3), before filling.
+    var quarterTurns = 0
+    /// A render-only glide into this crop after a presentation change.
+    var morph: SceneSourceMorph?
     static let center = SceneMediaSourceAlignment()
 
     static func parse(_ value: Any?) -> SceneMediaSourceAlignment? {
         guard let value else { return .center }
-        guard let map = value as? [String: Any], Set(map.keys) == Set(["x", "y"]),
+        guard let map = value as? [String: Any],
+              Set(map.keys).subtracting(["zoom", "flipX", "quarterTurns", "morph"]) == Set(["x", "y"]),
               let x = map["x"] as? NSNumber, let y = map["y"] as? NSNumber,
               CFGetTypeID(x) != CFBooleanGetTypeID(), CFGetTypeID(y) != CFBooleanGetTypeID(),
               x.doubleValue.isFinite, y.doubleValue.isFinite,
               (0...1).contains(x.doubleValue), (0...1).contains(y.doubleValue)
         else { return nil }
-        return SceneMediaSourceAlignment(x: CGFloat(x.doubleValue), y: CGFloat(y.doubleValue))
+        var result = SceneMediaSourceAlignment(x: CGFloat(x.doubleValue), y: CGFloat(y.doubleValue))
+        if let raw = map["zoom"] {
+            guard let number = raw as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(),
+                  number.doubleValue.isFinite, (0.25...3).contains(number.doubleValue)
+            else { return nil }
+            result.zoom = CGFloat(number.doubleValue)
+        }
+        if let raw = map["flipX"] {
+            guard let number = raw as? NSNumber, CFGetTypeID(number) == CFBooleanGetTypeID()
+            else { return nil }
+            result.flipX = number.boolValue
+        }
+        if let raw = map["quarterTurns"] {
+            guard let number = raw as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(),
+                  number.doubleValue == number.doubleValue.rounded(), (0...3).contains(number.intValue)
+            else { return nil }
+            result.quarterTurns = number.intValue
+        }
+        if let raw = map["morph"] {
+            guard let morph = SceneSourceMorph.parse(raw) else { return nil }
+            result.morph = morph
+        }
+        return result
     }
 
-    func fit(_ image: CIImage, to target: CGRect) -> CIImage {
+    /// Whether this crop is gliding and needs frames at [hostTime].
+    func isMorphing(at hostTime: CFTimeInterval) -> Bool {
+        guard let morph, !morph.held else { return false }
+        return SceneSourceMorphClock.shared.progress(of: morph, at: hostTime, start: false) < 1
+    }
+
+    /// Core Image is y-up: a clockwise quarter turn on screen is -pi/2.
+    /// The result is re-origined at zero so filling sees an upright extent.
+    private func upright(_ image: CIImage) -> CIImage {
+        guard quarterTurns != 0 || flipX else { return image }
+        var oriented = image
+        if quarterTurns != 0 {
+            oriented = oriented.transformed(by: CGAffineTransform(
+                rotationAngle: -CGFloat(quarterTurns) * .pi / 2))
+        }
+        if flipX {
+            oriented = oriented.transformed(by: CGAffineTransform(scaleX: -1, y: 1))
+        }
+        let extent = oriented.extent
+        return oriented.transformed(by: CGAffineTransform(
+            translationX: -extent.minX, y: -extent.minY))
+    }
+
+    func fit(_ source: CIImage, to target: CGRect) -> CIImage {
+        if let morph, let glided = glide(source, to: target, morph) { return glided }
+        let image = upright(source)
         let extent = image.extent
         guard extent.width > 0, extent.height > 0 else { return image.cropped(to: target) }
-        let scale = max(target.width / extent.width, target.height / extent.height)
+        let scale = max(target.width / extent.width, target.height / extent.height) * zoom
         let scaled = image.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
         if self == .center {
             return scaled.transformed(by: CGAffineTransform(
@@ -41,6 +97,110 @@ struct SceneMediaSourceAlignment: Equatable {
             translationX: target.minX + (target.width - scaled.extent.width) * x - scaled.extent.minX,
             y: target.minY + (target.height - scaled.extent.height) * (1 - y) - scaled.extent.minY
         )).cropped(to: target)
+    }
+}
+
+extension SceneMediaSourceAlignment {
+    /// Draws the source between where the previous composition drew it and
+    /// this crop; nil once the glide has landed, so the crop draws itself.
+    /// Placements are in layer fractions with y down, like the Dart side.
+    fileprivate func glide(_ source: CIImage, to target: CGRect, _ morph: SceneSourceMorph) -> CIImage? {
+        let extent = source.extent
+        guard extent.width > 0, extent.height > 0, target.width > 0, target.height > 0 else { return nil }
+        let progress = morph.held ? 0 : SceneSourceMorphClock.shared.progress(
+            of: morph, at: CACurrentMediaTime(), start: true)
+        guard progress < 1 else { return nil }
+        let t = SceneSourceMorph.ease(progress)
+        let turned = quarterTurns % 2 == 1
+        let uprightWidth = turned ? extent.height : extent.width
+        let uprightHeight = turned ? extent.width : extent.height
+        let fill = max(target.width / uprightWidth, target.height / uprightHeight) * zoom
+        let placedWidth = uprightWidth * fill, placedHeight = uprightHeight * fill
+        let toX = ((target.width - placedWidth) * x + placedWidth / 2) / target.width
+        let toY = ((target.height - placedHeight) * y + placedHeight / 2) / target.height
+        let toWidth = extent.width * fill / target.width
+        let toAngle = CGFloat(quarterTurns) * 90
+        let toMirror: CGFloat = flipX ? -1 : 1
+        var turn = (toAngle - morph.angle).truncatingRemainder(dividingBy: 360)
+        if turn < 0 { turn += 360 }
+        if turn > 180 { turn -= 360 }
+        let centerX = morph.centerX + (toX - morph.centerX) * t
+        let centerY = morph.centerY + (toY - morph.centerY) * t
+        let width = morph.width + (toWidth - morph.width) * t
+        let angle = morph.angle + turn * t
+        // The new mirror from the first frame: squeezing a source through
+        // zero reads as paper; the dissolving previous frame hides the change.
+        let mirror = toMirror
+        let scale = width * target.width / extent.width
+        // Core Image is y-up: clockwise on screen is a negative angle.
+        let transform = CGAffineTransform(translationX: -extent.midX, y: -extent.midY)
+            .concatenating(CGAffineTransform(scaleX: scale, y: scale))
+            .concatenating(CGAffineTransform(rotationAngle: -angle * .pi / 180))
+            .concatenating(CGAffineTransform(scaleX: mirror, y: 1))
+            .concatenating(CGAffineTransform(
+                translationX: target.minX + centerX * target.width,
+                y: target.minY + (1 - centerY) * target.height))
+        return source.transformed(by: transform).cropped(to: target)
+    }
+}
+
+/// Where the previous composition drew a source, and how long the glide into
+/// its new crop lasts. Held, it stays put under the previous frame's cover.
+struct SceneSourceMorph: Equatable {
+    var serial: Int
+    var centerX: CGFloat
+    var centerY: CGFloat
+    var width: CGFloat
+    var angle: CGFloat
+    var mirror: CGFloat
+    var durationMs: Int
+    var held: Bool
+
+    static func parse(_ value: Any?) -> SceneSourceMorph? {
+        guard let map = value as? [String: Any],
+              Set(map.keys) == ["serial", "centerX", "centerY", "width", "angle", "mirror", "durationMs", "aspect", "held"],
+              let serial = map["serial"] as? NSNumber, CFGetTypeID(serial) != CFBooleanGetTypeID(),
+              let duration = map["durationMs"] as? NSNumber, CFGetTypeID(duration) != CFBooleanGetTypeID(),
+              let held = map["held"] as? NSNumber, CFGetTypeID(held) == CFBooleanGetTypeID(),
+              (0...2000).contains(duration.intValue)
+        else { return nil }
+        var values: [CGFloat] = []
+        for key in ["centerX", "centerY", "width", "angle", "mirror"] {
+            guard let number = map[key] as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(),
+                  number.doubleValue.isFinite else { return nil }
+            values.append(CGFloat(number.doubleValue))
+        }
+        guard values[2] > 0, (-1...1).contains(values[4]) else { return nil }
+        return SceneSourceMorph(
+            serial: serial.intValue, centerX: values[0], centerY: values[1], width: values[2],
+            angle: values[3], mirror: values[4], durationMs: duration.intValue, held: held.boolValue)
+    }
+
+    /// Ease in and out, matching the Dart side.
+    static func ease(_ progress: CGFloat) -> CGFloat {
+        let t = min(max(progress, 0), 1)
+        return t < 0.5 ? 4 * t * t * t : 1 - pow(-2 * t + 2, 3) / 2
+    }
+}
+
+/// When each released glide began, by serial. A glide is timed from the
+/// first frame drawn released, whichever document update carries it again.
+final class SceneSourceMorphClock {
+    static let shared = SceneSourceMorphClock()
+    private let lock = NSLock()
+    private var starts: [Int: CFTimeInterval] = [:]
+
+    func progress(of morph: SceneSourceMorph, at now: CFTimeInterval, start: Bool) -> CGFloat {
+        guard morph.durationMs > 0 else { return 1 }
+        lock.lock()
+        defer { lock.unlock() }
+        guard let began = starts[morph.serial] else {
+            guard start else { return 0 }
+            starts = starts.filter { now - $0.value < 10 }
+            starts[morph.serial] = now
+            return 0
+        }
+        return CGFloat((now - began) / (Double(morph.durationMs) / 1000))
     }
 }
 
@@ -6753,7 +6913,7 @@ private final class PictureInPictureSceneLayerRuntime {
         return SceneSurfaceLayerFrameWork(
             sourceAdvanced: sourceAdvanced || scheduledDynamicSourceRefresh,
             timeDriven: timeDriven,
-            effectAnimating: effectAnimating,
+            effectAnimating: effectAnimating || transform.sourceAlignment.isMorphing(at: hostTime),
             audioAdvanced: audioAdvanced && isAudioReactive
         )
     }
@@ -8327,6 +8487,8 @@ final class PictureInPictureHandler: NSObject {
             case "acknowledgeRestore":
                 self.acknowledgeRestore(arguments: call.arguments)
                 result(nil)
+            case "updateOutputGeometry":
+                result(self.updateOutputGeometry(arguments: call.arguments))
             case "updateReactiveFrame":
                 self.updateReactiveFrame(arguments: call.arguments)
                 result(nil)
@@ -9284,6 +9446,49 @@ final class PictureInPictureHandler: NSObject {
         }
         if let v2SharedSessionId { return v2SharedSessionId == sceneSessionId }
         return false
+    }
+
+    /// A rotation or a resize changes only the window's shape: the output
+    /// size, its pool and the source layer. Content, sources, session and the
+    /// automatic-start arming stay as they are, so leaving the app while the
+    /// shape changes still starts PiP; a full `prepare` here disarmed AVKit and
+    /// emptied the layer at that moment. Kinds that size resources of their
+    /// own answer false and Dart prepares again.
+    private func updateOutputGeometry(arguments: Any?) -> Bool {
+        dispatchPrecondition(condition: .onQueue(.main))
+        guard
+            prepared,
+            lifecycleState == .idle,
+            pictureInPictureController?.isPictureInPictureActive != true,
+            ["sceneV1Shared", "sceneV2Shared", "poster"].contains(sourceKind),
+            let arguments = arguments as? [String: Any],
+            let requestedWidth = (arguments["width"] as? NSNumber)?.intValue,
+            let requestedHeight = (arguments["height"] as? NSNumber)?.intValue
+        else { return false }
+        let newWidth = min(max(requestedWidth, 180), 720)
+        let newHeight = min(max(requestedHeight, 320), 1280)
+        guard newWidth != width || newHeight != height else { return true }
+        let previousWidth = width
+        let previousHeight = height
+        var configured = false
+        // Serialized with renders: the next frame is drawn at the new size.
+        renderQueue.sync {
+            width = newWidth
+            height = newHeight
+            v1ConvertedRevision = nil
+            v1ConvertedBuffer = nil
+            configured = configurePixelBufferPool()
+            if !configured {
+                width = previousWidth
+                height = previousHeight
+                _ = configurePixelBufferPool()
+            }
+        }
+        guard configured else { return false }
+        layoutSourceLayer()
+        pictureInPictureController?.invalidatePlaybackState()
+        NSLog("%@", geometryReceipt(step: "geometry_update", source: .zero).description)
+        return true
     }
 
     /// Dart reports whether the foreground output submitted frames of the
@@ -11342,7 +11547,14 @@ extension PictureInPictureHandler: AVPictureInPictureSampleBufferPlaybackDelegat
     func pictureInPictureControllerTimeRangeForPlayback(
         _ pictureInPictureController: AVPictureInPictureController
     ) -> CMTimeRange {
-        CMTimeRange(start: .zero, duration: .positiveInfinity)
+        // A scene is live content with nothing to seek: the range starts at
+        // -infinity as well as lasting forever, which should leave the window
+        // with Play/Pause and no ±10 s skip buttons (still to be seen on an
+        // iPhone, 28-oct-2026). With the earlier `[0, +infinity)`
+        // range iOS 27 still drew them, and `requiresLinearPlayback` only
+        // disables forward skips. Never return `.invalid`: AVKit reads it as
+        // "no content", which would also drop Play/Pause.
+        CMTimeRange(start: .negativeInfinity, duration: .positiveInfinity)
     }
 
     func pictureInPictureControllerIsPlaybackPaused(
@@ -12424,9 +12636,16 @@ private final class SceneSurfaceDocumentRuntime {
         layers.contains(where: \.isAudioReactive)
     }
 
+    /// A source gliding into its crop keeps frames coming even while paused.
+    var isMorphingSource: Bool {
+        let now = CACurrentMediaTime()
+        return layers.contains { $0.transform.sourceAlignment.isMorphing(at: now) }
+    }
+
     func needsContinuousRendering(frame: SceneSurfaceReactiveFrame) -> Bool {
         filterState.active || layers.contains { layer in
-            layer.intrinsicSourceNeedsContinuousRendering ||
+            layer.transform.sourceAlignment.isMorphing(at: CACurrentMediaTime()) ||
+                layer.intrinsicSourceNeedsContinuousRendering ||
                 (layer.rgbGainEffect?.needsFrames(for: frame) ?? false) ||
                 (layer.naturalReactiveLightEffect?.needsFrames(for: frame) ?? false)
         }
@@ -12435,6 +12654,9 @@ private final class SceneSurfaceDocumentRuntime {
     func preferredFramesPerSecond(frame: SceneSurfaceReactiveFrame) -> Int {
         var requested = filterState.active ? 60 : 0
         for layer in layers {
+            if layer.transform.sourceAlignment.isMorphing(at: CACurrentMediaTime()) {
+                requested = max(requested, 60)
+            }
             requested = max(requested, layer.nativeProgramEventFramesPerSecond)
             if layer.intrinsicSourceNeedsContinuousRendering {
                 requested = max(
@@ -15066,7 +15288,7 @@ final class SceneSurfaceRenderEngine: NSObject {
     private func reconcileRenderTimer() {
         dispatchPrecondition(condition: .onQueue(renderQueue))
         var framesPerSecond = 0
-        for session in sessions.values where session.preparationId == nil && (isSessionPlaying(session) || (applicationActive && session.pendingFilterResult != nil)) {
+        for session in sessions.values where session.preparationId == nil && (isSessionPlaying(session) || (applicationActive && (session.pendingFilterResult != nil || session.document.isMorphingSource))) {
             let frame = freshReactiveFrame(session)
             if session.document.needsContinuousRendering(frame: frame) || session.pendingFilterResult != nil {
                 framesPerSecond = max(
@@ -15096,7 +15318,7 @@ final class SceneSurfaceRenderEngine: NSObject {
         timer.setEventHandler { [weak self] in
             guard let self else { return }
             let now = CACurrentMediaTime()
-            for session in self.sessions.values where self.isSessionPlaying(session) || (self.applicationActive && session.pendingFilterResult != nil) {
+            for session in self.sessions.values where self.isSessionPlaying(session) || (self.applicationActive && (session.pendingFilterResult != nil || session.document.isMorphingSource)) {
                 let frame = self.freshReactiveFrame(session)
                 guard session.document.needsContinuousRendering(frame: frame) || session.pendingFilterResult != nil else {
                     continue

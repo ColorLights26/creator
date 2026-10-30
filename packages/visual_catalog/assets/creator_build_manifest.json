@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "hash": "caf090e6b24d72c91e4beedcfc447b8c5c5cefc7122ae527fe63913f17f1f6eb",
+  "hash": "a3dd6787d9bb27b113ad2fdbde11445cd38bf79d668f745b137e2fe7b66dad4c",
   "engine": {
     "sdkHash": "f7e3b26c2d074a5eb648d37f0cc4c5211fae5703cacc9ccedf5b145a85037c76",
     "abi": 1,
@@ -8,7 +8,7 @@
     "runtime": {
       "files": {
         "MusicVibeRenderEngine.swift": "35a1c9ee48a0dbd656c41cdea8908e8cb17f7f2b508b6becc02917fc419b66f4",
-        "PictureInPictureHandler.swift": "339622b443b67156a32f9dbe2596b56a395b89f63aba89426eb68511f82515ab",
+        "PictureInPictureHandler.swift": "793eb4d0dcf900a6dce44e18c66015f400eaef7abd078edae9618829357ce0da",
         "SceneCatalogAmbientShadow.swift": "3a52be81a88438a6a33eeb41286101dbc53cdea1235f96d0e78fff3ec990caab",
         "SceneCatalogAuroraRenderer.swift": "8907184867c907c366162fa035c5ffd8d0699f8ee2dd2a1a057c7093ea246559",
         "SceneCatalogAuroraState.swift": "7c462ee18cbbc5836c6e3f1d7b2c86f5eaca55948c606bc2a7d14a5eaf3b7efc",
@@ -24,42 +24,42 @@
         "SceneCatalogIndividualShaderState.swift": "f7ec9999d83efbad9909493c4acc82669bc2b42878ce588971d23861a3e11f92",
         "SceneCatalogLiquidLavaRenderer.swift": "322dc91fa27ddccbc6d640ac16d9e8061542d06167258fd9d01f3a9b8d29504a",
         "SceneCatalogLiquidLavaState.swift": "0304cf97b533031ce7272c4e614d6fdeb9645c3c1820af29d3866dfde1a019c0",
-        "SceneCatalogNativeProgram.swift": "5913e8a147238c89e19004d47367366bedee5454547dfd1188991f29ca979ffc",
+        "SceneCatalogNativeProgram.swift": "0ad34336c440dae16f8f40e82e88ae40c08a436746c6aca0418b87f7fbdb05fb",
         "SceneCatalogNeonClubRenderer.swift": "0b1f37fc210ec5cab80cda57aec103e215b2ac82fa7452b7e084fde3480ab9f5",
         "SceneCatalogNeonClubState.swift": "5954bc6b496b287e4b1c6dce1ca5f48bd07e052325ac2baff47644f5a08b13f7",
         "SceneCatalogShaderRenderer.swift": "c15525e9452f958b0ebd1009e82b7bf2d0d31dbd0b6a12fc36285f0823f28f10",
         "SceneCatalogShaderSources.generated.swift": "7b569ce9a7059644b0c4117ad793c75dab6526dd2d7eddb7959de9bfa8c481fa",
-        "SceneCatalogVectorCanvas.swift": "0b2a8173b95720efa713046799b663cec072df1ee71f2f505d159d67796d7a4c",
+        "SceneCatalogVectorCanvas.swift": "38951578215ff1b1ecebdc133a4eb2a3c17ee746d10bb221add22acab356da5a",
         "SceneRenderNodeRegistryV1.generated.swift": "ad6325a78b47fd06b96b70f57d3bed4726fd7e76d43390a2c956c0c1eadbe7c1",
-        "SceneRenderSignalFrameV2.swift": "0210ce37d14bb0ada61d92145d9ec9a127cc730a88c44699b576646f999eb72e",
-        "SceneRenderV2ImageSurface.swift": "7c64c3a1a99b5ec0745c11381029a96e0aab0f015f5b0cafe003ddb6a9f4c8d1",
+        "SceneRenderSignalFrameV2.swift": "bcbd85d34c53530c258a52dbaec6103786813127c08be131d23b889f108400a0",
+        "SceneRenderV2ImageSurface.swift": "107f5e309f78cc0d37e5b523d1c61633244e854b489c2568019073e8f965605f",
         "SceneRenderV2ShadowCompiler.swift": "b858608cbac9d160a9a8ea5367ea82c6a7d6e910928cd930f1fa9bca9e24e898",
         "SceneVideoAdmissionContract.generated.swift": "059460b2e8d4c91c2cfcf0d7329d4a04dddb654de1ec67e28416d28650219db3",
         "SceneRenderV2ImageSurface.swift#SceneSurfaceNativeOutputAllocator": "53b4288506c28bee72fc51d80f43795086997f0431a63e5df817f9d38a4f789a"
       },
-      "hash": "41d981bf01d4223461794a00f1cbccada31f323c965727813de4504982802aab"
+      "hash": "8f5ea26610f060fa7bc0fed64563caf535228dcc3dd67ea4ba25faec1560b5c4"
     },
-    "materialToolchainHash": "782567f526a85b7dffc742a00a990ed46901d54e421c56cf75c53b78ff81ab02",
+    "materialToolchainHash": "77614fe8fba3dbfa3621129df2003c164c2f38894e47acf16d35ea4caf865808",
     "resources": {
       "files": {
-        "assets/images\\reactiva_humo.png": "9781b9ea9393fc5b68e90c2217da863ab2e4cfe15cb6d8d3f38e329e58e75c22",
-        "assets/images\\reactiva_quemado.png": "c9ac3425f7399e0334a7f8b4f58e6b94e87bcc892d70397fa144ca7321144f52",
-        "assets/images\\reactiva_suciedad_lente.png": "3049672b5e22dcec7e6595e8b053525768152058b323b212e14557752f593727",
-        "assets/images\\reactiva_suciedad_lente_usuario.png": "98c75e5aa3fb70f5b681da57693ac35035f56b567bc27d3a266bfaee3f122a14"
+        "assets/images/reactiva_humo.png": "9781b9ea9393fc5b68e90c2217da863ab2e4cfe15cb6d8d3f38e329e58e75c22",
+        "assets/images/reactiva_quemado.png": "c9ac3425f7399e0334a7f8b4f58e6b94e87bcc892d70397fa144ca7321144f52",
+        "assets/images/reactiva_suciedad_lente.png": "3049672b5e22dcec7e6595e8b053525768152058b323b212e14557752f593727",
+        "assets/images/reactiva_suciedad_lente_usuario.png": "98c75e5aa3fb70f5b681da57693ac35035f56b567bc27d3a266bfaee3f122a14"
       },
-      "hash": "e625095801d2b694ffb4dd333c3ba6231e6156f0f2c87617390d0ca5140abb0b"
+      "hash": "498ca087731df9e970bfec23ea82247d8d614d018351db5befab3544c8ff1e77"
     },
     "checks": {
       "files": {
         "authored_probe.cpp": "0b5442345af6f6447a96bf042b158afb49e59941c9d04c461eb0f6ffba0e2410",
         "check_native.py": "b722f1d4e9bc95fbd97ba722961c32502a5ba79ab9f7f5d323ceb76b14bef873",
         "runtime_test.cpp": "cbccca01e96b9c579c7ac300bedb38c56434c7a6de9b6da87c46f22f3be039d3",
-        "creator_scene_tests.swift": "fb78b2d88b269c152988d9ab4c918abf15bd0c61cf5d05dd3daad3bf3d77d000",
-        "check_creator_scenes.py": "6c052f335afb0bd60b31c736cfa88ab487114517938a2333ed017c65528d4f9d",
-        "creator_catalog_tests.swift": "be5d2ece6ed826b275ce2d86b9bfce8a5a969c62e16de53e15a790de596a501b",
-        "check_creator_catalog.rb": "8a4f097dea74fe2599deae634f561c867a06ce0da58d88156817625af629ec0e"
+        "creator_scene_tests.swift": "dd05c22cebccc1cdf74a01f199647827e8ed097c8ca6d6b97064d959300aff34",
+        "check_creator_scenes.py": "2ab8fa972b463dd69c90c1c608da2f5bd59326252de6a6444eab204e90085965",
+        "creator_catalog_tests.swift": "e4a28358bc583ad8328c3ed6b01ea0b66bbac10c27c15dea286c84007d9a29f3",
+        "check_creator_catalog.rb": "6c8b52705c835313f39a812043dc3a7d9b84ea6b00a267204958e2eed64a69ab"
       },
-      "hash": "1e15822860deb903aade47e4b7e65c046c90c5386a15b030cdd1e6d9466ffc15"
+      "hash": "3294614d6162a936156dc98bca7f033b72d3b3a37b0c4769c1512bda4199f412"
     },
     "buildInputs": {
       "files": {
@@ -88,7 +88,7 @@
         "packages/scene_compositor_host/ios/scene_compositor_host.podspec": "98660d4410670fe780413ba27b5e38ef43a19f501b8c3b461cccbfa8a66724fe",
         "studio/tool/compile_visuals.dart": "3b0b96ef5352935ff81bc6e2e9fff1d30ead030f40f40df8344cc4417e76dde9",
         "studio/tool/build_catalog_assets.dart": "d63b21bd01d0802a16c2d0a98f9225b0bce6a82be5c6edb663ce07d174b1b943",
-        "studio/tool/readiness.dart": "92049fd87f3665f72eca90619c58e2722486fcf152ec85138626f18c29d01d52",
+        "studio/tool/readiness.dart": "ca95684cb05fa2efa6e10bd80729b42bf77bf5af9810383a94dfa413c5ffaf6d",
         "studio/lib/probe/energy_probe_record.dart": "0eb3bb22905f6c5fa4688edc0c366f671e86fd9fbd6135c6b67b1c1d7260f906",
         "studio/lib/probe/energy_probe_screen.dart": "dc482168f5d99b02136b919391fba73d79d21a0d28b9d3b66e80c009716aa444",
         "studio/lib/probe/energy_probe_identity.dart": "c01900590ef8267474383aeb4d4af6b56099a2ab20eb339992b563a4ca87ce64",
@@ -96,7 +96,7 @@
         "studio/lib/probe/energy_probe_profile.dart": "7b47040ce59d1ddca4d57484a87cea52b25746241dbe8390f21bc7f25c6095ba",
         "studio/lib/probe/energy_probe_spec.dart": "e59416b9b36b5093dc7aec6a7c99718ae10336eac8a89570a0ef837e11441a4e"
       },
-      "hash": "475e130cf9626927a97e407f52658c9960dd59f0daf2b5c4c630ca293c6257cc"
+      "hash": "d389d508fcca3e84ca8768fb4aa8b2cbf23bfbf7027490eb96253f4f0d3e6d40"
     },
     "surfaces": {
       "iPhone": {
@@ -120,5 +120,5 @@
       "valuesHash": "2ea928927b705de186d7816d11650e4f6bd2cced1e4cff0a1942a57fe6eac9e7"
     }
   },
-  "catalogSha256": "cd230ab5fc3e993f3bc68042293cc6759c4626a8e3ec200aba2c84fd0ede82e9"
+  "catalogSha256": "40db39ad2c3065fef84652a9a77c8ae0badb54e2e4321365d908d3bcdcd1898d"
 }

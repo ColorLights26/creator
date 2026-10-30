@@ -11,10 +11,15 @@ abort 'Production output allocator was not found' unless allocator
 Dir.mktmpdir('creator-native-test-') do |temporary|
   support = File.join(temporary, 'Allocator.swift')
   File.write(support, "import Foundation\nimport Metal\n#{allocator}\n")
+  presentation = File.read(File.join(runtime, 'PictureInPictureHandler.swift'))
+  alignment = presentation[/struct SceneMediaSourceAlignment: Equatable \{.*?(?=final class SceneSurfaceSignalDeadline \{)/m]
+  abort 'Production source alignment types were not found' unless alignment
+  alignment_support = File.join(temporary, 'SourceAlignment.swift')
+  File.write(alignment_support, "import Foundation\nimport CoreImage\nimport QuartzCore\n#{alignment}\n")
   executable = File.join(temporary, 'creator-tests')
   sources = Dir[File.join(runtime, 'SceneCatalog*.swift')].sort +
     [File.join(runtime, 'SceneRenderSignalFrameV2.swift')]
-  command = ['xcrun', 'swiftc', '-O', '-o', executable, support, *sources,
+  command = ['xcrun', 'swiftc', '-O', '-o', executable, support, alignment_support, *sources,
     File.join(__dir__, 'creator_catalog_tests.swift')]
   output, status = Open3.capture2e(*command)
   puts output unless output.empty?
@@ -29,10 +34,12 @@ Dir.mktmpdir('creator-native-test-') do |temporary|
     # compatibility check scoped to the legacy shader format.
     parsed = JSON.parse(File.read(catalog))
     parsed['visuals'].reject! { |entry| entry['kind'] == 'scene' }
-    legacy = File.join(temporary, 'legacy-catalog.json')
-    File.write(legacy, JSON.generate(parsed))
-    output, status = Open3.capture2e(executable, legacy, *ARGV.drop(1))
-    puts output
-    abort 'Authored creator catalog Metal smoke failed' unless status.success?
+    unless parsed['visuals'].empty?
+      legacy = File.join(temporary, 'legacy-catalog.json')
+      File.write(legacy, JSON.generate(parsed))
+      output, status = Open3.capture2e(executable, legacy, *ARGV.drop(1))
+      puts output
+      abort 'Authored creator catalog Metal smoke failed' unless status.success?
+    end
   end
 end

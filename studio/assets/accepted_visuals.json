@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "Color Lights approved snapshots",
-  "approvedCatalogRevision": "ddb48934b9b08b81b56715a3cd3ce34c709c75ce6eda609d4894165703fbccbe",
+  "approvedCatalogRevision": "199e372f24c264208577ec60f8d5ca3504534db28cacbf352abbb137e2ed6470",
   "entries": [
     {
       "id": "anillos_humo",
@@ -166,6 +166,42 @@
       "family": "bola_discoteca"
     },
     {
+      "id": "brasas_azules_premium",
+      "revision": "af0c529631f52a75",
+      "integratedId": "brasas_azules_premium",
+      "integratedRevision": "af0c529631f52a75",
+      "snapshotRevision": "cbb520a85073b847c54dcc8fd869fa6774d33068d7243d5370772506c6bc3f3f",
+      "relation": "integrated",
+      "family": "brasas_azules_premium"
+    },
+    {
+      "id": "brasas_cinematicas",
+      "revision": "e037af6235fd90b8",
+      "integratedId": "brasas_cinematicas",
+      "integratedRevision": "e037af6235fd90b8",
+      "snapshotRevision": "abe53af864c966bd70ddc6d850be21ca6b8ec497407ec64c8fd09278c63b524c",
+      "relation": "integrated",
+      "family": "brasas_cinematicas"
+    },
+    {
+      "id": "brasas_premium",
+      "revision": "d73c76c2e9047b89",
+      "integratedId": "brasas_premium",
+      "integratedRevision": "d73c76c2e9047b89",
+      "snapshotRevision": "25e07aa8d08682b2832dc7f5a50175aa5953225e8fe644fee8490cf76ade1830",
+      "relation": "integrated",
+      "family": "brasas_premium"
+    },
+    {
+      "id": "brasas_remolino_premium",
+      "revision": "c5906322a11503ab",
+      "integratedId": "brasas_remolino_premium",
+      "integratedRevision": "c5906322a11503ab",
+      "snapshotRevision": "fcbf8cd2c0fb766cefea8790024934f895d397d2a9e66109909b2ee08b786529",
+      "relation": "integrated",
+      "family": "brasas_remolino_premium"
+    },
+    {
       "id": "caleidoscopio_infinito",
       "revision": "11916bee780d3521",
       "integratedId": "caleidoscopio_infinito",
@@ -263,6 +299,33 @@
       "snapshotRevision": "1f6cd25b6e21db6d7f4ae7a77269a1e86ec753e441cbae26bd7888e44383f6a1",
       "relation": "integrated",
       "family": "celulas_voronoi"
+    },
+    {
+      "id": "ceniza_premium",
+      "revision": "953812439b808c53",
+      "integratedId": "ceniza_premium",
+      "integratedRevision": "953812439b808c53",
+      "snapshotRevision": "ae4d553dd5ea3e33fe3eb93ed454161ff5259b29c92d9657048e68e01b75087f",
+      "relation": "integrated",
+      "family": "ceniza_premium"
+    },
+    {
+      "id": "chispas_bordes_premium",
+      "revision": "080422333a1d3bdd",
+      "integratedId": "chispas_bordes_premium",
+      "integratedRevision": "080422333a1d3bdd",
+      "snapshotRevision": "b9246ae21728cdba979b975c45e7d1138fca0b91a81fdcb1a3b816c0efd5c391",
+      "relation": "integrated",
+      "family": "chispas_bordes_premium"
+    },
+    {
+      "id": "chispas_premium",
+      "revision": "e3c96a792e8d8c3e",
+      "integratedId": "chispas_premium",
+      "integratedRevision": "e3c96a792e8d8c3e",
+      "snapshotRevision": "ebbc5cb6d03a08a2cd806f6b486fb603dbda8dc49e8b3ca700d7e74f30518e7f",
+      "relation": "integrated",
+      "family": "chispas_premium"
     },
     {
       "id": "cimatica",
@@ -445,6 +508,15 @@
       "family": "descarga_tesla"
     },
     {
+      "id": "destellos_dorados_premium",
+      "revision": "de7611284a0dadc4",
+      "integratedId": "destellos_dorados_premium",
+      "integratedRevision": "de7611284a0dadc4",
+      "snapshotRevision": "9e59c3f6eb5d39b602ca60643993b379b8f1be4e44c6bc4ce17a6397f020bb72",
+      "relation": "integrated",
+      "family": "destellos_dorados_premium"
+    },
+    {
       "id": "dona_ascii",
       "revision": "23fcbbe94e4037b1",
       "integratedId": "dona_ascii",
@@ -562,6 +634,15 @@
       "family": "estrella_neon"
     },
     {
+      "id": "estrellas_fugaces_premium",
+      "revision": "30c2693a9d88729e",
+      "integratedId": "estrellas_fugaces_premium",
+      "integratedRevision": "30c2693a9d88729e",
+      "snapshotRevision": "3888b97d301fe99261f793af221f062bb612f1a955441010a2588748f3d9e680",
+      "relation": "integrated",
+      "family": "estrellas_fugaces_premium"
+    },
+    {
       "id": "flor_vida",
       "revision": "668749f69fc6ccea",
       "integratedId": "flor_vida",
@@ -578,6 +659,15 @@
       "snapshotRevision": "6040e18b19d0fbf7eea6678541f4b24a1026be0c14a558304df96713d52a6ee8",
       "relation": "equivalent",
       "family": "flor_vida"
+    },
+    {
+      "id": "fuego_azul",
+      "revision": "d05bf969801c7169",
+      "integratedId": "fuego_azul",
+      "integratedRevision": "d05bf969801c7169",
+      "snapshotRevision": "c7957814427bbfe6c9a90288c93a14b37d04391d8361e170e012f9fe4aeb81f5",
+      "relation": "integrated",
+      "family": "fuego_azul"
     },
     {
       "id": "fuegos_artificiales",
@@ -686,6 +776,15 @@
       "snapshotRevision": "cb8cad3d6ad5d4705f74aa91fef5413c8e469f4c9510a2805d1ac863f8241745",
       "relation": "equivalent",
       "family": "helice_holografica"
+    },
+    {
+      "id": "hiperespacio_premium",
+      "revision": "4e0b4c22bc306e37",
+      "integratedId": "hiperespacio_premium",
+      "integratedRevision": "4e0b4c22bc306e37",
+      "snapshotRevision": "2d879f8d20b11c0b08e8ff3efc162905395670832dfc84449cab3a9f17cd9b12",
+      "relation": "integrated",
+      "family": "hiperespacio_premium"
     },
     {
       "id": "hipervelocidad",
@@ -832,6 +931,51 @@
       "family": "lluvia_cinetica"
     },
     {
+      "id": "lluvia_colores",
+      "revision": "878a504cab5bfa06",
+      "integratedId": "lluvia_colores",
+      "integratedRevision": "878a504cab5bfa06",
+      "snapshotRevision": "bc756033cf5a14bce446a95d5d942f32340f2c6d41dffe6c8d62d86568769f56",
+      "relation": "integrated",
+      "family": "lluvia_colores"
+    },
+    {
+      "id": "lluvia_colores_premium",
+      "revision": "01ce95a65f1e72fe",
+      "integratedId": "lluvia_colores_premium",
+      "integratedRevision": "01ce95a65f1e72fe",
+      "snapshotRevision": "152960aa2865ab812e08b49fc8ada307a2702a4c47844a6321f7ab91cc738a91",
+      "relation": "integrated",
+      "family": "lluvia_colores_premium"
+    },
+    {
+      "id": "lluvia_dorada_premium",
+      "revision": "4ae294aa67eec2d7",
+      "integratedId": "lluvia_dorada_premium",
+      "integratedRevision": "4ae294aa67eec2d7",
+      "snapshotRevision": "5ca4d1b7f787bfbe725bc0beb140abd0bdb161ace9e2a236b13489f0196bd251",
+      "relation": "integrated",
+      "family": "lluvia_dorada_premium"
+    },
+    {
+      "id": "lluvia_particulas_premium",
+      "revision": "eac8aa5c84cbc162",
+      "integratedId": "lluvia_particulas_premium",
+      "integratedRevision": "eac8aa5c84cbc162",
+      "snapshotRevision": "93af673bc97ec4264757849ce8d6d3b5207e1d22d27b67bc4d456a15068e76ce",
+      "relation": "integrated",
+      "family": "lluvia_particulas_premium"
+    },
+    {
+      "id": "luces_flotantes_premium",
+      "revision": "9c1395a88f01a898",
+      "integratedId": "luces_flotantes_premium",
+      "integratedRevision": "9c1395a88f01a898",
+      "snapshotRevision": "38bfd85223ba99b5ff36277eee4649ba4e1e4e3ddf24bcdb37bb5cb3af7705fe",
+      "relation": "integrated",
+      "family": "luces_flotantes_premium"
+    },
+    {
       "id": "luciernagas",
       "revision": "086bc74cd7a26fb2",
       "integratedId": "luciernagas_transparente",
@@ -839,6 +983,15 @@
       "snapshotRevision": "7532fbe7efa0e5f2abb7f21080742ffb57ae85d1c2bfe129d54fc28b695523be",
       "relation": "equivalent",
       "family": "luciernagas"
+    },
+    {
+      "id": "luciernagas_simples_premium",
+      "revision": "4372d211c3d7b7fd",
+      "integratedId": "luciernagas_simples_premium",
+      "integratedRevision": "4372d211c3d7b7fd",
+      "snapshotRevision": "fdd4d45acc5cb1a2b00364f7376ff80c57cbeee5ebeeab998c65fedf5cb73b44",
+      "relation": "integrated",
+      "family": "luciernagas_simples_premium"
     },
     {
       "id": "luciernagas_transparente",
@@ -1075,6 +1228,24 @@
       "family": "nebulosa_viva"
     },
     {
+      "id": "nieve_premium",
+      "revision": "0a36c85a4f36fb1e",
+      "integratedId": "nieve_premium",
+      "integratedRevision": "0a36c85a4f36fb1e",
+      "snapshotRevision": "e4923548ee5ef79ef76a9acbfc1332ff2c9c89df25e83573a61212664336f006",
+      "relation": "integrated",
+      "family": "nieve_premium"
+    },
+    {
+      "id": "nubes_azules",
+      "revision": "a9dc03e10c936041",
+      "integratedId": "nubes_azules",
+      "integratedRevision": "a9dc03e10c936041",
+      "snapshotRevision": "21222855567ea4b71ac608e3428e2aeba2eac09e86779bf6ca0eb66a3fc8a46a",
+      "relation": "integrated",
+      "family": "nubes_azules"
+    },
+    {
       "id": "nucleo_cristal",
       "revision": "da0d4cb067c26c74",
       "integratedId": "nucleo_cristal_transparente",
@@ -1156,6 +1327,24 @@
       "family": "pantalla_led"
     },
     {
+      "id": "particulas_fuego",
+      "revision": "b1aea255ebc42e19",
+      "integratedId": "particulas_fuego",
+      "integratedRevision": "b1aea255ebc42e19",
+      "snapshotRevision": "ba799807195033c6bc9644a35464cc1d063cd5c24bdf664d39731abf8bb99a43",
+      "relation": "integrated",
+      "family": "particulas_fuego"
+    },
+    {
+      "id": "particulas_viento_premium",
+      "revision": "1a5cf90fe323b69b",
+      "integratedId": "particulas_viento_premium",
+      "integratedRevision": "1a5cf90fe323b69b",
+      "snapshotRevision": "e88cf9aa729b351b2af1df514d0f50ba50190c8e47764b7b83abc3ff04c7605e",
+      "relation": "integrated",
+      "family": "particulas_viento_premium"
+    },
+    {
       "id": "pasillo_geometrico",
       "revision": "36bf92905db78eff",
       "integratedId": "pasillo_geometrico_transparente",
@@ -1192,6 +1381,15 @@
       "family": "pelicula_iridiscente"
     },
     {
+      "id": "pixeles_premium",
+      "revision": "d7840772b8997e2e",
+      "integratedId": "pixeles_premium",
+      "integratedRevision": "d7840772b8997e2e",
+      "snapshotRevision": "b1867c9e35d9f65c1dad4fdea6882dafe79fa9c93e59ff5a87290fee0fa6dc39",
+      "relation": "integrated",
+      "family": "pixeles_premium"
+    },
+    {
       "id": "plasma_scene",
       "revision": "37ed6df326d85b69",
       "integratedId": "plasma_scene_transparente",
@@ -1217,6 +1415,15 @@
       "snapshotRevision": "1ab617988a8ddcfa13c80c7e7cc790ba9d3c044758b231b059e37ce263cbdbb9",
       "relation": "integrated",
       "family": "plasma_scene"
+    },
+    {
+      "id": "polvo_flotante_premium",
+      "revision": "133eeeffbab64f78",
+      "integratedId": "polvo_flotante_premium",
+      "integratedRevision": "133eeeffbab64f78",
+      "snapshotRevision": "733c618e549c878f7f092dd6553f6e18e2d950d75523b9c426a6e4ae4b715735",
+      "relation": "integrated",
+      "family": "polvo_flotante_premium"
     },
     {
       "id": "pop_art",
@@ -1253,6 +1460,141 @@
       "snapshotRevision": "2569c95af9d6f886e403c227e939a2c3c59e5db1521a779de7723f3bb1f6cd67",
       "relation": "integrated",
       "family": "reaccion_bz"
+    },
+    {
+      "id": "reactiva_mejorada_banda_obturador",
+      "revision": "f189debcbf7ab622",
+      "integratedId": "reactiva_mejorada_banda_obturador",
+      "integratedRevision": "f189debcbf7ab622",
+      "snapshotRevision": "464bd6255c20d950e815de62101dc00756adb4bc5013a98df2093974ab72db12",
+      "relation": "integrated",
+      "family": "reactiva_mejorada_banda_obturador"
+    },
+    {
+      "id": "reactiva_mejorada_borde_luz",
+      "revision": "e480c55821d70a53",
+      "integratedId": "reactiva_mejorada_borde_luz",
+      "integratedRevision": "e480c55821d70a53",
+      "snapshotRevision": "37fd5330800e58a7d0b0bcc1bef4634dd3950a076cebe6183d22edc045ad06be",
+      "relation": "integrated",
+      "family": "reactiva_mejorada_borde_luz"
+    },
+    {
+      "id": "reactiva_mejorada_carrera_neon_rechazo_critica",
+      "revision": "782d11b609594d05",
+      "integratedId": "reactiva_mejorada_carrera_neon_rechazo_critica",
+      "integratedRevision": "782d11b609594d05",
+      "snapshotRevision": "26536a47976d97c5633e8c9ccc981161f0c5443bf8fa62dfbfc100838c344c81",
+      "relation": "integrated",
+      "family": "reactiva_mejorada_carrera_neon_rechazo_critica"
+    },
+    {
+      "id": "reactiva_mejorada_cegadoras_cadena_usuario",
+      "revision": "6ea9d8bc68332dc7",
+      "integratedId": "reactiva_mejorada_cegadoras_cadena_usuario",
+      "integratedRevision": "6ea9d8bc68332dc7",
+      "snapshotRevision": "fb5f161174f246ad1d9a0fefd2d28c3be7420daca7a002c50a5ed64dbe677ddb",
+      "relation": "integrated",
+      "family": "reactiva_mejorada_cegadoras_cadena_usuario"
+    },
+    {
+      "id": "reactiva_mejorada_celuloide_quemado",
+      "revision": "60fa1dafd14258b6",
+      "integratedId": "reactiva_mejorada_celuloide_quemado",
+      "integratedRevision": "60fa1dafd14258b6",
+      "snapshotRevision": "6089ab997eb856538fb7efd7338f348ee49488dd52ec45800dce7b80e7dd70a8",
+      "relation": "integrated",
+      "family": "reactiva_mejorada_celuloide_quemado"
+    },
+    {
+      "id": "reactiva_mejorada_destello_drop",
+      "revision": "8a310826b0931465",
+      "integratedId": "reactiva_mejorada_destello_drop",
+      "integratedRevision": "8a310826b0931465",
+      "snapshotRevision": "52c6eb0515f45d9b2c3357bc8413475c4ff9bf525255dc43caa56af29a434ba6",
+      "relation": "integrated",
+      "family": "reactiva_mejorada_destello_drop"
+    },
+    {
+      "id": "reactiva_mejorada_destellos_anamorficos",
+      "revision": "8d7b88b51f34aa41",
+      "integratedId": "reactiva_mejorada_destellos_anamorficos",
+      "integratedRevision": "8d7b88b51f34aa41",
+      "snapshotRevision": "2a6a867c31131c3c87f9b3f19fd3ad13b8ae74eb38721a17a9e284191439e03f",
+      "relation": "integrated",
+      "family": "reactiva_mejorada_destellos_anamorficos"
+    },
+    {
+      "id": "reactiva_mejorada_estrobo_entrada",
+      "revision": "5db0addf184bd093",
+      "integratedId": "reactiva_mejorada_estrobo_entrada",
+      "integratedRevision": "5db0addf184bd093",
+      "snapshotRevision": "518baa89d054f28889e9fd281e48964bf1735b5b7165e317aa2a09be9c40c8a7",
+      "relation": "integrated",
+      "family": "reactiva_mejorada_estrobo_entrada"
+    },
+    {
+      "id": "reactiva_mejorada_fisura_dimensional_rechazo_critica",
+      "revision": "4df19163e3a8ae57",
+      "integratedId": "reactiva_mejorada_fisura_dimensional_rechazo_critica",
+      "integratedRevision": "4df19163e3a8ae57",
+      "snapshotRevision": "f015313c0958e1774467cbb00aa93a91ea53052f2d81917b3fc6a2d9e714d85e",
+      "relation": "integrated",
+      "family": "reactiva_mejorada_fisura_dimensional_rechazo_critica"
+    },
+    {
+      "id": "reactiva_mejorada_flash_palmada",
+      "revision": "d38a4b017fdbf9f0",
+      "integratedId": "reactiva_mejorada_flash_palmada",
+      "integratedRevision": "d38a4b017fdbf9f0",
+      "snapshotRevision": "6ec5769712e71e86e3dc482880309d06b8dac5bd49a47577cd309280f69359d9",
+      "relation": "integrated",
+      "family": "reactiva_mejorada_flash_palmada"
+    },
+    {
+      "id": "reactiva_mejorada_fotograma_impacto",
+      "revision": "6bd314c676af67df",
+      "integratedId": "reactiva_mejorada_fotograma_impacto",
+      "integratedRevision": "6bd314c676af67df",
+      "snapshotRevision": "172bc1bbc99b86b2144911efdacac09b826d728087b124b67d3c37eb6bf7e20d",
+      "relation": "integrated",
+      "family": "reactiva_mejorada_fotograma_impacto"
+    },
+    {
+      "id": "reactiva_mejorada_fuga_carrete",
+      "revision": "096b0f3e2aeb4556",
+      "integratedId": "reactiva_mejorada_fuga_carrete",
+      "integratedRevision": "096b0f3e2aeb4556",
+      "snapshotRevision": "aff8e2c2606de3e654ebe137e7175b1dd7e1c45def6190d37325b541fd3db62d",
+      "relation": "integrated",
+      "family": "reactiva_mejorada_fuga_carrete"
+    },
+    {
+      "id": "reactiva_mejorada_relampago_campo",
+      "revision": "e53b4ce8dde5afa1",
+      "integratedId": "reactiva_mejorada_relampago_campo",
+      "integratedRevision": "e53b4ce8dde5afa1",
+      "snapshotRevision": "ba9bb0e60aab5b2108e7ffbd8c67f6d075e60b480d7a3867d8709171ee8d591c",
+      "relation": "integrated",
+      "family": "reactiva_mejorada_relampago_campo"
+    },
+    {
+      "id": "reactiva_mejorada_tajo_luz_rechazo_critica",
+      "revision": "e46e41fea5a1fd37",
+      "integratedId": "reactiva_mejorada_tajo_luz_rechazo_critica",
+      "integratedRevision": "e46e41fea5a1fd37",
+      "snapshotRevision": "6717fe704de71fc5bde7b4a8c021fd8f5dce6011c1f6c61bd27aa61f1c5d4d53",
+      "relation": "integrated",
+      "family": "reactiva_mejorada_tajo_luz_rechazo_critica"
+    },
+    {
+      "id": "reactiva_mejorada_trazo_luz",
+      "revision": "5c192ebcd8ca9d88",
+      "integratedId": "reactiva_mejorada_trazo_luz",
+      "integratedRevision": "5c192ebcd8ca9d88",
+      "snapshotRevision": "e128fdc0e1fd9f08d5e1a7f713741ae9126dac8a6ad2dce24cf76456cfcb959e",
+      "relation": "integrated",
+      "family": "reactiva_mejorada_trazo_luz"
     },
     {
       "id": "rorschach_rayos_x",
@@ -1535,9 +1877,9 @@
     }
   ],
   "counts": {
-    "integratedSnapshots": 104,
+    "integratedSnapshots": 142,
     "equivalentVariants": 66,
-    "currentAccepted": 166,
-    "currentEvaluation": 124
+    "currentAccepted": 204,
+    "currentEvaluation": 322
   }
 }

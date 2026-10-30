@@ -37,6 +37,13 @@ float/vec2/vec3/vec4 y sampler2D. Las coordenadas son píxeles locales, las imá
 se enlazan por clave y el material devuelve RGBA premultiplicado. No hay acceso
 al fotograma anterior ni compute shaders.
 
+Los materiales también deben cargar en Metal real: el número de bindings de
+uniforms puede exceder el límite aunque el número de floats sea válido. Para
+listas de puntos consecutivos, empaquetar dos `vec2` en un `vec4` conserva el
+orden de floats y permite recuperar los puntos con `.xy` y `.zw`. La corrección
+de `reactiva_mejorada_trazo_luz.dart` usa esta disposición sin cambiar su C++
+ni las fórmulas del material.
+
 `const metadata = CreatorVisualMetadata(...)` vive en el compañero. Los visuales
 anteriores con `shaderSource` y `paintVisual` siguen funcionando. Se aceptan
 hasta 100000 pares (el catálogo generado, hasta 256 MB) y `_metadata.dart`
@@ -560,7 +567,11 @@ el candidato con Metal en la Mac. Requiere macOS, Xcode y el Dart de Flutter.
 Los programas C++ pasan también ASan/UBSan y replay determinista en proceso
 separado. Para escenas con estado se comparan historias equivalentes con música,
 sin música y con reacción apagada desde el inicio; no se exige borrar partículas
-al apagarla a mitad de reproducción. Para los shaders anteriores se comparan
+al apagarla a mitad de reproducción. La prueba de escenas envía bombo, caja,
+platillos, pulso y acentos del contrato, y compara varios momentos de tres
+segundos de historia equivalente. Un destello momentáneo no tiene que seguir
+visible en el último cuadro para demostrar reacción; su alpha se comprueba
+en los cuadros activos. Para los shaders anteriores se comparan
 píxeles manteniendo fijo el tiempo: tres instantes y dos
 intensidades sintéticas del contrato real. Comprueba música, silencio, señal no
 disponible y apagado opcional. Un visual `.none` debe conservar la misma imagen;

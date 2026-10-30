@@ -511,6 +511,57 @@ void main() {
   });
   tearDown(() => repo.deleteSync(recursive: true));
 
+  test('a scoped registry contains only the requested existing visuals', () {
+    expect(
+      run(['prepare', '--evidence', evidence.path, '--visuals', 'beta,alpha']),
+      0,
+      reason: err.toString(),
+    );
+    expect((registry()['visuals'] as Map).keys.toSet(), {'alpha', 'beta'});
+    expect(check('alpha', 'nativeReplay')['status'], 'pass');
+    expect(check('beta', 'metalScene')['status'], 'pass');
+    for (final ids in ['alpha,missing', 'alpha,alpha', 'alpha,', '']) {
+      expect(
+        run(['prepare', '--evidence', evidence.path, '--visuals', ids]),
+        isNot(0),
+        reason: ids,
+      );
+    }
+  });
+
+  test('checks of a smaller selection cannot certify a larger registry', () {
+    final meta = File('${evidence.path}/checks/checks.meta.json');
+    final value = jsonDecode(meta.readAsStringSync()) as Map<String, dynamic>;
+    value['visualIds'] = ['alpha'];
+    meta.writeAsStringSync(jsonEncode(value));
+    expect(
+      run(['prepare', '--evidence', evidence.path, '--visuals', 'alpha']),
+      0,
+      reason: err.toString(),
+    );
+    expect(run(['prepare', '--evidence', evidence.path]), isNot(0));
+    expect(err.toString(), contains('no cubren todos los visuales'));
+  });
+
+  test('the harness identity includes the compiled source alignment helpers', () {
+    final presentation = File(
+      '${repo.path}/packages/scene_compositor/ios/Classes/Runtime/PictureInPictureHandler.swift',
+    );
+    final hashes = <String>[];
+    for (final version in [1, 2]) {
+      presentation.writeAsStringSync(
+        'struct SceneMediaSourceAlignment: Equatable { let fixture = $version }\n'
+        'final class SceneSurfaceSignalDeadline {}\n',
+      );
+      writeChecks();
+      expect(run(['prepare', '--evidence', evidence.path]), 0);
+      hashes.add(
+        (registry()['engine'] as Map)['creatorPathRuntimeHash'] as String,
+      );
+    }
+    expect(hashes.first, isNot(hashes.last));
+  });
+
   test(
     'every check is parsed per visual and nothing is verified without a device card',
     () {

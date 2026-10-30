@@ -382,30 +382,19 @@ const shaderSources = <String, String>{
 uniform vec2 uSize;
 uniform vec2 uOffset;
 uniform float uPx;
-uniform vec2 uP0;
-uniform vec2 uP1;
-uniform vec2 uP2;
-uniform vec2 uP3;
-uniform vec2 uP4;
-uniform vec2 uP5;
-uniform vec2 uP6;
-uniform vec2 uP7;
-uniform vec2 uP8;
-uniform vec2 uP9;
-uniform vec2 uP10;
-uniform vec2 uP11;
-uniform vec2 uP12;
-uniform vec2 uP13;
-uniform vec2 uP14;
-uniform vec2 uP15;
-uniform vec2 uP16;
-uniform vec2 uP17;
-uniform vec2 uP18;
-uniform vec2 uP19;
-uniform vec2 uP20;
-uniform vec2 uP21;
-uniform vec2 uP22;
-uniform vec2 uP23;
+// Two consecutive points share one binding. Their float order is unchanged.
+uniform vec4 uPair0;
+uniform vec4 uPair1;
+uniform vec4 uPair2;
+uniform vec4 uPair3;
+uniform vec4 uPair4;
+uniform vec4 uPair5;
+uniform vec4 uPair6;
+uniform vec4 uPair7;
+uniform vec4 uPair8;
+uniform vec4 uPair9;
+uniform vec4 uPair10;
+uniform vec4 uPair11;
 uniform float uLen;
 uniform float uNib;
 uniform float uHead;
@@ -438,6 +427,18 @@ void seg(vec2 q, vec2 a, vec2 b, float i, inout float d, inout float s, inout fl
 }
 
 void main() {
+  vec2 uP0 = uPair0.xy, uP1 = uPair0.zw;
+  vec2 uP2 = uPair1.xy, uP3 = uPair1.zw;
+  vec2 uP4 = uPair2.xy, uP5 = uPair2.zw;
+  vec2 uP6 = uPair3.xy, uP7 = uPair3.zw;
+  vec2 uP8 = uPair4.xy, uP9 = uPair4.zw;
+  vec2 uP10 = uPair5.xy, uP11 = uPair5.zw;
+  vec2 uP12 = uPair6.xy, uP13 = uPair6.zw;
+  vec2 uP14 = uPair7.xy, uP15 = uPair7.zw;
+  vec2 uP16 = uPair8.xy, uP17 = uPair8.zw;
+  vec2 uP18 = uPair9.xy, uP19 = uPair9.zw;
+  vec2 uP20 = uPair10.xy, uP21 = uPair10.zw;
+  vec2 uP22 = uPair11.xy, uP23 = uPair11.zw;
   vec2 q = (FlutterFragCoord().xy + uOffset) / uPx;
   float d = 0.0;
   float s = 0.0;

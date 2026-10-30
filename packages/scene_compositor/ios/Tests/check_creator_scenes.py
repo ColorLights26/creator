@@ -34,9 +34,17 @@ def main():
         if not allocator:
             raise RuntimeError('Production allocator not found')
         (tmp/'Allocator.swift').write_text('import Foundation\nimport Metal\n'+allocator.group())
+        # Descriptor validation shares the source-crop parser with PiP. Compile
+        # its real platform-independent types without importing the iOS host.
+        presentation = (runtime/'PictureInPictureHandler.swift').read_text()
+        start = presentation.index('struct SceneMediaSourceAlignment: Equatable {')
+        end = presentation.index('final class SceneSurfaceSignalDeadline {', start)
+        (tmp/'SourceAlignment.swift').write_text(
+            'import Foundation\nimport CoreImage\nimport QuartzCore\n'+presentation[start:end])
         executable = str(tmp/'scene-tests')
         run(['xcrun','swiftc','-O','-I',str(tmp),'-L',str(tmp),'-lscene_program_native',
              '-Xlinker','-rpath','-Xlinker',str(tmp),'-o',executable,str(tmp/'Allocator.swift'),
+             str(tmp/'SourceAlignment.swift'),
              *map(str,sorted(runtime.glob('SceneCatalog*.swift'))),str(runtime/'SceneRenderSignalFrameV2.swift'),
              str(package/'ios/Tests/creator_scene_tests.swift')],timeout=120)
         run([executable,str(Path(args.catalog).resolve()),str(Path(args.output).resolve())],timeout=120 + 10 * scenes)

@@ -9,6 +9,7 @@ import 'package:crypto/crypto.dart';
 import 'package:scene_compositor/authoring.dart';
 import 'package:scene_compositor/creator_build_manifest.dart';
 import 'package:scene_compositor/creator_device_card_evidence.dart';
+import 'package:scene_compositor/native_compiler.dart';
 
 /// Registro técnico de candidatos del catálogo Creator.
 ///
@@ -101,6 +102,9 @@ Uso (desde studio/):
       [--harness-rounds <jsonl>:<catálogo.json>:<raíz del runtime>[,…]]
       [--device-cards <json>] [--energy-contract <scene_energy_budget_v1.json>]
       [--authors-from-git]
+      [--visuals <id,id,…>]
+  --visuals genera un registro sólo de esos candidatos y ejecuta los mismos
+    controles sobre ellos. No reutiliza pruebas de una selección menor.
   Sin --device-cards usa readiness/device_cards.json si existe (lo escribe
     cards import). Cada ficha se vuelve a leer de su fila y su log (hash
     comprobado) para esta identidad técnica, el contrato registrado, el
@@ -203,6 +207,7 @@ int runReadiness(List<String> arguments, {StringSink? out, StringSink? err}) {
           '--energy-contract',
           '--authors-from-git',
           '--studio',
+          '--visuals',
         });
         final evidence = args.option('--evidence');
         if (evidence == null)
@@ -216,6 +221,7 @@ int runReadiness(List<String> arguments, {StringSink? out, StringSink? err}) {
           energyContract: args.option('--energy-contract'),
           authorsFromGit: args.flag('--authors-from-git'),
           studio: args.option('--studio'),
+          visualIds: args.option('--visuals'),
         );
       case 'links':
         return _links(tool, args);
@@ -908,8 +914,8 @@ class ReadinessTool {
 
   /// What the harness and the Metal scene checks actually compile:
   /// `SceneCatalog*.swift`, the signal frame and the production output
-  /// allocator. A measurement from another checkout is valid only when this
-  /// hash and the program hash both match.
+  /// allocator and source alignment helpers. A measurement from another
+  /// checkout is valid only when this hash and the program hash both match.
   static final _allocatorPattern = RegExp(
     r'@available\(iOS 15\.0, \*\)\n(?:private )?final class SceneSurfaceNativeOutputAllocator \{.*?^\}',
     multiLine: true,
@@ -949,6 +955,17 @@ class ReadinessTool {
     buffer.writeln(
       allocator == null ? 'allocator:none' : _sha256Text(allocator),
     );
+    final presentation = File('${runtime.path}/PictureInPictureHandler.swift');
+    final alignment =
+        presentation.existsSync()
+            ? RegExp(
+              r'struct SceneMediaSourceAlignment: Equatable \{.*?(?=final class SceneSurfaceSignalDeadline \{)',
+              dotAll: true,
+            ).firstMatch(presentation.readAsStringSync())?.group(0)
+            : null;
+    buffer.writeln(
+      alignment == null ? 'alignment:none' : _sha256Text(alignment),
+    );
     return _sha256Text(buffer.toString()).substring(0, 16);
   }
 
@@ -981,15 +998,78 @@ class ReadinessTool {
     'shaders': 'check_creator_catalog.log',
   };
 
-  void _runChecks(Directory checks, String buildHash) {
+  void _runChecks(
+    Directory checks,
+    String buildHash,
+    List<CreatorVisualDefinition> visuals, {
+    required bool scoped,
+  }) {
     checks.createSync(recursive: true);
-    final generated = '${_repo.path}/studio/build/creator_native';
+    var generated = '${_repo.path}/studio/build/creator_native';
+    var catalogJson = '${catalog.path}/assets/creator_catalog.json';
+    if (scoped) {
+      generated = '${checks.path}/scoped_native';
+      final lockFile = File('${_repo.path}/studio/build/creator_prepare.lock');
+      lockFile.parent.createSync(recursive: true);
+      final lock = lockFile.openSync(mode: FileMode.append);
+      late Map<String, Object> prepared;
+      try {
+        out.writeln(
+          'Preparando el registro aislado (${visuals.length} visuales).',
+        );
+        lock.lockSync(FileLock.blockingExclusive);
+        prepared = prepareCreatorNative(
+          host: _host(),
+          catalog: catalog,
+          visuals: visuals,
+          outputDirectory: Directory(generated),
+        );
+      } finally {
+        lock.unlockSync();
+        lock.closeSync();
+      }
+      final members = (prepared['visuals'] as List).cast<Map>();
+      for (final visual in visuals.where((v) => v.isNative)) {
+        final member = members.singleWhere((v) => v['id'] == visual.id);
+        if (canonicalJson(member['nativeBuild']) !=
+            canonicalJson(visual.nativeBuild)) {
+          throw _ToolError(
+            '${visual.id}: la preparación aislada produjo otro programa; '
+            'regenera el catálogo antes de medir o certificar.',
+          );
+        }
+      }
+      final scopedCatalog = Directory('${checks.path}/scoped_catalog');
+      catalogJson = '${scopedCatalog.path}/assets/creator_catalog.json';
+      _writeText(File(catalogJson), jsonEncode(prepared));
+      for (final visual in visuals) {
+        final paths = <String>{...visual.images.values};
+        final materials = visual.nativeBuild['materials'];
+        if (materials is Map) {
+          for (final material in materials.values.whereType<Map>()) {
+            final asset = material['asset'];
+            if (asset is String) {
+              const prefix = 'packages/visual_catalog/';
+              if (!asset.startsWith(prefix)) {
+                throw _ToolError('${visual.id}: recurso fuera del catálogo.');
+              }
+              paths.add(asset.substring(prefix.length));
+            }
+          }
+        }
+        for (final path in paths) {
+          writeCreatorFile(
+            File('${scopedCatalog.path}/$path'),
+            File('${catalog.path}/$path').readAsBytesSync(),
+          );
+        }
+      }
+    }
     if (!File('$generated/creator_programs.inc').existsSync()) {
       throw const _ToolError(
         'Falta studio/build/creator_native: ejecuta dart run tool/compile_visuals.dart.',
       );
     }
-    final catalogJson = '${catalog.path}/assets/creator_catalog.json';
     final commands = <String, List<String>>{
       'native': [
         'python3',
@@ -1044,6 +1124,12 @@ class ReadinessTool {
       _encode({
         'catalogSha256': _catalogSha(),
         'buildHash': buildHash,
+        'visualIds': [for (final visual in visuals) visual.id]..sort(),
+        if (scoped)
+          'scopedCatalog': {
+            'file': catalogJson,
+            'sha256': _sha256(File(catalogJson).readAsBytesSync()),
+          },
         'catalogCommit': _catalogCommit(),
         'startedAt': started.toIso8601String(),
         'finishedAt': DateTime.now().toUtc().toIso8601String(),
@@ -2174,8 +2260,23 @@ class ReadinessTool {
     String? energyContract,
     required bool authorsFromGit,
     String? studio,
+    String? visualIds,
   }) {
-    final visuals = _definitions();
+    final allVisuals = _definitions();
+    final requested = visualIds?.split(',').map((id) => id.trim()).toList();
+    if (requested != null &&
+        (requested.isEmpty ||
+            requested.any((id) => id.isEmpty) ||
+            requested.toSet().length != requested.length ||
+            requested.any((id) => !allVisuals.any((v) => v.id == id)))) {
+      throw const _ToolError(
+        '--visuals exige IDs existentes, sin vacíos ni repetidos.',
+      );
+    }
+    final visuals = [
+      for (final visual in allVisuals)
+        if (requested == null || requested.contains(visual.id)) visual,
+    ];
     final (contract, contractStamp) = _resolveContract(energyContract);
     final engine = _engine(visuals);
     final buildHash = engine['buildHash'] as String;
@@ -2199,7 +2300,7 @@ class ReadinessTool {
       if (!runChecks) {
         out.writeln('No hay pruebas en ${checksDir.path}: se ejecutan ahora.');
       }
-      _runChecks(checksDir, buildHash);
+      _runChecks(checksDir, buildHash, visuals, scoped: requested != null);
     }
     final checksMeta = _readJsonObject(metaFile, 'la ficha de las pruebas');
     if (checksMeta['catalogSha256'] != catalogSha) {
@@ -2214,6 +2315,15 @@ class ReadinessTool {
       throw _ToolError(
         'Las pruebas de ${checksDir.path} son de otro motor '
         '(manifiesto ${checksMeta['buildHash'] ?? 'sin registrar'} ≠ $buildHash). Repite con --run-checks.',
+      );
+    }
+    final checkedIds = checksMeta['visualIds'];
+    if (checkedIds != null &&
+        (checkedIds is! List ||
+            !visuals.every((v) => checkedIds.contains(v.id)))) {
+      throw const _ToolError(
+        'Las pruebas no cubren todos los visuales solicitados. '
+        'Repite con --run-checks y la selección completa.',
       );
     }
     if (harness != null) _runHarness(Directory(harness), evidence);

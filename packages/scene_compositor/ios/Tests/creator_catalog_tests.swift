@@ -6,6 +6,7 @@ import Metal
 enum CreatorCatalogTests {
   static func main() throws {
     checkVectorGeometry()
+    try checkVectorPacking()
     if CommandLine.arguments.count >= 2 {
       try smokeAuthoredCatalog(path: CommandLine.arguments[1])
       return
@@ -347,6 +348,56 @@ enum CreatorCatalogTests {
       }
     }
     print("PASS vector point storage: allocation growth and reuse preserve dense contours")
+  }
+
+  // Every atlas page must fit the smallest Metal bound (the Simulator's 8192).
+  // A row that wrapped and then moved to the next page used to add its 4 px
+  // gutter to the full page, which rounding lifted to 8320 and Metal aborted.
+  static func checkVectorPacking() throws {
+    let limit = SceneCatalogVectorRenderer.maximumTextureDimension
+    let full = try SceneCatalogVectorRenderer.shelfLayout(
+      [SIMD2(1413, 4000), SIMD2(1413, 4182), SIMD2(1413, 10)], pageLimit: limit)
+    precondition(full.pages == [SIMD2(1536, 8192), SIMD2(1536, 128)], "A full page closed past its last row")
+    precondition(full.placements.map { $0.page } == [0, 0, 1] && full.placements.map { $0.origin } ==
+      [SIMD2(2, 4188), SIMD2(2, 2), SIMD2(2, 2)], "Packing moved a placement")
+    let largest = try SceneCatalogVectorRenderer.shelfLayout([SIMD2(limit - 4, limit - 4)], pageLimit: 1024)
+    precondition(largest.pages == [SIMD2(limit, limit)], "The largest admitted tile changed page")
+    for oversized in [SIMD2(limit - 3, 1), SIMD2(1, limit - 3)] {
+      do {
+        _ = try SceneCatalogVectorRenderer.shelfLayout([SIMD2(8, 8), oversized], pageLimit: limit)
+        preconditionFailure("A tile beyond the Metal bound was packed")
+      } catch {
+        precondition(error.localizedDescription == "vector_tile_dimension", "Unexpected failure \(error)")
+      }
+    }
+    var state: UInt64 = 0x5eed_8320
+    func next(_ range: ClosedRange<Int>) -> Int {
+      state = state &* 6364136223846793005 &+ 1442695040888963407
+      return range.lowerBound + Int((state >> 33) % UInt64(range.count))
+    }
+    var pageCount = 0
+    for layout in 0..<400 {
+      let pageLimit = layout % 2 == 0 ? limit : 1024
+      let sizes = (0..<next(1...160)).map { _ -> SIMD2<Int> in
+        next(0...19) == 0 ? SIMD2(next(1...(limit - 4)), next(1...(limit - 4))) : SIMD2(next(1...1500), next(1...900))
+      }
+      let packed = try SceneCatalogVectorRenderer.shelfLayout(sizes, pageLimit: pageLimit)
+      precondition(packed.placements.count == sizes.count && packed.pages.allSatisfy {
+        $0.x <= limit && $0.y <= limit }, "An atlas page exceeded the Metal bound")
+      pageCount += packed.pages.count
+      var occupied = [[SIMD4<Int>]](repeating: [], count: packed.pages.count)
+      for (size, placement) in zip(sizes, packed.placements) {
+        let page = packed.pages[placement.page], origin = placement.origin
+        precondition(origin.x >= 2 && origin.y >= 2 && origin.x + size.x + 2 <= page.x &&
+          origin.y + size.y + 2 <= page.y, "A tile left its page border")
+        // Borders of 2 px around each tile keep linear sampling inside it.
+        let cell = SIMD4(origin.x - 2, origin.y - 2, origin.x + size.x + 2, origin.y + size.y + 2)
+        precondition(occupied[placement.page].allSatisfy {
+          cell.x >= $0.z || $0.x >= cell.z || cell.y >= $0.w || $0.y >= cell.w }, "Atlas tiles overlap")
+        occupied[placement.page].append(cell)
+      }
+    }
+    print("PASS vector packing: page closes at its last row; 400 random layouts, \(pageCount) pages within \(limit) px")
   }
 
   static func referenceTriangles(path: CGPath, tolerance: Double) -> [SIMD2<Float>] {
