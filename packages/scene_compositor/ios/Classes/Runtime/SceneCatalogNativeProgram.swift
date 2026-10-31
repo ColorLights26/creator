@@ -220,7 +220,7 @@ struct SceneCatalogNativeDescriptor {
         "programId", "audioReactive", "mode", "options", "effect", "seed",
       ])), let program = parameters["programId"] as? String,
       (SceneCatalogShaderSources.programs[program] != nil || SceneCreatorCatalog.program(program) != nil ||
-        ["magic_clouds", "neon_club", "aurora_spectrum", "liquid_lava_lamp", "blue_sky"].contains(program)),
+        ["magic_clouds", "neon_club", "aurora_spectrum", "liquid_lava_lamp", "blue_sky", "audiolizer_chroma_strip"].contains(program)),
       ["neon_club", "aurora_spectrum", "liquid_lava_lamp", "blue_sky"].contains(program) == (nodeType == "effect.catalogVectorProgram"),
       layer["frameRateBinding"] as? String == (program == "blue_sky" ? "staticContent" : "preferred"),
       let reactive = parameters["audioReactive"] as? Bool,
@@ -262,6 +262,8 @@ struct SceneCatalogNativeDescriptor {
       } else {
         guard SceneCreatorShaderState(program: program, options: options, mode: mode, reactive: reactive, seed: seed) != nil else { return nil }
       }
+    } else if program == "audiolizer_chroma_strip" {
+      guard reactive, options.isEmpty, parameters["mode"] == nil, seed == nil || seed == 0 else { return nil }
     } else if program == "magic_clouds" {
       guard options.isEmpty, !reactive else { return nil }
     } else if program == "neon_club" {
@@ -288,6 +290,7 @@ struct SceneCatalogNativeDescriptor {
     switch program {
     case "blue_sky": return 1
     case "magic_clouds": return 20
+    case "audiolizer_chroma_strip": return 30
     case "chladni_resonance", "prismatic_tides", "event_horizon", "chromatic_silk",
          "luminous_matter", "spectral_haze", "prismatic_lens": return 30
     default: return 60
@@ -344,6 +347,7 @@ final class SceneCatalogNativeProgram {
     case aurora(SceneCatalogAuroraState, SceneCatalogAuroraRenderer)
     case lava(SceneCatalogLiquidLavaState, SceneCatalogLiquidLavaRenderer)
     case sky(SceneCatalogBlueSkyControls, SceneCatalogBlueSkyRenderer)
+    case song(SceneCatalogSongStripState, SceneCatalogSongStripRenderer)
   }
   private var descriptor: SceneCatalogNativeDescriptor
   private var source: Source
@@ -355,7 +359,10 @@ final class SceneCatalogNativeProgram {
 
   init?(descriptor: SceneCatalogNativeDescriptor, device: MTLDevice) {
     self.descriptor = descriptor
-    if descriptor.program == "magic_clouds" {
+    if descriptor.program == "audiolizer_chroma_strip" {
+      guard let renderer = try? SceneCatalogSongStripRenderer(device: device) else { return nil }
+      source = .song(SceneCatalogSongStripState(), renderer)
+    } else if descriptor.program == "magic_clouds" {
       guard let renderer = try? SceneCatalogCloudRenderer(device: device) else { return nil }
       source = .clouds(renderer)
     } else if descriptor.program == "neon_club" {
@@ -420,7 +427,15 @@ final class SceneCatalogNativeProgram {
     return nil
   }
   func reportFailure(_ error: Error) { SceneCreatorCatalog.preparationFailed(program: descriptor.program, error: error) }
-  var needsContinuousRendering: Bool { descriptor.program != "blue_sky" }
+  var needsContinuousRendering: Bool {
+    if case .song(let state, _) = source { return state.needsFrames }
+    return descriptor.program != "blue_sky"
+  }
+
+  func updateSongContent(_ content: SceneCatalogSongContent?) -> Bool {
+    if case .song(_, let renderer) = source { return renderer.updateSongContent(content) }
+    return false
+  }
 
   func prepareControlUpdate(parameters: [String: Any]) -> SceneCatalogControlUpdate? {
     guard let next = SceneCatalogNativeDescriptor.parse(parameters),
@@ -456,6 +471,8 @@ final class SceneCatalogNativeProgram {
       }
       guard let state, state.inheritAnimation(from: current) else { return nil }
       replacement = .shader(state, renderer)
+    case .song:
+      replacement = source
     case .clouds:
       replacement = source
     case .vector(let current, let renderer):
@@ -490,6 +507,7 @@ final class SceneCatalogNativeProgram {
     if case .vector(let state, _) = source { return state.consume(frame) }
     if case .aurora(let state, _) = source { return state.consume(frame) }
     if case .lava(let state, _) = source { return state.consume(frame) }
+    if case .song(let state, _) = source { return state.consume(frame) }
     return false
   }
   func setPlaying(_ playing: Bool, hostTime: Double) {
@@ -501,6 +519,7 @@ final class SceneCatalogNativeProgram {
     case .vector(let state, _): state.setPlaying(playing, hostTime: hostTime)
     case .aurora(let state, _): state.setPlaying(playing, hostTime: hostTime)
     case .lava(let state, _): state.setPlaying(playing, hostTime: hostTime)
+    case .song(let state, _): state.setPlaying(playing, hostTime: hostTime)
     case .sky: break
     case .clouds:
       advanceClouds(hostTime: hostTime)
@@ -522,6 +541,10 @@ final class SceneCatalogNativeProgram {
       let values = state.uniforms(size: descriptor.logicalSize, hostTime: hostTime,
         reducedMotion: reducedMotion)
       texture = try renderer.render(program: descriptor.program, uniforms: values,
+        width: Int(target.width), height: Int(target.height), outputAllocator: outputAllocator)
+    case .song(let state, let renderer):
+      texture = try renderer.render(state: state, logicalSize: descriptor.logicalSize,
+        hostTime: hostTime, reducedMotion: reducedMotion,
         width: Int(target.width), height: Int(target.height), outputAllocator: outputAllocator)
     case .clouds(let renderer):
       advanceClouds(hostTime: hostTime)

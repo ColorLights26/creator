@@ -6959,6 +6959,12 @@ private final class PictureInPictureSceneLayerRuntime {
         return changed
     }
 
+    func updateSongContent(_ content: SceneCatalogSongContent?) -> Bool {
+        let changed = nativeProgram?.updateSongContent(content) ?? false
+        if changed { scheduledDynamicSourceRefresh = true }
+        return changed
+    }
+
     func nativeProgramImage(
         targetRect: CGRect,
         hostTime: CFTimeInterval
@@ -12749,6 +12755,15 @@ private final class SceneSurfaceDocumentRuntime {
         return changed
     }
 
+    @discardableResult
+    func updateSongContent(_ content: SceneCatalogSongContent?) -> Bool {
+        var changed = false
+        for layer in layers {
+            if layer.updateSongContent(content) { changed = true }
+        }
+        return changed
+    }
+
     func resetEffects() {
         layers.forEach { $0.resetEffects() }
     }
@@ -13443,7 +13458,11 @@ final class SceneSurfaceRenderEngine: NSObject {
         let id: String
         let texture: SceneSurfaceFlutterTexture
         let textureId: Int64
-        var document: SceneSurfaceDocumentRuntime
+        var document: SceneSurfaceDocumentRuntime {
+            didSet { document.updateSongContent(songContent) }
+        }
+        var songContent: SceneCatalogSongContent?
+        var songContentRevision: Int64 = 0
         var sceneId: String
         var width: Int
         var height: Int
@@ -13874,6 +13893,8 @@ final class SceneSurfaceRenderEngine: NSObject {
                 self.updateAudioFrame(arguments: call.arguments, result: result)
             case "updateSignalFrame":
                 self.updateSignalFrame(arguments: call.arguments, result: result)
+            case "updateSongContent":
+                self.updateSongContent(arguments: call.arguments, result: result)
             case "activeSurfaceForScene":
                 self.activeSurfaceForScene(
                     arguments: call.arguments,
@@ -14783,6 +14804,44 @@ final class SceneSurfaceRenderEngine: NSObject {
                session.document.isAudioReactive,
                !session.document.needsContinuousRendering(frame: frame) {
                 self.scheduleEventRender(session)
+            }
+            DispatchQueue.main.async { result(nil) }
+        }
+    }
+
+    private func updateSongContent(arguments: Any?, result: @escaping FlutterResult) {
+        guard let arguments = arguments as? [String: Any],
+              Set(arguments.keys) == ["sessionId", "revision", "content"],
+              let sessionID = Self.nonEmpty(arguments["sessionId"]),
+              let revision = arguments["revision"] as? NSNumber,
+              CFGetTypeID(revision) != CFBooleanGetTypeID(),
+              revision.doubleValue.isFinite, revision.doubleValue.rounded() == revision.doubleValue,
+              (1...9_007_199_254_740_991).contains(revision.int64Value)
+        else { result(Self.error("song_content_invalid", "Invalid session content.")); return }
+        let content: SceneCatalogSongContent?
+        if arguments["content"] is NSNull { content = nil }
+        else {
+            guard var raw = arguments["content"] as? [String: Any] else {
+                result(Self.error("song_content_invalid", "Invalid song content.")); return
+            }
+            if let typed = raw["artworkBytes"] as? FlutterStandardTypedData { raw["artworkBytes"] = typed.data }
+            guard let parsed = SceneCatalogSongContent.parse(raw) else {
+                result(Self.error("song_content_invalid", "Invalid bounded song content.")); return
+            }
+            content = parsed
+        }
+        renderQueue.async { [weak self] in
+            guard let self, let session = self.sessions[sessionID] else {
+                DispatchQueue.main.async { result(Self.error("session_not_found", "The scene session is not attached.")) }
+                return
+            }
+            if revision.int64Value > session.songContentRevision {
+                session.songContentRevision = revision.int64Value
+                session.songContent = content
+                if session.document.updateSongContent(content) {
+                    session.audioRevision &+= 1
+                    self.scheduleEventRender(session)
+                }
             }
             DispatchQueue.main.async { result(nil) }
         }

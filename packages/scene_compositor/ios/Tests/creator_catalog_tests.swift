@@ -1,10 +1,12 @@
 import Foundation
 import CoreGraphics
 import Metal
+import ImageIO
 
 @main
 enum CreatorCatalogTests {
   static func main() throws {
+    try checkSongStrip()
     checkVectorGeometry()
     checkStrokeMesh()
     try checkVectorPacking()
@@ -258,6 +260,138 @@ enum CreatorCatalogTests {
   /// The triangle mesh of a round polyline stroke covers what the Core
   /// Graphics outline covered: per device pixel at 4x4 samples, edge pixels
   /// may differ by the arc tolerance only.
+  static func songSignal(_ sequence: Int64, beat: Int64, music: Bool = true,
+      mapped: Bool = false, energy: Float = 0.8, phase: Float = 0,
+      positionMicros: Int64? = nil) -> SceneRenderSignalFrameV2 {
+    let event = SceneRenderSignalEventV2(serial: beat, active: music && beat > 0,
+      timestampMicros: sequence * 33333, strength: 0.95, band: .low)
+    let idle = SceneRenderSignalEventV2(serial: 0, active: false, timestampMicros: 0, strength: 0, band: .none)
+    let bins = (0..<31).map { energy * (1 - Float($0) / 30) }
+    return SceneRenderSignalFrameV2(sessionId: mapped ? 3 : 2, sequence: sequence,
+      audioTimestampMicros: positionMicros ?? sequence * 33333, available: true, fresh: true,
+      musicActive: music, tonalAvailable: false,
+      dynamics: [energy,energy,energy,energy,energy,0], channels: [energy,energy,energy,energy],
+      spectrumSummary: [energy,energy,energy,0,0,0,0], instantSpectrum: bins, smoothedSpectrum: bins,
+      semantics: [Float](repeating: 0, count: 6), rhythm: [120,phase,1,1], onsets: [0,0,0,0],
+      tonal: [0,0,0], impact: idle, accent: idle, beat: event, flash: idle)
+  }
+
+  static func checkSongStrip() throws {
+    let content: [String: Any] = ["schemaVersion": 1, "identity": "song", "title": "Song", "artist": "Artist", "accentArgb": 0xff32c9e7]
+    precondition(SceneCatalogSongContent.parse(content) != nil)
+    var bad = content; bad["extra"] = true
+    precondition(SceneCatalogSongContent.parse(bad) == nil)
+    bad = content; bad["schemaVersion"] = true
+    precondition(SceneCatalogSongContent.parse(bad) == nil)
+    bad = content; bad["title"] = String(repeating: "a", count: 513)
+    precondition(SceneCatalogSongContent.parse(bad) == nil)
+    bad = content; bad["artworkBytes"] = Data(count: 2_097_153)
+    precondition(SceneCatalogSongContent.parse(bad) == nil)
+
+    let state = SceneCatalogSongStripState()
+    state.setPlaying(true, hostTime: 0)
+    for i in 0..<10 {
+      _ = state.consume(songSignal(Int64(i), beat: 1))
+      state.advance(hostTime: Double(i + 1) / 30, reducedMotion: false)
+    }
+    precondition(state.pulse == 0 && state.bars[0] > state.bars[44] && state.haloEnergy > 0)
+    _ = state.consume(songSignal(10, beat: 2))
+    state.advance(hostTime: 11.0 / 30, reducedMotion: false)
+    let peak = state.pulse
+    precondition(peak > 0.7)
+    for i in 11..<42 {
+      _ = state.consume(songSignal(Int64(i), beat: 2))
+      state.advance(hostTime: Double(i + 1) / 30, reducedMotion: false)
+    }
+    precondition(state.pulse < peak * 0.2, "A held beat must not retrigger")
+    state.setPlaying(false, hostTime: 1.5)
+    precondition(state.pulse == 0 && state.haloEnergy == 0 && state.bars.allSatisfy { $0 == 0 })
+    state.setPlaying(true, hostTime: 2)
+    _ = state.consume(songSignal(43, beat: 10, mapped: true))
+    state.advance(hostTime: 2.033, reducedMotion: false)
+    _ = state.consume(songSignal(44, beat: 11, mapped: true))
+    state.advance(hostTime: 2.066, reducedMotion: false)
+    precondition(state.pulse > 0.7 && abs(state.bars[0] - state.bars[44]) < 0.00001)
+    state.advance(hostTime: 2.1, reducedMotion: true)
+    precondition(state.haloEnergy == 0 && state.bars.allSatisfy { $0 == 0 })
+
+    let mapped = SceneCatalogSongStripState()
+    mapped.setPlaying(true, hostTime: 0)
+    for (i, phase) in [Float(0.9), 0.98, 0.03].enumerated() {
+      _ = mapped.consume(songSignal(Int64(i), beat: 0, mapped: true, phase: phase))
+      mapped.advance(hostTime: Double(i + 1) / 30, reducedMotion: false)
+      if i < 2 { precondition(mapped.pulse == 0) }
+    }
+    let mappedPeak = mapped.pulse
+    precondition(mappedPeak > 0.7, "Mapped beat phase must pulse without cue events")
+    precondition(abs(mapped.bars[0] - mapped.bars[44]) < 0.00001)
+    for i in 3..<40 {
+      _ = mapped.consume(songSignal(Int64(i), beat: 0, mapped: true, phase: 0.03))
+      mapped.advance(hostTime: Double(i + 1) / 30, reducedMotion: false)
+    }
+    precondition(mapped.pulse < mappedPeak * 0.1, "A held phase must not retrigger")
+    for nextPosition in [Int64(1_000_000), -1] {
+      let seek = SceneCatalogSongStripState()
+      seek.setPlaying(true, hostTime: 0)
+      _ = seek.consume(songSignal(0, beat: 0, mapped: true, phase: 0.98))
+      _ = seek.consume(songSignal(1, beat: 0, mapped: true, phase: 0.03, positionMicros: nextPosition))
+      seek.advance(hostTime: 0.033, reducedMotion: false)
+      precondition(seek.pulse == 0, "Seek discontinuities must not synthesize a beat")
+    }
+
+    guard let device = MTLCreateSystemDefaultDevice() else { fatalError("Metal unavailable for song scene QA") }
+    let renderer = try SceneCatalogSongStripRenderer(device: device)
+    let allocator = SceneSurfaceNativeOutputAllocator(device: device)
+    _ = renderer.updateSongContent(SceneCatalogSongContent.parse(content))
+    for i in 0..<3 {
+      try autoreleasepool {
+        _ = try renderer.render(state: state, logicalSize: CGSize(width: 402, height: 874),
+          hostTime: 3 + Double(i) / 30, reducedMotion: false, width: 402, height: 874, outputAllocator: allocator)
+      }
+    }
+    precondition(renderer.identityRasterCount == 1, "Identity must not rasterize every frame")
+    var changed = content; changed["title"] = "Another song"
+    _ = renderer.updateSongContent(SceneCatalogSongContent.parse(changed))
+    try autoreleasepool {
+      _ = try renderer.render(state: state, logicalSize: CGSize(width: 402, height: 874),
+        hostTime: 3.2, reducedMotion: false, width: 402, height: 874, outputAllocator: allocator)
+    }
+    precondition(renderer.identityRasterCount == 2)
+
+    if let output = ProcessInfo.processInfo.environment["HALO_BEAT_NATIVE_EVIDENCE"] {
+      let directory = URL(fileURLWithPath: output)
+      precondition(!FileManager.default.fileExists(atPath: output), "Never overwrite native QA evidence")
+      try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+      let art = try Data(contentsOf: URL(fileURLWithPath: "/Users/meee/Projects/colorlights26/audiovisuals/assets/audiovisuals/musics/lofi_thumbnail.png"))
+      _ = renderer.updateSongContent(SceneCatalogSongContent(identity: "fixture-lofi", title: "Lofi", artist: "MusicVibe", artwork: art, accent: 0xffdf7d87))
+      let previewState = SceneCatalogSongStripState()
+      previewState.setPlaying(true, hostTime: 0)
+      for i in 0..<180 {
+        try autoreleasepool {
+          let music = i >= 15 && i < 150
+          let tick = max(0, i - 15)
+          let kick = Float(exp(-Double(tick % 15) / 15 * 7))
+          _ = previewState.consume(songSignal(Int64(i), beat: music ? Int64(tick / 15 + 1) : 0,
+            music: music, energy: 0.2 + kick * 0.7))
+          let texture = try renderer.render(state: previewState, logicalSize: CGSize(width: 402, height: 874),
+            hostTime: Double(i) / 30, reducedMotion: false, width: 804, height: 1748, outputAllocator: allocator)
+          let pixels = Data(readPixels(texture: texture, device: device))
+          let provider = CGDataProvider(data: pixels as CFData)!
+          let image = CGImage(width: 804, height: 1748, bitsPerComponent: 8, bitsPerPixel: 32,
+            bytesPerRow: 804 * 4, space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue),
+            provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)!
+          let url = directory.appendingPathComponent(String(format: "frame-%03d.png", i))
+          let destination = CGImageDestinationCreateWithURL(url as CFURL, "public.png" as CFString, 1, nil)!
+          CGImageDestinationAddImage(destination, image, nil)
+          precondition(CGImageDestinationFinalize(destination))
+        }
+        if i % 30 == 0 { print("Native Halo Beat frame \(i + 1)/180") }
+      }
+    }
+    print("PASS song scene schema, authority, pause, Reduce Motion, Metal and identity texture reuse")
+  }
+
   static func checkStrokeMesh() {
     let size = 120, samples = 4
     func coverage(_ fill: (CGContext) -> Void) -> [Int] {

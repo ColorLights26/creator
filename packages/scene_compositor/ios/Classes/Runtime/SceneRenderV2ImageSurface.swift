@@ -1650,6 +1650,7 @@ struct SceneRenderV2EmbeddedScreenLayer {
   let sparkGain: Double
   let attackSeconds: Double
   let releaseSeconds: Double
+  var registeredImage: SceneRegisteredImageConfiguration? = nil
 }
 
 /// Stateful, bounded replay of the embedded-screen visual authority. The
@@ -1657,6 +1658,10 @@ struct SceneRenderV2EmbeddedScreenLayer {
 /// restart while the renderer reduces cost.
 final class SceneRenderV2EmbeddedScreenState {
   let layerID: String
+  var registeredProgram: SceneRegisteredImageProgram?
+  var registeredFrame: SceneRenderSignalFrameV2?
+  var registeredPlaying = false
+  var songContent: SceneCatalogSongContent?
   private(set) var bass = 0.0
   private(set) var body = 0.0
   private(set) var spark = 0.0
@@ -1673,6 +1678,10 @@ final class SceneRenderV2EmbeddedScreenState {
     _ frame: SceneRenderSignalFrameV2,
     layer: SceneRenderV2EmbeddedScreenLayer
   ) -> Bool {
+    if layer.registeredImage != nil {
+      registeredFrame = frame
+      return registeredProgram?.consume(frame) ?? true
+    }
     let previous = [bass, body, spark, flow, level, phaseSeconds]
     let previousSpectrum = spectrum
     if frame.sessionId != signalSessionID {
@@ -5662,6 +5671,15 @@ final class SceneRenderV2ImageSurfaceRuntime {
       })
     }
 
+    func updateSongContent(_ content: SceneCatalogSongContent?) -> Bool {
+      if let embeddedScreen, case .embeddedScreen(let layer) = node, layer.registeredImage != nil {
+        let changed = embeddedScreen.songContent != content
+        embeddedScreen.songContent = content
+        return embeddedScreen.registeredProgram?.updateSongContent(content) ?? changed
+      }
+      return catalogProgram?.updateSongContent(content) ?? false
+    }
+
     var creatorMetrics: [String: Any]? { catalogProgram?.creatorMetrics }
     var usesAuthoredSourceOver: Bool { catalogProgram != nil }
 
@@ -5682,6 +5700,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
     var needsContinuousRendering: Bool {
       guard playing else { return false }
       if let catalogProgram { return catalogProgram.needsContinuousRendering }
+      if let program = embeddedScreen?.registeredProgram { return program.needsFrames }
       if let strobe {
         return strobe.hasClockCadence || strobe.transitionActive || flashAwaitingPublication ||
           flashCleanupAwaitingPublication || flashHideAt != nil
@@ -5746,6 +5765,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
       radiantEmission?.setPlaying(next, hostTime: hostTime)
       rainbowWaterfall?.setPlaying(next, hostTime: hostTime)
       neonPulse?.setPlaying(next, hostTime: hostTime)
+      embeddedScreen?.registeredPlaying = next
+      embeddedScreen?.registeredProgram?.setPlaying(next, hostTime: hostTime)
     }
 
     /// Called by V1 only after the complete composition was published. Failed
@@ -5846,7 +5867,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
           guard let embeddedScreen else { return nil }
           return try Library.renderEmbeddedScreenLayer(graphics: graphics, layer,
             state: embeddedScreen, quality: "best", target: target,
-            outputAllocator: outputAllocator)
+            outputAllocator: outputAllocator, hostTime: hostTime)
         case .waveform(let layer):
           guard let waveform else { return nil }
           return try Library.renderWaveformLayer(graphics: graphics, layer,
@@ -6638,6 +6659,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
           embeddedScreenStates[layer.id] = SceneRenderV2EmbeddedScreenState(
             layerID: layer.id
           )
+          embeddedScreenStates[layer.id]?.registeredPlaying = plan.playing
         } else if case .waveform(let layer) = node {
           waveformStates[layer.id] = SceneRenderV2WaveformState(layerID: layer.id)
         }
@@ -8585,6 +8607,10 @@ final class SceneRenderV2ImageSurfaceRuntime {
     session.neonPulseStates.values.forEach {
       $0.setPlaying(playing, hostTime: hostTime)
     }
+    session.embeddedScreenStates.values.forEach {
+      $0.registeredPlaying = playing
+      $0.registeredProgram?.setPlaying(playing, hostTime:hostTime)
+    }
     session.installedProgramStates.values.forEach {
       $0.setPlaying(playing, hostTime: hostTime)
     }
@@ -9021,6 +9047,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
       result[layer.id] = current[layer.id] ?? SceneRenderV2EmbeddedScreenState(
         layerID: layer.id
       )
+      result[layer.id]?.registeredPlaying = plan.playing
     }
     return result
   }
@@ -11719,7 +11746,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
       ]),
       let layerID = layer["id"] as? String,
       validToken(layerID),
-      layer["role"] as? String == "overlay",
+      ["overlay", "background"].contains(layer["role"] as? String ?? ""),
       let opacity = Self.finite(layer["opacity"]), opacity >= 0, opacity <= 1,
       layer["alphaMode"] as? String == "normal",
       layer["blendMode"] as? String == "sourceOver",
@@ -11740,10 +11767,20 @@ final class SceneRenderV2ImageSurfaceRuntime {
       let parsed = Self.parseEmbeddedScreenParameters(node["parameters"]),
       Self.validEmbeddedScreenVariants(node["qualityVariants"]),
       let resources = node["resourceSlots"] as? [[String: Any]],
-      resources.count == 1,
-      let resource = resources.first,
+      resources.count == (parsed.coverageResourceID == nil ? 1 : 2),
+      let resource = resources.first(where: { $0["slot"] as? String == "primary" }),
       let source = Self.resolveEmbeddedScreenImage(resource, loadImage: loadImage)
     else { return nil }
+    var registered: SceneRegisteredImageConfiguration?
+    if let coverageID = parsed.coverageResourceID {
+      guard Self.identityTransform(layer["transform"]),
+        let coverageResource = resources.first(where: { $0["slot"] as? String == "coverage" }),
+        coverageResource["resourceId"] as? String == coverageID,
+        let coverage = Self.resolveEmbeddedScreenImage(coverageResource, loadImage: loadImage, expectedSlot: "coverage"),
+        !loadImage || coverage.extent.size == source.extent.size else { return nil }
+      registered = SceneRegisteredImageConfiguration(coverage: coverage, haloStrength: parsed.haloStrength,
+        layout: parsed.songLayout, placeholderProgress: parsed.placeholderProgress, contentScale: parsed.contentScale)
+    } else if layer["role"] as? String != "overlay" { return nil }
     return SceneRenderV2EmbeddedScreenLayer(
       id: layerID,
       source: source,
@@ -11776,7 +11813,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
       bodyGain: parsed.bodyGain,
       sparkGain: parsed.sparkGain,
       attackSeconds: parsed.attackSeconds,
-      releaseSeconds: parsed.releaseSeconds
+      releaseSeconds: parsed.releaseSeconds,
+      registeredImage: registered
     )
   }
 
@@ -11795,6 +11833,11 @@ final class SceneRenderV2ImageSurfaceRuntime {
     let sparkGain: Double
     let attackSeconds: Double
     let releaseSeconds: Double
+    let coverageResourceID: String?
+    let haloStrength: Double
+    let songLayout: String
+    let placeholderProgress: Double
+    let contentScale: Double
   }
 
   private static func parseEmbeddedScreenParameters(
@@ -11813,7 +11856,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
       (outer["spectrumSamples"] as? NSNumber)?.intValue == 17,
       outer["audioReactive"] as? Bool == true,
       let recipe = outer["parameters"] as? [String: Any],
-      Set(recipe.keys) == Set([
+      Set(recipe.keys).subtracting(["imageLighting"]) == Set([
         "schemaVersion", "surface", "style", "response", "performance",
       ]),
       (recipe["schemaVersion"] as? NSNumber)?.intValue == 1,
@@ -11827,12 +11870,12 @@ final class SceneRenderV2ImageSurfaceRuntime {
       let bottomLeft = Self.embeddedScreenPoint(surfaceValue["bottomLeft"]),
       Self.embeddedScreenConvex([topLeft, topRight, bottomRight, bottomLeft]),
       let style = recipe["style"] as? [String: Any],
-      Set(style.keys) == Set([
+      Set(style.keys).subtracting(["placeholderProgress", "songLayout", "showIdlePlayer", "contentScale"]) == Set([
         "mode", "backgroundArgb", "primaryArgb", "accentArgb", "idleOpacity",
         "glow", "lineWidth",
       ]),
       let mode = style["mode"] as? String,
-      ["centeredSpectralWave", "prismaticSpectrumField"].contains(mode),
+      ["centeredSpectralWave", "prismaticSpectrumField", "nowPlaying"].contains(mode),
       let background = Self.embeddedScreenARGB(style["backgroundArgb"]),
       let primary = Self.embeddedScreenARGB(style["primaryArgb"]),
       let accent = Self.embeddedScreenARGB(style["accentArgb"]),
@@ -11861,6 +11904,22 @@ final class SceneRenderV2ImageSurfaceRuntime {
       (1...15).contains(idleFrames),
       Self.embeddedScreenDouble(performance["costUnits"], 0.05, 0.4) != nil
     else { return nil }
+    var coverageID: String?
+    var haloStrength = 0.0
+    let layout = style["songLayout"] as? String ?? "artworkLeft"
+    let progress = Self.embeddedScreenDouble(style["placeholderProgress"] ?? 0.24, 0, 1)
+    let contentScale = Self.embeddedScreenDouble(style["contentScale"] ?? 1, 0.5, 1.2)
+    guard ["artworkLeft", "artworkRight", "immersive"].contains(layout), let progress, let contentScale,
+      style["showIdlePlayer"] == nil || style["showIdlePlayer"] is Bool else { return nil }
+    if let raw = recipe["imageLighting"] {
+      guard mode == "nowPlaying", let lighting = raw as? [String: Any],
+        Set(lighting.keys) == ["coverageResourceId", "haloStrength"],
+        let id = lighting["coverageResourceId"] as? String, Self.validToken(id),
+        let strength = Self.embeddedScreenDouble(lighting["haloStrength"], 0, 1.5)
+      else { return nil }
+      coverageID = id; haloStrength = strength
+    }
+    if mode == "nowPlaying" && coverageID == nil { return nil }
     return EmbeddedScreenParameters(
       surface: [topLeft, topRight, bottomRight, bottomLeft],
       mode: mode,
@@ -11875,7 +11934,9 @@ final class SceneRenderV2ImageSurfaceRuntime {
       bodyGain: bodyGain,
       sparkGain: sparkGain,
       attackSeconds: Double(attackMicros) / 1_000_000,
-      releaseSeconds: Double(releaseMicros) / 1_000_000
+      releaseSeconds: Double(releaseMicros) / 1_000_000,
+      coverageResourceID: coverageID, haloStrength: haloStrength,
+      songLayout: layout, placeholderProgress: progress, contentScale: contentScale
     )
   }
 
@@ -12216,10 +12277,11 @@ final class SceneRenderV2ImageSurfaceRuntime {
 
   private static func resolveEmbeddedScreenImage(
     _ resource: [String: Any],
-    loadImage: Bool
+    loadImage: Bool,
+    expectedSlot: String = "primary"
   ) -> CIImage? {
     guard
-      resource["slot"] as? String == "primary",
+      resource["slot"] as? String == expectedSlot,
       resource["kind"] as? String == "image",
       let resourceID = resource["resourceId"] as? String,
       validToken(resourceID),
@@ -14023,14 +14085,45 @@ final class SceneRenderV2ImageSurfaceRuntime {
     return image
   }
 
+  private static func renderRegisteredImageLayer(
+    graphics: GraphicsResources?, _ layer: SceneRenderV2EmbeddedScreenLayer,
+    state: SceneRenderV2EmbeddedScreenState, target: CGRect,
+    outputAllocator: SceneSurfaceNativeOutputAllocator?, hostTime: Double
+  ) throws -> CIImage {
+    guard let registered = layer.registeredImage, let graphics else {
+      throw RuntimeError("registered_image_graphics_missing")
+    }
+    if state.registeredProgram == nil {
+      let program = try SceneRegisteredImageProgram(device:graphics.device,source:layer.source,
+        configuration:registered,
+        corners:[layer.topLeft,layer.topRight,layer.bottomRight,layer.bottomLeft].map { SIMD2($0.x,$0.y) },
+        background:layer.backgroundARGB,primary:layer.primaryARGB,accent:layer.accentARGB)
+      program.setPlaying(state.registeredPlaying,hostTime:hostTime)
+      program.updateSongContent(state.songContent)
+      if let frame = state.registeredFrame { program.consume(frame) }
+      state.registeredProgram = program
+    }
+    let texture = try state.registeredProgram!.render(width:Int(target.width),height:Int(target.height),
+      hostTime:hostTime,reducedMotion:UIAccessibility.isReduceMotionEnabled,outputAllocator:outputAllocator)
+    guard var image = CIImage(mtlTexture:texture,options:[.colorSpace:Self.outputColorSpace])
+    else { throw RuntimeError("registered_image_output_missing") }
+    image = image.transformed(by:CGAffineTransform(translationX:target.minX,y:target.maxY).scaledBy(x:1,y:-1))
+    return image.cropped(to:target)
+  }
+
   private static func renderEmbeddedScreenLayer(
     graphics: GraphicsResources?,
     _ layer: SceneRenderV2EmbeddedScreenLayer,
     state: SceneRenderV2EmbeddedScreenState,
     quality: String,
     target: CGRect,
-    outputAllocator: SceneSurfaceNativeOutputAllocator? = nil
+    outputAllocator: SceneSurfaceNativeOutputAllocator? = nil,
+    hostTime: Double = CACurrentMediaTime()
   ) throws -> CIImage {
+    if layer.registeredImage != nil {
+      return try renderRegisteredImageLayer(graphics:graphics,layer,state:state,target:target,
+        outputAllocator:outputAllocator,hostTime:hostTime)
+    }
     guard let renderer = graphics?.embeddedScreenRenderer else {
       throw RuntimeError("embedded_screen_renderer_unavailable")
     }
