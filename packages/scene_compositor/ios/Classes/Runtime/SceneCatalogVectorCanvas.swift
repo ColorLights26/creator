@@ -273,6 +273,9 @@ final class SceneCatalogVectorCanvas {
     var evenOdd = false
     var sourceBounds: CGRect? = nil
     var ambientBlurPath: CGPath? = nil
+    /// Round strokes of straight polylines: triangles replace the outline,
+    /// and [path] only bounds them.
+    var strokeMesh: SceneCatalogStrokeMesh? = nil
     func atScale(_ scale: Float) -> Draw {
       guard let stroke else { return self }
       let effectiveScale = scale * Float(max(hypot(transform.a, transform.b), hypot(transform.c, transform.d)))
@@ -340,12 +343,22 @@ final class SceneCatalogVectorCanvas {
                       roundedBlur: RoundedBlurShape? = nil) {
     let path: CGPath
     var stroke: Stroke?
+    var strokeMesh: SceneCatalogStrokeMesh?
     if forceStroke || paint.style == .stroke {
       let cap: CGLineCap = paint.strokeCap == .round ? .round : paint.strokeCap == .square ? .square : .butt
       let join: CGLineJoin = paint.strokeJoin == .round ? .round : paint.strokeJoin == .bevel ? .bevel : .miter
-      let geometry = strokeGeometry.geometry(source, width: max(paint.strokeWidth, 0.0001), cap: cap, join: join)
-      path = geometry.outline
-      stroke = Stroke(path: geometry.source, width: paint.strokeWidth, cap: cap, join: join)
+      let width = max(paint.strokeWidth, 0.0001)
+      // A blurred stroke still rasterizes its outline into a coverage mask.
+      if cap == .round, join == .round, paint.maskFilter == nil,
+         let mesh = SceneCatalogStrokeMesh(path: source, width: width) {
+        strokeMesh = mesh
+        path = CGPath(rect: mesh.bounds, transform: nil)
+        stroke = Stroke(path: source.copy()!, width: paint.strokeWidth, cap: cap, join: join)
+      } else {
+        let geometry = strokeGeometry.geometry(source, width: width, cap: cap, join: join)
+        path = geometry.outline
+        stroke = Stroke(path: geometry.source, width: paint.strokeWidth, cap: cap, join: join)
+      }
     } else { path = source.copy()! }
     var transform = transforms.last!
     draws.append(.init(path: transform.isIdentity ? path : path.copy(using: &transform)!, color: paint.color, gradient: paint.shader,
@@ -362,7 +375,8 @@ final class SceneCatalogVectorCanvas {
                          dx: stroke == nil ? 0 : -max(paint.strokeWidth, 1) * (paint.strokeJoin == .miter ? 2 : paint.strokeCap == .square ? sqrt(2) / 2 : 0.5),
                          dy: stroke == nil ? 0 : -max(paint.strokeWidth, 1) * (paint.strokeJoin == .miter ? 2 : paint.strokeCap == .square ? sqrt(2) / 2 : 0.5)),
                        ambientBlurPath: stroke == nil && paint.shader == nil && (paint.maskFilter?.sigma ?? 0) > 0.5 + 0.001 / sqrt(3)
-                         ? source.copy() : nil))
+                         ? source.copy() : nil,
+                       strokeMesh: strokeMesh))
   }
 }
 
@@ -414,6 +428,9 @@ final class SceneCatalogVectorRenderer {
   private let shadowScreenPipeline: MTLRenderPipelineState
   private let windingState: MTLDepthStencilState
   private let evenOddState: MTLDepthStencilState
+  /// Counts covering triangles, clamped: a stroke mesh's overlapping pieces
+  /// never cancel or wrap back to zero, whatever their orientation.
+  private let coverageState: MTLDepthStencilState
   private let maskState: MTLDepthStencilState
   private let sampler: MTLSamplerState
   private let horizontalBlur: MTLComputePipelineState
@@ -605,6 +622,13 @@ final class SceneCatalogVectorRenderer {
     parity.backFaceStencil.writeMask = 1
     guard let evenOddState = device.makeDepthStencilState(descriptor: parity) else { throw Failure("vector_even_odd_state") }
     self.evenOddState = evenOddState
+    let union = MTLDepthStencilDescriptor()
+    union.frontFaceStencil.stencilCompareFunction = .always
+    union.frontFaceStencil.depthStencilPassOperation = .incrementClamp
+    union.backFaceStencil.stencilCompareFunction = .always
+    union.backFaceStencil.depthStencilPassOperation = .incrementClamp
+    guard let coverageState = device.makeDepthStencilState(descriptor: union) else { throw Failure("vector_coverage_state") }
+    self.coverageState = coverageState
     let consume = MTLDepthStencilDescriptor()
     consume.frontFaceStencil.stencilCompareFunction = .notEqual
     consume.frontFaceStencil.depthStencilPassOperation = .zero
@@ -705,9 +729,14 @@ final class SceneCatalogVectorRenderer {
         maskIndex = -3
       } else if draw.sigma == 0 {
         maskIndex = -2
-        let tolerance = 0.08 / Double(max(scale.x, scale.y))
-        Self.appendTriangles(path: draw.path, tolerance: tolerance, scale: scale,
-          into: &directVertices, contour: &contourScratch)
+        if let mesh = draw.strokeMesh {
+          mesh.appendTriangles(transform: draw.transform.concatenating(
+            CGAffineTransform(scaleX: CGFloat(scale.x), y: CGFloat(scale.y))), tolerance: 0.08, into: &directVertices)
+        } else {
+          let tolerance = 0.08 / Double(max(scale.x, scale.y))
+          Self.appendTriangles(path: draw.path, tolerance: tolerance, scale: scale,
+            into: &directVertices, contour: &contourScratch)
+        }
       } else { maskIndex = tiles.count; tiles.append(tile) }
       directRanges.append(first..<directVertices.count)
       var clipIndex: Int?
@@ -893,7 +922,7 @@ final class SceneCatalogVectorRenderer {
         // Accumulate this path, then paint and clear its stencil in one draw.
         encoder.setStencilReferenceValue(0)
         encoder.setRenderPipelineState(directWindingPipeline)
-        encoder.setDepthStencilState(draw.evenOdd ? evenOddState : windingState)
+        encoder.setDepthStencilState(draw.evenOdd ? evenOddState : draw.strokeMesh != nil ? coverageState : windingState)
         encoder.setVertexBuffer(directBuffer, offset: 0, index: 0)
         var target = SIMD4<Float>(0, 0, Float(width), Float(height))
         encoder.setVertexBytes(&target, length: 16, index: 1)

@@ -6,6 +6,7 @@ import Metal
 enum CreatorCatalogTests {
   static func main() throws {
     checkVectorGeometry()
+    checkStrokeMesh()
     try checkVectorPacking()
     if CommandLine.arguments.count >= 2 {
       try smokeAuthoredCatalog(path: CommandLine.arguments[1])
@@ -254,6 +255,69 @@ enum CreatorCatalogTests {
 
   // Frozen pre-optimization geometry: catches changes in winding order,
   // curve subdivision, Float conversion and device scaling.
+  /// The triangle mesh of a round polyline stroke covers what the Core
+  /// Graphics outline covered: per device pixel at 4x4 samples, edge pixels
+  /// may differ by the arc tolerance only.
+  static func checkStrokeMesh() {
+    let size = 120, samples = 4
+    func coverage(_ fill: (CGContext) -> Void) -> [Int] {
+      let context = CGContext(data: nil, width: size * samples, height: size * samples, bitsPerComponent: 8,
+        bytesPerRow: size * samples, space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGImageAlphaInfo.none.rawValue)!
+      context.setShouldAntialias(false); context.setFillColor(gray: 1, alpha: 1)
+      fill(context)
+      let data = context.data!.assumingMemoryBound(to: UInt8.self)
+      var result = [Int](repeating: 0, count: size * size)
+      for y in 0..<(size * samples) { for x in 0..<(size * samples) where data[y * size * samples + x] > 127 {
+        result[(y / samples) * size + x / samples] += 1
+      } }
+      return result
+    }
+    func check(_ path: CGPath, width: Double, _ transform: CGAffineTransform) {
+      let device = transform.concatenating(CGAffineTransform(scaleX: CGFloat(samples), y: CGFloat(samples)))
+      guard let mesh = SceneCatalogStrokeMesh(path: path, width: width) else { preconditionFailure("Polyline stroke had no mesh") }
+      let expected = coverage { context in
+        var t = device
+        context.addPath(path.copy(strokingWithWidth: width, lineCap: .round, lineJoin: .round, miterLimit: 4).copy(using: &t)!)
+        context.fillPath()
+      }
+      var triangles: [SIMD2<Float>] = []
+      mesh.appendTriangles(transform: device, tolerance: 0.08 * Double(samples), into: &triangles)
+      let actual = coverage { context in
+        for index in stride(from: 0, to: triangles.count, by: 3) {
+          context.move(to: CGPoint(x: CGFloat(triangles[index].x), y: CGFloat(triangles[index].y)))
+          context.addLine(to: CGPoint(x: CGFloat(triangles[index + 1].x), y: CGFloat(triangles[index + 1].y)))
+          context.addLine(to: CGPoint(x: CGFloat(triangles[index + 2].x), y: CGFloat(triangles[index + 2].y)))
+          context.closePath(); context.fillPath()
+        }
+      }
+      let area = expected.reduce(0, +)
+      let difference = zip(expected, actual).map { abs($0 - $1) }
+      precondition(area > 0 && difference.max()! <= 4 && Double(difference.reduce(0, +)) <= Double(area) * 0.01,
+        "Stroke mesh changed the covered area")
+    }
+    let trails = CGMutablePath()
+    for trail in 0..<60 {
+      var point = CGPoint(x: 8 + Double(trail % 6) * 6, y: 8 + Double(trail / 6) * 3)
+      var angle = Double(trail) * 0.7
+      trails.move(to: point)
+      for step in 0..<15 {
+        angle += sin(Double(trail * 15 + step)) * 0.6
+        point = CGPoint(x: point.x + cos(angle) * 1.6, y: point.y + sin(angle) * 1.6)
+        trails.addLine(to: point)
+      }
+    }
+    let edges = CGMutablePath()
+    edges.move(to: CGPoint(x: 6, y: 34)); edges.addLine(to: CGPoint(x: 6, y: 34))  // dot
+    edges.move(to: CGPoint(x: 4, y: 4)); edges.addLine(to: CGPoint(x: 36, y: 8)); edges.addLine(to: CGPoint(x: 18, y: 30))
+    edges.closeSubpath(); edges.addLine(to: CGPoint(x: 38, y: 36))  // line after close
+    edges.move(to: CGPoint(x: 1, y: 1))  // lone move draws nothing
+    for width in [1.1, 4.0] { check(trails, width: width, CGAffineTransform(scaleX: 2, y: 2)) }
+    check(edges, width: 3, CGAffineTransform(scaleX: 3, y: 3))
+    check(trails, width: 2, CGAffineTransform(translationX: 60, y: 0).rotated(by: 0.6).scaledBy(x: 1.6, y: 1.1))
+    let curved = CGMutablePath(); curved.move(to: .zero); curved.addQuadCurve(to: CGPoint(x: 4, y: 0), control: CGPoint(x: 2, y: 3))
+    precondition(SceneCatalogStrokeMesh(path: curved, width: 1) == nil, "Curves must keep the Core Graphics outline")
+  }
+
   static func checkVectorGeometry() {
     var contourScratch = [CGPoint(x: -1234, y: 5678)]
     let strokes = SceneCatalogVectorCanvas.StrokeGeometryCache()
