@@ -9153,7 +9153,16 @@ final class PictureInPictureHandler: NSObject {
             returnPresentation.stopping(returnContext),
             reason: "begin_stopping:\(reason)"
         )
-        NSLog("[MusicVibePiP] requesting stop reason=%@", reason)
+        NSLog(
+            "[MusicVibePiP] requesting stop reason=%@ active=%@ suspended=%@ possible=%@ layerAttached=%@ hostWindow=%@ source=%@",
+            reason,
+            controller.isPictureInPictureActive.description,
+            controller.isPictureInPictureSuspended.description,
+            controller.isPictureInPicturePossible.description,
+            (sampleLayer.superlayer != nil).description,
+            (sourceHostView?.window != nil).description,
+            sourceKind
+        )
         controller.stopPictureInPicture()
         scheduleStopWatchdog(for: controller)
     }
@@ -11249,6 +11258,12 @@ final class PictureInPictureHandler: NSObject {
     }
 
     private func clearPreparedContent() {
+        NSLog(
+            "[MusicVibePiP] clearing content state=%@ active=%@ source=%@",
+            lifecycleState.rawValue,
+            (pictureInPictureController?.isPictureInPictureActive == true).description,
+            sourceKind
+        )
         prepareGeneration += 1
         cancelPendingStart()
         stopWatchdog?.cancel()
