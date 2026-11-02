@@ -973,12 +973,9 @@ final class MusicVibeRenderEngine: NSObject {
             foregroundTimerFramesPerSecond = nil
             return
         }
-        let thermalState = ProcessInfo.processInfo.thermalState
-        let constrained = ProcessInfo.processInfo.isLowPowerModeEnabled ||
-            thermalState == .serious || thermalState == .critical
         let framesPerSecond = min(
             requestedFramesPerSecond,
-            constrained ? 30 : 60
+            SceneNativeThermalCadence.maximumFramesPerSecond()
         )
         if foregroundTimer != nil,
            foregroundTimerFramesPerSecond == framesPerSecond {

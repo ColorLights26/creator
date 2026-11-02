@@ -1,5 +1,6 @@
 import Foundation
 import CoreGraphics
+import CoreImage
 import Metal
 import ImageIO
 
@@ -7,6 +8,7 @@ import ImageIO
 enum CreatorCatalogTests {
   static func main() throws {
     try checkSongStrip()
+    try checkRegisteredPlayers()
     checkVectorGeometry()
     checkStrokeMesh()
     try checkVectorPacking()
@@ -276,9 +278,125 @@ enum CreatorCatalogTests {
       tonal: [0,0,0], impact: idle, accent: idle, beat: event, flash: idle)
   }
 
+  static func checkRegisteredPlayers() throws {
+    let sourceSize=CGSize(width:900,height:1600)
+    let corners: [SIMD2<Double>] = [SIMD2(0.1,0.3),SIMD2(0.45,0.26),SIMD2(0.65,0.67),SIMD2(0.25,0.71)]
+    let panel=SceneRegisteredImageProgram.panelSize(source:sourceSize,corners:corners)
+    precondition(panel.height == 1024 && panel.width < 600, "Portrait glass must not acquire a landscape texture")
+    let viewport=SceneRegisteredImageViewport.parse(["fit":"contain","alignX":0,"alignY":1,"extendEdges":true,"edgeFadeExtent":80])!
+    let rect=viewport.imageRect(source:sourceSize,viewport:CGSize(width:402,height:874))
+    precondition(abs(rect.maxY-874)<0.001 && abs(rect.width-402)<0.001 && rect.minY>100)
+    precondition(SceneRegisteredImageViewport.parse(["fit":"stretch","alignX":0,"alignY":0,"extendEdges":true,"edgeFadeExtent":80]) == nil)
+    precondition(SceneRegisteredImageResponse.parse(["attackSeconds":true]) == nil)
+    for invalid: Any in [true,-1,1001,Double.nan,0.5] {
+      precondition(SceneCatalogSongPlayback.parse(["positionMs":invalid,"durationMs":1000,"playing":true]) == nil)
+    }
+    precondition(SceneCatalogSongPlayback.parse(["positionMs":0,"durationMs":1000,"playing":1]) == nil)
+    var raw: [String:Any] = ["schemaVersion":1,"identity":"fixture","title":"A long title that needs two lines","artist":"Fixture artist","accentArgb":0xff46d9ee,
+      "providerName":"Fixture source","playback":["positionMs":1000,"durationMs":20000,"playing":true]]
+    let parsed=SceneCatalogSongContent.parse(raw)!
+    var invalid=raw; invalid["providerMarkBytes"]=Data(count:524_289)
+    precondition(SceneCatalogSongContent.parse(invalid) == nil)
+    invalid=raw; invalid["providerName"]=String(repeating:"x",count:513)
+    precondition(SceneCatalogSongContent.parse(invalid) == nil)
+    guard let device=MTLCreateSystemDefaultDevice() else { fatalError("Metal is required") }
+    let allocator=SceneSurfaceNativeOutputAllocator(device:device)
+    let context=CIContext(mtlDevice:device)
+    let bounds=CGRect(x:0,y:0,width:180,height:320)
+    let source=CIImage(cgImage:context.createCGImage(CIImage(color:CIColor(red:0.04,green:0.04,blue:0.05)),from:bounds)!)
+    let mask=CIImage(cgImage:context.createCGImage(CIImage(color:CIColor(red:0,green:0,blue:0)),from:bounds)!)
+    for layout in ["dashboard","artworkLeft"] {
+      let program=try SceneRegisteredImageProgram(device:device,source:source,
+        configuration:SceneRegisteredImageConfiguration(coverage:mask,haloStrength:1,layout:layout,placeholderProgress:0.48,viewport:viewport),
+        corners:corners,background:0xff090909,primary:0xfff4f3f0,accent:0xffffbb66)
+      _=program.updateSongContent(parsed); program.setPlaying(true,hostTime:0)
+      for time in [0.0,0.03,0.06] { _=try program.render(width:180,height:320,hostTime:time,reducedMotion:false,outputAllocator:allocator,logicalSize:CGSize(width:180,height:320)) }
+      precondition(program.panelRasterCount == 1, "Text must not rasterize on musical frames")
+      _=try program.render(width:180,height:320,hostTime:1.1,reducedMotion:false,outputAllocator:allocator)
+      precondition(program.panelRasterCount == 2, "Observed timeline advances without repeated artwork decode")
+      program.setPlaying(false,hostTime:1.1)
+      _=try program.render(width:180,height:320,hostTime:30,reducedMotion:false,outputAllocator:allocator)
+      precondition(program.panelRasterCount == 3, "Owner pause must update the transport icon once")
+      _=try program.render(width:180,height:320,hostTime:40,reducedMotion:false,outputAllocator:allocator)
+      precondition(program.panelRasterCount == 3, "Paused transport must freeze its observed position")
+    }
+    let state=SceneFloatingSongCardState(),renderer=try SceneFloatingSongCardRenderer(device:device)
+    state.setPlaying(true,hostTime:0); _=renderer.updateSongContent(parsed)
+    var first: MTLTexture?
+    for i in 0..<12 {
+      _=state.consume(songSignal(Int64(i),beat:i<3 ? 0:1,mapped:true,phase:i<3 ? 0.98:0.03))
+      let texture=try renderer.render(state:state,logicalSize:CGSize(width:402,height:874),hostTime:Double(i)/30,reducedMotion:false,width:402,height:874,outputAllocator:allocator)
+      if i == 0 { first=texture }
+    }
+    precondition(state.pulse>0.05 && state.levels.max()!>0.1 && state.phase>0)
+    precondition(renderer.identityRasterCount == 1)
+    let image=CIImage(mtlTexture:first!,options:[.colorSpace:CGColorSpaceCreateDeviceRGB()])!
+    var pixels=[UInt8](repeating:0,count:402*874*4)
+    context.render(image,toBitmap:&pixels,rowBytes:402*4,bounds:image.extent,format:.RGBA8,colorSpace:CGColorSpaceCreateDeviceRGB())
+    precondition(pixels[3] == 0 && pixels[(437*402+201)*4+3] == 255,"Floating card must preserve transparent surroundings and its opaque center")
+    raw["playback"]=["positionMs":5000,"durationMs":20000,"playing":true]
+    _=renderer.updateSongContent(SceneCatalogSongContent.parse(raw))
+    _=try renderer.render(state:state,logicalSize:CGSize(width:402,height:874),hostTime:0.5,reducedMotion:false,width:402,height:874,outputAllocator:allocator)
+    precondition(renderer.identityRasterCount == 1,"A transport snapshot must not rerasterize the decorative card")
+    let phase=state.phase
+    state.setPlaying(false,hostTime:0.5); state.advance(hostTime:50,reducedMotion:false)
+    precondition(state.phase == phase && state.pulse == 0 && state.levels.allSatisfy { $0 == 0 })
+    state.setPlaying(true,hostTime:51); state.advance(hostTime:51.1,reducedMotion:true)
+    precondition(state.phase == phase && state.pulse == 0)
+    state.advance(hostTime:51.2,reducedMotion:false)
+    precondition(state.phase>phase && state.phase-phase<0.02,"Resume cannot catch up on paused time")
+    print("PASS registered portrait/dashboard: physical geometry, typed metadata, observed timeline, pause and raster cache; floating card: mapped beats, transparency, cache and Reduce Motion")
+  }
+
   static func checkSongStrip() throws {
     let content: [String: Any] = ["schemaVersion": 1, "identity": "song", "title": "Song", "artist": "Artist", "accentArgb": 0xff32c9e7]
     precondition(SceneCatalogSongContent.parse(content) != nil)
+    var cover = content
+    cover["identity"] = "presentation-cover"
+    cover["title"] = ""
+    cover.removeValue(forKey: "artist")
+    cover["artworkOnly"] = true
+    cover["artworkBytes"] = Data([1, 2, 3])
+    precondition(SceneCatalogSongContent.parse(cover)?.artworkOnly == true)
+    for key in ["artworkBrightness", "artworkSaturation", "artworkOpacity"] {
+      for invalid: Any in [true, -0.1, 1.1, Double.nan, Double.infinity, "0.5"] {
+        var input = cover; input[key] = invalid
+        precondition(SceneCatalogSongContent.parse(input) == nil)
+      }
+      var valid = cover; valid[key] = 0.5
+      precondition(SceneCatalogSongContent.parse(valid) != nil)
+    }
+    let space = CGColorSpace(name: CGColorSpace.sRGB)!
+    let pixelContext = CGContext(data: nil, width: 2, height: 2, bitsPerComponent: 8,
+      bytesPerRow: 8, space: space,
+      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue)!
+    pixelContext.setFillColor(CGColor(colorSpace: space, components: [0.8, 0.2, 0.4, 1])!)
+    pixelContext.fill(CGRect(x: 0, y: 0, width: 2, height: 2))
+    let png = NSMutableData()
+    let destination = CGImageDestinationCreateWithData(png, "public.png" as CFString, 1, nil)!
+    CGImageDestinationAddImage(destination, pixelContext.makeImage()!, nil)
+    precondition(CGImageDestinationFinalize(destination))
+    var dimCover = cover
+    dimCover["artworkBytes"] = png as Data
+    dimCover["artworkBrightness"] = 0.55
+    dimCover["artworkSaturation"] = 0.15
+    dimCover["artworkOpacity"] = 0.8
+    let treated = SceneCatalogSongContent.parse(dimCover)!.resolvedArtwork(maximumPixelSize: 256)!
+    let treatedBytes = [UInt8](treated.dataProvider!.data! as Data)
+    for (channel, expected) in [46, 36, 39, 204].enumerated() {
+      precondition(abs(Int(treatedBytes[channel]) - expected) <= 2,
+        "Native artwork must use the same supplied Rec.709 treatment as Flutter")
+    }
+    var invalidCover = cover; invalidCover.removeValue(forKey: "artworkOnly")
+    precondition(SceneCatalogSongContent.parse(invalidCover) == nil)
+    invalidCover = cover; invalidCover["artworkOnly"] = 1
+    precondition(SceneCatalogSongContent.parse(invalidCover) == nil)
+    invalidCover = cover; invalidCover["title"] = "Fake song"
+    precondition(SceneCatalogSongContent.parse(invalidCover) == nil)
+    invalidCover = cover; invalidCover["artist"] = "Fake artist"
+    precondition(SceneCatalogSongContent.parse(invalidCover) == nil)
+    invalidCover = cover; invalidCover.removeValue(forKey: "artworkBytes")
+    precondition(SceneCatalogSongContent.parse(invalidCover) == nil)
     var bad = content; bad["extra"] = true
     precondition(SceneCatalogSongContent.parse(bad) == nil)
     bad = content; bad["schemaVersion"] = true
@@ -357,6 +475,11 @@ enum CreatorCatalogTests {
         hostTime: 3.2, reducedMotion: false, width: 402, height: 874, outputAllocator: allocator)
     }
     precondition(renderer.identityRasterCount == 2)
+    changed["artworkBrightness"] = 0.55
+    _ = renderer.updateSongContent(SceneCatalogSongContent.parse(changed))
+    _ = try renderer.render(state: state, logicalSize: CGSize(width: 402, height: 874),
+      hostTime: 3.25, reducedMotion: false, width: 402, height: 874, outputAllocator: allocator)
+    precondition(renderer.identityRasterCount == 3, "Appearance-only updates must invalidate the cached artwork")
 
     if let output = ProcessInfo.processInfo.environment["HALO_BEAT_NATIVE_EVIDENCE"] {
       let directory = URL(fileURLWithPath: output)

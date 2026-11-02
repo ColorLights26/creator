@@ -12683,7 +12683,10 @@ private final class SceneSurfaceDocumentRuntime {
                 )
             }
         }
-        return min(max(requested == 0 ? 30 : requested, 1), 60)
+        return min(
+            max(requested == 0 ? 30 : requested, 1),
+            SceneNativeThermalCadence.maximumFramesPerSecond()
+        )
     }
 
     func play() {
@@ -14824,7 +14827,9 @@ final class SceneSurfaceRenderEngine: NSObject {
             guard var raw = arguments["content"] as? [String: Any] else {
                 result(Self.error("song_content_invalid", "Invalid song content.")); return
             }
-            if let typed = raw["artworkBytes"] as? FlutterStandardTypedData { raw["artworkBytes"] = typed.data }
+            for key in ["artworkBytes", "providerMarkBytes"] {
+              if let typed = raw[key] as? FlutterStandardTypedData { raw[key] = typed.data }
+            }
             guard let parsed = SceneCatalogSongContent.parse(raw) else {
                 result(Self.error("song_content_invalid", "Invalid bounded song content.")); return
             }

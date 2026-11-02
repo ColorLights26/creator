@@ -5867,7 +5867,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
           guard let embeddedScreen else { return nil }
           return try Library.renderEmbeddedScreenLayer(graphics: graphics, layer,
             state: embeddedScreen, quality: "best", target: target,
-            outputAllocator: outputAllocator, hostTime: hostTime)
+            outputAllocator: outputAllocator, hostTime: hostTime, logicalSize: logicalSize)
         case .waveform(let layer):
           guard let waveform else { return nil }
           return try Library.renderWaveformLayer(graphics: graphics, layer,
@@ -11779,7 +11779,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
         let coverage = Self.resolveEmbeddedScreenImage(coverageResource, loadImage: loadImage, expectedSlot: "coverage"),
         !loadImage || coverage.extent.size == source.extent.size else { return nil }
       registered = SceneRegisteredImageConfiguration(coverage: coverage, haloStrength: parsed.haloStrength,
-        layout: parsed.songLayout, placeholderProgress: parsed.placeholderProgress, contentScale: parsed.contentScale)
+        layout: parsed.songLayout, placeholderProgress: parsed.placeholderProgress,
+        contentScale: parsed.contentScale, viewport: parsed.viewport, response: parsed.lightResponse)
     } else if layer["role"] as? String != "overlay" { return nil }
     return SceneRenderV2EmbeddedScreenLayer(
       id: layerID,
@@ -11838,6 +11839,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
     let songLayout: String
     let placeholderProgress: Double
     let contentScale: Double
+    let viewport: SceneRegisteredImageViewport?
+    let lightResponse: SceneRegisteredImageResponse?
   }
 
   private static func parseEmbeddedScreenParameters(
@@ -11906,18 +11909,28 @@ final class SceneRenderV2ImageSurfaceRuntime {
     else { return nil }
     var coverageID: String?
     var haloStrength = 0.0
+    var viewport: SceneRegisteredImageViewport?
+    var lightResponse: SceneRegisteredImageResponse?
     let layout = style["songLayout"] as? String ?? "artworkLeft"
     let progress = Self.embeddedScreenDouble(style["placeholderProgress"] ?? 0.24, 0, 1)
     let contentScale = Self.embeddedScreenDouble(style["contentScale"] ?? 1, 0.5, 1.2)
-    guard ["artworkLeft", "artworkRight", "immersive"].contains(layout), let progress, let contentScale,
+    guard ["artworkLeft", "artworkRight", "immersive", "dashboard"].contains(layout), let progress, let contentScale,
       style["showIdlePlayer"] == nil || style["showIdlePlayer"] is Bool else { return nil }
     if let raw = recipe["imageLighting"] {
       guard mode == "nowPlaying", let lighting = raw as? [String: Any],
-        Set(lighting.keys) == ["coverageResourceId", "haloStrength"],
+        Set(lighting.keys).subtracting(["viewport", "response"]) == ["coverageResourceId", "haloStrength"],
         let id = lighting["coverageResourceId"] as? String, Self.validToken(id),
         let strength = Self.embeddedScreenDouble(lighting["haloStrength"], 0, 1.5)
       else { return nil }
       coverageID = id; haloStrength = strength
+      if let raw = lighting["viewport"] {
+        guard let parsed = SceneRegisteredImageViewport.parse(raw) else { return nil }
+        viewport = parsed
+      }
+      if let raw = lighting["response"] {
+        guard let parsed = SceneRegisteredImageResponse.parse(raw) else { return nil }
+        lightResponse = parsed
+      }
     }
     if mode == "nowPlaying" && coverageID == nil { return nil }
     return EmbeddedScreenParameters(
@@ -11936,7 +11949,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
       attackSeconds: Double(attackMicros) / 1_000_000,
       releaseSeconds: Double(releaseMicros) / 1_000_000,
       coverageResourceID: coverageID, haloStrength: haloStrength,
-      songLayout: layout, placeholderProgress: progress, contentScale: contentScale
+      songLayout: layout, placeholderProgress: progress, contentScale: contentScale,
+      viewport: viewport, lightResponse: lightResponse
     )
   }
 
@@ -14088,7 +14102,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
   private static func renderRegisteredImageLayer(
     graphics: GraphicsResources?, _ layer: SceneRenderV2EmbeddedScreenLayer,
     state: SceneRenderV2EmbeddedScreenState, target: CGRect,
-    outputAllocator: SceneSurfaceNativeOutputAllocator?, hostTime: Double
+    outputAllocator: SceneSurfaceNativeOutputAllocator?, hostTime: Double,
+    logicalSize: CGSize?
   ) throws -> CIImage {
     guard let registered = layer.registeredImage, let graphics else {
       throw RuntimeError("registered_image_graphics_missing")
@@ -14104,7 +14119,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
       state.registeredProgram = program
     }
     let texture = try state.registeredProgram!.render(width:Int(target.width),height:Int(target.height),
-      hostTime:hostTime,reducedMotion:UIAccessibility.isReduceMotionEnabled,outputAllocator:outputAllocator)
+      hostTime:hostTime,reducedMotion:UIAccessibility.isReduceMotionEnabled,
+      outputAllocator:outputAllocator,logicalSize:logicalSize)
     guard var image = CIImage(mtlTexture:texture,options:[.colorSpace:Self.outputColorSpace])
     else { throw RuntimeError("registered_image_output_missing") }
     image = image.transformed(by:CGAffineTransform(translationX:target.minX,y:target.maxY).scaledBy(x:1,y:-1))
@@ -14118,11 +14134,12 @@ final class SceneRenderV2ImageSurfaceRuntime {
     quality: String,
     target: CGRect,
     outputAllocator: SceneSurfaceNativeOutputAllocator? = nil,
-    hostTime: Double = CACurrentMediaTime()
+    hostTime: Double = CACurrentMediaTime(),
+    logicalSize: CGSize? = nil
   ) throws -> CIImage {
     if layer.registeredImage != nil {
       return try renderRegisteredImageLayer(graphics:graphics,layer,state:state,target:target,
-        outputAllocator:outputAllocator,hostTime:hostTime)
+        outputAllocator:outputAllocator,hostTime:hostTime,logicalSize:logicalSize)
     }
     guard let renderer = graphics?.embeddedScreenRenderer else {
       throw RuntimeError("embedded_screen_renderer_unavailable")

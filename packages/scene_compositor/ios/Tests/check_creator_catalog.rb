@@ -18,7 +18,8 @@ Dir.mktmpdir('creator-native-test-') do |temporary|
   File.write(alignment_support, "import Foundation\nimport CoreImage\nimport QuartzCore\n#{alignment}\n")
   executable = File.join(temporary, 'creator-tests')
   sources = Dir[File.join(runtime, 'SceneCatalog*.swift')].sort +
-    [File.join(runtime, 'SceneRenderSignalFrameV2.swift')]
+    [File.join(runtime, 'SceneRenderSignalFrameV2.swift'),
+     File.join(runtime, 'SceneRegisteredImage.swift')]
   command = ['xcrun', 'swiftc', '-O', '-o', executable, support, alignment_support, *sources,
     File.join(__dir__, 'creator_catalog_tests.swift')]
   output, status = Open3.capture2e(*command)

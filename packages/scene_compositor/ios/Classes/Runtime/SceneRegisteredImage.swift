@@ -7,12 +7,81 @@ import Metal
 import MetalKit
 import simd
 
+struct SceneRegisteredImageViewport: Equatable {
+  let fit: String
+  let alignX: Double
+  let alignY: Double
+  let extendEdges: Bool
+  let edgeFadeExtent: Double
+
+  static func parse(_ raw: Any) -> Self? {
+    guard let value = raw as? [String: Any],
+      Set(value.keys) == ["fit", "alignX", "alignY", "extendEdges", "edgeFadeExtent"],
+      let fit = value["fit"] as? String, ["cover", "contain"].contains(fit),
+      let x = registeredImageNumber(value["alignX"], -1, 1),
+      let y = registeredImageNumber(value["alignY"], -1, 1),
+      let flag = value["extendEdges"] as? NSNumber, CFGetTypeID(flag) == CFBooleanGetTypeID(),
+      let fade = registeredImageNumber(value["edgeFadeExtent"], 0, 500)
+    else { return nil }
+    return Self(fit: fit, alignX: x, alignY: y, extendEdges: flag.boolValue, edgeFadeExtent: fade)
+  }
+
+  func imageRect(source: CGSize, viewport: CGSize) -> CGRect {
+    let x = viewport.width / source.width, y = viewport.height / source.height
+    let scale = fit == "contain" ? min(x, y) : max(x, y)
+    let width = source.width * scale, height = source.height * scale
+    return CGRect(x: (viewport.width - width) * (alignX + 1) * 0.5,
+      y: (viewport.height - height) * (alignY + 1) * 0.5, width: width, height: height)
+  }
+
+  static let cover = Self(fit: "cover", alignX: 0, alignY: 0, extendEdges: false, edgeFadeExtent: 0)
+}
+
+struct SceneRegisteredImageResponse: Equatable {
+  let attackSeconds: Double
+  let releaseSeconds: Double
+  let idleGain: Double
+  let sustainGain: Double
+  let beatGain: Double
+  let reflectionIdleGain: Double
+  let reflectionResponseGain: Double
+
+  static let standard = Self(attackSeconds: 0.28, releaseSeconds: 1.2,
+    idleGain: 0.42, sustainGain: 0.30, beatGain: 1.25,
+    reflectionIdleGain: 0.80, reflectionResponseGain: 0.28)
+
+  static func parse(_ raw: Any) -> Self? {
+    guard let value = raw as? [String: Any],
+      Set(value.keys) == ["attackSeconds", "releaseSeconds", "idleGain", "sustainGain",
+        "beatGain", "reflectionIdleGain", "reflectionResponseGain"],
+      let attack = registeredImageNumber(value["attackSeconds"], 0.001, 5),
+      let release = registeredImageNumber(value["releaseSeconds"], 0.001, 5),
+      let idle = registeredImageNumber(value["idleGain"], 0, 1),
+      let sustain = registeredImageNumber(value["sustainGain"], 0, 2),
+      let beat = registeredImageNumber(value["beatGain"], 0, 3),
+      let reflectionIdle = registeredImageNumber(value["reflectionIdleGain"], 0, 1),
+      let reflectionResponse = registeredImageNumber(value["reflectionResponseGain"], 0, 1)
+    else { return nil }
+    return Self(attackSeconds: attack, releaseSeconds: release, idleGain: idle,
+      sustainGain: sustain, beatGain: beat, reflectionIdleGain: reflectionIdle,
+      reflectionResponseGain: reflectionResponse)
+  }
+}
+
+private func registeredImageNumber(_ value: Any?, _ low: Double, _ high: Double) -> Double? {
+  guard let value = value as? NSNumber, CFGetTypeID(value) != CFBooleanGetTypeID(),
+    value.doubleValue.isFinite, (low...high).contains(value.doubleValue) else { return nil }
+  return value.doubleValue
+}
+
 struct SceneRegisteredImageConfiguration {
   let coverage: CIImage
   let haloStrength: Double
   let layout: String
   let placeholderProgress: Double
   var contentScale: Double = 1
+  var viewport: SceneRegisteredImageViewport? = nil
+  var response: SceneRegisteredImageResponse? = nil
 }
 
 /// An installed photographic component of the existing scene. It owns static
@@ -35,6 +104,11 @@ final class SceneRegisteredImageProgram {
   private var colorAge = 0.7
   private var content: SceneCatalogSongContent?
   private var panel: MTLTexture?
+  private var artwork: CGImage?
+  private var providerMark: CGImage?
+  private var playbackAnchor: Double?
+  private var playbackPosition = 0.0
+  private var panelSecond = -1
   private(set) var panelRasterCount = 0
   private var frame: SceneRenderSignalFrameV2?
   private var session: Int64 = -1
@@ -73,13 +147,19 @@ final class SceneRegisteredImageProgram {
     pipeline = try device.makeRenderPipelineState(descriptor: descriptor)
   }
 
-  var needsFrames: Bool { playing && (pending > 0 || pulse > 0 || energy > 0 ||
+  private var usesObservedPlayback: Bool { configuration.viewport != nil || configuration.layout == "dashboard" }
+  var needsFrames: Bool { playing && ((usesObservedPlayback && content?.playback?.playing == true) || pending > 0 || pulse > 0 || energy > 0 ||
     (peak > 0 && haloAge < 5) || colorAge < 0.7 || frame.map { $0.available && $0.fresh && $0.musicActive } == true) }
 
   @discardableResult
   func updateSongContent(_ next: SceneCatalogSongContent?) -> Bool {
     guard next != content else { return false }
-    content = next; panel = nil
+    if next?.artwork != content?.artwork || next?.artworkBrightness != content?.artworkBrightness ||
+      next?.artworkSaturation != content?.artworkSaturation || next?.artworkOpacity != content?.artworkOpacity {
+      artwork = next?.resolvedArtwork(maximumPixelSize: 1024)
+    }
+    if next?.providerMark != content?.providerMark { providerMark = next?.resolvedProviderMark() }
+    content = next; panel = nil; playbackAnchor = nil; panelSecond = -1
     fromAccent = accent
     targetAccent = next?.artwork != nil ? Self.rgb(next!.accent) : idleAccent
     colorAge = 0
@@ -106,7 +186,13 @@ final class SceneRegisteredImageProgram {
   }
 
   func setPlaying(_ next: Bool, hostTime: Double) {
+    if usesObservedPlayback && next != playing { panel = nil }
+    if usesObservedPlayback, playing, !next, let snapshot = content?.playback, snapshot.playing,
+      let anchor = playbackAnchor { playbackPosition = min(snapshot.durationSeconds, snapshot.positionSeconds + max(0, hostTime-anchor)) }
     playing = next; previousHost = hostTime
+    if next, let snapshot = content?.playback {
+      playbackAnchor = hostTime - max(0, playbackPosition-snapshot.positionSeconds)
+    }
     if !next { clearMotion(); frame = nil }
   }
 
@@ -138,7 +224,8 @@ final class SceneRegisteredImageProgram {
       target = frame.usesMappedMusicAuthority ? unit(frame.dynamics[2])*0.80 :
         unit(frame.channels[1])*0.38 + unit(frame.channels[3])*0.32 + unit(frame.channels[0])*0.20 + unit(frame.dynamics[2])*0.10
     }
-    energy += (target-energy)*Float(1-exp(-dt/(target > energy ? 0.28 : 1.2)))
+    let response = configuration.response ?? .standard
+    energy += (target-energy)*Float(1-exp(-dt/(target > energy ? response.attackSeconds : response.releaseSeconds)))
     if target == 0 && energy < 0.0001 { energy = 0 }
     halo = haloAge > 5 ? 0 : peak * Float((1-exp(-haloAge/0.035))*exp(-haloAge/0.70))
     haloRadius = Float(min(1, haloAge/0.42))
@@ -151,17 +238,35 @@ final class SceneRegisteredImageProgram {
   private func unit(_ n: Float) -> Float { n.isFinite ? min(1,max(0,n)) : 0 }
 
   func render(width: Int, height: Int, hostTime: Double, reducedMotion: Bool,
-              outputAllocator: SceneSurfaceNativeOutputAllocator?) throws -> MTLTexture {
+              outputAllocator: SceneSurfaceNativeOutputAllocator?, logicalSize: CGSize? = nil) throws -> MTLTexture {
     advance(hostTime: hostTime, reducedMotion: reducedMotion)
+    if usesObservedPlayback, let snapshot = content?.playback {
+      if playbackAnchor == nil { playbackAnchor = hostTime; playbackPosition = snapshot.positionSeconds }
+      if playing && snapshot.playing {
+        playbackPosition = min(snapshot.durationSeconds, snapshot.positionSeconds + max(0, hostTime-playbackAnchor!))
+      } else if !snapshot.playing { playbackPosition = snapshot.positionSeconds }
+      let second = Int(playbackPosition)
+      if second != panelSecond { panel = nil; panelSecond = second }
+    }
     if panel == nil { panel = try rasterPanel() }
     guard let panel, let output = try SceneSurfaceNativeOutputAllocator.makeTexture(device: device,
       width: width, height: height, allocator: outputAllocator), let command = queue.makeCommandBuffer() else { throw Failure.graphics }
     let pass = MTLRenderPassDescriptor(); pass.colorAttachments[0].texture = output
     pass.colorAttachments[0].loadAction = .dontCare; pass.colorAttachments[0].storeAction = .store
     guard let encoder = command.makeRenderCommandEncoder(descriptor: pass) else { throw Failure.graphics }
+    let response = configuration.response ?? .standard
+    let gain = Float(response.idleGain) + energy*Float(response.sustainGain) + pulse*Float(response.beatGain)
+    let reflection = Float(response.reflectionIdleGain) + Float(response.reflectionResponseGain)*max(gain-Float(response.idleGain), 0)
+    let viewport = configuration.viewport ?? .cover
+    let rect = viewport.imageRect(source: CGSize(width: source.width, height: source.height),
+      viewport: CGSize(width: width, height: height))
+    let logicalScale = logicalSize.map { $0.width > 0 ? Double(width)/$0.width : 1 } ?? 1
+    let placement: [Float] = [Float(rect.minX/Double(width)), Float(rect.minY/Double(height)),
+      Float(rect.width/Double(width)), Float(rect.height/Double(height)),
+      viewport.extendEdges ? 1 : 0, Float(viewport.edgeFadeExtent*logicalScale), reflection]
     let uniforms: [Float] = [Float(width),Float(height),Float(source.width),Float(source.height),
-      0.42 + energy*0.30 + pulse*1.25, halo*Float(configuration.haloStrength),haloRadius,
-      accent.x,accent.y,accent.z] + (try Self.inverseHomography(corners))
+      gain, halo*Float(configuration.haloStrength),haloRadius,
+      accent.x,accent.y,accent.z] + (try Self.inverseHomography(corners)) + placement
     encoder.setRenderPipelineState(pipeline)
     uniforms.withUnsafeBytes { encoder.setFragmentBytes($0.baseAddress!, length:$0.count, index:0) }
     encoder.setFragmentTexture(source,index:0); encoder.setFragmentTexture(coverage,index:1); encoder.setFragmentTexture(panel,index:2)
@@ -172,19 +277,22 @@ final class SceneRegisteredImageProgram {
   }
 
   private func rasterPanel() throws -> MTLTexture {
-    let ratio = max(1, simd_distance(corners[0], corners[1])*Double(source.width) /
-      max(1,simd_distance(corners[0], corners[3])*Double(source.height)))
-    let w = 1024, h = max(256, min(768, Int(1024/ratio)))
+    let dimensions = Self.panelSize(source: CGSize(width: source.width, height: source.height),
+      corners: corners, preserveLegacy: !usesObservedPlayback)
+    let w = Int(dimensions.width), h = Int(dimensions.height)
     guard let ctx = CGContext(data:nil,width:w,height:h,bitsPerComponent:8,bytesPerRow:w*4,
       space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue) else { throw Failure.graphics }
     ctx.translateBy(x:0,y:CGFloat(h)); ctx.scaleBy(x:1,y:-1)
     let bounds = CGRect(x:0,y:0,width:w,height:h)
     ctx.setFillColor(Self.color(background)); ctx.fill(bounds)
-    var artwork: CGImage?
-    if let bytes = content?.artwork, let input = CGImageSourceCreateWithData(bytes as CFData,nil) {
-      artwork = CGImageSourceCreateThumbnailAtIndex(input,0,[kCGImageSourceCreateThumbnailFromImageAlways:true,
-        kCGImageSourceThumbnailMaxPixelSize:1024,kCGImageSourceCreateThumbnailWithTransform:true] as CFDictionary)
+    if usesObservedPlayback {
+      if configuration.layout == "dashboard" { try drawDashboard(bounds: bounds, context: ctx) }
+      else { try drawPlayer(bounds: bounds, context: ctx) }
+      guard let image = ctx.makeImage() else { throw Failure.graphics }
+      panelRasterCount += 1
+      return try MTKTextureLoader(device:device).newTexture(cgImage:image,options:[.SRGB:false,.origin:MTKTextureLoader.Origin.topLeft])
     }
+    let artwork = self.artwork
     let immersive = configuration.layout == "immersive"
     let unit = CGFloat(h), padding = unit*0.11, side = unit*0.78
     let right = configuration.layout == "artworkRight"
@@ -243,6 +351,119 @@ final class SceneRegisteredImageProgram {
     return try MTKTextureLoader(device:device).newTexture(cgImage:image,options:[.SRGB:false,.origin:MTKTextureLoader.Origin.topLeft])
   }
 
+  /// Measure edges in source pixels, not normalized UV distance. One flat
+  /// texture is projected once, so text and covers cannot bend independently.
+  static func panelSize(source: CGSize, corners: [SIMD2<Double>], preserveLegacy: Bool = false) -> CGSize {
+    if preserveLegacy {
+      let ratio = max(1, simd_distance(corners[0], corners[1])*Double(source.width) /
+        max(1,simd_distance(corners[0], corners[3])*Double(source.height)))
+      return CGSize(width: 1024, height: max(256, min(768, Int(1024/ratio))))
+    }
+    let pixels = corners.map { SIMD2($0.x*Double(source.width), $0.y*Double(source.height)) }
+    let horizontal = (simd_distance(pixels[0], pixels[1])+simd_distance(pixels[3], pixels[2]))/2
+    let vertical = (simd_distance(pixels[0], pixels[3])+simd_distance(pixels[1], pixels[2]))/2
+    let ratio = horizontal/max(1, vertical)
+    return ratio >= 1 ? CGSize(width: 1024, height: max(128, Int(1024/ratio))) :
+      CGSize(width: max(128, Int(1024*ratio)), height: 1024)
+  }
+
+  private func drawArtwork(in rect: CGRect, radius: CGFloat, context: CGContext) throws {
+    if let artwork { SceneSongPanelDrawing.image(artwork, in: rect, radius: radius, context: context) }
+    else {
+      context.setFillColor(Self.color(background)); context.fill(rect)
+      try SceneSongPanelDrawing.icon("music.note", rect: rect.insetBy(dx: rect.width*0.3, dy: rect.height*0.3), color: primary, context: context)
+    }
+  }
+
+  private func drawDashboard(bounds: CGRect, context c: CGContext) throws {
+    let scale = min(bounds.width/768, bounds.height/360)
+    c.saveGState(); defer { c.restoreGState() }
+    c.translateBy(x: (bounds.width-768*scale)/2, y: (bounds.height-360*scale)/2); c.scaleBy(x: scale, y: scale)
+    let draw = SceneSongPanelDrawing.self
+    c.setFillColor(draw.color(0xff222125))
+    c.addPath(CGPath(roundedRect: CGRect(x: 14,y: 13,width: 56,height: 333), cornerWidth: 9,cornerHeight: 9,transform:nil)); c.fillPath()
+    try draw.icon("square.grid.2x2", rect: CGRect(x:28,y:31,width:28,height:28),color:primary,context:c)
+    for (y, name) in [(87.0,"map.fill"), (203.0,"phone.fill")] {
+      let rect=CGRect(x:24,y:y,width:36,height:36)
+      c.setFillColor(draw.color(0xff37ba62)); c.addPath(CGPath(roundedRect:rect,cornerWidth:8,cornerHeight:8,transform:nil)); c.fillPath()
+      try draw.icon(name,rect:rect.insetBy(dx:6,dy:6),color:0xffffffff,context:c)
+    }
+    let sourceRect=CGRect(x:24,y:145,width:36,height:36)
+    if let providerMark { draw.image(providerMark,in:sourceRect,radius:7,context:c,fit:true) }
+    else { try draw.icon("music.note",rect:sourceRect.insetBy(dx:5,dy:5),color:primary,context:c) }
+    try draw.icon("mic.fill",rect:CGRect(x:30,y:266,width:24,height:24),color:primary,context:c)
+    try draw.icon("circle.grid.3x3.fill",rect:CGRect(x:26,y:309,width:32,height:32),color:primary,context:c)
+    try draw.icon("chevron.backward.circle.fill",rect:CGRect(x:94,y:29,width:30,height:30),color:primary,context:c)
+    draw.text(content?.providerName ?? "",rect:CGRect(x:445,y:35,width:282,height:31),size:22,color:primary,context:c,alpha:0.65)
+    draw.text(content?.title ?? "",rect:CGRect(x:97,y:96,width:305,height:46),size:31,color:primary,context:c,medium:true)
+    draw.text(content?.artist ?? "",rect:CGRect(x:97,y:144,width:305,height:31),size:23,color:primary,context:c,alpha:0.78)
+    if let providerMark {
+      draw.image(providerMark,in:CGRect(x:97,y:179,width:25,height:25),radius:3,context:c,fit:true)
+      draw.text(content?.providerName ?? "",rect:CGRect(x:131,y:179,width:271,height:29),size:19,color:primary,context:c,alpha:0.65)
+    }
+    try drawArtwork(in:CGRect(x:444,y:79,width:268,height:268),radius:7,context:c)
+    let isPlaying = playing && (content?.playback?.playing ?? (content?.artworkOnly == false))
+    for (i,name) in ["backward.end.fill",isPlaying ? "pause.fill":"play.fill","forward.end.fill"].enumerated() {
+      try draw.icon(name,rect:CGRect(x:100+(CGFloat(i)+0.5)*95-18,y:221,width:36,height:36),color:primary,context:c)
+    }
+    let bar=CGRect(x:152,y:288,width:175,height:4)
+    c.setFillColor(draw.color(primary,alpha:0.20)); c.fill(bar)
+    if let snapshot=content?.playback {
+      c.setFillColor(draw.color(content?.accent ?? primary)); c.fill(CGRect(x:bar.minX,y:bar.minY,width:bar.width*playbackPosition/snapshot.durationSeconds,height:bar.height))
+      draw.text(draw.clock(playbackPosition),rect:CGRect(x:100,y:278,width:44,height:24),size:17,color:primary,context:c,alpha:0.75)
+      draw.text(draw.clock(snapshot.durationSeconds),rect:CGRect(x:333,y:278,width:52,height:24),size:17,color:primary,context:c,alpha:0.75,right:true)
+    }
+    for (i,name) in ["heart","shuffle","message","dot.radiowaves.left.and.right"].enumerated() {
+      try draw.icon(name,rect:CGRect(x:100+(CGFloat(i)+0.5)*71.25-12.5,y:325,width:25,height:26),color:primary,context:c)
+    }
+  }
+
+  private func drawPlayer(bounds: CGRect, context c: CGContext) throws {
+    let wide = bounds.width >= bounds.height*1.4
+    let unit = min(bounds.width, bounds.height*0.7)
+    let pad=unit*0.09
+    let side=min(bounds.width-2*pad,bounds.height*(wide ? 0.82:0.55))
+    let art=CGRect(x:wide ? pad:(bounds.width-side)/2,y:pad,width:side,height:side)
+    try drawArtwork(in:art,radius:side*0.05,context:c)
+    let details=wide ? CGRect(x:art.maxX+pad,y:pad,width:bounds.width-art.maxX-2*pad,height:bounds.height-2*pad) :
+      CGRect(x:pad,y:art.maxY+pad,width:bounds.width-2*pad,height:bounds.height-art.maxY-2*pad)
+    guard details.width > 0, details.height > 0 else { return }
+    c.saveGState(); defer { c.restoreGState() }; c.clip(to:details)
+    let draw=SceneSongPanelDrawing.self
+    let fontUnit=unit*configuration.contentScale
+    var y=details.minY
+    y += draw.text(content?.title ?? "",rect:CGRect(x:details.minX,y:y,width:details.width,height:fontUnit*0.30),size:fontUnit*0.13,color:primary,context:c,maxLines:2,medium:true)
+    y += draw.text(content?.artist ?? "",rect:CGRect(x:details.minX,y:y,width:details.width,height:fontUnit*0.14),size:fontUnit*0.095,color:content?.accent ?? primary,context:c,lineHeight:1.2)
+    if let name=content?.providerName, !name.isEmpty {
+      y += draw.text(name,rect:CGRect(x:details.minX,y:y,width:details.width,height:fontUnit*0.09),size:fontUnit*0.065,color:primary,context:c,lineHeight:1.3,alpha:0.65)
+    }
+    let gap=fontUnit*0.06, progressHeight=fontUnit*(content?.playback == nil ? 0.10:0.20)
+    y += gap
+    if y+progressHeight <= details.maxY {
+      let real=content?.playback
+      let bar=CGRect(x:details.minX,y:y+progressHeight*0.12,width:details.width,height:max(2,progressHeight*(real == nil ? 0.28:0.14)))
+      c.setFillColor(draw.color(primary,alpha:0.18)); c.fill(bar)
+      let progress=real.map { playbackPosition/$0.durationSeconds } ?? configuration.placeholderProgress
+      c.setFillColor(draw.color(content?.accent ?? primary)); c.fill(CGRect(x:bar.minX,y:bar.minY,width:bar.width*progress,height:bar.height))
+      if let real {
+        let rect=CGRect(x:details.minX,y:bar.maxY+progressHeight*0.14,width:details.width,height:progressHeight*0.5)
+        draw.text(draw.clock(playbackPosition),rect:rect,size:progressHeight*0.32,color:primary,context:c,alpha:0.6)
+        draw.text(draw.clock(real.durationSeconds),rect:rect,size:progressHeight*0.32,color:primary,context:c,alpha:0.6,right:true)
+      }
+      y += progressHeight
+    }
+    let controls=fontUnit*0.12
+    if y+controls <= details.maxY {
+      let isPlaying=playing && (content?.playback?.playing ?? (content?.artworkOnly == false))
+      let names=["shuffle","backward.end.fill",isPlaying ? "pause.fill":"play.fill","forward.end.fill"]
+      let count=providerMark == nil ? 4:5, slot=details.width/CGFloat(count), icon=controls*0.9
+      for (i,name) in names.enumerated() {
+        try draw.icon(name,rect:CGRect(x:details.minX+(CGFloat(i)+0.5)*slot-icon/2,y:y,width:icon,height:controls),color:i == 0 ? content?.accent ?? primary:primary,context:c,alpha:i == 0 ? 1:0.85)
+      }
+      if let providerMark { draw.image(providerMark,in:CGRect(x:details.minX+4.5*slot-icon/2,y:y,width:icon,height:controls),radius:2,context:c,fit:true) }
+    }
+  }
+
   @discardableResult
   private func text(_ value:String, rect:CGRect, size:CGFloat, color:UInt32, context:CGContext, maxLines:Int=1) -> CGFloat {
     guard !value.isEmpty else { return 0 }
@@ -286,19 +507,24 @@ final class SceneRegisteredImageProgram {
     texture2d<float> photo [[texture(0)]],texture2d<float> atlas [[texture(1)]],texture2d<float> panel [[texture(2)]]) {
     constexpr sampler sample(coord::normalized,address::clamp_to_edge,filter::linear);
     float2 viewport=float2(u[0],u[1]), source=float2(u[2],u[3]);
-    float2 extent=source*max(viewport.x/source.x,viewport.y/source.y);
-    float2 uv=(in.position.xy-(viewport-extent)*0.5)/extent;
-    float3 rgb=photo.sample(sample,uv).rgb, c=atlas.sample(sample,uv).rgb, accent=float3(u[7],u[8],u[9]);
+    float2 rectOrigin=float2(u[19],u[20]), rectExtent=float2(u[21],u[22]);
+    float2 uv=(in.position.xy/viewport-rectOrigin)/rectExtent;
+    float inside=step(0.0,uv.x)*step(uv.x,1.0)*step(0.0,uv.y)*step(uv.y,1.0);
+    float2 halfTexel=0.5/source, sampleUV=clamp(uv,halfTexel,1.0-halfTexel);
+    float sourceAlpha=mix(inside,1.0,u[23]);
+    float3 rgb=photo.sample(sample,sampleUV).rgb, c=atlas.sample(sample,sampleUV).rgb*inside, accent=float3(u[7],u[8],u[9]);
+    float2 outside=max(max(-uv,uv-1.0),0.0)*rectExtent*viewport;
+    if (u[24]>0) rgb*=clamp(1.0-length(outside)/u[24],0.0,1.0);
     float hi=max(rgb.r,max(rgb.g,rgb.b)),lo=min(rgb.r,min(rgb.g,rgb.b));
     float3 color=mix(rgb,float3(lo)+(hi-lo)*accent,clamp(c.g+c.b,0.0,1.0));
-    color*=1+(u[4]-1)*c.g+(0.80+0.28*max(u[4]-0.42,0.0)-1)*c.b;
+    color*=1+(u[4]-1)*c.g+(u[25]-1)*c.b;
     float reach=1-smoothstep(u[6]-0.16,u[6]+0.05,1-c.b);
     color+=accent*c.b*reach*clamp(u[5],0.0,1.5)*0.38;
     float3 q=float3(dot(float3(u[10],u[11],u[12]),float3(uv,1)),dot(float3(u[13],u[14],u[15]),float3(uv,1)),dot(float3(u[16],u[17],u[18]),float3(uv,1)));
     float2 local=q.xy/q.z;
-    float inside=step(0.0,local.x)*step(local.x,1.0)*step(0.0,local.y)*step(local.y,1.0);
-    color=mix(color,panel.sample(sample,local).rgb,c.r*inside);
-    return float4(clamp(color,0.0,1.0),1);
+    float panelInside=step(0.0,local.x)*step(local.x,1.0)*step(0.0,local.y)*step(local.y,1.0);
+    color=mix(color,panel.sample(sample,local).rgb,c.r*panelInside);
+    return float4(clamp(color,0.0,1.0)*sourceAlpha,sourceAlpha);
   }
   """
 }
