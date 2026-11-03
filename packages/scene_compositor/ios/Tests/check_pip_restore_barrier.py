@@ -79,13 +79,14 @@ def check_handler_wiring(source):
     sync = method_body(source, '    private func layoutSourceLayer() {')
     require('fitSourceLayer()' in sync, 'layoutSourceLayer ends in fitSourceLayer')
 
-    # 5. The window shows Play/Pause only: a scene is live content with no
-    #    seekable range, never "no content" (which would drop Play/Pause too).
+    # 5. The window shows Play/Pause only: a finite range that frame times
+    #    never reach (iOS 27 draws ±10 s skips for an infinite, live range),
+    #    never "no content" (which would drop Play/Pause too).
     time_range = method_body(
         source, '    func pictureInPictureControllerTimeRangeForPlayback(')
-    require('CMTimeRange(start: .negativeInfinity, duration: .positiveInfinity)'
+    require('CMTimeRange(start: .zero, duration: CMTime(value: 3_153_600_000, timescale: 1))'
             in time_range,
-            'the playback time range must be live with no seekable window')
+            'the playback time range must be finite and beyond any host time')
     require('.invalid' not in time_range.split('CMTimeRange(start:')[1],
             'the playback time range must never be invalid')
     require('controller.requiresLinearPlayback = true' in source,

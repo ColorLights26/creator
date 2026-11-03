@@ -1,5 +1,6 @@
 import AVFoundation
 import AVKit
+import Compression
 import CoreImage
 import CoreMedia
 import CoreVideo
@@ -726,6 +727,115 @@ func sceneSurfaceVideoFramesPerSecond(_ nominalFrameRate: Float) -> Int {
 }
 
 let sceneSurfaceAnimatedImageResidentFrameLimit = 1
+
+/// After the first loop a looping GIF overlay replays its exact decoded frames
+/// from an LZ4 copy instead of decoding on the CPU again. One decoded frame
+/// stays resident; this bounds the compressed copies kept per layer.
+let sceneSurfaceAnimatedImageCompressedCacheBytesLimit = 12 * 1024 * 1024
+
+/// The decoded bytes of one frame, LZ4-compressed, with every property needed
+/// to rebuild an identical CGImage (same layout, bitmap info and color space).
+/// The copy is stored at its exact size, so the budget counts real memory.
+struct SceneSurfaceCompressedAnimatedFrame {
+    let compressed: Data
+    let decodedLength: Int
+    let width: Int
+    let height: Int
+    let bitsPerComponent: Int
+    let bitsPerPixel: Int
+    let bytesPerRow: Int
+    let bitmapInfo: CGBitmapInfo
+    let colorSpace: CGColorSpace
+    let shouldInterpolate: Bool
+    let renderingIntent: CGColorRenderingIntent
+
+    init?(_ image: CGImage) {
+        guard let colorSpace = image.colorSpace,
+              let decoded = image.dataProvider?.data as Data?,
+              decoded.count >= image.bytesPerRow * image.height,
+              !decoded.isEmpty
+        else { return nil }
+        // LZ4's worst case; the encoder returns 0 when the output does not fit.
+        let bound = decoded.count + decoded.count / 255 + 64
+        let destination = UnsafeMutablePointer<UInt8>.allocate(capacity: bound)
+        defer { destination.deallocate() }
+        let written = decoded.withUnsafeBytes { input in
+            compression_encode_buffer(
+                destination, bound,
+                input.bindMemory(to: UInt8.self).baseAddress!, decoded.count,
+                nil, COMPRESSION_LZ4)
+        }
+        guard written > 0 else { return nil }
+        compressed = Data(bytes: destination, count: written)
+        decodedLength = decoded.count
+        width = image.width
+        height = image.height
+        bitsPerComponent = image.bitsPerComponent
+        bitsPerPixel = image.bitsPerPixel
+        bytesPerRow = image.bytesPerRow
+        bitmapInfo = image.bitmapInfo
+        self.colorSpace = colorSpace
+        shouldInterpolate = image.shouldInterpolate
+        renderingIntent = image.renderingIntent
+    }
+
+    func makeImage() -> CGImage? {
+        var decoded = Data(count: decodedLength)
+        let read = decoded.withUnsafeMutableBytes { output in
+            compressed.withUnsafeBytes { input in
+                compression_decode_buffer(
+                    output.bindMemory(to: UInt8.self).baseAddress!, decodedLength,
+                    input.bindMemory(to: UInt8.self).baseAddress!, compressed.count,
+                    nil, COMPRESSION_LZ4)
+            }
+        }
+        guard read == decodedLength,
+              let provider = CGDataProvider(data: decoded as CFData)
+        else { return nil }
+        return CGImage(
+            width: width, height: height,
+            bitsPerComponent: bitsPerComponent, bitsPerPixel: bitsPerPixel,
+            bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo,
+            provider: provider, decode: nil,
+            shouldInterpolate: shouldInterpolate, intent: renderingIntent)
+    }
+}
+
+/// The LZ4 copies one layer keeps of the frames it already decoded, within its
+/// byte budget. Once a frame does not fit no more copies are made: the rest
+/// decode exactly as before, without compressing copies that would be dropped.
+struct SceneSurfaceCompressedAnimatedFrameCache {
+    let bytesLimit: Int
+    private(set) var bytes = 0
+    private(set) var full = false
+    private var frames = [Int: SceneSurfaceCompressedAnimatedFrame]()
+
+    init(bytesLimit: Int = sceneSurfaceAnimatedImageCompressedCacheBytesLimit) {
+        self.bytesLimit = bytesLimit
+    }
+
+    func image(at index: Int) -> CGImage? {
+        frames[index]?.makeImage()
+    }
+
+    mutating func remember(_ image: CGImage, at index: Int) {
+        guard !full, frames[index] == nil,
+              let copy = SceneSurfaceCompressedAnimatedFrame(image)
+        else { return }
+        guard bytes + copy.compressed.count <= bytesLimit else {
+            full = true
+            return
+        }
+        frames[index] = copy
+        bytes += copy.compressed.count
+    }
+
+    mutating func removeAll(keepingCapacity: Bool) {
+        frames.removeAll(keepingCapacity: keepingCapacity)
+        bytes = 0
+        full = false
+    }
+}
 
 /// Work observed by one native layer at a scheduled scene tick.
 ///
@@ -6320,6 +6430,7 @@ private final class PictureInPictureSceneLayerRuntime {
     private var animatedImageSource: CGImageSource?
     private var animatedFrameEndTimes = [Double]()
     private var animatedFrameIndex = -1
+    private var compressedAnimatedFrames = SceneSurfaceCompressedAnimatedFrameCache()
     private var animationDuration: Double = 0
     private var animatedImageClock = SceneSurfaceAnimatedImageClock()
     private(set) var videoPlayer: AVPlayer?
@@ -7284,6 +7395,7 @@ private final class PictureInPictureSceneLayerRuntime {
         animatedImageSource = nil
         animatedFrameEndTimes.removeAll(keepingCapacity: false)
         animatedFrameIndex = -1
+        compressedAnimatedFrames.removeAll(keepingCapacity: false)
         animatedImageClock.reset()
         sourceCadenceClock.reset()
         effectCadenceClock.reset()
@@ -7601,6 +7713,7 @@ private final class PictureInPictureSceneLayerRuntime {
 
         animatedFrameEndTimes.removeAll(keepingCapacity: true)
         animatedFrameIndex = -1
+        compressedAnimatedFrames.removeAll(keepingCapacity: true)
         animatedImageClock.reset()
         var elapsed = 0.0
         let frameCount = min(CGImageSourceGetCount(source), 600)
@@ -7638,6 +7751,8 @@ private final class PictureInPictureSceneLayerRuntime {
 
     /// Keeps one decoded frame resident. The compressed ImageIO source stays
     /// available, but leaving an animation never retains every RGBA frame.
+    /// Frames already decoded once replay from their exact LZ4 copy while the
+    /// layer's budget allows; otherwise they decode exactly as before.
     private func decodeAnimatedFrame(at index: Int) -> CIImage? {
         guard
             let source = animatedImageSource,
@@ -7645,6 +7760,9 @@ private final class PictureInPictureSceneLayerRuntime {
             index < animatedFrameEndTimes.count
         else {
             return nil
+        }
+        if let copy = compressedAnimatedFrames.image(at: index) {
+            return CIImage(cgImage: copy).oriented(.up)
         }
         let options: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
@@ -7659,6 +7777,7 @@ private final class PictureInPictureSceneLayerRuntime {
         ) else {
             return nil
         }
+        compressedAnimatedFrames.remember(frame, at: index)
         return CIImage(cgImage: frame).oriented(.up)
     }
 
@@ -11568,14 +11687,14 @@ extension PictureInPictureHandler: AVPictureInPictureSampleBufferPlaybackDelegat
     func pictureInPictureControllerTimeRangeForPlayback(
         _ pictureInPictureController: AVPictureInPictureController
     ) -> CMTimeRange {
-        // A scene is live content with nothing to seek: the range starts at
-        // -infinity as well as lasting forever, which should leave the window
-        // with Play/Pause and no ±10 s skip buttons (still to be seen on an
-        // iPhone, 28-oct-2026). With the earlier `[0, +infinity)`
-        // range iOS 27 still drew them, and `requiresLinearPlayback` only
-        // disables forward skips. Never return `.invalid`: AVKit reads it as
-        // "no content", which would also drop Play/Pause.
-        CMTimeRange(start: .negativeInfinity, duration: .positiveInfinity)
+        // A scene has no timeline, yet iOS 27 draws ±10 s skips for live
+        // content (an infinite range) even with `requiresLinearPlayback`
+        // (iPad, 02-nov-2026). A finite range that the host-clock frame times
+        // never reach (100 years) keeps the window to Play/Pause and an empty
+        // bar that linear playback makes non-draggable. Never return
+        // `.invalid`: AVKit reads it as "no content", which would also drop
+        // Play/Pause.
+        CMTimeRange(start: .zero, duration: CMTime(value: 3_153_600_000, timescale: 1))
     }
 
     func pictureInPictureControllerIsPlaybackPaused(
@@ -14003,6 +14122,7 @@ final class SceneSurfaceRenderEngine: NSObject {
             )
             return
         }
+        let requestedAt = CACurrentMediaTime()
         inspectionQueue.async { [weak self] in
             guard let self else {
                 DispatchQueue.main.async {
@@ -14021,6 +14141,7 @@ final class SceneSurfaceRenderEngine: NSObject {
                 }
                 return
             }
+            let startedAt = CACurrentMediaTime()
             let signature = Self.preflightSignature(definition: definition)
             let evaluation: SceneSurfaceDocumentPreflightEvaluation
             if
@@ -14030,6 +14151,7 @@ final class SceneSurfaceRenderEngine: NSObject {
             {
                 evaluation = cached
             } else {
+                Self.holdForQAPreflightDelay()
                 evaluation = self.evaluatePreflight(definition: definition)
                 self.cachedPreflightSignature = signature
                 self.cachedPreflightEvaluation = signature == nil
@@ -14042,10 +14164,57 @@ final class SceneSurfaceRenderEngine: NSObject {
                     )
                 }
             }
+            let inspectedAt = CACurrentMediaTime()
             DispatchQueue.main.async {
+                Self.logSlowPreflight(
+                    requestedAt: requestedAt,
+                    startedAt: startedAt,
+                    inspectedAt: inspectedAt
+                )
                 result(Self.preflightPayload(evaluation: evaluation))
             }
         }
+    }
+
+    /// QA only: `COLORLIGHTS_QA_PREFLIGHT_DELAY_MS` (simctl/devicectl launch
+    /// environment) holds each uncached preflight on its worker, like the busy
+    /// queue seen on the iPhone. A repeat then reads the cached answer.
+    private static let qaPreflightDelay = TimeInterval(
+        Int(
+            ProcessInfo.processInfo.environment[
+                "COLORLIGHTS_QA_PREFLIGHT_DELAY_MS"
+            ] ?? ""
+        ) ?? 0
+    ) / 1_000
+
+    private static func holdForQAPreflightDelay() {
+        guard qaPreflightDelay > 0 else { return }
+        NSLog(
+            "%@",
+            "[SceneSurfacePreflight] qa_delay ms=\(Int(qaPreflightDelay * 1_000))"
+        )
+        Thread.sleep(forTimeInterval: qaPreflightDelay)
+    }
+
+    /// Dart gives the whole round trip one budget, so a slow reply is split
+    /// into worker wait, inspection and the hop back to the main thread.
+    private static func logSlowPreflight(
+        requestedAt: CFTimeInterval,
+        startedAt: CFTimeInterval,
+        inspectedAt: CFTimeInterval
+    ) {
+        let repliedAt = CACurrentMediaTime()
+        guard repliedAt - requestedAt >= 0.5 else { return }
+        let milliseconds = { (seconds: CFTimeInterval) in
+            Int(max(0, seconds) * 1_000)
+        }
+        NSLog(
+            "%@",
+            "[SceneSurfacePreflight] slow totalMs=\(milliseconds(repliedAt - requestedAt)) "
+                + "queuedMs=\(milliseconds(startedAt - requestedAt)) "
+                + "inspectMs=\(milliseconds(inspectedAt - startedAt)) "
+                + "replyMs=\(milliseconds(repliedAt - inspectedAt))"
+        )
     }
 
     private func preflightDocumentV2(
