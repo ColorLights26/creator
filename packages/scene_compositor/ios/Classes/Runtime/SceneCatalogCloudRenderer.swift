@@ -1,6 +1,7 @@
 import Foundation
 import CoreGraphics
 import Metal
+import QuartzCore
 
 /// Faithful MagicClouds Canvas port: seven seeded union masks, cached by size,
 /// and the original three tiled drifts. The compositor supplies active elapsed time.
@@ -140,6 +141,7 @@ final class SceneCatalogCloudRenderer {
 
   private func prepareMasks(width: Int, height: Int) throws {
     if width == maskWidth, height == maskHeight, masks.count == Self.formations.count { return }
+    let started = CACurrentMediaTime()
     let scaleX = Double(width) / 1000
     let scaleY = Double(height) / 1800
     var prepared: [Mask] = []
@@ -180,6 +182,10 @@ final class SceneCatalogCloudRenderer {
     masks = prepared
     maskWidth = width; maskHeight = height
     maskRasterizationCount += prepared.count
+    // Measured on every new shape (a turn): time and the masks' bytes.
+    let bytes = prepared.reduce(0) { $0 + $1.texture.width * $1.texture.height }
+    sceneDiagnosticLog(String(format: "[SceneRasterCost] magic_clouds masks %dx%d ms=%.1f bytes=%d main=%@",
+      width, height, (CACurrentMediaTime() - started) * 1000, bytes, Thread.isMainThread ? "true" : "false"))
   }
 
   private static func color(_ argb: UInt32) -> SIMD4<Float> {

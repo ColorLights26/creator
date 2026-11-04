@@ -464,6 +464,8 @@ final class SceneFloatingSongCardRenderer {
     let w=max(1,Int(CGFloat(width)*ratio)),h=max(1,Int(CGFloat(height)*ratio))
     let key="\(w):\(h):\(logicalSize):\(revision)"
     if key == rasterKey, identity != nil { return }
+    let rasterStarted = CACurrentMediaTime()
+    defer { sceneDiagnosticLog(String(format: "[SceneRasterCost] song_strip identity %dx%d logical=%.0fx%.0f ms=%.1f main=%@", w, h, logicalSize.width, logicalSize.height, (CACurrentMediaTime() - rasterStarted) * 1000, Thread.isMainThread ? "true" : "false")) }
     guard let c=CGContext(data:nil,width:w,height:h,bitsPerComponent:8,bytesPerRow:w*4,
       space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue),let pixels=c.data else { throw Failure.graphics }
     c.translateBy(x:0,y:CGFloat(h)); c.scaleBy(x:CGFloat(w)/logicalSize.width,y:-CGFloat(h)/logicalSize.height)
@@ -620,6 +622,8 @@ final class SceneCatalogSongStripRenderer {
     let w = max(1, Int(CGFloat(width) * ratio)), h = max(1, Int(CGFloat(height) * ratio))
     let key = "\(w):\(h):\(logicalSize.width):\(logicalSize.height):\(contentRevision)"
     if rasterKey == key, identityTexture != nil { return }
+    let rasterStarted = CACurrentMediaTime()
+    defer { sceneDiagnosticLog(String(format: "[SceneRasterCost] song_panel identity %dx%d logical=%.0fx%.0f ms=%.1f main=%@", w, h, logicalSize.width, logicalSize.height, (CACurrentMediaTime() - rasterStarted) * 1000, Thread.isMainThread ? "true" : "false")) }
     guard let context = CGContext(data: nil, width: w, height: h, bitsPerComponent: 8,
       bytesPerRow: w * 4, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue),
       let pixels = context.data else { throw Failure.graphics }

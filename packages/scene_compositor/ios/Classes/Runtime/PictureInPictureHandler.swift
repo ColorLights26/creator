@@ -8,7 +8,32 @@ import CryptoKit
 import Flutter
 import ImageIO
 import Metal
+import os
 import UIKit
+
+private let sceneDiagnosticOSLog = OSLog(subsystem: "com.chic.scene_compositor", category: "diagnostics")
+
+/// NSLog arguments reach a device log as <private> outside a debugger. Debug
+/// and profile builds turn this on from Dart so a device run can read the
+/// module's lines (ids, sizes and timings only); a release build never does.
+var sceneDiagnosticsPublic = false
+
+/// A measurement for device runs only: release builds drop it.
+func sceneDiagnosticLog(_ message: String) {
+    guard sceneDiagnosticsPublic else { return }
+    os_log("%{public}@", log: sceneDiagnosticOSLog, type: .default, message)
+}
+
+/// Every NSLog of this module: public while diagnostics are on, otherwise
+/// Foundation's NSLog with its private arguments.
+func NSLog(_ format: String, _ args: CVarArg...) {
+    let message = String(format: format, arguments: args)
+    if sceneDiagnosticsPublic {
+        os_log("%{public}@", log: sceneDiagnosticOSLog, type: .default, message)
+    } else {
+        Foundation.NSLog("%@", message)
+    }
+}
 
 /// Normalized source overflow alignment; y=0 means the visual top, also in CI.
 struct SceneMediaSourceAlignment: Equatable {
@@ -3932,8 +3957,9 @@ final class SceneSurfaceFirefliesRuntime {
 
     let recipe: SceneSurfaceFirefliesRecipeV1
     private let particles: [Particle]
-    private var cachedSize = CGSize.zero
-    private var cachedMask: CIImage?
+    /// Masks of the last two shapes, newest first: a turn back reuses the
+    /// other orientation's instead of drawing it again on the CPU.
+    private var cachedMasks: [(size: CGSize, mask: CIImage)] = []
     private var lastHostTime: CFTimeInterval?
     private var elapsed = 0.0
     private var flow = 0.0
@@ -3998,11 +4024,23 @@ final class SceneSurfaceFirefliesRuntime {
         )
         elapsed += delta * (1 + flow * 0.24)
 
-        if cachedMask == nil || cachedSize != targetRect.size {
-            cachedMask = makeMask(size: targetRect.size)
-            cachedSize = targetRect.size
+        let mask: CIImage
+        if let cached = cachedMasks.first(where: { $0.size == targetRect.size }) {
+            mask = cached.mask
+        } else {
+            let started = CACurrentMediaTime()
+            guard let made = makeMask(size: targetRect.size) else { return nil }
+            sceneDiagnosticLog(String(
+                format: "[SceneRasterCost] fireflies mask %.0fx%.0f ms=%.1f bytes=%d main=%@",
+                targetRect.width,
+                targetRect.height,
+                (CACurrentMediaTime() - started) * 1000,
+                Int(targetRect.width * targetRect.height) * 4,
+                Thread.isMainThread ? "true" : "false"
+            ))
+            cachedMasks = [(targetRect.size, made)] + cachedMasks.prefix(1)
+            mask = made
         }
-        guard let mask = cachedMask else { return nil }
         let colors = palette.isEmpty
             ? [
                 CIColor(red: 0.92, green: 0.95, blue: 0.74),
@@ -4075,6 +4113,11 @@ final class SceneSurfaceFirefliesRuntime {
         return composed
     }
 
+    /// Frees the cached masks when the layer goes away.
+    func releaseMasks() {
+        cachedMasks.removeAll()
+    }
+
     private func makeMask(size: CGSize) -> CIImage? {
         let width = max(Int(size.width.rounded()), 2)
         let height = max(Int(size.height.rounded()), 2)
@@ -4132,7 +4175,10 @@ final class SceneSurfaceFirefliesRuntime {
                 startRadius: 0,
                 endCenter: center,
                 endRadius: haloRadius,
-                options: [.drawsAfterEndLocation]
+                // Beyond its end the halo is black, which adds nothing over
+                // the black fill: painting it filled the whole canvas once per
+                // particle (~0.5 s per shape on an iPad).
+                options: []
             )
             let coreRadius = max(CGFloat(pixelScale) * particle.radius * 0.72, 0.8)
             context.setFillColor(inner)
@@ -7404,6 +7450,7 @@ private final class PictureInPictureSceneLayerRuntime {
         preparedImageCacheState.reset()
         image = nil
         nativeProgram = nil
+        firefliesRuntime?.releaseMasks()
         infernoEmbersRuntime?.tearDown()
         wildflowerPollenRuntime?.tearDown()
         statefulStormRuntime?.reset()
@@ -8581,6 +8628,9 @@ final class PictureInPictureHandler: NSObject {
                 return
             }
             switch call.method {
+            case "setDiagnosticsPublic":
+                sceneDiagnosticsPublic = (call.arguments as? Bool) == true
+                result(nil)
             case "isSupported":
                 result(AVPictureInPictureController.isPictureInPictureSupported())
             case "prepare":
@@ -8742,8 +8792,11 @@ final class PictureInPictureHandler: NSObject {
             let rawSessionId = arguments["sessionId"] as? String,
             !rawSessionId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
             let typedData = arguments["posterBytes"] as? FlutterStandardTypedData,
-            let image = UIImage(data: typedData.data),
-            let ciImage = CIImage(image: image)
+            let ciImage = Self.posterImage(
+                bytes: typedData.data,
+                width: arguments["posterWidth"] as? Int,
+                height: arguments["posterHeight"] as? Int
+            )
         else {
             result(false)
             return
@@ -9458,6 +9511,12 @@ final class PictureInPictureHandler: NSObject {
         _ active: Bool,
         emitPlaybackIntent: Bool = false
     ) {
+        NSLog(
+            "[MusicVibePiP] playback active=%@ state=%@ fromWindow=%@",
+            active.description,
+            lifecycleState.rawValue,
+            emitPlaybackIntent.description
+        )
         playbackActive = active
         if active {
             if v2EmergencyRecoveryActive {
@@ -9747,6 +9806,31 @@ final class PictureInPictureHandler: NSObject {
             }
         }
         stateLock.unlock()
+    }
+
+    /// Unencoded premultiplied RGBA rows when the size comes with them (what
+    /// the scene controller sends), otherwise an encoded image.
+    private static func posterImage(bytes: Data, width: Int?, height: Int?) -> CIImage? {
+        guard let width, let height else {
+            return UIImage(data: bytes).flatMap { CIImage(image: $0) }
+        }
+        guard width > 0, height > 0, bytes.count >= width * height * 4,
+              let provider = CGDataProvider(data: bytes as CFData),
+              let image = CGImage(
+                  width: width,
+                  height: height,
+                  bitsPerComponent: 8,
+                  bitsPerPixel: 32,
+                  bytesPerRow: width * 4,
+                  space: CGColorSpaceCreateDeviceRGB(),
+                  bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),
+                  provider: provider,
+                  decode: nil,
+                  shouldInterpolate: true,
+                  intent: .defaultIntent
+              )
+        else { return nil }
+        return CIImage(cgImage: image)
     }
 
     private func configurePixelBufferPool() -> Bool {
@@ -11743,7 +11827,8 @@ final class PictureInPictureHandlerUnavailable: NSObject, FlutterStreamHandler {
             case "releaseSceneContinuation":
                 result(FlutterError(code: "continuation_unavailable", message: "Native continuation is unavailable.", details: nil))
             case "release", "setAutomaticStartEnabled", "setPlaybackActive",
-                 "updateReactiveFrame", "acknowledgeRestore", "dispose": result(nil)
+                 "updateReactiveFrame", "acknowledgeRestore", "dispose",
+                 "setDiagnosticsPublic": result(nil)
             default: result(FlutterMethodNotImplemented)
             }
         }
@@ -12484,6 +12569,19 @@ private final class SceneSurfaceLayerLease {
     deinit { layer.tearDown() }
 }
 
+/// The top-level keys whose values differ between two source identities.
+func sceneSurfaceIdentityDifference(_ before: Data, _ after: Data) -> String {
+    guard
+        let a = (try? JSONSerialization.jsonObject(with: before)) as? [String: Any],
+        let b = (try? JSONSerialization.jsonObject(with: after)) as? [String: Any]
+    else { return "identity_unreadable" }
+    let keys = Set(a.keys).union(b.keys).filter { key in
+        guard let left = a[key], let right = b[key] else { return true }
+        return !(left as AnyObject).isEqual(right)
+    }
+    return "identity_differs:" + keys.sorted().joined(separator: ",")
+}
+
 /// Presentation edits never change a source. Local-file metadata is included
 /// so replacing a downloaded file at the same path cannot reuse its old player.
 enum SceneSurfaceLayerSourceIdentity {
@@ -12573,6 +12671,18 @@ private final class SceneSurfaceDocumentRuntime {
                 lease = retained
                 presentationUpdates.append(presentation)
             } else {
+                if previous?.sceneId == sceneId,
+                   let earlier = previous?.sourceLeases.first(where: { $0.layer.id == id }) {
+                    // A layer of the same scene rebuilt from scratch waits for
+                    // a new decoder: say why it could not be kept.
+                    sceneDiagnosticLog(String(
+                        format: "[SceneSurfaceReuse] layer=%@ rebuilt reason=%@",
+                        id,
+                        earlier.sourceIdentity != identity
+                            ? sceneSurfaceIdentityDifference(earlier.sourceIdentity, identity)
+                            : "presentation_rejected"
+                    ))
+                }
                 guard let layer = PictureInPictureSceneLayerRuntime(
                     definition: layerDefinition,
                     renderEngine: renderEngine,
