@@ -6318,6 +6318,34 @@ final class SceneSurfaceInspectionContext {
     }
 }
 
+/// An inspection that ran out of time says nothing about the scene: it is
+/// reported as a timeout, never as a missing file or an invalid document, and
+/// only an accepted scene is remembered (05-nov-2026).
+enum SceneSurfaceInspectionVerdict {
+    /// Preflight issue that Dart reads as «no answer yet» and asks again.
+    static let preflightTimedOutIssue = "timed_out"
+
+    static func preflightIssues(
+        context: SceneSurfaceInspectionContext,
+        definitionIssues: () -> [String]
+    ) -> [String] {
+        context.isCancelled ? [preflightTimedOutIssue] : definitionIssues()
+    }
+
+    static func operationError(context: SceneSurfaceInspectionContext) -> String {
+        context.isCancelled ? "scene_inspection_timeout" : "scene_document_invalid"
+    }
+
+    /// Any «no» is inspected again on the next ask, so a passing fault on a
+    /// busy device can never stick to the scene.
+    static func mayCache(supported: Bool) -> Bool { supported }
+    /// A document update that ran out of construction time keeps the scene
+    /// and asks again; only a finished build that fails is a real refusal.
+    static func updateRejection(context: SceneSurfaceInspectionContext) -> String {
+        context.isCancelled ? preflightTimedOutIssue : "scene_update_resources_unavailable"
+    }
+}
+
 /// Completion and cancellation belong to the render queue; inspection never
 /// blocks it. A late worker result cannot revive a cancelled/expired operation.
 final class SceneSurfaceInspectionOperation<Value> {
@@ -6338,8 +6366,11 @@ final class SceneSurfaceInspectionOperation<Value> {
         let work = DispatchWorkItem { [weak self] in
             guard !context.isCancelled else { return }
             let value = inspect(context)
+            let error = value == nil
+                ? SceneSurfaceInspectionVerdict.operationError(context: context)
+                : nil
             self?.queue.async { [weak self] in
-                self?.finish(value, error: value == nil ? "scene_document_invalid" : nil)
+                self?.finish(value, error: error)
             }
         }
         self.work = work
@@ -13952,6 +13983,8 @@ final class SceneSurfaceRenderEngine: NSObject {
     // bounded. These fields are confined to inspectionQueue.
     private var cachedPreflightSignature: String?
     private var cachedPreflightEvaluation: SceneSurfaceDocumentPreflightEvaluation?
+    private var qaSlowedPreflightScenes = Set<String>()
+    private var qaFirstPreflightScene: String?
 
     init(
         textureRegistry: FlutterTextureRegistry,
@@ -14263,8 +14296,13 @@ final class SceneSurfaceRenderEngine: NSObject {
             } else {
                 Self.holdForQAPreflightDelay()
                 evaluation = self.evaluatePreflight(definition: definition)
-                self.cachedPreflightSignature = signature
-                self.cachedPreflightEvaluation = signature == nil
+                // Only an accepted scene is cached: a «no» (a timeout above
+                // all) is inspected again on the next ask.
+                let cacheable = SceneSurfaceInspectionVerdict.mayCache(
+                    supported: evaluation.supported
+                )
+                self.cachedPreflightSignature = cacheable ? signature : nil
+                self.cachedPreflightEvaluation = signature == nil || !cacheable
                     ? nil
                     : evaluation
                 if !evaluation.supported {
@@ -14296,6 +14334,43 @@ final class SceneSurfaceRenderEngine: NSObject {
             ] ?? ""
         ) ?? 0
     ) / 1_000
+
+    /// QA only, by scene id in the simctl/devicectl launch environment:
+    /// `COLORLIGHTS_QA_PREFLIGHT_SLOW_SCENE` holds the first inspection of that
+    /// scene past its native deadline, as on a busy device;
+    /// `COLORLIGHTS_QA_PREFLIGHT_REJECT_SCENE` refuses it as a missing file
+    /// (`*`: every scene but the first one inspected).
+    private static let qaSlowPreflightScene =
+        ProcessInfo.processInfo.environment["COLORLIGHTS_QA_PREFLIGHT_SLOW_SCENE"]
+    private static let qaRejectedPreflightScene =
+        ProcessInfo.processInfo.environment["COLORLIGHTS_QA_PREFLIGHT_REJECT_SCENE"]
+
+    /// Returns the forced refusal, if any. Runs on inspectionQueue.
+    private func applyQAPreflightFault(
+        definition: [String: Any],
+        context: SceneSurfaceInspectionContext
+    ) -> [String]? {
+        guard let sceneId = definition["sceneId"] as? String else { return nil }
+        // `*` refuses every scene but the first one inspected, so any later
+        // change (one the app makes on its own included) is refused.
+        if Self.qaRejectedPreflightScene == "*", qaFirstPreflightScene == nil {
+            qaFirstPreflightScene = sceneId
+        }
+        if let rejected = Self.qaRejectedPreflightScene, !rejected.isEmpty,
+           rejected == "*" ? sceneId != qaFirstPreflightScene : sceneId.contains(rejected) {
+            NSLog("%@", "[SceneSurfacePreflight] qa_reject scene=\(sceneId)")
+            return ["asset_unavailable"]
+        }
+        if let slow = Self.qaSlowPreflightScene, !slow.isEmpty,
+           sceneId.contains(slow),
+           qaSlowedPreflightScenes.insert(sceneId).inserted {
+            NSLog("%@", "[SceneSurfacePreflight] qa_slow scene=\(sceneId)")
+            Thread.sleep(
+                forTimeInterval: max(0, context.deadline - CACurrentMediaTime()) + 0.05
+            )
+        }
+        return nil
+    }
 
     private static func holdForQAPreflightDelay() {
         guard qaPreflightDelay > 0 else { return }
@@ -14398,21 +14473,38 @@ final class SceneSurfaceRenderEngine: NSObject {
                 issueCodes: ["renderer_unavailable"]
             )
         }
+        let inspectionContext = SceneSurfaceInspectionContext(timeout: 2)
+        if let forced = applyQAPreflightFault(
+            definition: definition,
+            context: inspectionContext
+        ) {
+            return Self.preflightEvaluation(
+                capabilities: capabilities,
+                supported: false,
+                backendClass: nil,
+                issueCodes: forced
+            )
+        }
         guard
             let document = SceneSurfaceDocumentRuntime(
                 definition: definition,
                 renderEngine: renderEngine,
                 metalContext: metalContext,
-                constructionMode: .preflight
+                constructionMode: .preflight,
+                inspectionContext: inspectionContext
             )
         else {
+            // Running out of inspection time on a busy device says nothing
+            // about the scene: it must not report a present file as missing.
             return Self.preflightEvaluation(
                 capabilities: capabilities,
                 supported: false,
                 backendClass: nil,
-                issueCodes: Self.preflightIssueCodes(
-                    definition: definition
-                )
+                issueCodes: SceneSurfaceInspectionVerdict.preflightIssues(
+                    context: inspectionContext
+                ) {
+                    Self.preflightIssueCodes(definition: definition)
+                }
             )
         }
         defer { document.tearDown() }
@@ -14691,20 +14783,27 @@ final class SceneSurfaceRenderEngine: NSObject {
                     }
                     return
                 }
+                // Building the document has its own inspection time: running
+                // out of it is no verdict on the scene (05-nov-2026).
+                let constructionContext = SceneSurfaceInspectionContext(timeout: 2)
                 guard
                     let document = SceneSurfaceDocumentRuntime(
                         definition: documentDefinition,
                         renderEngine: self.renderEngine,
                         metalContext: self.metalContext,
                         metricsScope: sessionId,
-                        inspectedVideos: videos
+                        inspectedVideos: videos,
+                        inspectionContext: constructionContext
                     )
                 else {
                     self.metalContext?.renderPathMetrics.removeScope(sessionId)
-                    logAttachReceipt("failed", "scene_document_invalid")
+                    let code = SceneSurfaceInspectionVerdict.operationError(
+                        context: constructionContext
+                    )
+                    logAttachReceipt("failed", code)
                     DispatchQueue.main.async {
                         self.textureRegistry.unregisterTexture(textureId)
-                        result(Self.error("scene_document_invalid", "The complete scene graph is not supported natively."))
+                        result(Self.error(code, "The complete scene graph is not supported natively."))
                     }
                     return
                 }
@@ -14932,16 +15031,20 @@ final class SceneSurfaceRenderEngine: NSObject {
                         finish(ready && self.renderAndPublish(session: session))
                     }
                 }
+                let constructionContext = SceneSurfaceInspectionContext(timeout: 2)
                 guard let replacement = SceneSurfaceDocumentRuntime(
                         definition: documentDefinition,
                         renderEngine: self.renderEngine,
                         metalContext: self.metalContext,
                         metricsScope: sessionId,
                         reusing: session.document,
-                        inspectedVideos: videos
+                        inspectedVideos: videos,
+                        inspectionContext: constructionContext
                     )
                 else {
-                    rejectAndRestore("scene_update_resources_unavailable")
+                    rejectAndRestore(
+                        SceneSurfaceInspectionVerdict.updateRejection(context: constructionContext)
+                    )
                     return
                 }
                 // Keep the last complete native output while the candidate prepares.
