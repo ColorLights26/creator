@@ -823,6 +823,49 @@
       "note": "A/B real revisado: 992 pares Metal, cuatro instantes con música y silencio, valores iniciales del iPad. Sólo cambia 60→30 FPS; programa, materiales, colores y controles idénticos; replay nativo 30/60 pasa. Se conserva la identidad para atribuir votos. Cambian la fluidez y algunos instantes de la respuesta musical; no se afirma igualdad de píxeles ni es una nueva nota estética. Evidencia: cadence-default-30-repair/appearance-review/review.json."
     },
     {
+      "visualId": "corredor_neon",
+      "from": "06096d8491072c06",
+      "to": "22e3ed45669225a8",
+      "base": "HEAD",
+      "proposedAt": "2026-11-06T07:41:45.334966Z",
+      "kind": "pixelParity",
+      "status": "reviewed",
+      "summary": "Cambió nativeSource; 16 capturas Metal en los mismos instantes (música fuerte y silencio) coinciden: diferencia máxima 0/255 en 0.0% de píxeles. Alcance: valores iniciales. Observar A/B antes de revisar.",
+      "evidence": {
+        "changedFields": [
+          "nativeSource"
+        ],
+        "pixelParity": {
+          "equivalent": true,
+          "frames": 16,
+          "instants": [
+            "corredor_neon_t1000_ipadloud.png",
+            "corredor_neon_t1000_ipadsilent.png",
+            "corredor_neon_t1000_iphoneloud.png",
+            "corredor_neon_t1000_iphonesilent.png",
+            "corredor_neon_t2500_ipadloud.png",
+            "corredor_neon_t2500_ipadsilent.png",
+            "corredor_neon_t2500_iphoneloud.png",
+            "corredor_neon_t2500_iphonesilent.png",
+            "corredor_neon_t4000_ipadloud.png",
+            "corredor_neon_t4000_ipadsilent.png",
+            "corredor_neon_t4000_iphoneloud.png",
+            "corredor_neon_t4000_iphonesilent.png",
+            "corredor_neon_t6000_ipadloud.png",
+            "corredor_neon_t6000_ipadsilent.png",
+            "corredor_neon_t6000_iphoneloud.png",
+            "corredor_neon_t6000_iphonesilent.png"
+          ],
+          "maxDifference": 0,
+          "differentPercent": 0.0
+        },
+        "temporalRule30_60": "pass"
+      },
+      "reviewer": "Claude",
+      "reviewedAt": "2026-11-06T07:42:36.659043Z",
+      "note": "Tope de destellos (flashSafety). Revisado por Claude con el encargo del PM. Alcance de la paridad: 16 capturas Metal idénticas byte a byte, solo a pantalla completa (iPhone e iPad), Speed 1, opciones por defecto, música de 120 BPM y silencio, en t=1/2,5/4/6 s. Justo ahí el arreglo no actúa. No se comparó donde sí actúa: con Speed por encima de 1 el corredor ya no avanza más deprisa que con Speed 1 (antes llegaba a unos 10 marcos por segundo con Speed 2). Si el equipo votó con Speed alto, puede volver a votar."
+    },
+    {
       "visualId": "cristal_electrico_transparente",
       "from": "41065b29f591aced",
       "to": "bdb9f7a34d8eb063",
@@ -1495,6 +1538,49 @@
       "reviewer": "Codex",
       "reviewedAt": "2026-10-09T07:45:16.432299Z",
       "note": "A/B real revisado: 992 pares Metal, cuatro instantes con música y silencio, valores iniciales del iPad. Sólo cambia 60→30 FPS; programa, materiales, colores y controles idénticos; replay nativo 30/60 pasa. Se conserva la identidad para atribuir votos. Cambian la fluidez y algunos instantes de la respuesta musical; no se afirma igualdad de píxeles ni es una nueva nota estética. Evidencia: cadence-default-30-repair/appearance-review/review.json."
+    },
+    {
+      "visualId": "golden_particles_scene",
+      "from": "1c9a8682d81a7ba3",
+      "to": "90666a2f151da35f",
+      "base": "HEAD",
+      "proposedAt": "2026-11-06T07:41:45.334966Z",
+      "kind": "pixelParity",
+      "status": "reviewed",
+      "summary": "Cambió nativeSource; 16 capturas Metal en los mismos instantes (música fuerte y silencio) coinciden: diferencia máxima 0/255 en 0.0% de píxeles. Alcance: valores iniciales. Observar A/B antes de revisar.",
+      "evidence": {
+        "changedFields": [
+          "nativeSource"
+        ],
+        "pixelParity": {
+          "equivalent": true,
+          "frames": 16,
+          "instants": [
+            "golden_particles_scene_t1000_ipadloud.png",
+            "golden_particles_scene_t1000_ipadsilent.png",
+            "golden_particles_scene_t1000_iphoneloud.png",
+            "golden_particles_scene_t1000_iphonesilent.png",
+            "golden_particles_scene_t2500_ipadloud.png",
+            "golden_particles_scene_t2500_ipadsilent.png",
+            "golden_particles_scene_t2500_iphoneloud.png",
+            "golden_particles_scene_t2500_iphonesilent.png",
+            "golden_particles_scene_t4000_ipadloud.png",
+            "golden_particles_scene_t4000_ipadsilent.png",
+            "golden_particles_scene_t4000_iphoneloud.png",
+            "golden_particles_scene_t4000_iphonesilent.png",
+            "golden_particles_scene_t6000_ipadloud.png",
+            "golden_particles_scene_t6000_ipadsilent.png",
+            "golden_particles_scene_t6000_iphoneloud.png",
+            "golden_particles_scene_t6000_iphonesilent.png"
+          ],
+          "maxDifference": 0,
+          "differentPercent": 0.0
+        },
+        "temporalRule30_60": "pass"
+      },
+      "reviewer": "Claude",
+      "reviewedAt": "2026-11-06T07:42:38.030736Z",
+      "note": "Tope de destellos (flashSafety). Revisado por Claude con el encargo del PM. Alcance de la paridad: 16 capturas Metal idénticas byte a byte, solo a pantalla completa (iPhone e iPad), Speed 1, opciones por defecto, música de 120 BPM y silencio, en t=1/2,5/4/6 s. Justo ahí el arreglo no actúa. No se comparó donde sí actúa: con golpes más seguidos que uno cada 0,34 s (más de unos 176 BPM o golpes densos) el halo se reenciende menos."
     },
     {
       "visualId": "goteo_pollock",
@@ -3261,6 +3347,49 @@
       "note": "A/B real revisado: 992 pares Metal, cuatro instantes con música y silencio, valores iniciales del iPad. Sólo cambia 60→30 FPS; programa, materiales, colores y controles idénticos; replay nativo 30/60 pasa. Se conserva la identidad para atribuir votos. Cambian la fluidez y algunos instantes de la respuesta musical; no se afirma igualdad de píxeles ni es una nueva nota estética. Evidencia: cadence-default-30-repair/appearance-review/review.json."
     },
     {
+      "visualId": "reactiva_mejorada_celuloide_quemado",
+      "from": "60fa1dafd14258b6",
+      "to": "1cc306e092b75faa",
+      "base": "HEAD",
+      "proposedAt": "2026-11-06T07:41:45.334966Z",
+      "kind": "pixelParity",
+      "status": "reviewed",
+      "summary": "Cambió nativeSource; 16 capturas Metal en los mismos instantes (música fuerte y silencio) coinciden: diferencia máxima 0/255 en 0.0% de píxeles. Alcance: valores iniciales. Observar A/B antes de revisar.",
+      "evidence": {
+        "changedFields": [
+          "nativeSource"
+        ],
+        "pixelParity": {
+          "equivalent": true,
+          "frames": 16,
+          "instants": [
+            "reactiva_mejorada_celuloide_quemado_t1000_ipadloud.png",
+            "reactiva_mejorada_celuloide_quemado_t1000_ipadsilent.png",
+            "reactiva_mejorada_celuloide_quemado_t1000_iphoneloud.png",
+            "reactiva_mejorada_celuloide_quemado_t1000_iphonesilent.png",
+            "reactiva_mejorada_celuloide_quemado_t2500_ipadloud.png",
+            "reactiva_mejorada_celuloide_quemado_t2500_ipadsilent.png",
+            "reactiva_mejorada_celuloide_quemado_t2500_iphoneloud.png",
+            "reactiva_mejorada_celuloide_quemado_t2500_iphonesilent.png",
+            "reactiva_mejorada_celuloide_quemado_t4000_ipadloud.png",
+            "reactiva_mejorada_celuloide_quemado_t4000_ipadsilent.png",
+            "reactiva_mejorada_celuloide_quemado_t4000_iphoneloud.png",
+            "reactiva_mejorada_celuloide_quemado_t4000_iphonesilent.png",
+            "reactiva_mejorada_celuloide_quemado_t6000_ipadloud.png",
+            "reactiva_mejorada_celuloide_quemado_t6000_ipadsilent.png",
+            "reactiva_mejorada_celuloide_quemado_t6000_iphoneloud.png",
+            "reactiva_mejorada_celuloide_quemado_t6000_iphonesilent.png"
+          ],
+          "maxDifference": 0,
+          "differentPercent": 0.0
+        },
+        "temporalRule30_60": "pass"
+      },
+      "reviewer": "Claude",
+      "reviewedAt": "2026-11-06T07:42:39.172940Z",
+      "note": "Tope de destellos (flashSafety). Revisado por Claude con el encargo del PM. Alcance de la paridad: 16 capturas Metal idénticas byte a byte, solo a pantalla completa (iPhone e iPad), Speed 1, opciones por defecto, música de 120 BPM y silencio, en t=1/2,5/4/6 s. Justo ahí el arreglo no actúa. No se comparó donde sí actúa: con golpes más seguidos que uno cada 0,5 s (más de 120 BPM) salen menos quemaduras."
+    },
+    {
       "visualId": "rorschach_calavera",
       "from": "2da737bb66007387",
       "to": "1f97ea4ee71dfd1c",
@@ -3975,6 +4104,49 @@
       "reviewer": "Codex",
       "reviewedAt": "2026-10-09T07:45:26.178518Z",
       "note": "A/B real revisado: 992 pares Metal, cuatro instantes con música y silencio, valores iniciales del iPad. Sólo cambia 60→30 FPS; programa, materiales, colores y controles idénticos; replay nativo 30/60 pasa. Se conserva la identidad para atribuir votos. Cambian la fluidez y algunos instantes de la respuesta musical; no se afirma igualdad de píxeles ni es una nueva nota estética. Evidencia: cadence-default-30-repair/appearance-review/review.json."
+    },
+    {
+      "visualId": "v10_supernova_transparente",
+      "from": "487ec42ca4d7bdfc",
+      "to": "e918bc78433b5144",
+      "base": "HEAD",
+      "proposedAt": "2026-11-06T07:41:45.334966Z",
+      "kind": "pixelParity",
+      "status": "reviewed",
+      "summary": "Cambió nativeSource; 16 capturas Metal en los mismos instantes (música fuerte y silencio) coinciden: diferencia máxima 0/255 en 0.0% de píxeles. Alcance: valores iniciales. Observar A/B antes de revisar.",
+      "evidence": {
+        "changedFields": [
+          "nativeSource"
+        ],
+        "pixelParity": {
+          "equivalent": true,
+          "frames": 16,
+          "instants": [
+            "v10_supernova_transparente_t1000_ipadloud.png",
+            "v10_supernova_transparente_t1000_ipadsilent.png",
+            "v10_supernova_transparente_t1000_iphoneloud.png",
+            "v10_supernova_transparente_t1000_iphonesilent.png",
+            "v10_supernova_transparente_t2500_ipadloud.png",
+            "v10_supernova_transparente_t2500_ipadsilent.png",
+            "v10_supernova_transparente_t2500_iphoneloud.png",
+            "v10_supernova_transparente_t2500_iphonesilent.png",
+            "v10_supernova_transparente_t4000_ipadloud.png",
+            "v10_supernova_transparente_t4000_ipadsilent.png",
+            "v10_supernova_transparente_t4000_iphoneloud.png",
+            "v10_supernova_transparente_t4000_iphonesilent.png",
+            "v10_supernova_transparente_t6000_ipadloud.png",
+            "v10_supernova_transparente_t6000_ipadsilent.png",
+            "v10_supernova_transparente_t6000_iphoneloud.png",
+            "v10_supernova_transparente_t6000_iphonesilent.png"
+          ],
+          "maxDifference": 0,
+          "differentPercent": 0.0
+        },
+        "temporalRule30_60": "pass"
+      },
+      "reviewer": "Claude",
+      "reviewedAt": "2026-11-06T07:42:40.297672Z",
+      "note": "Tope de destellos (flashSafety). Revisado por Claude con el encargo del PM. Alcance de la paridad: 16 capturas Metal idénticas byte a byte, solo a pantalla completa (iPhone e iPad), Speed 1, opciones por defecto, música de 120 BPM y silencio, en t=1/2,5/4/6 s. Justo ahí el arreglo no actúa. No se comparó donde sí actúa: con Speed por encima de 1 la explosión ya no se acelera; entre ondas pasan al menos 1,5 s, y en ventanas pequeñas (PiP) o con golpes muy seguidos salen menos ondas y el aura se reenciende menos. Si el equipo votó con Speed alto o en ventana pequeña, puede volver a votar."
     },
     {
       "visualId": "vidrio_liquido",

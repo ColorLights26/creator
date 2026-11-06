@@ -1,13 +1,543 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-29T09:19:37.059644Z",
-  "catalogCommit": "1a2dc6d2a7fe466788e400250cb5c3778afd90f5-dirty",
+  "generatedAt": "2026-11-06T07:55:39.869988Z",
+  "catalogCommit": "3cc08dc78caa15c28c538884f2a37402dbdc626b-dirty",
   "engine": {
-    "buildHash": "a3dd6787d9bb27b113ad2fdbde11445cd38bf79d668f745b137e2fe7b66dad4c",
+    "buildHash": "62476191454776e593bf79ed1efd46a8c32f452cbb22fa0addb2abd86bae6e9e",
     "sdkHash": "f7e3b26c2d074a5eb648d37f0cc4c5211fae5703cacc9ccedf5b145a85037c76",
     "abi": 1
   },
   "visuals": {
+    "anillos_humo": {
+      "revision": "8bd8621c0d65e53d",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (84a50a4f674c68a2b041fc7b07620dd5ca254cd576373e7c8ef37a52a397c114)"
+    },
+    "arbol_fractal": {
+      "revision": "aedb36c844291c8f",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "arcos_sueno": {
+      "revision": "3043365bd5d33ce6",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (a2bb06184180a9b3eba07c2ab0d42ba55dfc8f6616acd9b20021ac5c1cbd55a1)"
+    },
+    "arena_colores": {
+      "revision": "ddf518dc08ad1e7c",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (ef79c5117600dab916c67b661ce9c4434db535236c37a950bb1a7683a5ecadab)"
+    },
+    "art_deco": {
+      "revision": "528369d0a7f94772",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "atractor_lorenz": {
+      "revision": "07f91e1351402441",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (14f008f03af489c38043e68266406532dba3c07d227dddb41671513fcb9b54b9)"
+    },
+    "aura": {
+      "revision": "e4aa59c999ca34a3",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (13e66e40219a15247e51fdcac347aea924e3563746345b3ff9ffec1919d8fc8e)"
+    },
+    "aura_2_transparente": {
+      "revision": "ba84e2ce3e334b8d",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (751612cbc482761480e72c3b30d6660489e7b69cb4849c29caf908af94fcbe7f)"
+    },
+    "bokeh_luces": {
+      "revision": "05f84d61f21138a7",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (7b317dfd467138e3be6c8b2911ee7d7df01debbfb1acc24b3ca9f99ba0eb2560)"
+    },
+    "bokeh_luces_2": {
+      "revision": "2390637a9948ab4d",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (43fe904e0705812fa248a004662848e905e0edb9d0adaeebe35b54f17463f568)"
+    },
+    "bola_discoteca_transparente": {
+      "revision": "aac91f1b0ac8ab1d",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (a0d4a782193b364bee960f4530beaa9723e5aab3740d9064507a77e42343b4e1)"
+    },
+    "brasas_azules_premium": {
+      "revision": "af0c529631f52a75",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "brasas_cinematicas": {
+      "revision": "e037af6235fd90b8",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "brasas_premium": {
+      "revision": "d73c76c2e9047b89",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "brasas_remolino_premium": {
+      "revision": "c5906322a11503ab",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "caleidoscopio_infinito": {
+      "revision": "11916bee780d3521",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (9455ee3fea21f2bc4695a682f3bdfe90ad807dc73cd891c1aa5007410516ea3c)"
+    },
+    "campo_flujo_transparente": {
+      "revision": "4a647e288a0ca410",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (d116988dbcce3f795c1f58d493f354b9514c83d64de33ba5b0f483b0dabf44a8)"
+    },
+    "capas_papel": {
+      "revision": "3e4c4ef261175c1d",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (c4e8fcfa865a7a10b3c733251a7260f152622fd0ddd63d26aacd6d754ef1fd05)"
+    },
+    "cascada_codigo_transparente": {
+      "revision": "c6c1d751f7255344",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (83f144c72389788af2b4670487893b95665d86a284821c3f888ef7fddf81e6b2)"
+    },
+    "catedral_luz": {
+      "revision": "78bea45211e850ae",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (2e0eb58f7a5cc84163239030a801d9f85056f6470a1e32ebc22e3be15ba583f9)"
+    },
+    "causticas": {
+      "revision": "ae00438a726193a1",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (000273ca9a2455dd3a38c99d43016b7c5ac090c3f8b4f368167dd26d56bcdba5)"
+    },
+    "celulas_voronoi": {
+      "revision": "86e4cd2b78bb56f5",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (bc3f8ffff50090e21168eff2fae11a1315ea69405f3471903054e5e9153bed8c)"
+    },
+    "ceniza_premium": {
+      "revision": "953812439b808c53",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "chispas_bordes_premium": {
+      "revision": "080422333a1d3bdd",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "chispas_premium": {
+      "revision": "e3c96a792e8d8c3e",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "cimatica": {
+      "revision": "da7f1049260edbc1",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (12cd8bf1f02464114d1b3dd7f61710d354c11a55a5faaef4e31de2db97de7278)"
+    },
+    "circulo_trap": {
+      "revision": "4c28de9e0376b56c",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "circulos_infinitos": {
+      "revision": "48d83768631664e1",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (c26bbc577dca312ce97a62f005f6ce38425194c036f1c196e8d34883632a3f85)"
+    },
+    "confeti": {
+      "revision": "07765ae2b94a3eac",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "constelacion_viva": {
+      "revision": "6b87a6c029f301c5",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (7a30b77981b6a6fc1f926f461d8f4e16287e171f751c970eb55d824d59132e3d)"
+    },
+    "corredor_neon": {
+      "revision": "22e3ed45669225a8",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (96949b7f0b3308aa8bd069a2f4a4666024dd6e412f002488a43bb7f0bf8446cb)"
+    },
+    "cristal_electrico": {
+      "revision": "de3998d00aea70e7",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "cristales_polarizados": {
+      "revision": "23f58e6fdb3d1601",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (fd23dfba20ce994968102d2ce8a62aae19a2575aa0f4c36ac0ed8e6f55bacf73)"
+    },
+    "cromo_liquido": {
+      "revision": "5aa92934f30a2e21",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (ec86d94d62cb18727f5f0d6f1dd62d0b0ec4f389bc2dc77555131172a0823b8b)"
+    },
+    "cubo_led": {
+      "revision": "b868a5bcea4ce3ad",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "cubo_magico": {
+      "revision": "15ca4a9dc018b9e8",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "cuerdas_vibrantes": {
+      "revision": "30bc62d50ba2728f",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "deriva_julia_transparente": {
+      "revision": "c99b958ff8d82225",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (9a0e9de7aaecaf673e3340f06ddf592f2aa7598bd8b0c06d01457838ce291da9)"
+    },
+    "descarga_tesla": {
+      "revision": "1f876c724711d217",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (5e05b16686fee28f9abfeff3679fc706dfe5915dd12496d06fd9456b625d5a8c)"
+    },
+    "destellos_dorados_premium": {
+      "revision": "de7611284a0dadc4",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "dona_ascii": {
+      "revision": "23fcbbe94e4037b1",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (def33b96292c3625b62cc8605861e79e38fc2201ee4b52659e23363c45cd11ea)"
+    },
+    "eco_infinito_transparente": {
+      "revision": "8e2ed8d2e379d32c",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "enjambre_metamorfo": {
+      "revision": "8f1312671ec353f9",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "epiciclos": {
+      "revision": "bcc2cc455b34e4c5",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "esfera_sonica_transparente": {
+      "revision": "6cf1b59481b1ac33",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (4631ca67512d7587349789f578cfa3c0fdac5bbec76c4efc203c77a73ad4938e)"
+    },
+    "espiral_primos": {
+      "revision": "1c27b02879a393ff",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "estrella_neon": {
+      "revision": "13fad43477a614ae",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (0c4c6b2730425d312f3576b40f79fabb2babdbcb4de01801f42f3d6e4a6ef123)"
+    },
+    "estrellas_fugaces_premium": {
+      "revision": "30c2693a9d88729e",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "flor_vida": {
+      "revision": "668749f69fc6ccea",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (4ce443006f5fb66c7256630b1a3ee51f5534a3ab4eeca8b8255511d4a942873a)"
+    },
+    "fuego_azul": {
+      "revision": "d05bf969801c7169",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "fuegos_artificiales_transparente": {
+      "revision": "4a669bc39001e21b",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (8bdca5cba8f6d9248e096ccd74c693dcfafd2a6ca56655a7b7414506a353dca5)"
+    },
+    "globo_tesla_transparente": {
+      "revision": "37d8f3e3abfea196",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (f7fc7a9b1e76cb53118c1e804830dc54f803be9f87ffa070422357d63a2ea29a)"
+    },
+    "golden_particles_scene": {
+      "revision": "90666a2f151da35f",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (910a83e3510674adad2f635849e92d9dd0d016bc3cab09d63cde29a15c5e982c)"
+    },
+    "goteo_pollock": {
+      "revision": "3b8e8e6ce3520496",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (3e1bdab051d406e96aba7f64ba0369187aa5863eeca8c41054a95dcbb77dc3e2)"
+    },
+    "haces_estadio_transparente": {
+      "revision": "6c77440ea4abea9c",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (b2783cd41c55f48a3579fd3195b30c70dfc83e450232078f9fe29fdc93c237b1)"
+    },
+    "helice_holografica": {
+      "revision": "442e20b99e471a58",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (cb887f00941735484b3fa9231a8756eed6ae05cec44f105056a2c0ae2a7c501d)"
+    },
+    "hiperespacio_premium": {
+      "revision": "4e0b4c22bc306e37",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "hipervelocidad_transparente": {
+      "revision": "de3b440f4ac03fbb",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "ilusion_optica": {
+      "revision": "5080446609f0f883",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (a7cfd8d18d5c78d6d5fda2fd39f1591aa6394baf59e70af2ee5def4eea12bf5a)"
+    },
+    "interferencia_transparente": {
+      "revision": "41f63b5a5e61c270",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (efff1a98be47b0764b26dc225ea637ba1f5831d5bf26b1795194a7ada5fec0db)"
+    },
+    "jardin_alucinante_transparente": {
+      "revision": "94a6f5e1290e4965",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (f3a74de7e67c1c32b48aeac3a4820b3f0a8bc06b9cecab6c250abea41d0aba7e)"
+    },
+    "juego_vida_transparente": {
+      "revision": "e01b198bc5b474da",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "laberinto_vivo": {
+      "revision": "715d5233ab38179f",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "llama_fractal": {
+      "revision": "459ed95bc4cdaa61",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (9e814b203592c766d5408c89315614db1d9e480c6d359b33c7f6406221113a92)"
+    },
+    "llamarada_transparente": {
+      "revision": "dcc2bf8646ee5f27",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (7e0eeae609bd98e1a9a14941db8aceef1c02a776188034bed5ac89b7a43ddd7e)"
+    },
+    "lluvia_cinetica_transparente": {
+      "revision": "3ec1e0e5166b8ca5",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (859cf189222610ce3311f3a293d4b5b7517e31ebbcd263c38f1311f3c0868b2d)"
+    },
+    "lluvia_colores": {
+      "revision": "878a504cab5bfa06",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "lluvia_colores_premium": {
+      "revision": "01ce95a65f1e72fe",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "lluvia_dorada_premium": {
+      "revision": "4ae294aa67eec2d7",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "lluvia_particulas_premium": {
+      "revision": "eac8aa5c84cbc162",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "luces_flotantes_premium": {
+      "revision": "9c1395a88f01a898",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "luciernagas_simples_premium": {
+      "revision": "4372d211c3d7b7fd",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "luciernagas_transparente": {
+      "revision": "23a11a1060a80740",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "luz_bordes_2": {
+      "revision": "324f6f6e8af5d808",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (1346652a913127cf062459da76eaa452fef2104f01b1109aecbc6749e131aae3)"
+    },
+    "luz_bordes_transparente": {
+      "revision": "84a59c25f9d8712e",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (d291eb1e47965459a6d650b786ade29254e7fd4db6cdfe3a69147c4752df33d1)"
+    },
+    "magma": {
+      "revision": "f860a9e46567a246",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (90335b35235327c8a7350f8ca32ca57ed5f956d56babefdf1006c06132ad97f0)"
+    },
+    "magma_2": {
+      "revision": "0d3a426f9b013628",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (8bd8aa4137d7535b508066ce232fc2e5f66395f9ae5a17407098ff4a3edc7951)"
+    },
+    "mancha_rorschach_transparente": {
+      "revision": "8715fb6ed611a24d",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (679b340721369aad9097392338179476f6d2d60ff7d64146a0ad70c7c17358da)"
+    },
+    "mandala_alucinante": {
+      "revision": "898cbf076f9011a7",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (5ea735cd09aeafe744cc2029b4f6d082723092dfabb63101d6bc351e4d673331)"
+    },
+    "mandala_fuego_transparente": {
+      "revision": "2b6bc80327dabd37",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (4a22af723d0313817a2861dde02ef8c86d8e831b15849593a0249cd9fad121e4)"
+    },
+    "mapa_topografico_transparente": {
+      "revision": "503dc6b1e5fb4381",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (c5647f9dbeeac673a573150625667a2b2131b631ca90952a810e9a18ff7ed1f5)"
+    },
+    "marmoleado": {
+      "revision": "b5e70a4918405daa",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (90aa9bf348df25705cf662e79a9084f162eb4d1121a937f3935908e942fac5eb)"
+    },
+    "metal_tornasol_transparente": {
+      "revision": "bc603a5252492663",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (a7afafdd3a115c32dc0b882197c0edd1772618b556b436c5b856bcf4daf97763)"
+    },
+    "mil_relojes": {
+      "revision": "68c5d5ab194cfa8d",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "muro_cinetico_2_transparente": {
+      "revision": "d1a8beba7b740ccb",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (a29433eb12332b926009022859c0a95762424927037ae9ed8067aa8984bef055)"
+    },
+    "muro_cinetico_transparente": {
+      "revision": "71ba7bd5d627c9a8",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (e1ce04d5f6a36c2706e230c10a47b8f77f933d2a85703ba89ecd624751681110)"
+    },
+    "nebulosa_viva": {
+      "revision": "45399529678f0451",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (f33ed899e6b3e92a727f0156de1874f1ca05a9ea061b3753106a8af1225cd989)"
+    },
+    "nieve_premium": {
+      "revision": "0a36c85a4f36fb1e",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "nubes_azules": {
+      "revision": "a9dc03e10c936041",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "nucleo_cristal_transparente": {
+      "revision": "6e22624012d5e941",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (eb629e1f8aeda6ce62c0ec3ebf19d92dc53d6a001c293d128c693201071c0949)"
+    },
+    "ojo_psicodelico_transparente": {
+      "revision": "79b1ee98826f559e",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (0bac13a5652955271f28f92cb899daa262167f43cc880a0d723066b419216a7e)"
+    },
+    "panal_energia": {
+      "revision": "7a73e6c1e7cb98a3",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (a590e71df81f277200930818c5f6e3c028769ee83d15235b18c6415690b3602a)"
+    },
+    "panel_discos_transparente": {
+      "revision": "99c3ec6f87eac68f",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (d36f576a46cd1b14e52672e9e970caca123aca29f6f6f4d8768dada8d0443d97)"
+    },
+    "pantalla_led_transparente": {
+      "revision": "eb18ae5f2902940f",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (156116b093aa1ae3dadc735a024b01c3a04cdcd2d76531b9ca507d0f338f35a6)"
+    },
+    "particulas_fuego": {
+      "revision": "b1aea255ebc42e19",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "particulas_viento_premium": {
+      "revision": "1a5cf90fe323b69b",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "pasillo_geometrico_transparente": {
+      "revision": "e898b7feef6202ee",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (8085f63553be7cb8b37a1ceb9ef2ed9c5631cb363c70ef477294217b3fd00e14)"
+    },
+    "patrones_turing": {
+      "revision": "74b307db43ec5631",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (2e44af7ff88befb3ecbd6aaf970015b044ac5d2e06d3498ecf97008fa10d9c4b)"
+    },
+    "pelicula_iridiscente": {
+      "revision": "1d44e31fdd888b9c",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (eb28c4ded80005b4ecddea071c278089112365f7d69eb49297f15b222129ae9c)"
+    },
+    "pixeles_premium": {
+      "revision": "d7840772b8997e2e",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "plasma_scene": {
+      "revision": "37ed6df326d85b69",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (fd8808da2476eb3ffa8690aaa1c059df4e09cc936ae739404e8af161b443f550)"
+    },
+    "plasma_scene_transparente": {
+      "revision": "13224826c4f69e35",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (42c1993b625eea3ed3f4e65d7ff41551489b76ed8b89777d261b21b137204327)"
+    },
+    "polvo_flotante_premium": {
+      "revision": "133eeeffbab64f78",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "pop_art": {
+      "revision": "cdc148af198ca356",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (d0a663f9e058b02f099ad746c84e7b7c08b7ffd4c9acfb0b5809d33b0f42771f)"
+    },
+    "portal_cuantico_transparente": {
+      "revision": "e082653d8b2f78b8",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "reaccion_bz": {
+      "revision": "bce77b3054875c3e",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (3cc205878436f0bde6d331c6a4cc4f376d85817b31c9b1ddf8669003fa9edef3)"
+    },
     "reactiva_mejorada_banda_obturador": {
       "revision": "f189debcbf7ab622",
       "state": "pendingEvidence",
@@ -15,9 +545,8 @@
     },
     "reactiva_mejorada_borde_luz": {
       "revision": "e480c55821d70a53",
-      "state": "verified",
-      "detail": "Medido dentro del alcance indicado para su dispositivo.",
-      "scope": "iPad Pro M1 (iPad13,4), conectado, brillo ≤ 96%, visual aislado: valores iniciales"
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
     },
     "reactiva_mejorada_carrera_neon_rechazo_critica": {
       "revision": "782d11b609594d05",
@@ -30,7 +559,7 @@
       "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
     },
     "reactiva_mejorada_celuloide_quemado": {
-      "revision": "60fa1dafd14258b6",
+      "revision": "1cc306e092b75faa",
       "state": "pendingEvidence",
       "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
     },
@@ -83,6 +612,106 @@
       "revision": "5c192ebcd8ca9d88",
       "state": "pendingEvidence",
       "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+    },
+    "rorschach_rayos_x_transparente": {
+      "revision": "33fa9b0d1708ce06",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (0b937e32619caeb5fe79da53f7a5a3b3212fcff06be1a331fd873dd492c9eb84)"
+    },
+    "show_laser_transparente": {
+      "revision": "765dd5129e29293a",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (3f6b60854e9d3419fc2702a56d96ef41895dfff1431052fd1d0c3bdf2bb05d12)"
+    },
+    "synthwave_scene": {
+      "revision": "fcd2a923f1e22865",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "telar": {
+      "revision": "ba4a793203db1ab2",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (0a67384740b34025b263ba2b95d6d57d06804839f083abef34cc5d9d9367cf4a)"
+    },
+    "tinta_agua": {
+      "revision": "7b7292119d494309",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (0cb83eef4755ce8ea6c03f280ab9a5342596554b547bf440425e8e5fe53dc0ae)"
+    },
+    "tipografia_cinetica": {
+      "revision": "ef9c29ec7fdf02f6",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "torbellino_igneo": {
+      "revision": "e65580f70e800ae4",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (2ef5d3b0f83e3bfbaadb77b5de0e29dde79ceaf7694736c9103d4ad7d391eaaa)"
+    },
+    "torbellino_igneo_ii": {
+      "revision": "598eec01b7c422f4",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (c93c65b4eaaa8ff229c940a9f5e5c0de5c1ce95212ff8bb8c9b2d08e3fb86998)"
+    },
+    "tunel_laser_transparente": {
+      "revision": "0485fe920e4cf5e3",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (81b1169b0f774befeb5915897be2880be6644195292edbe8d9d5f961ac80c79b)"
+    },
+    "un_bit": {
+      "revision": "d22d1c701c4f66f3",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (7b22776e9181e8c08e99f3f3633f26cd23149d87bac9905c40290a315179af0c)"
+    },
+    "v08_espectro_cosmico": {
+      "revision": "ec1668e3aea6f4b0",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "v09_espiral_aurea": {
+      "revision": "685eec1e8917f8ef",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "v10_supernova_transparente": {
+      "revision": "e918bc78433b5144",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (9858e0657717a421ad150e21c52ac2c3b141c6d2b4457ee669223a8fe26f2be5)"
+    },
+    "v11_archivo_corrupto_transparente": {
+      "revision": "df093edd6145d731",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "v13_nubes_volumetricas_transparente": {
+      "revision": "6337bb5a2105e908",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (8c7e7dbb1b579641a1e97783cd03c86fc3ba2dc37c244bfe4c621afda2123b42)"
+    },
+    "vidrio_liquido": {
+      "revision": "d844018a8ee6cb70",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (093e649aec57879b1b1927a7e0b815ec8f6725f858b395595b89cea3c51b10a3)"
+    },
+    "vision_termica": {
+      "revision": "85112e5a3dadf1b6",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (f4d49eff1d40bc4636e92651bd39b644b9a1d829f07cae63cb77ffc383cd3b3e)"
+    },
+    "vortice_cosmico": {
+      "revision": "e9b1f49af431b971",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "vortice_hipnotico_transparente": {
+      "revision": "7864a9eb81f8cd11",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda corrió otro motor (manifiesto ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e)"
+    },
+    "zoom_infinito": {
+      "revision": "f22c610ecb83c7b7",
+      "state": "pendingEvidence",
+      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (82970bf9c5a51ab1849628a2e4fb274be4b3ec2ba22be2003d6e1eea26ea3132)"
     }
   }
 }

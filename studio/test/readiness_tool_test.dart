@@ -166,10 +166,13 @@ void main() {
       'PASS continuity creator_alpha: resize, controls, reaction, rollback and seed reset\n'
       'PASS authored creator_alpha: native Metal scene, alpha and state replay\n'
       'PASS behavior creator_alpha: optional, identical-history musical/neutral probes\n'
+      'PASS flash creator_alpha: peor segundo 2 cambios (máx 6; cambio = ≥5 de 16 zonas mueven su luma media >48); opciones por defecto y 10 golpes/s: 2; Speed 2 y 10 golpes/s: 1\n'
       'PASS authored creator_plasma_scene: native Metal scene, alpha and state replay\n'
       'PASS behavior creator_plasma_scene: optional, identical-history musical/neutral probes\n'
+      'PASS flash creator_plasma_scene: peor segundo 0 cambios (máx 6; cambio = ≥5 de 16 zonas mueven su luma media >48); opciones por defecto y 10 golpes/s: 0; Speed 2 y 10 golpes/s: 0\n'
       'PASS authored creator_synthwave_scene: native Metal scene, alpha and state replay\n'
-      'PASS behavior creator_synthwave_scene: optional, identical-history musical/neutral probes\n',
+      'PASS behavior creator_synthwave_scene: optional, identical-history musical/neutral probes\n'
+      'PASS flash creator_synthwave_scene: peor segundo 4 cambios (máx 6; cambio = ≥5 de 16 zonas mueven su luma media >48); opciones por defecto y 10 golpes/s: 4; Speed 2 y 10 golpes/s: 3\n',
     );
     File('${checks.path}/check_creator_catalog.log').writeAsStringSync(
       shaders
@@ -581,6 +584,7 @@ void main() {
       expect((check('alpha', 'passGate')['harnessSchedule'] as Map)['fps'], 60);
       expect(check('alpha', 'metalScene')['status'], 'pass');
       expect(check('alpha', 'metalBehavior')['status'], 'pass');
+      expect(check('alpha', 'flashSafety')['status'], 'pass');
       expect(check('alpha', 'hostCost')['status'], 'info');
       expect(check('alpha', 'hostCost')['verdict'], isNotNull);
       expect(check('alpha', 'deviceCard')['status'], 'pending');
@@ -684,6 +688,52 @@ void main() {
       check('synthwave_scene', 'metalScene')['detail'],
       contains('se detuvo'),
     );
+    expect(check('synthwave_scene', 'flashSafety')['status'], 'notRun');
+    expect(
+      check('synthwave_scene', 'flashSafety')['detail'],
+      contains('se detuvo'),
+    );
+    expect(check('plasma_scene', 'flashSafety')['status'], 'notRun');
+    expect(check('beta', 'flashSafety')['status'], 'notApplicable');
+  });
+
+  test('more than 3 flashes in a second needs repair; the walk goes on', () {
+    // FAIL flash lines carry the worst second; "error" inside one is not a
+    // Metal failure and never marks the other visuals as stopped.
+    File('${evidence.path}/checks/check_creator_scenes.log').writeAsStringSync(
+      'PASS continuity creator_alpha: resize, controls, reaction, rollback and seed reset\n'
+      'PASS authored creator_alpha: native Metal scene, alpha and state replay\n'
+      'PASS behavior creator_alpha: optional, identical-history musical/neutral probes\n'
+      'FAIL flash creator_alpha: 11 cambios en 1 s (5,5 destellos/s) con opciones por defecto y 10 golpes/s; máx 6 (3 destellos; cambio = ≥5 de 16 zonas mueven su luma media >48); opciones por defecto y 10 golpes/s: 11; Speed 2 y 10 golpes/s: 6\n'
+      'PASS authored creator_plasma_scene: native Metal scene, alpha and state replay\n'
+      'PASS behavior creator_plasma_scene: optional, identical-history musical/neutral probes\n'
+      'FAIL flash creator_plasma_scene: no se pudo medir (Native command budget error)\n'
+      'PASS authored creator_synthwave_scene: native Metal scene, alpha and state replay\n'
+      'PASS behavior creator_synthwave_scene: optional, identical-history musical/neutral probes\n',
+    );
+    expect(
+      run(['prepare', '--evidence', evidence.path]),
+      0,
+      reason: err.toString(),
+    );
+    expect(check('alpha', 'flashSafety')['status'], 'fail');
+    expect(
+      check('alpha', 'flashSafety')['detail'],
+      contains('11 cambios en 1 s'),
+    );
+    expect(check('alpha', 'flashSafety')['proves'], contains('3 destellos'));
+    expect(check('alpha', 'metalScene')['status'], 'pass');
+    expect(entry('alpha')['state'], 'needsRepair');
+    expect(entry('alpha')['detail'], contains('5,5 destellos/s'));
+    expect(check('plasma_scene', 'flashSafety')['status'], 'fail');
+    expect(check('plasma_scene', 'metalScene')['status'], 'pass');
+    expect(entry('plasma_scene')['state'], 'needsRepair');
+    // A visual without its flash line is pending, never a pass.
+    expect(check('synthwave_scene', 'flashSafety')['status'], 'notRun');
+    expect(check('synthwave_scene', 'flashSafety')['detail'], 'no corrió');
+    expect(entry('synthwave_scene')['state'], 'pendingEvidence');
+    expect(entry('synthwave_scene')['detail'], contains('flashSafety'));
+    expect(check('beta', 'flashSafety')['status'], 'notApplicable');
   });
 
   test('a failed Mac check or a dead modifier needs repair', () {

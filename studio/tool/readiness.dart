@@ -482,6 +482,16 @@ const _proves = {
         'neutro; uno none no cambia',
     'calidad ni intensidad de la reacción',
   ),
+  'flashSafety': (
+    'con golpes 10/s en graves y agudos y el espectro alto (Metal, 160×284, '
+        '30 fps, 8 s), con las opciones por defecto y con Speed al máximo: '
+        'como mucho 6 cambios de brillo en zonas grandes (3 destellos) en '
+        'cualquier ventana de 1 s; un cambio es un cuadro en que 5 o más de '
+        'las 16 zonas (rejilla 4×4) mueven su luma media más de 48',
+    'otros ritmos, modificadores o variaciones; destellos rojos o en zonas '
+        'pequeñas; patrones de rayas en movimiento; la luz de lámparas '
+        'externas; los shaders antiguos',
+  ),
   'hostCost': (
     'coste por cuadro en la Mac (M-series, 664×1440 MSAA 4×) y una estimación '
         'del iPhone 14 Pro calibrada con dos fichas reales; sirve para ordenar '
@@ -1164,6 +1174,9 @@ class ReadinessTool {
   static final _passBehavior = RegExp(
     r'^PASS behavior creator_([a-z0-9_]+): (.*)$',
   );
+  static final _flash = RegExp(
+    r'^(PASS|FAIL) flash creator_([a-z0-9_]+): (.*)$',
+  );
   static final _failureMention = RegExp(r'creator_([a-z0-9_]+): ([^"\\]+)');
 
   Map<String, Map<String, _Check>> _parseChecks(
@@ -1285,6 +1298,12 @@ class ReadinessTool {
         results[m[1]!]?['metalScene'] = _Check('pass', detail: m[2]!);
       } else if (_passBehavior.firstMatch(line) case final m?) {
         results[m[1]!]?['metalBehavior'] = _Check('pass', detail: m[2]!);
+      } else if (_flash.firstMatch(line) case final m?) {
+        // Before the error branch: a FAIL flash line never stops the walk.
+        results[m[2]!]?['flashSafety'] = _Check(
+          m[1] == 'PASS' ? 'pass' : 'fail',
+          detail: m[3]!,
+        );
       } else if (line.contains('rror')) {
         final m = _failureMention.firstMatch(line);
         if (m != null) metalFailures[m[1]!] = m[2]!.trim();
@@ -1321,9 +1340,22 @@ class ReadinessTool {
       checks['metalBehavior'] ??= _Check.notRun(
         stopped ? 'la prueba Metal se detuvo en otro visual' : 'no corrió',
       );
+      final native = visuals.firstWhere((v) => v.id == id).isNative;
+      checks['flashSafety'] ??=
+          native
+              ? _Check.notRun(
+                failure != null
+                    ? 'la prueba Metal falló en este visual antes de medir'
+                    : stopped
+                    ? 'la prueba Metal se detuvo en otro visual'
+                    : 'no corrió',
+              )
+              : _Check.notApplicable(
+                'shader antiguo: la medición recorre solo escenas nativas',
+              );
       if (checks['metalScene']!.status == 'pass' &&
           !continuity.contains(id) &&
-          visuals.firstWhere((v) => v.id == id).isNative) {
+          native) {
         checks['metalScene'] = _Check(
           'pass',
           detail: '${checks['metalScene']!.detail} (sin línea de continuidad)',
@@ -2119,9 +2151,10 @@ class ReadinessTool {
     final reasons = <String>[];
     final scope = <String>[];
     // needsRepair proviene solo de un fallo PROBADO: una prueba Mac que falló
-    // (replay, barrido, gate de pasadas, Metal) o un cuadro del harness por
-    // encima del freno de producción (hostCost con estado 'fail'). Una
-    // estimación de tiempo en la Mac nunca prueba un fallo ni calentamiento.
+    // (replay, barrido, gate de pasadas, Metal, destellos) o un cuadro del
+    // harness por encima del freno de producción (hostCost con estado
+    // 'fail'). Una estimación de tiempo en la Mac nunca prueba un fallo ni
+    // calentamiento.
     for (final entry in checks.entries) {
       if (entry.value.failed)
         reasons.add('${entry.key}: ${entry.value.detail}');
