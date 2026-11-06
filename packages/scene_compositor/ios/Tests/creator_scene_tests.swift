@@ -110,6 +110,91 @@ struct CreatorSceneTests {
       smoothedSpectrum: [Float](repeating: music ? 0.6 : 0, count: 31), semantics: [Float](repeating: 0, count: 6),
       rhythm: [music ? 120 : 0, 0.5, 0, 0], onsets: [0,0,0,0], tonal: [0,0,0], impact: event, accent: accent, beat: event, flash: flash)
   }
+  /// Flash safety: at most 3 flashes (6 changes of a large area) in any 1 s.
+  /// Beats every 3 frames (10/s) on the low and high bands with a loud
+  /// spectrum, at the default options and at the top of the speed range;
+  /// 160×284 at 30 fps for 8 s each. The screen is a 4×4 grid of zones: a
+  /// change is a frame where 5 zones or more (over 30 % of the screen) move
+  /// their mean luma by more than 48. Zone means ignore fast motion of thin
+  /// high-contrast patterns, which a per-pixel count mistook for flashes.
+  /// Never throws: it prints PASS or FAIL so one visual cannot stop the walk.
+  static let flashLimit = 6, flashFrames = 240, flashWidth = 160, flashHeight = 284
+  static let flashGrid = 4, flashZones = 5, flashLumaStep = 48.0
+  static func flashSignal(_ sequence: Int, beatEvery k: Int) -> SceneRenderSignalFrameV2 {
+    let on = sequence % k == 0, serial = Int64(sequence / k + 1), time = Int64(sequence * 33333)
+    let low = SceneRenderSignalEventV2(serial: serial, active: on, timestampMicros: time, strength: on ? 0.9 : 0, band: .low)
+    let high = SceneRenderSignalEventV2(serial: serial, active: on, timestampMicros: time, strength: on ? 0.9 : 0, band: .high)
+    return SceneRenderSignalFrameV2(sessionId: 2, sequence: Int64(sequence), audioTimestampMicros: time,
+      available: true, fresh: true, musicActive: true, tonalAvailable: false,
+      dynamics: [Float](repeating: 0.9, count: 6), channels: [Float](repeating: 0.9, count: 4),
+      spectrumSummary: [Float](repeating: 0.9, count: 7), instantSpectrum: [Float](repeating: 0.9, count: 31),
+      smoothedSpectrum: [Float](repeating: 0.9, count: 31), semantics: [Float](repeating: 0, count: 6),
+      rhythm: [120, 0.5, 0, 0], onsets: [0,0,0,0], tonal: [0,0,0], impact: low, accent: high, beat: low,
+      flash: SceneRenderSignalEventV2(serial: 1, active: false, timestampMicros: time, strength: 0, band: .broadband))
+  }
+  /// Most large-area changes inside any 1 s window (30 frames).
+  static func flashWorstSecond(_ program: SceneCreatorCatalog.Program, options: [String: Any], device: MTLDevice,
+                               queue: MTLCommandQueue) throws -> Int {
+    let scene = try SceneCreatorNativeScene(program: program, options: options, mode: nil,
+      reactive: program.reactivity != "none", seed: nil, device: device)
+    let allocator = SceneSurfaceNativeOutputAllocator(device: device, shaderWrite: true)
+    let count = flashWidth * flashHeight
+    guard let buffer = device.makeBuffer(length: count * 4, options: .storageModeShared) else { throw SceneCreatorFailure("Readback unavailable") }
+    scene.setPlaying(true, hostTime: 0)
+    var previous = [Double](), changes = [Int]()
+    for i in 0..<flashFrames {
+      _ = scene.consume(flashSignal(i, beatEvery: 3))
+      try autoreleasepool {
+        let texture = try scene.render(size: CGSize(width: flashWidth, height: flashHeight), hostTime: Double(i)/30,
+          reducedMotion: false, width: flashWidth, height: flashHeight, outputAllocator: allocator)
+        guard let command = queue.makeCommandBuffer(), let blit = command.makeBlitCommandEncoder() else { throw SceneCreatorFailure("Readback unavailable") }
+        blit.copy(from: texture, sourceSlice: 0, sourceLevel: 0, sourceOrigin: MTLOrigin(x:0,y:0,z:0),
+          sourceSize: MTLSize(width:flashWidth,height:flashHeight,depth:1), to: buffer, destinationOffset: 0,
+          destinationBytesPerRow: flashWidth*4, destinationBytesPerImage: count*4)
+        blit.endEncoding(); command.commit(); command.waitUntilCompleted()
+      }
+      // BGRA readback: mean Rec. 709 luma of each zone (160×284 = 4×4 zones of 40×71).
+      let bytes = buffer.contents().assumingMemoryBound(to: UInt8.self)
+      let zoneWidth = flashWidth / flashGrid, zoneHeight = flashHeight / flashGrid
+      var zones = [Double](repeating: 0, count: flashGrid * flashGrid)
+      for y in 0..<flashHeight {
+        for x in 0..<flashWidth {
+          let p = (y * flashWidth + x) * 4
+          zones[(y / zoneHeight) * flashGrid + x / zoneWidth] +=
+            0.0722 * Double(bytes[p]) + 0.7152 * Double(bytes[p+1]) + 0.2126 * Double(bytes[p+2])
+        }
+      }
+      zones = zones.map { $0 / Double(zoneWidth * zoneHeight) }
+      if !previous.isEmpty,
+        zip(zones, previous).filter({ abs($0 - $1) > flashLumaStep }).count >= flashZones { changes.append(i) }
+      previous = zones
+    }
+    var worst = 0, start = 0
+    for end in changes.indices {
+      while changes[end] - changes[start] >= 30 { start += 1 }
+      worst = max(worst, end - start + 1)
+    }
+    return worst
+  }
+  static func flashSafety(_ program: SceneCreatorCatalog.Program, device: MTLDevice, queue: MTLCommandQueue) -> String {
+    let id = "creator_" + program.id
+    let fastest = SceneCreatorCatalog.controlRanges["speed"]!.upperBound
+    let cases: [(String, [String: Any])] = [("opciones por defecto", [:]),
+      ("Speed \(String(format: "%g", fastest).replacingOccurrences(of: ".", with: ","))", ["speed": Double(fastest)])]
+    var results = [(String, Int)]()
+    do {
+      for (name, options) in cases {
+        results.append((name + " y 10 golpes/s", try flashWorstSecond(program, options: options, device: device, queue: queue)))
+      }
+    } catch { return "FAIL flash \(id): no se pudo medir (\(error.localizedDescription))" }
+    let worst = results.max(by: { $0.1 < $1.1 })!
+    let rate = String(format: "%.1f", Double(worst.1) / 2).replacingOccurrences(of: ".", with: ",")
+    let all = results.map { "\($0.0): \($0.1)" }.joined(separator: "; ")
+    let rule = "cambio = ≥\(flashZones) de \(flashGrid * flashGrid) zonas mueven su luma media >\(Int(flashLumaStep))"
+    return worst.1 <= flashLimit
+      ? "PASS flash \(id): peor segundo \(worst.1) cambios (máx \(flashLimit); \(rule)); \(all)"
+      : "FAIL flash \(id): \(worst.1) cambios en 1 s (\(rate) destellos/s) con \(worst.0); máx \(flashLimit) (3 destellos; \(rule)); \(all)"
+  }
   static func pixels(_ texture: MTLTexture, device: MTLDevice) throws -> [UInt8] {
     guard let queue = device.makeCommandQueue(), let command = queue.makeCommandBuffer(),
       let buffer = device.makeBuffer(length: texture.width * texture.height * 4, options: .storageModeShared),
@@ -130,7 +215,8 @@ struct CreatorSceneTests {
     guard CGImageDestinationFinalize(destination) else { throw SceneCreatorFailure("PNG write failed") }
   }
   static func main() throws {
-    guard CommandLine.arguments.count == 3, let device = MTLCreateSystemDefaultDevice() else { throw SceneCreatorFailure("Metal device / catalog arguments required") }
+    guard CommandLine.arguments.count == 3, let device = MTLCreateSystemDefaultDevice(),
+      let flashQueue = device.makeCommandQueue() else { throw SceneCreatorFailure("Metal device / catalog arguments required") }
     // A pipe would otherwise keep PASS lines buffered and lose them when a failure traps.
     setvbuf(stdout, nil, _IOLBF, 0)
     let catalog = CommandLine.arguments[1], output = URL(fileURLWithPath: CommandLine.arguments[2])
@@ -204,6 +290,7 @@ struct CreatorSceneTests {
         print("PASS authored \(id): native Metal scene, alpha and state replay")
         print("PASS behavior \(id): \(program.reactivity), identical-history musical/neutral probes")
       } } catch { throw SceneCreatorFailure("\(id): \(error.localizedDescription)") }
+      autoreleasepool { print(flashSafety(program, device: device, queue: flashQueue)) }
     }
   }
 }

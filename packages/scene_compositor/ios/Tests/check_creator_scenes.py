@@ -7,6 +7,21 @@ from pathlib import Path
 import re
 import tempfile
 
+# Device-only diagnostics the compiled runtime files call but the iOS host
+# (PictureInPictureHandler.swift, not compiled here) defines. With diagnostics
+# off they do nothing, which is exactly this stand-in. It is only added when no
+# compiled file defines the name, so moving the real one in never collides.
+HOST_DIAGNOSTICS = {
+    'sceneDiagnosticLog': 'func sceneDiagnosticLog(_ message: String) {}',
+}
+
+def host_diagnostics(sources):
+    text = '\n'.join(Path(source).read_text(encoding='utf-8') for source in sources)
+    return 'import Foundation\n' + ''.join(
+        stub + '\n' for name, stub in HOST_DIAGNOSTICS.items()
+        if re.search(r'\b' + name + r'\b', text)
+        and not re.search(r'\bfunc\s+' + name + r'\b', text))
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--generated', required=True)
@@ -41,11 +56,13 @@ def main():
         end = presentation.index('final class SceneSurfaceSignalDeadline {', start)
         (tmp/'SourceAlignment.swift').write_text(
             'import Foundation\nimport CoreImage\nimport QuartzCore\n'+presentation[start:end])
+        sources = [*sorted(runtime.glob('SceneCatalog*.swift')),runtime/'SceneRenderSignalFrameV2.swift']
+        host = tmp/'HostDiagnostics.swift'
+        host.write_text(host_diagnostics([tmp/'SourceAlignment.swift',*sources]))
         executable = str(tmp/'scene-tests')
         run(['xcrun','swiftc','-O','-I',str(tmp),'-L',str(tmp),'-lscene_program_native',
              '-Xlinker','-rpath','-Xlinker',str(tmp),'-o',executable,str(tmp/'Allocator.swift'),
-             str(tmp/'SourceAlignment.swift'),
-             *map(str,sorted(runtime.glob('SceneCatalog*.swift'))),str(runtime/'SceneRenderSignalFrameV2.swift'),
+             str(tmp/'SourceAlignment.swift'),str(host),*map(str,sources),
              str(package/'ios/Tests/creator_scene_tests.swift')],timeout=120)
         run([executable,str(Path(args.catalog).resolve()),str(Path(args.output).resolve())],timeout=120 + 10 * scenes)
 

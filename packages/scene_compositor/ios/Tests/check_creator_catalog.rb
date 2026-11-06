@@ -4,6 +4,25 @@ require 'open3'
 require 'tmpdir'
 require 'json'
 
+# The Swift sources and catalogs are UTF-8; without a UTF-8 locale Ruby would
+# read them as US-ASCII and the regexps below would raise.
+Encoding.default_external = Encoding::UTF_8
+
+# Device-only diagnostics the compiled runtime files call but the iOS host
+# (PictureInPictureHandler.swift, not compiled here) defines. With diagnostics
+# off they do nothing, which is exactly this stand-in. It is only added when no
+# compiled file defines the name, so moving the real one in never collides.
+HOST_DIAGNOSTICS = {
+  'sceneDiagnosticLog' => 'func sceneDiagnosticLog(_ message: String) {}'
+}.freeze
+
+def host_diagnostics(sources)
+  text = sources.map { |source| File.read(source) }.join("\n")
+  "import Foundation\n" + HOST_DIAGNOSTICS.select do |name, _|
+    text.match?(/\b#{name}\b/) && !text.match?(/\bfunc\s+#{name}\b/)
+  end.values.map { |stub| "#{stub}\n" }.join
+end
+
 runtime = File.expand_path('../Classes/Runtime', __dir__)
 surface = File.read(File.join(runtime, 'SceneRenderV2ImageSurface.swift'))
 allocator = surface[/@available\(iOS 15\.0, \*\)\n(?:private )?final class SceneSurfaceNativeOutputAllocator \{.*?^\}/m]
@@ -20,8 +39,10 @@ Dir.mktmpdir('creator-native-test-') do |temporary|
   sources = Dir[File.join(runtime, 'SceneCatalog*.swift')].sort +
     [File.join(runtime, 'SceneRenderSignalFrameV2.swift'),
      File.join(runtime, 'SceneRegisteredImage.swift')]
-  command = ['xcrun', 'swiftc', '-O', '-o', executable, support, alignment_support, *sources,
-    File.join(__dir__, 'creator_catalog_tests.swift')]
+  host_support = File.join(temporary, 'HostDiagnostics.swift')
+  File.write(host_support, host_diagnostics([alignment_support, *sources]))
+  command = ['xcrun', 'swiftc', '-O', '-o', executable, support, alignment_support, host_support,
+    *sources, File.join(__dir__, 'creator_catalog_tests.swift')]
   output, status = Open3.capture2e(*command)
   puts output unless output.empty?
   abort 'Creator native tests failed to compile' unless status.success?

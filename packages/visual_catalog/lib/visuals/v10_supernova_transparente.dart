@@ -54,6 +54,54 @@ class Visual final : public Scene {
   float kick = 0, flash = 0;
   double ringAge = 100.0;
   float ringPower = 0.0f;
+  // Fotosensibilidad: como mucho 6 cambios de pantalla (3 destellos) en
+  // cualquier segundo de escena. Cada golpe que vuelve a encender el aura y su
+  // anillo cuenta 1. Cada onda de choque cuenta 4: pone en blanco las 360
+  // partículas y las lanza, y cambia la pantalla unas 4 veces mientras se
+  // abre. La onda crece 16 px por paso, así que en una ventana pequeña (PiP) o
+  // con Speed alto se repetía cada 0,2-0,4 s. Además, entre dos ondas pasan
+  // al menos kShockGap segundos, para que dos nunca compartan un segundo.
+  class FlashCeiling {
+   public:
+    static constexpr int maximumChanges = 6;
+    static constexpr double windowSeconds = 1.0;
+    void reset() { count_ = 0; latest_ = 0; }
+    bool fits(double time, int cost) { return prune(time) && count_ + cost <= maximumChanges; }
+    // Pide permiso para cost cambios en el instante time; si dice que no, la
+    // pantalla se queda como está.
+    bool admit(double time, int cost) {
+      if (!fits(time, cost)) return false;
+      for (int i = 0; i < cost; i++) changes_[size_t(count_++)] = std::max(0.0, time);
+      return true;
+    }
+
+   private:
+    bool prune(double time) {
+      if (!std::isfinite(time)) return false;
+      time = std::max(0.0, time);
+      // El tiempo vuelve atrás al reiniciar la escena: es otra línea de tiempo.
+      if (time < latest_) count_ = 0;
+      latest_ = time;
+      int n = 0;
+      for (int i = 0; i < count_; i++) {
+        if (changes_[size_t(i)] > time - windowSeconds) changes_[size_t(n++)] = changes_[size_t(i)];
+      }
+      count_ = n;
+      return true;
+    }
+    std::array<double, maximumChanges> changes_{};
+    int count_ = 0;
+    double latest_ = 0;
+  };
+  static constexpr int kShockCost = 4;
+  static constexpr double kShockGap = 1.5;
+  // Con golpes muy seguidos el aura llenaría el tope siempre y la onda no
+  // saldría nunca. Si una onda lista lleva kShockWait segundos sin sitio, el
+  // aura deja de gastar el tope hasta que la onda sale.
+  static constexpr double kShockWait = 0.5;
+  double lastShock = -100.0;
+  double shockBlocked = -1.0;  // desde cuándo espera una onda lista; -1 si ninguna
+  FlashCeiling flashes;
 
   static float follow(float v, float target, float up, float down, float dt) {
     return v + (target - v) * (1.0f - std::exp(-(target > v ? up : down) * dt));
@@ -63,9 +111,14 @@ class Visual final : public Scene {
     return float(x & 0xffffffu) / 16777216.0f;
   }
 
-  void step(float w, float h, float swirlExtra) {
+  // Un paso de simulación; devuelve si lanzó una onda de choque. blastScale
+  // reparte la explosión entre los pasos de un cuadro: con Speed por encima
+  // de 1 hay más pasos por segundo y la explosión no debe ir más deprisa
+  // (cruzaría un tercio de la pantalla por cuadro, un destello por cuadro).
+  bool step(float w, float h, float swirlExtra, bool canShock, float blastScale) {
     const float dt = 1.0f / 60.0f;
     float cx = w * 0.5f, cy = h * 0.5f;
+    bool shocked = false;
 
     // Disparo de ondas de choque exclusivamente ante bombos reales con música activa
     if (shockRadius > 0.0f) {
@@ -73,14 +126,15 @@ class Visual final : public Scene {
       if (shockRadius > std::max(w, h) * 1.2f) {
         shockRadius = 0.0f;
       }
-    } else if (fActive && fbass > 0.65f) {
+    } else if (canShock && fActive && fbass > 0.65f) {
+      shocked = true;
       shockRadius = 10.0f;
       float blast = 14.0f + fenergy * 18.0f;
       for (auto& p : particles) {
         float dx = p.x - cx, dy = p.y - cy;
         float dist = std::max(12.0f, std::sqrt(dx * dx + dy * dy));
         float angle = std::atan2(dy, dx);
-        float speed = std::clamp(blast * 110.0f / dist, 3.0f, 26.0f);
+        float speed = std::clamp(blast * 110.0f / dist, 3.0f, 26.0f) * blastScale;
         p.vx = std::cos(angle) * speed;
         p.vy = std::sin(angle) * speed;
         p.energy = 1.0f;
@@ -118,6 +172,7 @@ class Visual final : public Scene {
       p.energy = std::clamp(p.energy * 0.993f, 0.15f, 1.0f);
     }
     done++;
+    return shocked;
   }
 
  public:
@@ -126,7 +181,7 @@ class Visual final : public Scene {
     particles.clear(); particles.reserve(kParticleCount);
     done = 0; shockRadius = 0.0f; fActive = false; fenergy = 0.0f; fbass = 0.0f;
     bass = spark = energy = slowBass = kick = flash = 0.0f;
-    ringAge = 100.0; ringPower = 0.0f;
+    ringAge = 100.0; ringPower = 0.0f; lastShock = -100.0; shockBlocked = -1.0; flashes.reset();
     for (int i = 0; i < kParticleCount; i++) {
       float a = rng.unit() * 6.2831853f;
       float dist = 20.0f + rng.unit() * 180.0f;
@@ -156,10 +211,14 @@ class Visual final : public Scene {
     slowBass = follow(slowBass, mu.bass, 3.0f, 3.0f, dt);
     hit = std::min(std::max(hit, onset), 1.0f);
     const bool fresh = hit > kick + 0.2f;
-    kick = std::max(kick * std::exp(-dt * 5.0f), hit);
+    // Un golpe que vuelve a encender el aura y su anillo pide permiso al tope,
+    // salvo que una onda lleve rato esperando sitio: entonces la onda va antes.
+    const bool shockFirst = shockBlocked >= 0.0 && f.time - shockBlocked >= kShockWait;
+    const bool lit = fresh && !shockFirst && flashes.admit(f.time, 1);
+    kick = fresh && !lit ? kick * std::exp(-dt * 5.0f) : std::max(kick * std::exp(-dt * 5.0f), hit);
     flash = std::max(flash * std::exp(-dt * 8.0f), std::min(fl, 1.0f));
     ringAge += f.delta;
-    if (fresh) { ringAge = 0.0; ringPower = hit; }
+    if (lit) { ringAge = 0.0; ringPower = hit; }
     // Remolino: 1 conserva el empuje tangencial original.
     const float swirlExtra = 0.035f * (glide(f).remolino - 1.0f);
 
@@ -169,10 +228,19 @@ class Visual final : public Scene {
     float rate = (f.reducedMotion ? 0.3f : 1.0f) * f.speed;
     int target = int(float(f.time) * rate * 60.0f + 0.001f);
     int guard = 0;
+    bool canShock = f.time - lastShock >= kShockGap && flashes.fits(f.time, kShockCost);
     while (done < target && guard < 16) {
-      step(f.width, f.height, swirlExtra);
+      if (step(f.width, f.height, swirlExtra, canShock, 1.0f / std::max(rate, 1.0f))) {
+        lastShock = f.time;
+        flashes.admit(f.time, kShockCost);
+        canShock = false;
+      }
       guard++;
     }
+    // Onda lista (graves fuertes, sin otra abierta, pausa cumplida) que no cabe.
+    const bool waiting = fActive && fbass > 0.65f && shockRadius <= 0.0f && f.time - lastShock >= kShockGap;
+    if (!fActive || lastShock == f.time || f.time < shockBlocked) shockBlocked = -1.0;
+    else if (waiting && shockBlocked < 0.0) shockBlocked = f.time;
   }
 
   void render(const Frame& f, Canvas& c) const override {

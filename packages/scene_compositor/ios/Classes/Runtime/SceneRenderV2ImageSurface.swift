@@ -47,6 +47,58 @@ enum BundledAssetLookup {
   }
 }
 
+/// Photosensitivity ceiling for clock-driven full-screen alternation: strobes,
+/// black/colour blinks and colour swaps that follow a timer rather than music.
+/// Mirrors Dart `VisualSafetyPolicy.minimumClockFlashHalfPeriod`: one on/off
+/// cycle is one flash, and three of them plus 200 ms of lateness (slow or
+/// braked frames) span a whole second, so no one-second window ever shows a
+/// fourth flash. Whatever a mode, a slider or a remote document asks for, the
+/// alternation never runs faster (2.5 flashes per second at most).
+enum SceneRenderV2FlashSafety {
+  static let maximumFlashesPerWindow: Int64 = 3
+  static let flashWindowMicros: Int64 = 1_000_000
+  static let clockFlashLatenessAllowanceMicros: Int64 = 200_000
+  static let minimumClockFlashHalfPeriodMicros: Int64 =
+    (flashWindowMicros + clockFlashLatenessAllowanceMicros) / (2 * maximumFlashesPerWindow)
+
+  static func clockFlashHalfPeriodMicros(_ requested: Int64) -> Int64 {
+    max(requested, minimumClockFlashHalfPeriodMicros)
+  }
+
+  /// The one ceiling every full-screen change that music triggers shares: a
+  /// colour swap, an inversion, or a flash on and off (two changes). Mirrors
+  /// Dart `VisualFlashChangeWindow`: three flashes per sliding second are six
+  /// changes, and a change that would put a seventh into any one-second window
+  /// is refused, not queued, so the layer keeps what it shows.
+  static let maximumChangesPerWindow = Int(2 * maximumFlashesPerWindow)
+
+  struct ChangeWindow {
+    private var changes: [Int64] = []
+    private var latestEventMicros: Int64 = 0
+
+    /// One change at the music event's time, or a flash (`holdMicros` set)
+    /// that turns on then and off `holdMicros` later.
+    mutating func admit(atMicros timestampMicros: Int64, holdMicros: Int64? = nil) -> Bool {
+      let now = max(0, timestampMicros)
+      // A clock that runs backwards is a new timeline (new session).
+      if now < latestEventMicros { changes.removeAll() }
+      latestEventMicros = now
+      let window = SceneRenderV2FlashSafety.flashWindowMicros
+      changes.removeAll { $0 <= now - window }
+      var candidate = changes + [now]
+      if let holdMicros { candidate.append(now + max(0, holdMicros)) }
+      candidate.sort()
+      // At most eight entries: check every window that starts at a change.
+      for start in candidate.indices {
+        let inside = candidate[start...].filter { $0 - candidate[start] < window }.count
+        if inside > SceneRenderV2FlashSafety.maximumChangesPerWindow { return false }
+      }
+      changes = candidate
+      return true
+    }
+  }
+}
+
 struct SceneRenderV2RGBGainConfig: Equatable {
   let flowGain: Double
   let sparkGain: Double
@@ -5943,7 +5995,13 @@ final class SceneRenderV2ImageSurfaceRuntime {
   }
 
   private struct StrobeOptions: Equatable {
-    var intervalMicros: Int64?
+    /// The timer phase the program, mode or Velocity asks for.
+    private var authoredIntervalMicros: Int64?
+    /// The phase actually played: never faster than the flash ceiling.
+    var intervalMicros: Int64? {
+      get { authoredIntervalMicros.map(SceneRenderV2FlashSafety.clockFlashHalfPeriodMicros) }
+      set { authoredIntervalMicros = newValue }
+    }
     var smooth = false
     var showBlack = true
     var brightness: CGFloat = 1
@@ -5959,6 +6017,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
     var brightRainbow = false
     var intense = false
     var modeIdentity = "default"
+
+    init(intervalMicros: Int64?) { authoredIntervalMicros = intervalMicros }
 
     var transitionMicros: Int64 {
       guard smooth else { return 0 }
@@ -6089,7 +6149,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
       case .media(let layer):
         return layer.framesPerSecondByQuality[quality] ?? 1
       case .strobe(let layer, _):
-        guard let interval = layer.program.logicalIntervalMicros else { return 0 }
+        guard let interval = layer.options.intervalMicros else { return 0 }
         return max(1, Int((1_000_000.0 / Double(interval)).rounded()))
       case .radialProfile(let layer):
         return layer.framesPerSecondByQuality[quality] ?? 1
@@ -6675,6 +6735,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
     private var colorIndex = 0
     private var lastFlashSerial: Int64 = -1
     private var signalSessionID: Int64 = -1
+    private var flashChanges = SceneRenderV2FlashSafety.ChangeWindow()
     private var flashVisible = false
     private var lastFlashStrength: CGFloat = 1
     private var normalizedMotion: Float = 0
@@ -6848,6 +6909,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
       if signal.sessionId != signalSessionID {
         signalSessionID = signal.sessionId
         lastFlashSerial = -1
+        flashChanges = SceneRenderV2FlashSafety.ChangeWindow()
       }
       guard
             signal.flash.active, signal.flash.serial > lastFlashSerial else {
@@ -6856,6 +6918,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
       lastFlashSerial = signal.flash.serial
       switch layer.program {
       case .backgroundSimpleDisco, .backgroundProColorful:
+        guard flashChanges.admit(atMicros: signal.flash.timestampMicros) else { return false }
         let colors = Self.palette(layer)
         colorIndex = (colorIndex + 1) % colors.count
         rotation += 0.1
@@ -6868,6 +6931,9 @@ final class SceneRenderV2ImageSurfaceRuntime {
         frame.rotation = target.rotation
         frame.scale = target.scale
       case .transparentProStrobe:
+        guard flashChanges.admit(
+          atMicros: signal.flash.timestampMicros,
+          holdMicros: Int64((flashDurationSeconds * 1_000_000).rounded())) else { return false }
         flashVisible = true
         lastFlashStrength = CGFloat(min(1, max(0, signal.flash.strength)))
         startAnimation(from: frame, to: proFlashFrame())
@@ -13550,6 +13616,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
       default: return nil
       }
     }
+    // Velocity is the slider position (higher is faster) for every program;
+    // the t_bw modes in the Dart schema store that same position.
     if let value = raw["Velocity"] as? NSNumber {
       let milliseconds = program == .transparentBlackWhite
         ? (510 - value.doubleValue).rounded()

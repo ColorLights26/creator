@@ -51,13 +51,18 @@ class Visual final : public Scene {
   float bass=0,body=0,spark=0,energy=0,drive=0,slowBass=0,kick=0,flash=0;
   // Reloj propio para el centelleo de los agudos.
   double clock=0;
+  // Fotosensibilidad: cada golpe nuevo vuelve a encender el halo de todas las
+  // motas. Como mucho uno cada kHitGap segundos, así nunca pasa de 3 destellos
+  // por segundo; a 120-150 BPM los golpes llegan más separados y no cambia nada.
+  static constexpr double kHitGap=0.34;
+  double sinceHit=100;
   static float follow(float v,float target,float up,float down,float dt){
     return v+(target-v)*(1.0f-std::exp(-(target>v?up:down)*dt));
   }
  public:
   void reset(uint32_t seed) override {
     Random r(seed);particles.clear();particles.reserve(kMax);impulse=0;
-    bass=body=spark=energy=drive=slowBass=kick=flash=0;clock=0;
+    bass=body=spark=energy=drive=slowBass=kick=flash=0;clock=0;sinceHit=100;
     // Las primeras 240 son las de siempre; las demás sólo aparecen con Motas.
     for(int i=0;i<kMax;i++)particles.push_back({r.unit(),r.unit(),.02f+r.unit()*.03f,r.unit()*6.28f});
   }
@@ -81,7 +86,11 @@ class Visual final : public Scene {
     const float onset=std::clamp((mu.bass-slowBass-0.15f)*2.5f,0.0f,1.0f);
     slowBass=follow(slowBass,mu.bass,3.0f,3.0f,dt);
     hit=std::min(std::max(hit,onset),1.0f);
-    kick=std::max(kick*std::exp(-dt*5.0f),hit);
+    // Un golpe que vuelve a encender el halo espera su turno; lo demás sigue igual.
+    sinceHit+=f.delta;
+    const float decayed=kick*std::exp(-dt*5.0f);
+    if(hit>decayed+0.2f&&sinceHit<kHitGap)kick=decayed;
+    else{if(hit>decayed+0.2f)sinceHit=0;kick=std::max(decayed,hit);}
     flash=std::max(flash*std::exp(-dt*8.0f),std::min(fl,1.0f));
     clock+=f.delta*f.speed;
   }

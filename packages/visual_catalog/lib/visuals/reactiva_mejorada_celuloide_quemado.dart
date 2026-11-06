@@ -36,8 +36,12 @@ const variations = [
 
 const nativeSource = r'''
 class Visual final : public Scene {
-  // Fotosensibilidad: nunca más de 3 destellos por segundo.
-  static constexpr double kGap = 0.34;
+  // Fotosensibilidad: nunca más de 3 destellos por segundo. Cada quemadura
+  // cambia la pantalla hasta 3 veces mientras la cruza, así que como mucho
+  // una cada medio segundo (6 cambios en cualquier segundo). La tolerancia
+  // absorbe el redondeo del reloj: a 120 BPM ningún golpe se pierde.
+  static constexpr double kGap = 0.5;
+  static constexpr double kGapTolerance = 1e-6;
   static constexpr double kStep = 1.0 / 60.0;
   // Por debajo de esta opacidad no se pinta nada: sin su momento la capa
   // queda vacía y no cuesta nada.
@@ -142,7 +146,7 @@ class Visual final : public Scene {
     if (power <= 0.0f) return false;
     power *= 0.3f + 0.9f * loud;  // el volumen decide cuánto se ve
     if (gated) {
-      if (now - lastFire < kGap) return false;
+      if (now - lastFire < kGap - kGapTolerance) return false;
       lastFire = now + delay;
     }
     slots[cursor] = Pulse{now + delay, power, kind, fired++};

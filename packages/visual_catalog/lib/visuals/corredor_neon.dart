@@ -11,6 +11,9 @@ class Visual final : public Scene {
   float kick = 0, flash = 0, drive = 0;
   // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.
   double travel = 0, clock = 0, sinceSwitch = 0;
+  // Avance máximo que Speed puede añadir, en unidades por segundo (ver update):
+  // un marco por unidad, 3 unidades por segundo son 3 destellos por segundo.
+  static constexpr double kMaxTravel = 3.0;
   float boost = 0, theme = 0, themeTarget = 0;
   int beats = 0;
 
@@ -63,7 +66,14 @@ class Visual final : public Scene {
       sinceSwitch = 0;
     }
     theme += (themeTarget - theme) * (1.0f - std::exp(-dt * 2.5f));
-    travel += f.delta * f.speed * (0.7 + 1.4 * drive + 2.0 * boost);
+    // Fotosensibilidad: cada unidad de avance pasa un marco de neón que
+    // enciende el borde de la pantalla. Con Speed 1 los golpes más fuertes lo
+    // llevan a unas 4 unidades por segundo, que siguen siendo 3 destellos por
+    // segundo como mucho; con Speed por encima de 1 pasaban hasta 10. Speed
+    // ya no lo acelera más que eso: solo sube el avance tranquilo, hasta
+    // kMaxTravel. Con Speed 1 o menos no cambia nada.
+    const double pace = 0.7 + 1.4 * drive + 2.0 * boost;  // avance con Speed 1
+    travel += f.delta * std::min(f.speed * pace, std::max(pace, kMaxTravel));
     clock += f.delta * f.speed;
   }
 
