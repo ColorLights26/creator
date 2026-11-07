@@ -1,9 +1,15 @@
 {
   "schemaVersion": 1,
   "producer": "readiness cards import",
-  "generatedAt": "2026-10-09T17:19:54.956308Z",
+  "generatedAt": "2026-11-07T00:33:59.322393Z",
   "rows": [
-    "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-envelope-delivery/energy_probe.jsonl"
+    "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-envelope-delivery/energy_probe.jsonl",
+    "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion/energy_probe.jsonl",
+    "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-corredor/energy_probe.jsonl",
+    "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-9e93/energy_probe.jsonl",
+    "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/energy_probe.jsonl",
+    "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c-celuloide/energy_probe.jsonl",
+    "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c-celuloide2/energy_probe.jsonl"
   ],
   "cards": {
     "algoritmos_ordenacion": [
@@ -4464,9 +4470,9 @@
           "name": "default",
           "variation": null
         },
-        "programHash": "96949b7f0b3308aa8bd069a2f4a4666024dd6e412f002488a43bb7f0bf8446cb",
-        "revision": "06096d8491072c06",
-        "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+        "programHash": "27b4cb0911e61733d39f9c8a799995bd086e73b67e340f8de5179b4d1cea496a",
+        "revision": "22e3ed45669225a8",
+        "buildHash": "f24cebfd2048c12862e824d70f9b56fbaaaed671795cf1793a6a90ef629c66db",
         "framesPerSecond": 30,
         "reactive": true,
         "signal": "synthetic_loud",
@@ -4475,43 +4481,43 @@
         "device": {
           "displayHz": 120,
           "isPhysical": true,
-          "model": "iPad13,4",
-          "systemName": "iPadOS",
+          "model": "iPhone15,2",
+          "systemName": "iOS",
           "systemVersion": "27.0.1"
         },
         "viewport": {
-          "devicePixelRatio": 2.0,
-          "logicalHeight": 1194.0,
-          "logicalWidth": 834.0
+          "devicePixelRatio": 3.0,
+          "logicalHeight": 852.0,
+          "logicalWidth": 393.0
         },
         "surfacePx": {
-          "height": 1292,
-          "width": 902
+          "height": 1440,
+          "width": 664
         },
         "row": {
-          "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-envelope-delivery/energy_probe.jsonl",
-          "fileSha256": "b39c54a5ba27d09a0c4cb0d206c9ae1b560a4bd42ca75c66f241818e85a0b425",
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/energy_probe.jsonl",
+          "fileSha256": "0bf9eb6c63d5286a0162b00af619f83a78a79d9422b1d5e1272fd99b7f9a3e8c",
           "id": "corredor_neon",
-          "scheduleIndex": 80,
-          "utc": "2026-10-09T09:13:24+00:00",
+          "scheduleIndex": 1,
+          "utc": "2026-11-07T00:07:37+00:00",
           "status": "measured"
         },
         "log": {
-          "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/measurements/logs/20261009T024044-080-corredor_neon-a1-console.log",
-          "sha256": "04278f824d94f39afefc96f4f3279991bf619240c5ee29b358d7e7350abde437"
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/logs/20261106T190352-001-corredor_neon-a1-console.log",
+          "sha256": "439d905eed15cd2e758e54a404eb7d972cffd2bafcb10a708ef580aebd25ed8d"
         },
         "probe": {
-          "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/measurements/logs/20261009T024044-080-corredor_neon-probe.jsonl",
-          "sha256": "a6ee23ea2784c16cf727989915e4319820534aa038518b49942df135a01d136a"
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/logs/20261106T190352-001-corredor_neon-probe.jsonl",
+          "sha256": "92cd5e960f4542b161065279cb9fe6a526b14636a65b1a5f79ebc5ac0a4f54c9"
         },
         "traceEvidence": {
-          "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-delivery/measurements/20261009T024044-080-corredor_neon-trace-samples.json",
-          "sha256": "af5981aca1f1cc41204e65053e1638c8073f109e16b5f670217fbc2561b88ae3"
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/20261106T190352-001-corredor_neon-trace-samples.json",
+          "sha256": "4f6f878ad60a27f53f94b5585aae2a2929c5bf4ef5e24e1f6df2a40af130e6f9"
         },
         "protocol": {
           "warmupSeconds": 15.0,
-          "cpuWindowSeconds": 20.557,
-          "gpuWindowSeconds": 20.541,
+          "cpuWindowSeconds": 20.804,
+          "gpuWindowSeconds": 20.806,
           "startThermal": "nominal",
           "thermalStates": [
             "nominal"
@@ -4519,16 +4525,16 @@
           "energyLevel": "best",
           "charging": true,
           "lowPower": false,
-          "probeSamples": 10
+          "probeSamples": 11
         },
         "measured": {
           "achievedFps": 30.0,
-          "gpuAppMsPerSecond": 105.66,
-          "gpuAppMsPerPublishedFrame": 3.522,
-          "efficiencyCorePercent": 30.22,
+          "gpuAppMsPerSecond": 145.72,
+          "gpuAppMsPerPublishedFrame": 4.857,
+          "efficiencyCorePercent": 27.33,
           "performanceCorePercent": 0.0,
-          "renderThreadPercent": 19.22,
-          "memMb": 198.7
+          "renderThreadPercent": 17.26,
+          "memMb": 198.5
         },
         "warnings": [
           "charging"
@@ -8980,9 +8986,9 @@
           "name": "default",
           "variation": null
         },
-        "programHash": "910a83e3510674adad2f635849e92d9dd0d016bc3cab09d63cde29a15c5e982c",
-        "revision": "1c9a8682d81a7ba3",
-        "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+        "programHash": "252d4f9e954864cc16f7fba59338d560e4a3170861c30d6fcf351b02cec797f5",
+        "revision": "90666a2f151da35f",
+        "buildHash": "f24cebfd2048c12862e824d70f9b56fbaaaed671795cf1793a6a90ef629c66db",
         "framesPerSecond": 30,
         "reactive": true,
         "signal": "synthetic_loud",
@@ -8991,43 +8997,43 @@
         "device": {
           "displayHz": 120,
           "isPhysical": true,
-          "model": "iPad13,4",
-          "systemName": "iPadOS",
+          "model": "iPhone15,2",
+          "systemName": "iOS",
           "systemVersion": "27.0.1"
         },
         "viewport": {
-          "devicePixelRatio": 2.0,
-          "logicalHeight": 1194.0,
-          "logicalWidth": 834.0
+          "devicePixelRatio": 3.0,
+          "logicalHeight": 852.0,
+          "logicalWidth": 393.0
         },
         "surfacePx": {
-          "height": 1292,
-          "width": 902
+          "height": 1440,
+          "width": 664
         },
         "row": {
-          "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-envelope-delivery/energy_probe.jsonl",
-          "fileSha256": "b39c54a5ba27d09a0c4cb0d206c9ae1b560a4bd42ca75c66f241818e85a0b425",
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/energy_probe.jsonl",
+          "fileSha256": "0bf9eb6c63d5286a0162b00af619f83a78a79d9422b1d5e1272fd99b7f9a3e8c",
           "id": "golden_particles_scene",
-          "scheduleIndex": 3,
-          "utc": "2026-10-09T00:46:19+00:00",
+          "scheduleIndex": 2,
+          "utc": "2026-11-07T00:09:56+00:00",
           "status": "measured"
         },
         "log": {
-          "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/active-final-63-delivery/measurements/logs/20261008T194125-003-golden_particles_scene-a1-console.log",
-          "sha256": "de10147bfc73e04493ee94503548a36746b445a84f09169e6a18921f0b44a757"
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/logs/20261106T190352-002-golden_particles_scene-a1-console.log",
+          "sha256": "4660ea3828f683e06667c54d75eb506fda6c05c96d932d28b417becc382f103d"
         },
         "probe": {
-          "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/active-final-63-delivery/measurements/logs/20261008T194125-003-golden_particles_scene-probe.jsonl",
-          "sha256": "38c11b00a15d271c0ea4c16fccc7fab123d61c28b2ad45c85a4163d98679b85d"
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/logs/20261106T190352-002-golden_particles_scene-probe.jsonl",
+          "sha256": "d2082a92f8e64775a298a2373a4a71bc5c0f2a0626711e8c8df44a8b28b89d0b"
         },
         "traceEvidence": {
-          "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/active-final-63-delivery/measurements/20261008T194125-003-golden_particles_scene-trace-samples.json",
-          "sha256": "172cf154731b282296c40dc7d83c1ff26f294927e92468454067b95394dff3be"
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/20261106T190352-002-golden_particles_scene-trace-samples.json",
+          "sha256": "58611b45951cc263c4b90a015ab9f5a57f00f7e197f89242982324cec257d430"
         },
         "protocol": {
           "warmupSeconds": 15.0,
-          "cpuWindowSeconds": 20.623,
-          "gpuWindowSeconds": 20.62,
+          "cpuWindowSeconds": 20.824,
+          "gpuWindowSeconds": 20.801,
           "startThermal": "nominal",
           "thermalStates": [
             "nominal"
@@ -9039,12 +9045,12 @@
         },
         "measured": {
           "achievedFps": 30.0,
-          "gpuAppMsPerSecond": 86.44,
-          "gpuAppMsPerPublishedFrame": 2.881,
-          "efficiencyCorePercent": 32.28,
-          "performanceCorePercent": 0.07,
-          "renderThreadPercent": 19.41,
-          "memMb": 251.8
+          "gpuAppMsPerSecond": 124.36,
+          "gpuAppMsPerPublishedFrame": 4.145,
+          "efficiencyCorePercent": 29.59,
+          "performanceCorePercent": 0.01,
+          "renderThreadPercent": 20.07,
+          "memMb": 226.2
         },
         "warnings": [
           "charging"
@@ -18774,6 +18780,194 @@
         }
       }
     ],
+    "reactiva_mejorada_borde_luz": [
+      {
+        "visualId": "reactiva_mejorada_borde_luz",
+        "profile": {
+          "controls": {
+            "detail": 1.0,
+            "glow": 1.0,
+            "intensity": 1.0,
+            "speed": 1.0
+          },
+          "modifiers": {
+            "apertura": 0.55,
+            "caida": 0.18,
+            "disparo": 0.0,
+            "marco": 0.0
+          },
+          "name": "default",
+          "variation": null
+        },
+        "programHash": "8d2516cc3128755dd3b0fb921b87462b5330a94e5037d4a6d5a9c4baaa6d6ce0",
+        "revision": "e480c55821d70a53",
+        "buildHash": "f24cebfd2048c12862e824d70f9b56fbaaaed671795cf1793a6a90ef629c66db",
+        "framesPerSecond": 30,
+        "reactive": true,
+        "signal": "synthetic_loud",
+        "role": "overlay",
+        "host": "studio",
+        "device": {
+          "displayHz": 120,
+          "isPhysical": true,
+          "model": "iPhone15,2",
+          "systemName": "iOS",
+          "systemVersion": "27.0.1"
+        },
+        "viewport": {
+          "devicePixelRatio": 3.0,
+          "logicalHeight": 852.0,
+          "logicalWidth": 393.0
+        },
+        "surfacePx": {
+          "height": 1440,
+          "width": 664
+        },
+        "row": {
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/energy_probe.jsonl",
+          "fileSha256": "0bf9eb6c63d5286a0162b00af619f83a78a79d9422b1d5e1272fd99b7f9a3e8c",
+          "id": "reactiva_mejorada_borde_luz",
+          "scheduleIndex": 5,
+          "utc": "2026-11-07T00:17:40+00:00",
+          "status": "measured"
+        },
+        "log": {
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/logs/20261106T190352-005-reactiva_mejorada_borde_luz-a1-console.log",
+          "sha256": "2d6054489c6603cfadcdebab4c4f16b4d7e2cf639af17e359bf8b1185c5c5bf2"
+        },
+        "probe": {
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/logs/20261106T190352-005-reactiva_mejorada_borde_luz-probe.jsonl",
+          "sha256": "46ef9a550f0dd18495d827f8ad4d9fd94982e0710cec46682cef3a4246e51617"
+        },
+        "traceEvidence": {
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/20261106T190352-005-reactiva_mejorada_borde_luz-trace-samples.json",
+          "sha256": "6dd8582ce12b038e3833583c1bd78dfbdc8dbb888bcd2fcb894ed4df321a85b0"
+        },
+        "protocol": {
+          "warmupSeconds": 15.0,
+          "cpuWindowSeconds": 20.972,
+          "gpuWindowSeconds": 20.966,
+          "startThermal": "nominal",
+          "thermalStates": [
+            "nominal"
+          ],
+          "energyLevel": "best",
+          "charging": true,
+          "lowPower": false,
+          "probeSamples": 11
+        },
+        "measured": {
+          "achievedFps": 30.0,
+          "gpuAppMsPerSecond": 79.23,
+          "gpuAppMsPerPublishedFrame": 2.641,
+          "efficiencyCorePercent": 23.04,
+          "performanceCorePercent": 0.0,
+          "renderThreadPercent": 13.39,
+          "memMb": 198.7
+        },
+        "warnings": [
+          "charging"
+        ],
+        "energyContract": {
+          "revision": "scene-energy-budget-v1",
+          "semanticHash": "f8cd0d04940e0cf0a80d6861d073ea6c061f353e4c442708ba22a53499d3f012"
+        }
+      }
+    ],
+    "reactiva_mejorada_celuloide_quemado": [
+      {
+        "visualId": "reactiva_mejorada_celuloide_quemado",
+        "profile": {
+          "controls": {
+            "detail": 1.0,
+            "glow": 1.0,
+            "intensity": 1.0,
+            "speed": 1.0
+          },
+          "modifiers": {
+            "caida": 0.5,
+            "disparo": 0.0,
+            "origen": 0.0,
+            "tamano": 0.7
+          },
+          "name": "default",
+          "variation": null
+        },
+        "programHash": "cb5105b04e7358ca372997b9548496852cc7be8dc39bde271eec8a4bc4234e69",
+        "revision": "1cc306e092b75faa",
+        "buildHash": "f24cebfd2048c12862e824d70f9b56fbaaaed671795cf1793a6a90ef629c66db",
+        "framesPerSecond": 30,
+        "reactive": true,
+        "signal": "synthetic_loud",
+        "role": "overlay",
+        "host": "studio",
+        "device": {
+          "displayHz": 120,
+          "isPhysical": true,
+          "model": "iPhone15,2",
+          "systemName": "iOS",
+          "systemVersion": "27.0.1"
+        },
+        "viewport": {
+          "devicePixelRatio": 3.0,
+          "logicalHeight": 852.0,
+          "logicalWidth": 393.0
+        },
+        "surfacePx": {
+          "height": 1440,
+          "width": 664
+        },
+        "row": {
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c-celuloide2/energy_probe.jsonl",
+          "fileSha256": "8e47b5da1c0a9f955de3ac3ab51dea9ce454078e8ec633edc5e28e637ca72623",
+          "id": "reactiva_mejorada_celuloide_quemado",
+          "scheduleIndex": 1,
+          "utc": "2026-11-07T00:31:49+00:00",
+          "status": "measured"
+        },
+        "log": {
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c-celuloide2/logs/20261106T192835-001-reactiva_mejorada_celuloide_quemado-a1-console.log",
+          "sha256": "a6a4f47ef0dd89de1c997d6c1d97772cc53459697b41937d2b806ba615edb933"
+        },
+        "probe": {
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c-celuloide2/logs/20261106T192835-001-reactiva_mejorada_celuloide_quemado-probe.jsonl",
+          "sha256": "2a56db0f82fad6b0a923987016144eecba64822f3d17ed3391c0bb6bd27479a1"
+        },
+        "traceEvidence": {
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c-celuloide2/20261106T192835-001-reactiva_mejorada_celuloide_quemado-trace-samples.json",
+          "sha256": "1831427058c68c93f7aa44ce3c5035bc72a566dcc5af2ff25cf066000d693205"
+        },
+        "protocol": {
+          "warmupSeconds": 15.0,
+          "cpuWindowSeconds": 20.875,
+          "gpuWindowSeconds": 20.865,
+          "startThermal": "nominal",
+          "thermalStates": [
+            "nominal"
+          ],
+          "energyLevel": "best",
+          "charging": true,
+          "lowPower": false,
+          "probeSamples": 10
+        },
+        "measured": {
+          "achievedFps": 30.0,
+          "gpuAppMsPerSecond": 94.64,
+          "gpuAppMsPerPublishedFrame": 3.155,
+          "efficiencyCorePercent": 25.38,
+          "performanceCorePercent": 0.0,
+          "renderThreadPercent": 15.17,
+          "memMb": 203.8
+        },
+        "warnings": [
+          "charging"
+        ],
+        "energyContract": {
+          "revision": "scene-energy-budget-v1",
+          "semanticHash": "f8cd0d04940e0cf0a80d6861d073ea6c061f353e4c442708ba22a53499d3f012"
+        }
+      }
+    ],
     "rorschach_calavera": [
       {
         "visualId": "rorschach_calavera",
@@ -24688,9 +24882,9 @@
           "name": "default",
           "variation": null
         },
-        "programHash": "9858e0657717a421ad150e21c52ac2c3b141c6d2b4457ee669223a8fe26f2be5",
-        "revision": "487ec42ca4d7bdfc",
-        "buildHash": "ae4820449b9ff820a2fa9ba7810d3a1a1a5dd1df9d56a57cb5e7c34ff4ae3b4e",
+        "programHash": "8a2cfba81ed7bfc64a013db539eb92622248b48454ea37fb100575803239f3f1",
+        "revision": "e918bc78433b5144",
+        "buildHash": "f24cebfd2048c12862e824d70f9b56fbaaaed671795cf1793a6a90ef629c66db",
         "framesPerSecond": 30,
         "reactive": true,
         "signal": "synthetic_loud",
@@ -24699,43 +24893,43 @@
         "device": {
           "displayHz": 120,
           "isPhysical": true,
-          "model": "iPad13,4",
-          "systemName": "iPadOS",
+          "model": "iPhone15,2",
+          "systemName": "iOS",
           "systemVersion": "27.0.1"
         },
         "viewport": {
-          "devicePixelRatio": 2.0,
-          "logicalHeight": 1194.0,
-          "logicalWidth": 834.0
+          "devicePixelRatio": 3.0,
+          "logicalHeight": 852.0,
+          "logicalWidth": 393.0
         },
         "surfacePx": {
-          "height": 1292,
-          "width": 902
+          "height": 1440,
+          "width": 664
         },
         "row": {
-          "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/cadence-default-30-repair/final-envelope-delivery/energy_probe.jsonl",
-          "fileSha256": "b39c54a5ba27d09a0c4cb0d206c9ae1b560a4bd42ca75c66f241818e85a0b425",
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/energy_probe.jsonl",
+          "fileSha256": "0bf9eb6c63d5286a0162b00af619f83a78a79d9422b1d5e1272fd99b7f9a3e8c",
           "id": "v10_supernova_transparente",
-          "scheduleIndex": 18,
-          "utc": "2026-10-08T19:30:48+00:00",
+          "scheduleIndex": 4,
+          "utc": "2026-11-07T00:15:35+00:00",
           "status": "measured"
         },
         "log": {
-          "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/active-continuous-delivery/measurements/logs/20261008T140826-018-v10_supernova_transparente-a1-console.log",
-          "sha256": "ef51bc8f14569d65b44cfa99c64a9815f3be3f365af75a57066c41b451d19140"
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/logs/20261106T190352-004-v10_supernova_transparente-a1-console.log",
+          "sha256": "e7ca971d47db292ab113bf23b47e5e6441154612c4e01b387a7e8820b61b18ab"
         },
         "probe": {
-          "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/active-continuous-delivery/measurements/logs/20261008T140826-018-v10_supernova_transparente-probe.jsonl",
-          "sha256": "5fc9eb7ebe60297344a88916b4fa355a6b96655d239e0a2e786fed01d0c6fa4a"
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/logs/20261106T190352-004-v10_supernova_transparente-probe.jsonl",
+          "sha256": "b638683ca0142b715c02e407a9a9abaac1f092f716dd5c013c5cb05e7a17aeda"
         },
         "traceEvidence": {
-          "file": "/Users/meee/Projects/colorlights26/.integration-qa/creator-readiness-01a11731/physical-ipad/active-continuous-delivery/measurements/20261008T140826-018-v10_supernova_transparente-trace-samples.json",
-          "sha256": "304700b8f80ea5641bf3a0668fd90d4e118b9765e092b1abca9cd4814566acda"
+          "file": "/Users/meee/Projects/colorlights26/artifacts/retoma-codex-20261104/integration/destellos-seguros-claude-20261105/fichas-iphone/medicion-f24c/20261106T190352-004-v10_supernova_transparente-trace-samples.json",
+          "sha256": "51ff717a5ae28502ce52564ff5c27213b1aebe7468ab4fd48e94d051ddb5356f"
         },
         "protocol": {
           "warmupSeconds": 15.0,
-          "cpuWindowSeconds": 20.557,
-          "gpuWindowSeconds": 20.556,
+          "cpuWindowSeconds": 20.68,
+          "gpuWindowSeconds": 20.674,
           "startThermal": "nominal",
           "thermalStates": [
             "nominal"
@@ -24746,13 +24940,13 @@
           "probeSamples": 10
         },
         "measured": {
-          "achievedFps": 29.99,
-          "gpuAppMsPerSecond": 76.61,
-          "gpuAppMsPerPublishedFrame": 2.555,
-          "efficiencyCorePercent": 31.93,
-          "performanceCorePercent": 3.69,
-          "renderThreadPercent": 25.87,
-          "memMb": 220.4
+          "achievedFps": 30.0,
+          "gpuAppMsPerSecond": 116.09,
+          "gpuAppMsPerPublishedFrame": 3.87,
+          "efficiencyCorePercent": 25.42,
+          "performanceCorePercent": 0.0,
+          "renderThreadPercent": 19.57,
+          "memMb": 211.5
         },
         "warnings": [
           "charging"

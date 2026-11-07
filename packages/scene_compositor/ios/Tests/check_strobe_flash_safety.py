@@ -6,17 +6,26 @@ second) and Dance Dance read its stored Velocity as a different rhythm on
 iPhone than on Android. The music-flash ceiling (Dart VisualSafetyPolicy)
 did not cover flashes that follow a clock.
 
+On 06-nov-2026 the ceiling became a scene option (`limitFlashes`, off by
+default): without it strobes play at their original speed, with it they keep
+the ceiling.
+
 1. Extracts the production strobe types (StrobeProgram, StrobeLayer,
    StrobeOptions, StrobeFrame, StrobeState, strobeOptions) and the
    SceneRenderV2FlashSafety ceiling, compiles them on macOS with
-   strobe_flash_safety_tests.swift and plays them frame by frame, counting
-   the changes in every one-second window.
+   strobe_flash_safety_tests.swift and plays them frame by frame: without the
+   limit, the authored phase and every music event; with it, counting the
+   changes in every one-second window. Switching it mid-strobe keeps the
+   light and restarts the wait.
 2. Feeds the t_bw mode values the Dart schema stores (legacy_native_controls)
    so a mode means one rhythm on both platforms.
-3. Checks that the scene graph cadence follows the capped phase.
+3. Checks that the scene graph cadence follows the strobe layer's cadence
+   (program clock without the limit, capped phase with it) and that the limit
+   reaches the surfaces as session configuration, never as a document option.
 
 Usage: check_strobe_flash_safety.py [SceneRenderV2ImageSurface.swift]
                                     [legacy_native_controls.dart]
+                                    [PictureInPictureHandler.swift]
 """
 from pathlib import Path
 import json
@@ -28,6 +37,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME = ROOT / 'Classes/Runtime'
 SURFACE = RUNTIME / 'SceneRenderV2ImageSurface.swift'
+HANDLER = RUNTIME / 'PictureInPictureHandler.swift'
 SIGNAL = RUNTIME / 'SceneRenderSignalFrameV2.swift'
 TESTS = Path(__file__).resolve().parent / 'strobe_flash_safety_tests.swift'
 SCHEMAS = ROOT.parents[3] / 'audiovisuals/lib/native/legacy_native_controls.dart'
@@ -65,17 +75,54 @@ def t_bw_velocities(schemas_path):
     return {name: float(values['Velocity']) for name, values in modes.items()}
 
 
-def cadence_follows_capped_phase(source):
+def cadence_follows_strobe_layer(source):
     found = re.search(
         r'case \.strobe\(let layer, _\):\n\s*guard let interval = (\S+) else',
         source,
     )
-    return found is not None and found.group(1) == 'layer.options.intervalMicros'
+    return found is not None and found.group(1) == 'layer.cadenceIntervalMicros'
+
+
+def body(source, anchor):
+    start = source.index(anchor)
+    end = source.index('\n  }\n', start)
+    return source[start:end]
+
+
+def limit_channel_failures(surface, handler):
+    """The limit is session configuration on every channel (contract of
+    06-nov-2026): optional `limitFlashes` on attach/updateDocument (legacy and
+    V2), live `setFlashLimit` / `setFlashLimitV2`, never a strobe option."""
+    failures = []
+    attach = body(surface, 'private func parseAttach(')
+    if not re.search(r'subtracting\(\[\s*"resolvedAssetDigestsById", "limitFlashes",', attach):
+        failures.append('V2 attach/updateDocument do not accept the optional limitFlashes key')
+    if 'limitingFlashes(envelope["limitFlashes"] as? Bool == true)' not in attach:
+        failures.append('V2 attach/updateDocument do not put the strobes under limitFlashes')
+    if '"limitFlashes"' in body(surface, 'private static func strobeOptions('):
+        failures.append('limitFlashes became a strobe document option')
+    v2 = body(surface, 'func setFlashLimit(arguments: Any?, result: @escaping FlutterResult) {')
+    if 'Set(["sessionId", "limitFlashes"])' not in v2:
+        failures.append('setFlashLimitV2 does not take the setPlayingV2 address plus limitFlashes')
+    for anchor, wanted in (
+        ('case "setFlashLimitV2":', 'self.v2ImageRuntime.setFlashLimit('),
+        ('case "setFlashLimit":', 'self.setFlashLimit('),
+    ):
+        start = handler.find(anchor)
+        if start < 0 or wanted not in handler[start:start + 200]:
+            failures.append(f'{anchor} is not dispatched')
+    reads = handler.count('arguments["limitFlashes"] as? Bool == true')
+    if reads < 2:
+        failures.append('legacy attach and updateDocument do not both read limitFlashes')
+    if 'document.setLimitFlashes(limitFlashes)' not in handler:
+        failures.append('a legacy session does not put its documents under its limit')
+    return failures
 
 
 def main():
     surface = Path(sys.argv[1]) if len(sys.argv) > 1 else SURFACE
     schemas = Path(sys.argv[2]) if len(sys.argv) > 2 else SCHEMAS
+    handler = Path(sys.argv[3]) if len(sys.argv) > 3 else HANDLER
     source = surface.read_text()
     parts, ceiling = extract(source)
     velocities = t_bw_velocities(schemas)
@@ -101,11 +148,18 @@ def main():
             check=True,
         )
         failures += subprocess.run([str(binary)]).returncode != 0
-    if cadence_follows_capped_phase(source):
-        print('PASS graph cadence follows the capped strobe phase')
+    if cadence_follows_strobe_layer(source):
+        print('PASS graph cadence follows the strobe layer (program clock, capped phase when limited)')
     else:
-        print('FAIL graph cadence still follows the uncapped program interval')
+        print('FAIL graph cadence does not follow StrobeLayer.cadenceIntervalMicros')
         failures += 1
+    channel = limit_channel_failures(source, handler.read_text())
+    for failure in channel:
+        print(f'FAIL {failure}')
+    if channel:
+        failures += 1
+    else:
+        print('PASS limitFlashes reaches every strobe as session configuration')
     if failures:
         raise SystemExit('Strobe flash safety broken')
     print('PASS strobe flash safety')

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-06T07:55:39.869988Z",
-  "catalogCommit": "3cc08dc78caa15c28c538884f2a37402dbdc626b-dirty",
+  "generatedAt": "2026-11-07T00:34:03.545010Z",
+  "catalogCommit": "1d2ce81b29f31b079946a3633d6c5d28a66d12de-dirty",
   "engine": {
-    "buildHash": "62476191454776e593bf79ed1efd46a8c32f452cbb22fa0addb2abd86bae6e9e",
+    "buildHash": "f24cebfd2048c12862e824d70f9b56fbaaaed671795cf1793a6a90ef629c66db",
     "sdkHash": "f7e3b26c2d074a5eb648d37f0cc4c5211fae5703cacc9ccedf5b145a85037c76",
     "abi": 1
   },
@@ -160,8 +160,9 @@
     },
     "corredor_neon": {
       "revision": "22e3ed45669225a8",
-      "state": "pendingEvidence",
-      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (96949b7f0b3308aa8bd069a2f4a4666024dd6e412f002488a43bb7f0bf8446cb)"
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "valores iniciales"
     },
     "cristal_electrico": {
       "revision": "de3998d00aea70e7",
@@ -270,8 +271,9 @@
     },
     "golden_particles_scene": {
       "revision": "90666a2f151da35f",
-      "state": "pendingEvidence",
-      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (910a83e3510674adad2f635849e92d9dd0d016bc3cab09d63cde29a15c5e982c)"
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "valores iniciales"
     },
     "goteo_pollock": {
       "revision": "3b8e8e6ce3520496",
@@ -545,8 +547,9 @@
     },
     "reactiva_mejorada_borde_luz": {
       "revision": "e480c55821d70a53",
-      "state": "pendingEvidence",
-      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "valores iniciales"
     },
     "reactiva_mejorada_carrera_neon_rechazo_critica": {
       "revision": "782d11b609594d05",
@@ -560,8 +563,9 @@
     },
     "reactiva_mejorada_celuloide_quemado": {
       "revision": "1cc306e092b75faa",
-      "state": "pendingEvidence",
-      "detail": "Pasó las pruebas Mac. Falta la ficha del dispositivo."
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "valores iniciales"
     },
     "reactiva_mejorada_destello_drop": {
       "revision": "8a310826b0931465",
@@ -675,8 +679,9 @@
     },
     "v10_supernova_transparente": {
       "revision": "e918bc78433b5144",
-      "state": "pendingEvidence",
-      "detail": "Pasó las pruebas Mac. valores iniciales: la sonda midió otro programa (9858e0657717a421ad150e21c52ac2c3b141c6d2b4457ee669223a8fe26f2be5)"
+      "state": "verified",
+      "detail": "Medido dentro del alcance indicado para su dispositivo.",
+      "scope": "valores iniciales"
     },
     "v11_archivo_corrupto_transparente": {
       "revision": "df093edd6145d731",

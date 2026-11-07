@@ -448,6 +448,7 @@ final class SceneSurfaceImageGraphCache<Key: Equatable> {
 struct SceneSurfaceLayerPreparationKey: Equatable {
     let targetRect: CGRect
     let rgbGain: Double
+    var highlightPulse = 0.0
 }
 
 /// Document-owned accounting follows the actual texture, including CI graphs
@@ -6923,7 +6924,8 @@ private final class PictureInPictureSceneLayerRuntime {
         }
         let key = SceneSurfaceLayerPreparationKey(
             targetRect: targetRect,
-            rgbGain: rgbGainEffect?.gain ?? 1
+            rgbGain: rgbGainEffect?.gain ?? 1,
+            highlightPulse: rgbGainEffect?.highlightPulse ?? 0
         )
         guard let prepared = compositionPreparationCache.image(
             for: source,
@@ -7050,7 +7052,11 @@ private final class PictureInPictureSceneLayerRuntime {
         let authoredDynamicSourceAnimating =
             intrinsicSourceNeedsContinuousRendering &&
             (sourceKind == "procedural" || sourceKind == "realtimeRenderer")
-        let rgbGainAnimating = rgbGainEffect?.needsFrames(for: frame) ?? false
+        if rgbGainRidesSourceFrames, sourceAdvanced {
+            rgbGainEffect?.sample(frame: frame, hostTime: hostTime)
+        }
+        let rgbGainAnimating = !rgbGainRidesSourceFrames &&
+            (rgbGainEffect?.needsFrames(for: frame) ?? false)
         let naturalLightAnimating =
             naturalReactiveLightEffect?.needsFrames(for: frame) ?? false
         let sourceDue = authoredDynamicSourceAnimating &&
@@ -7071,7 +7077,7 @@ private final class PictureInPictureSceneLayerRuntime {
                 naturalReactiveLightEffect?.framesPerSecond ?? 0
             )
         }
-        let rgbEffect = rgbGainEffect
+        let rgbEffect = rgbGainRidesSourceFrames ? nil : rgbGainEffect
         let naturalLightEffect = naturalReactiveLightEffect
         let effectAnimating = activeEffectFramesPerSecond > 0 &&
             sceneSurfaceSampleAndHoldEffectIfDue(
@@ -7102,7 +7108,7 @@ private final class PictureInPictureSceneLayerRuntime {
             sourceAdvanced: sourceAdvanced || scheduledDynamicSourceRefresh,
             timeDriven: timeDriven,
             effectAnimating: effectAnimating || transform.sourceAlignment.isMorphing(at: hostTime),
-            audioAdvanced: audioAdvanced && isAudioReactive
+            audioAdvanced: audioAdvanced && audioChangesComposition
         )
     }
 
@@ -7162,6 +7168,10 @@ private final class PictureInPictureSceneLayerRuntime {
 
     func didPublishNativeProgram(hostTime: CFTimeInterval) {
         nativeProgram?.didPublish(hostTime: hostTime)
+    }
+
+    func setLimitFlashes(_ limit: Bool) {
+        nativeProgram?.setLimitFlashes(limit)
     }
 
     var creatorMetrics: [String: Any]? { nativeProgram?.creatorMetrics }
@@ -7373,6 +7383,19 @@ private final class PictureInPictureSceneLayerRuntime {
             rgbGainEffect != nil ||
             naturalReactiveLightEffect != nil ||
             sourceKind == "realtimeRenderer"
+    }
+
+    /// A video's colour light changes only with the video's next decoded frame
+    /// (06-nov-2026): it never asks for a frame of its own.
+    var rgbGainRidesSourceFrames: Bool {
+        rgbGainEffect != nil && sourceKind == "video"
+    }
+
+    /// Whether new audio alone can change this layer between source frames.
+    private var audioChangesComposition: Bool {
+        guard rgbGainRidesSourceFrames else { return isAudioReactive }
+        return explicitlyAudioReactive || audioBinding.isReactive ||
+            naturalReactiveLightEffect != nil
     }
 
     func play() {
@@ -8783,6 +8806,15 @@ final class PictureInPictureHandler: NSObject {
             result(FlutterError(code: "continuation_identity_mismatch", message: "Cannot release another scene.", details: nil))
             return
         }
+        // The scene left while its PiP was starting or stopping with the app
+        // out of sight. AVKit defers that stop until the app returns, and the
+        // window stayed frozen meanwhile (iPhone, 6-nov 19:48): end it now.
+        if let controller = pictureInPictureController,
+           lifecycleState != .idle || controller.isPictureInPictureActive,
+           UIApplication.shared.applicationState != .active {
+            NSLog("[MusicVibePiP] scene released out of sight; retiring PiP")
+            retireController(controller, reason: "scene_released_out_of_sight")
+        }
         guard lifecycleState == .idle,
               pictureInPictureController?.isPictureInPictureActive != true else {
             result(FlutterError(code: "continuation_still_active", message: "Stop PiP before releasing its scene.", details: nil))
@@ -8905,7 +8937,10 @@ final class PictureInPictureHandler: NSObject {
                 },
                 configureDocumentV1: {
                     guard continuationSessionID == nil else { return false }
-                    return configureSceneDocument(arguments["sceneDocument"])
+                    return configureSceneDocument(
+                        arguments["sceneDocument"],
+                        limitFlashes: arguments["limitFlashes"] as? Bool == true
+                    )
                 }
             )
             switch compositionSource {
@@ -9313,23 +9348,7 @@ final class PictureInPictureHandler: NSObject {
                 NSLog(
                     "[MusicVibePiP] pending start produced no delegate callback; forcing idle"
                 )
-                controller.stopPictureInPicture()
-                controller.delegate = nil
-                self.pictureInPictureController = nil
-                self.stopWatchdog = nil
-                self.stopWatchdogAttempts = 0
-                self.stopCompletionPending = false
-                self.lifecycleState = .idle
-                self.stopRequestedDuringStart = false
-                self.observedBackgroundSinceStart = false
-                self.foregroundStopRequested = false
-                self.finishForegroundReturn(reason: "start_unconfirmed")
-                self.prepared = false
-                self.stopRenderTimer()
-                self.pauseDynamicSources()
-                self.detachSampleLayer()
-                self.emit(type: "stopped", message: self.stoppingReason)
-                self.stoppingReason = "system"
+                self.retireController(controller, reason: "start_unconfirmed")
             }
         }
         stopWatchdog = watchdog
@@ -9344,6 +9363,15 @@ final class PictureInPictureHandler: NSObject {
         reason: String
     ) {
         guard lifecycleState != .stopping else { return }
+        // AVKit defers stopPictureInPicture while the app is in the
+        // background, so a window the app asked to close stayed on screen
+        // (`stop still pending`). Out of sight nothing returns to the app:
+        // retiring the controller closes the window now.
+        if UIApplication.shared.applicationState == .background {
+            NSLog("[MusicVibePiP] stop in background; retiring PiP reason=%@", reason)
+            retireController(controller, reason: reason)
+            return
+        }
         lifecycleState = .stopping
         stopRequestedDuringStart = false
         stopCompletionPending = true
@@ -9370,6 +9398,32 @@ final class PictureInPictureHandler: NSObject {
         scheduleStopWatchdog(for: controller)
     }
 
+    /// Ends PiP without waiting for AVKit's delegate: the controller is
+    /// stopped and released, which removes its window.
+    private func retireController(
+        _ controller: AVPictureInPictureController,
+        reason: String
+    ) {
+        controller.stopPictureInPicture()
+        controller.delegate = nil
+        pictureInPictureController = nil
+        stopWatchdog?.cancel()
+        stopWatchdog = nil
+        stopWatchdogAttempts = 0
+        stopCompletionPending = false
+        lifecycleState = .idle
+        stopRequestedDuringStart = false
+        observedBackgroundSinceStart = false
+        foregroundStopRequested = false
+        finishForegroundReturn(reason: reason)
+        prepared = false
+        stopRenderTimer()
+        pauseDynamicSources()
+        detachSampleLayer()
+        emit(type: "stopped", message: stoppingReason)
+        stoppingReason = "system"
+    }
+
     private func scheduleStopWatchdog(
         for controller: AVPictureInPictureController
     ) {
@@ -9381,7 +9435,12 @@ final class PictureInPictureHandler: NSObject {
                 let controller,
                 self.lifecycleState == .stopping
             else { return }
-            if controller.isPictureInPictureActive {
+            if controller.isPictureInPictureActive,
+               UIApplication.shared.applicationState != .active {
+                NSLog("[MusicVibePiP] stop deferred out of sight; retiring PiP")
+                self.retireController(controller, reason: self.stoppingReason)
+                return
+            } else if controller.isPictureInPictureActive {
                 NSLog(
                     "[MusicVibePiP] stop still pending attempt=%d; requesting stop again",
                     self.stopWatchdogAttempts
@@ -10067,7 +10126,7 @@ final class PictureInPictureHandler: NSObject {
         sourceHostView?.removeFromSuperview()
     }
 
-    private func configureSceneDocument(_ value: Any?) -> Bool {
+    private func configureSceneDocument(_ value: Any?, limitFlashes: Bool = false) -> Bool {
         guard
             let document = value as? [String: Any],
             (document["schemaVersion"] as? NSNumber)?.intValue == 1,
@@ -10125,6 +10184,8 @@ final class PictureInPictureHandler: NSObject {
             parsedFilter = nil
         }
 
+        // A fresh Picture in Picture carries the scene's flash limit like attach.
+        parsedLayers.forEach { $0.setLimitFlashes(limitFlashes) }
         sceneLayers = parsedLayers
         sceneFilter = parsedFilter
         sceneOnePassLayers = sceneSurfaceOnePassLayers(
@@ -11889,10 +11950,20 @@ private final class SceneSurfaceRGBGainEffectRuntime {
     let sparkAttack: Double
     let sparkRelease: Double
     let framesPerSecond: Int
+    /// Light that follows each beat (`impact`); 0 when the recipe has none.
+    let pulseGain: Double
+    let pulseAttack: Double
+    let pulseRelease: Double
+    /// The beat in the bright zones only (`SceneRenderV2HighlightLight`).
+    let highlight: SceneRenderV2HighlightLight?
+    /// Mirrors `SceneRenderV2RGBGainConfig.maximumAllowedGain`.
+    static let maximumAllowedGain = 0.20
 
     private var flowEnvelope = 0.0
     private var sparkEnvelope = 0.0
     private var lastUpdateTime: CFTimeInterval = 0
+    private var pulse = SceneRenderV2LightPulse()
+    private let pulseLimiter: SceneRenderV2LightPulseLimiter
 
     private init(
         flowGain: Double,
@@ -11902,7 +11973,12 @@ private final class SceneSurfaceRGBGainEffectRuntime {
         flowRelease: Double,
         sparkAttack: Double,
         sparkRelease: Double,
-        framesPerSecond: Int
+        framesPerSecond: Int,
+        pulseGain: Double,
+        pulseAttack: Double,
+        pulseRelease: Double,
+        highlight: SceneRenderV2HighlightLight?,
+        pulseLimiter: SceneRenderV2LightPulseLimiter
     ) {
         self.flowGain = flowGain
         self.sparkGain = sparkGain
@@ -11912,6 +11988,11 @@ private final class SceneSurfaceRGBGainEffectRuntime {
         self.sparkAttack = sparkAttack
         self.sparkRelease = sparkRelease
         self.framesPerSecond = framesPerSecond
+        self.pulseGain = pulseGain
+        self.pulseAttack = pulseAttack
+        self.pulseRelease = pulseRelease
+        self.highlight = highlight
+        self.pulseLimiter = pulseLimiter
     }
 
     static func isNone(_ definition: [String: Any]) -> Bool {
@@ -11919,7 +12000,8 @@ private final class SceneSurfaceRGBGainEffectRuntime {
     }
 
     static func decode(
-        _ definition: [String: Any]
+        _ definition: [String: Any],
+        pulseLimiter: SceneRenderV2LightPulseLimiter = .shared
     ) -> SceneSurfaceRGBGainEffectRuntime? {
         guard effectKind(definition) == "rgb_gain_v1" else { return nil }
         let values = definition["parameters"] as? [String: Any] ?? definition
@@ -11927,21 +12009,30 @@ private final class SceneSurfaceRGBGainEffectRuntime {
             values["flowGain"],
             fallback: 0.04,
             minimum: 0,
-            maximum: 0.10
+            maximum: maximumAllowedGain
         )
         let sparkGain = bounded(
             values["sparkGain"],
             fallback: 0.08,
             minimum: 0,
-            maximum: 0.10
+            maximum: maximumAllowedGain
         )
         let maxGain = bounded(
             values["maxGain"],
             fallback: 0.10,
             minimum: 0,
-            maximum: 0.10
+            maximum: maximumAllowedGain
         )
-        guard maxGain > 0, flowGain > 0 || sparkGain > 0 else { return nil }
+        let pulseGain = bounded(
+            values["pulseGain"],
+            fallback: 0,
+            minimum: 0,
+            maximum: maximumAllowedGain
+        )
+        let highlight = SceneRenderV2HighlightLight.clamped(values)
+        guard maxGain > 0,
+              flowGain > 0 || sparkGain > 0 || pulseGain > 0 || highlight != nil
+        else { return nil }
         return SceneSurfaceRGBGainEffectRuntime(
             flowGain: flowGain,
             sparkGain: sparkGain,
@@ -11967,12 +12058,17 @@ private final class SceneSurfaceRGBGainEffectRuntime {
                 fallback: 30,
                 minimum: 1,
                 maximum: 60
-            )
+            ),
+            pulseGain: pulseGain,
+            pulseAttack: milliseconds(values["pulseAttackMs"], fallback: 40),
+            pulseRelease: milliseconds(values["pulseReleaseMs"], fallback: 350),
+            highlight: highlight,
+            pulseLimiter: pulseLimiter
         )
     }
 
     var atRest: Bool {
-        flowEnvelope == 0 && sparkEnvelope == 0
+        flowEnvelope == 0 && sparkEnvelope == 0 && pulse.envelope == 0
     }
 
     func needsFrames(for frame: SceneSurfaceReactiveFrame) -> Bool {
@@ -12006,19 +12102,41 @@ private final class SceneSurfaceRGBGainEffectRuntime {
         )
         if flowTarget == 0, flowEnvelope < 0.0001 { flowEnvelope = 0 }
         if sparkTarget == 0, sparkEnvelope < 0.0001 { sparkEnvelope = 0 }
+        if pulseGain > 0 || highlight != nil {
+            // Each new beat starts a pulse if the shared ceiling admits it.
+            pulse.update(
+                sessionId: frame.audioSessionId,
+                serial: frame.impactSerial,
+                active: frame.impactPeak > 0,
+                strength: frame.impactPeak,
+                reactive: frame.shouldReact,
+                attackSeconds: pulseAttack,
+                releaseSeconds: pulseRelease,
+                limiter: pulseLimiter
+            )
+        }
     }
 
     var gain: Double {
         1 + min(
             maxGain,
-            flowEnvelope * flowGain + sparkEnvelope * sparkGain
+            flowEnvelope * flowGain + sparkEnvelope * sparkGain +
+                pulse.envelope * pulseGain
         )
+    }
+
+    /// The beat in the bright zones; part of the composition cache key.
+    var highlightPulse: Double { highlight == nil ? 0 : pulse.envelope }
+
+    func applyHighlight(to input: CIImage) -> CIImage {
+        highlight?.apply(to: input, pulse: pulse.envelope) ?? input
     }
 
     func reset() {
         flowEnvelope = 0
         sparkEnvelope = 0
         lastUpdateTime = 0
+        pulse.reset()
     }
 
     private func smooth(
@@ -12538,6 +12656,12 @@ private struct SceneSurfaceReactiveFrame {
     var sparkDrive = 0.0
     var flowDrive = 0.0
     var reactivity = 0.0
+    // The latest beat (`impact`) and its strength. A beat is active for one
+    // audio frame only, so `keepImpact(from:)` holds its strength until the
+    // next beat: a video frame that renders later still sees it.
+    var audioSessionId: Int64 = 0
+    var impactSerial: Int64 = 0
+    var impactPeak = 0.0
 
     init() {}
 
@@ -12545,6 +12669,8 @@ private struct SceneSurfaceReactiveFrame {
         timestampMicros =
             (arguments["timestampMicros"] as? NSNumber)?.int64Value ?? 0
         shouldReact = arguments["shouldReact"] as? Bool ?? false
+        audioSessionId = (arguments["audioSessionId"] as? NSNumber)?.int64Value ?? 0
+        impactSerial = (arguments["impactSerial"] as? NSNumber)?.int64Value ?? 0
         guard shouldReact else { return }
         level = Self.unit(arguments["level"])
         impact = Self.unit(arguments["impactStrength"])
@@ -12556,6 +12682,14 @@ private struct SceneSurfaceReactiveFrame {
         reactivity = Self.unit(arguments["reactivity"])
         if arguments["flashActive"] as? Bool != true {
             hitStrength = min(hitStrength, 0.32)
+        }
+        if arguments["impactActive"] as? Bool == true { impactPeak = impact }
+    }
+
+    mutating func keepImpact(from previous: SceneSurfaceReactiveFrame) {
+        if impactPeak == 0, impactSerial == previous.impactSerial,
+           audioSessionId == previous.audioSessionId {
+            impactPeak = previous.impactPeak
         }
     }
 
@@ -12574,6 +12708,7 @@ private struct SceneSurfaceReactiveFrame {
         frame.sparkDrive *= freshness
         frame.flowDrive *= freshness
         frame.reactivity *= freshness
+        frame.impactPeak *= freshness
         if freshness == 0 { frame.shouldReact = false }
         return frame
     }
@@ -12927,7 +13062,8 @@ private final class SceneSurfaceDocumentRuntime {
         filterState.active || layers.contains { layer in
             layer.transform.sourceAlignment.isMorphing(at: CACurrentMediaTime()) ||
                 layer.intrinsicSourceNeedsContinuousRendering ||
-                (layer.rgbGainEffect?.needsFrames(for: frame) ?? false) ||
+                (!layer.rgbGainRidesSourceFrames &&
+                    layer.rgbGainEffect?.needsFrames(for: frame) == true) ||
                 (layer.naturalReactiveLightEffect?.needsFrames(for: frame) ?? false)
         }
     }
@@ -12945,7 +13081,8 @@ private final class SceneSurfaceDocumentRuntime {
                     layer.intrinsicSourceFramesPerSecond
                 )
             }
-            if layer.rgbGainEffect?.needsFrames(for: frame) == true {
+            if !layer.rgbGainRidesSourceFrames,
+               layer.rgbGainEffect?.needsFrames(for: frame) == true {
                 requested = max(
                     requested,
                     layer.rgbGainEffect?.framesPerSecond ?? 0
@@ -13044,6 +13181,11 @@ private final class SceneSurfaceDocumentRuntime {
 
     func resetEffects() {
         layers.forEach { $0.resetEffects() }
+    }
+
+    /// Session configuration for every native strobe of the document.
+    func setLimitFlashes(_ limit: Bool) {
+        layers.forEach { $0.setLimitFlashes(limit) }
     }
 
     var gpuSubpassesSettledSuccessfully: Bool {
@@ -13737,8 +13879,19 @@ final class SceneSurfaceRenderEngine: NSObject {
         let texture: SceneSurfaceFlutterTexture
         let textureId: Int64
         var document: SceneSurfaceDocumentRuntime {
-            didSet { document.updateSongContent(songContent) }
+            didSet {
+                document.updateSongContent(songContent)
+                document.setLimitFlashes(limitFlashes)
+            }
         }
+        /// The scene's flash limit (session configuration, 06-nov-2026): every
+        /// document this session shows runs its strobes under it.
+        var limitFlashes = false {
+            didSet { document.setLimitFlashes(limitFlashes) }
+        }
+        /// Counts live changes (setFlashLimit): an edit that started before
+        /// one never overrides it.
+        var liveFlashLimitRevision = 0
         var songContent: SceneCatalogSongContent?
         var songContentRevision: Int64 = 0
         var sceneId: String
@@ -14127,6 +14280,11 @@ final class SceneSurfaceRenderEngine: NSObject {
                     arguments: call.arguments,
                     result: result
                 )
+            case "setFlashLimitV2":
+                self.v2ImageRuntime.setFlashLimit(
+                    arguments: call.arguments,
+                    result: result
+                )
             case "updateSignalFrameV2":
                 self.v2ImageRuntime.updateSignal(
                     arguments: call.arguments,
@@ -14169,6 +14327,8 @@ final class SceneSurfaceRenderEngine: NSObject {
                 self.updateViewport(arguments: call.arguments, result: result)
             case "setPlaying":
                 self.setPlaying(arguments: call.arguments, result: result)
+            case "setFlashLimit":
+                self.setFlashLimit(arguments: call.arguments, result: result)
             case "updateAudioFrame":
                 self.updateAudioFrame(arguments: call.arguments, result: result)
             case "updateSignalFrame":
@@ -14746,6 +14906,8 @@ final class SceneSurfaceRenderEngine: NSObject {
             height: viewport.height * viewport.scale
         )
         let playing = arguments["playing"] as? Bool ?? true
+        // Session configuration, sent only when true; never part of the document.
+        let limitFlashes = arguments["limitFlashes"] as? Bool == true
         let texture = SceneSurfaceFlutterTexture()
         let textureId = textureRegistry.register(texture)
         guard textureId >= 0 else {
@@ -14818,6 +14980,7 @@ final class SceneSurfaceRenderEngine: NSObject {
                     playing: playing,
                     renderQueue: self.renderQueue
                 )
+                session.limitFlashes = limitFlashes
                 self.sessions[sessionId] = session
                 self.prepareInitialVideoFrames(session: session, document: document, deadline: deadline) { ready in
                     if !session.playing || !self.applicationActive { document.pause() }
@@ -14955,12 +15118,23 @@ final class SceneSurfaceRenderEngine: NSObject {
             result(Self.error("update_document_invalid", "Invalid scene document update."))
             return
         }
+        // Absent = no limit: every update states the scene's flash limit.
+        let requestedLimitFlashes = arguments["limitFlashes"] as? Bool == true
         renderQueue.async { [weak self] in
             guard let self, let session = self.sessions[sessionId] else {
                 DispatchQueue.main.async {
                     result(Self.error("session_not_found", "The scene session is not attached."))
                 }
                 return
+            }
+            // A live change (setFlashLimit) that arrives while this edit
+            // prepares is newer than the edit's limit and wins.
+            let liveFlashLimitRevision = session.liveFlashLimitRevision
+            let editLimitFlashes = { [weak session] in
+                guard let session,
+                      session.liveFlashLimitRevision != liveFlashLimitRevision
+                else { return requestedLimitFlashes }
+                return session.limitFlashes
             }
             guard session.pipSource == nil else {
                 DispatchQueue.main.async { result(Self.error("scene_continuation_owned", "Release PiP before editing this revision.")) }
@@ -14974,7 +15148,23 @@ final class SceneSurfaceRenderEngine: NSObject {
                 return
             }
             self.invalidatePerformanceProbe(session)
-            if let update = session.document.prepareCatalogControlUpdate(to: documentDefinition) {
+            if let prepared = session.document.prepareCatalogControlUpdate(to: documentDefinition) {
+                let previousLimitFlashes = session.limitFlashes
+                let update = SceneCatalogControlUpdate(
+                    apply: { [weak session] in
+                        prepared.apply()
+                        session?.limitFlashes = editLimitFlashes()
+                    },
+                    rollback: { [weak session] in
+                        prepared.rollback()
+                        guard let session else { return }
+                        // A rejected edit keeps the previous limit unless a
+                        // live change arrived meanwhile; setting it also puts
+                        // the restored programs under it.
+                        session.limitFlashes =
+                            session.liveFlashLimitRevision == liveFlashLimitRevision
+                            ? previousLimitFlashes : session.limitFlashes
+                    })
                 update.apply()
                 session.pendingFilterUpdate = update
                 session.pendingFilterResult = result
@@ -15009,6 +15199,8 @@ final class SceneSurfaceRenderEngine: NSObject {
                         DispatchQueue.main.async { result(Self.error("scene_update_cancelled", "The edit session was closed.")) }
                         return
                     }
+                    // Layers the candidate borrowed return to the session's limit.
+                    session.document.setLimitFlashes(session.limitFlashes)
                     let finish: (Bool) -> Void = { restored in
                         let current = self.sessions[sessionId] === session
                         if !restored { session.playing = false }
@@ -15049,6 +15241,7 @@ final class SceneSurfaceRenderEngine: NSObject {
                 }
                 // Keep the last complete native output while the candidate prepares.
                 replacement.applyBorrowedPresentation()
+                replacement.setLimitFlashes(editLimitFlashes())
                 guard replacement.restoreContinuity(continuity, replacing: session.document) else {
                     replacement.tearDown()
                     rejectAndRestore("scene_update_continuity_failed")
@@ -15066,6 +15259,7 @@ final class SceneSurfaceRenderEngine: NSObject {
                     let previous = session.document
                     replacement.commitBorrowedPresentation()
                     if session.sceneId != replacement.sceneId { session.firstMovingVideoAt = nil }
+                    session.limitFlashes = editLimitFlashes()
                     session.document = replacement
                     session.sceneId = replacement.sceneId
                     previous.tearDown()
@@ -15170,6 +15364,31 @@ final class SceneSurfaceRenderEngine: NSObject {
         }
     }
 
+    /// The scene's flash limit without a new document (06-nov-2026). Native
+    /// strobes keep their light and restart their periodic wait when their
+    /// played phase changes; nothing is redrawn for it.
+    private func setFlashLimit(arguments: Any?, result: @escaping FlutterResult) {
+        guard
+            let arguments = arguments as? [String: Any],
+            let sessionId = Self.nonEmpty(arguments["sessionId"]),
+            let limitFlashes = arguments["limitFlashes"] as? Bool
+        else {
+            result(Self.error("flash_limit_invalid", "Invalid scene flash limit."))
+            return
+        }
+        renderQueue.async { [weak self] in
+            guard let self, let session = self.sessions[sessionId] else {
+                DispatchQueue.main.async {
+                    result(Self.error("session_not_found", "The scene session is not attached."))
+                }
+                return
+            }
+            session.liveFlashLimitRevision += 1
+            session.limitFlashes = limitFlashes
+            DispatchQueue.main.async { result(nil) }
+        }
+    }
+
     private func updateAudioFrame(
         arguments: Any?,
         result: @escaping FlutterResult
@@ -15194,9 +15413,11 @@ final class SceneSurfaceRenderEngine: NSObject {
                 return
             }
             session.document.updateAudioFrame(frameDefinition)
-            session.reactiveFrame = SceneSurfaceReactiveFrame(
+            var reactiveFrame = SceneSurfaceReactiveFrame(
                 arguments: frameDefinition
             )
+            reactiveFrame.keepImpact(from: session.reactiveFrame)
+            session.reactiveFrame = reactiveFrame
             session.audioRevision &+= 1
             self.reconcileRenderTimer()
             let frame = self.freshReactiveFrame(session)
@@ -16178,6 +16399,7 @@ final class SceneSurfaceRenderEngine: NSObject {
                     var source = normalized
                     if let effect = layer.rgbGainEffect {
                         source = applyRGBGain(source, gain: effect.gain)
+                        source = effect.applyHighlight(to: source)
                     }
                     if let effect = layer.naturalReactiveLightEffect {
                         source = effect.apply(to: source)

@@ -99,6 +99,241 @@ enum SceneRenderV2FlashSafety {
   }
 }
 
+/// The one ceiling for light that follows the beats, shared by every layer and
+/// surface of the process (V2 and the legacy compositor): pulses at least a
+/// third of a second apart and at most three in any second. It runs on a
+/// monotonic clock, so a new audio session (whose clock and serials restart)
+/// cannot reopen the window, and it decides each beat once: every layer that
+/// asks about the same beat gets the same answer, and the beat counts once.
+final class SceneRenderV2LightPulseLimiter {
+  static let shared = SceneRenderV2LightPulseLimiter()
+
+  private struct Decision {
+    let sessionId: Int64
+    let serial: Int64
+    let startMicros: Int64?
+  }
+
+  private let lock = NSLock()
+  private let clock: () -> Int64
+  private var changes = SceneRenderV2FlashSafety.ChangeWindow()
+  private var lastPulseMicros = Int64.min / 2
+  private var decisions: [Decision] = []
+
+  init(
+    clock: @escaping () -> Int64 = {
+      Int64(DispatchTime.now().uptimeNanoseconds / 1_000)
+    }
+  ) {
+    self.clock = clock
+  }
+
+  var nowMicros: Int64 { clock() }
+
+  /// The monotonic time at which beat `serial` of audio session `sessionId`
+  /// starts its pulse, or nil when the ceiling refuses it.
+  func admit(sessionId: Int64, serial: Int64, holdMicros: Int64) -> Int64? {
+    lock.lock()
+    defer { lock.unlock() }
+    if let known = decisions.first(where: {
+      $0.sessionId == sessionId && $0.serial == serial
+    }) {
+      return known.startMicros
+    }
+    let now = clock()
+    let spacing = SceneRenderV2FlashSafety.flashWindowMicros /
+      SceneRenderV2FlashSafety.maximumFlashesPerWindow
+    var start: Int64?
+    if now - lastPulseMicros >= spacing,
+       changes.admit(atMicros: now, holdMicros: holdMicros) {
+      lastPulseMicros = now
+      start = now
+    }
+    decisions.append(Decision(sessionId: sessionId, serial: serial, startMicros: start))
+    if decisions.count > 16 { decisions.removeFirst(decisions.count - 16) }
+    return start
+  }
+}
+
+/// One pulse per admitted beat: it rises to the beat strength in `attack`
+/// seconds, then falls with `release`. Time comes from the limiter's monotonic
+/// clock, never from the audio clock.
+struct SceneRenderV2LightPulse {
+  private(set) var envelope = 0.0
+  private var riseFrom = 0.0
+  private var peak = 0.0
+  private var startMicros: Int64 = 0
+  private var lastSessionId = Int64.min
+  private var lastSerial: Int64 = 0
+
+  /// `serial` is the latest beat of `sessionId`; a beat is new when that pair
+  /// changes. Only an active, audible beat with strength starts a pulse.
+  mutating func update(
+    sessionId: Int64,
+    serial: Int64,
+    active: Bool,
+    strength: Double,
+    reactive: Bool,
+    attackSeconds: Double,
+    releaseSeconds: Double,
+    limiter: SceneRenderV2LightPulseLimiter
+  ) {
+    if serial != lastSerial || sessionId != lastSessionId {
+      lastSerial = serial
+      lastSessionId = sessionId
+      let beat = strength.isFinite ? min(1, max(0, strength)) : 0
+      if reactive, active, serial > 0, beat > 0,
+         let start = limiter.admit(
+           sessionId: sessionId,
+           serial: serial,
+           holdMicros: Int64((attackSeconds + releaseSeconds) * 1_000_000)
+         ) {
+        riseFrom = envelope
+        peak = max(beat, envelope)
+        startMicros = start
+      }
+    }
+    guard peak > 0 else { envelope = 0; return }
+    let elapsed = Double(max(0, limiter.nowMicros - startMicros)) / 1_000_000
+    let attack = max(attackSeconds, 0.001)
+    if elapsed < attack {
+      envelope = riseFrom + (peak - riseFrom) * elapsed / attack
+    } else {
+      envelope = peak * Foundation.exp(-(elapsed - attack) / max(releaseSeconds, 0.001))
+      if envelope < 0.0001 { envelope = 0; peak = 0 }
+    }
+  }
+
+  mutating func reset() {
+    envelope = 0
+    peak = 0
+  }
+}
+
+/// The beat lights only the lights the video already has. Per frame, a mask
+/// from the frame's own luma (sRGB, `low` to `high`) picks the bright zones;
+/// in linear light they gain `gain × pulse`, and a glow of them (`halo ×
+/// pulse`, Gaussian sigma `haloRadius` × the shorter side) spreads around
+/// them. Dark zones stay as they are. The legacy compositor applies the same
+/// recipe; Dart `ReactiveVideoGain` and Kotlin mirror it.
+struct SceneRenderV2HighlightLight: Equatable {
+  let low: Double
+  let high: Double
+  let gain: Double
+  let halo: Double
+  let haloRadius: Double
+
+  static let keys: Set<String> = [
+    "highlightLow", "highlightHigh", "highlightGain", "highlightHalo",
+    "highlightHaloRadius",
+  ]
+  static let lowRange = 0.05...0.90
+  static let minimumBand = 0.05
+  static let maximumGain = 2.0
+  static let maximumHalo = 2.0
+  static let haloRadiusRange = 0.01...0.10
+
+  /// Strict reader (V2): every key present and in range, or nil.
+  static func decode(_ effect: [String: Any]) -> Self? {
+    func number(_ key: String) -> Double? {
+      guard let value = (effect[key] as? NSNumber)?.doubleValue, value.isFinite
+      else { return nil }
+      return value
+    }
+    guard
+      let low = number("highlightLow"), lowRange.contains(low),
+      let high = number("highlightHigh"), high >= low + minimumBand, high <= 1,
+      let gain = number("highlightGain"), gain >= 0, gain <= maximumGain,
+      let halo = number("highlightHalo"), halo >= 0, halo <= maximumHalo,
+      let radius = number("highlightHaloRadius"), haloRadiusRange.contains(radius),
+      gain > 0 || halo > 0
+    else { return nil }
+    return Self(low: low, high: high, gain: gain, halo: halo, haloRadius: radius)
+  }
+
+  /// Tolerant reader (legacy compositor): clamps every value; nil when the
+  /// recipe has no highlight keys or lights nothing.
+  static func clamped(_ values: [String: Any]) -> Self? {
+    guard values["highlightGain"] != nil || values["highlightHalo"] != nil
+    else { return nil }
+    func number(_ key: String, _ fallback: Double) -> Double {
+      let parsed = (values[key] as? NSNumber)?.doubleValue
+        ?? (values[key] as? String).flatMap(Double.init) ?? fallback
+      return parsed.isFinite ? parsed : fallback
+    }
+    let low = min(max(number("highlightLow", 0.5), lowRange.lowerBound), lowRange.upperBound)
+    let high = min(max(number("highlightHigh", low + 0.25), low + minimumBand), 1)
+    let gain = min(max(number("highlightGain", 0), 0), maximumGain)
+    let halo = min(max(number("highlightHalo", 0), 0), maximumHalo)
+    let radius = min(
+      max(number("highlightHaloRadius", 0.048), haloRadiusRange.lowerBound),
+      haloRadiusRange.upperBound
+    )
+    guard gain > 0 || halo > 0 else { return nil }
+    return Self(low: low, high: high, gain: gain, halo: halo, haloRadius: radius)
+  }
+
+  // Core Image works in linear light; the mask reads sRGB-encoded luma.
+  private static let encodedLuma = """
+    float highlightMaskOf(vec3 linear, float low, float high) {
+      vec3 value = max(linear, vec3(0.0));
+      vec3 encoded = mix(
+        value * 12.92,
+        1.055 * pow(value, vec3(1.0 / 2.4)) - 0.055,
+        step(vec3(0.0031308), value)
+      );
+      return smoothstep(low, high, dot(encoded, vec3(0.2126, 0.7152, 0.0722)));
+    }
+    """
+  private static let maskKernel = CIColorKernel(source: encodedLuma + """
+    kernel vec4 highlightMask(__sample source, float low, float high) {
+      vec4 color = unpremultiply(source);
+      float mask = highlightMaskOf(color.rgb, low, high);
+      return vec4(max(color.rgb, vec3(0.0)) * mask * color.a, color.a);
+    }
+    """)
+  private static let lightKernel = CIColorKernel(source: encodedLuma + """
+    kernel vec4 highlightLight(
+      __sample source, __sample glow, float low, float high, float gain,
+      float halo
+    ) {
+      vec4 color = unpremultiply(source);
+      float mask = highlightMaskOf(color.rgb, low, high);
+      color.rgb = clamp(
+        max(color.rgb, vec3(0.0)) * (1.0 + gain * mask) + halo * glow.rgb,
+        0.0,
+        1.0
+      );
+      return premultiply(color);
+    }
+    """)
+
+  /// `pulse` is the beat envelope, 0 to 1. At rest it returns `input` itself.
+  func apply(to input: CIImage, pulse: Double) -> CIImage {
+    let extent = input.extent
+    guard
+      pulse.isFinite, pulse > 0.0001,
+      !extent.isEmpty, !extent.isInfinite,
+      let maskKernel = Self.maskKernel, let lightKernel = Self.lightKernel,
+      let masked = maskKernel.apply(
+        extent: extent,
+        arguments: [input, Float(low), Float(high)]
+      )
+    else { return input }
+    let sigma = haloRadius * Double(min(extent.width, extent.height))
+    let glow = masked.clampedToExtent()
+      .applyingGaussianBlur(sigma: sigma)
+      .cropped(to: extent)
+    return lightKernel.apply(
+      extent: extent,
+      arguments: [
+        input, glow, Float(low), Float(high), Float(gain * pulse),
+        Float(halo * pulse),
+      ]
+    ) ?? input
+  }
+}
+
 struct SceneRenderV2RGBGainConfig: Equatable {
   let flowGain: Double
   let sparkGain: Double
@@ -108,18 +343,36 @@ struct SceneRenderV2RGBGainConfig: Equatable {
   let sparkAttackSeconds: Double
   let sparkReleaseSeconds: Double
   let framesPerSecond: Int
+  /// Light that follows each detected beat (`impact`). Zero when the recipe
+  /// has no pulse keys, so older recipes keep their behavior.
+  var pulseGain = 0.0
+  var pulseAttackSeconds = 0.04
+  var pulseReleaseSeconds = 0.35
+  /// The beat in the bright zones only; nil without highlight keys.
+  var highlight: SceneRenderV2HighlightLight?
+  /// Whether the beats move this recipe at all.
+  var followsBeats: Bool { pulseGain > 0 || highlight != nil }
+
+  /// Mirrors Dart `ReactiveVideoGainConfig.maximumAllowedGain`: +20 % linear
+  /// light changes an 8-bit value by at most 20 levels, far below the 48 that
+  /// the Creator flash check counts as a change.
+  static let maximumAllowedGain = 0.20
 
   static func decode(_ value: Any?) -> Self? {
+    let baseKeys: Set<String> = [
+      "kind", "flowGain", "sparkGain", "maxGain", "flowAttackMs",
+      "flowReleaseMs", "sparkAttackMs", "sparkReleaseMs",
+      "framesPerSecond",
+    ]
+    let pulseKeys: Set<String> = ["pulseGain", "pulseAttackMs", "pulseReleaseMs"]
     guard
       let parameters = value as? [String: Any],
       Set(parameters.keys) == Set(["audioReactive", "effect"]),
       parameters["audioReactive"] as? Bool == true,
       let effect = parameters["effect"] as? [String: Any],
-      Set(effect.keys) == Set([
-        "kind", "flowGain", "sparkGain", "maxGain", "flowAttackMs",
-        "flowReleaseMs", "sparkAttackMs", "sparkReleaseMs",
-        "framesPerSecond",
-      ]),
+      Set(effect.keys) == baseKeys || Set(effect.keys) == baseKeys.union(pulseKeys) ||
+        Set(effect.keys) == baseKeys.union(pulseKeys)
+          .union(SceneRenderV2HighlightLight.keys),
       effect["kind"] as? String == "rgb_gain_v1"
     else { return nil }
     func bounded(_ key: String, _ minimum: Double, _ maximum: Double) -> Double? {
@@ -140,9 +393,9 @@ struct SceneRenderV2RGBGainConfig: Equatable {
       return Double(value) / 1_000
     }
     guard
-      let flowGain = bounded("flowGain", 0, 0.10),
-      let sparkGain = bounded("sparkGain", 0, 0.10),
-      let maxGain = bounded("maxGain", 0, 0.10),
+      let flowGain = bounded("flowGain", 0, maximumAllowedGain),
+      let sparkGain = bounded("sparkGain", 0, maximumAllowedGain),
+      let maxGain = bounded("maxGain", 0, maximumAllowedGain),
       let flowAttack = milliseconds("flowAttackMs"),
       let flowRelease = milliseconds("flowReleaseMs"),
       let sparkAttack = milliseconds("sparkAttackMs"),
@@ -150,10 +403,9 @@ struct SceneRenderV2RGBGainConfig: Equatable {
       let framesPerSecond = (effect["framesPerSecond"] as? NSNumber)?.intValue,
       framesPerSecond >= 1,
       framesPerSecond <= 60,
-      maxGain > 0,
-      flowGain > 0 || sparkGain > 0
+      maxGain > 0
     else { return nil }
-    return Self(
+    var config = Self(
       flowGain: flowGain,
       sparkGain: sparkGain,
       maxGain: maxGain,
@@ -163,6 +415,22 @@ struct SceneRenderV2RGBGainConfig: Equatable {
       sparkReleaseSeconds: sparkRelease,
       framesPerSecond: framesPerSecond
     )
+    if effect["pulseGain"] != nil {
+      guard
+        let pulseGain = bounded("pulseGain", 0, maximumAllowedGain),
+        let pulseAttack = milliseconds("pulseAttackMs"),
+        let pulseRelease = milliseconds("pulseReleaseMs")
+      else { return nil }
+      config.pulseGain = pulseGain
+      config.pulseAttackSeconds = pulseAttack
+      config.pulseReleaseSeconds = pulseRelease
+    }
+    if effect["highlightGain"] != nil {
+      guard let highlight = SceneRenderV2HighlightLight.decode(effect) else { return nil }
+      config.highlight = highlight
+    }
+    guard flowGain > 0 || sparkGain > 0 || config.followsBeats else { return nil }
+    return config
   }
 }
 
@@ -172,11 +440,33 @@ final class SceneRenderV2RGBGainState {
   private var sparkEnvelope = 0.0
   private var lastAudioTimestampMicros: Int64 = -1
   private(set) var gain = 1.0
+  private var pulse = SceneRenderV2LightPulse()
+  private let pulseLimiter: SceneRenderV2LightPulseLimiter
+  var pulseEnvelope: Double { pulse.envelope }
 
-  init(config: SceneRenderV2RGBGainConfig) { self.config = config }
+  init(
+    config: SceneRenderV2RGBGainConfig,
+    pulseLimiter: SceneRenderV2LightPulseLimiter = .shared
+  ) {
+    self.config = config
+    self.pulseLimiter = pulseLimiter
+  }
 
   func consume(_ frame: SceneRenderSignalFrameV2) -> Bool {
     let reactive = frame.available && frame.fresh && frame.musicActive
+    if config.followsBeats {
+      // Each new `impact` is a beat; the shared ceiling decides it once.
+      pulse.update(
+        sessionId: frame.sessionId,
+        serial: Int64(frame.impact.serial),
+        active: frame.impact.active,
+        strength: Double(frame.impact.strength),
+        reactive: reactive,
+        attackSeconds: config.pulseAttackSeconds,
+        releaseSeconds: config.pulseReleaseSeconds,
+        limiter: pulseLimiter
+      )
+    }
     let delta = lastAudioTimestampMicros < 0
       ? 1.0 / Double(config.framesPerSecond)
       : min(
@@ -208,7 +498,8 @@ final class SceneRenderV2RGBGainState {
     if sparkTarget == 0, sparkEnvelope < 0.0001 { sparkEnvelope = 0 }
     let next = 1 + min(
       config.maxGain,
-      flowEnvelope * config.flowGain + sparkEnvelope * config.sparkGain
+      flowEnvelope * config.flowGain + sparkEnvelope * config.sparkGain +
+        pulseEnvelope * config.pulseGain
     )
     let changed = next != gain
     gain = next
@@ -216,16 +507,19 @@ final class SceneRenderV2RGBGainState {
   }
 
   func apply(to input: CIImage) -> CIImage {
-    guard gain > 1.00001 else { return input }
-    return input.applyingFilter(
-      "CIColorMatrix",
-      parameters: [
-        "inputRVector": CIVector(x: gain, y: 0, z: 0, w: 0),
-        "inputGVector": CIVector(x: 0, y: gain, z: 0, w: 0),
-        "inputBVector": CIVector(x: 0, y: 0, z: gain, w: 0),
-        "inputAVector": CIVector(x: 0, y: 0, z: 0, w: 1),
-      ]
-    )
+    var output = input
+    if gain > 1.00001 {
+      output = output.applyingFilter(
+        "CIColorMatrix",
+        parameters: [
+          "inputRVector": CIVector(x: gain, y: 0, z: 0, w: 0),
+          "inputGVector": CIVector(x: 0, y: gain, z: 0, w: 0),
+          "inputBVector": CIVector(x: 0, y: 0, z: gain, w: 0),
+          "inputAVector": CIVector(x: 0, y: 0, z: 0, w: 1),
+        ]
+      )
+    }
+    return config.highlight?.apply(to: output, pulse: pulseEnvelope) ?? output
   }
 
   private func smooth(
@@ -5681,7 +5975,9 @@ final class SceneRenderV2ImageSurfaceRuntime {
     private func prepareLegacyControlUpdate(parameters: [String: Any]) -> SceneCatalogControlUpdate? {
       guard let currentIdentity = SceneCatalogControlUpdatePlan.controlIdentity(originalParameters),
         currentIdentity == SceneCatalogControlUpdatePlan.controlIdentity(parameters),
-        let next = Self.parse(parameters: parameters, loadImage: true) else { return nil }
+        let parsed = Self.parse(parameters: parameters, loadImage: true) else { return nil }
+      // The flash limit is session configuration, not a parameter: it stays.
+      let next = parsed.limitingFlashes(strobe?.layer.options.limitFlashes ?? false)
       let previousNode = node
       let previousParameters = originalParameters
       let previousNeon = neonPulse, previousStars = magicStars
@@ -5721,6 +6017,15 @@ final class SceneRenderV2ImageSurfaceRuntime {
         self?.flashAwaitingPublication = previousAwaitingPublication
         self?.flashCleanupAwaitingPublication = previousCleanupAwaitingPublication
       })
+    }
+
+    /// The scene's flash limit (session configuration, not a parameter). Only
+    /// a strobe program depends on it; it keeps its light and restarts its
+    /// periodic wait when the played phase changes.
+    func setLimitFlashes(_ limit: Bool) {
+      guard let strobe, let node else { return }
+      self.node = node.limitingFlashes(limit)
+      strobe.setLimitFlashes(limit)
     }
 
     func updateSongContent(_ content: SceneCatalogSongContent?) -> Bool {
@@ -5992,16 +6297,36 @@ final class SceneRenderV2ImageSurfaceRuntime {
     let program: StrobeProgram
     let opacity: CGFloat
     let options: StrobeOptions
+
+    /// The same layer under the session's flash limit (06-nov-2026).
+    func limitingFlashes(_ limit: Bool) -> StrobeLayer {
+      var next = options
+      next.limitFlashes = limit
+      return StrobeLayer(id: id, program: program, opacity: opacity, options: next)
+    }
+
+    /// The graph cadence: the program's own clock, or the played phase while
+    /// the scene limits flashes.
+    var cadenceIntervalMicros: Int64? {
+      options.limitFlashes ? options.intervalMicros : program.logicalIntervalMicros
+    }
   }
 
   private struct StrobeOptions: Equatable {
     /// The timer phase the program, mode or Velocity asks for.
     private var authoredIntervalMicros: Int64?
-    /// The phase actually played: never faster than the flash ceiling.
+    /// The phase actually played: the authored one, or never faster than the
+    /// flash ceiling when the scene limits flashes.
     var intervalMicros: Int64? {
-      get { authoredIntervalMicros.map(SceneRenderV2FlashSafety.clockFlashHalfPeriodMicros) }
+      get {
+        guard limitFlashes else { return authoredIntervalMicros }
+        return authoredIntervalMicros.map(SceneRenderV2FlashSafety.clockFlashHalfPeriodMicros)
+      }
       set { authoredIntervalMicros = newValue }
     }
+    /// Session configuration, never a document option: the scene asks its
+    /// strobes to stay under the flash ceiling (off = original speed).
+    var limitFlashes = false
     var smooth = false
     var showBlack = true
     var brightness: CGFloat = 1
@@ -6083,6 +6408,13 @@ final class SceneRenderV2ImageSurfaceRuntime {
     case waveform(SceneRenderV2WaveformLayer)
     case installedProgram(SceneRenderV2InstalledProgramLayer)
 
+    /// Every strobe of the graph under the session's flash limit; other
+    /// nodes are unchanged.
+    func limitingFlashes(_ limit: Bool) -> GraphNode {
+      guard case .strobe(let layer, let renderScales) = self else { return self }
+      return .strobe(layer.limitingFlashes(limit), renderScales: renderScales)
+    }
+
     var renderScales: [String: Double] {
       switch self {
       case .solidColor(_, _, let scales): scales
@@ -6149,7 +6481,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
       case .media(let layer):
         return layer.framesPerSecondByQuality[quality] ?? 1
       case .strobe(let layer, _):
-        guard let interval = layer.options.intervalMicros else { return 0 }
+        guard let interval = layer.cadenceIntervalMicros else { return 0 }
         return max(1, Int((1_000_000.0 / Double(interval)).rounded()))
       case .radialProfile(let layer):
         return layer.framesPerSecondByQuality[quality] ?? 1
@@ -6504,7 +6836,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
     var playing: Bool
     let mediaPtsMicros: Int64
     let sessionSeed: UInt32
-    let nodes: [GraphNode]
+    var nodes: [GraphNode]
     let filter: FilterGrade?
 
     var qualityPlanHash: String { qualityPlanHashes[quality]! }
@@ -6791,7 +7123,21 @@ final class SceneRenderV2ImageSurfaceRuntime {
     func rebind(plan: Plan, layer: StrobeLayer) {
       precondition(layer.program == self.layer.program && layer.id == self.layer.id)
       playing = plan.playing
-      self.layer = layer
+      self.layer = layer.limitingFlashes(self.layer.options.limitFlashes)
+      setLimitFlashes(layer.options.limitFlashes)
+    }
+
+    /// The session's flash limit changed. Only the played phase and the music
+    /// ceiling depend on it: like an interval change, the periodic timer
+    /// restarts its wait, not its on/off state, and the light stays as it is.
+    func setLimitFlashes(_ limit: Bool) {
+      guard limit != layer.options.limitFlashes else { return }
+      let previousInterval = layer.options.intervalMicros
+      layer = layer.limitingFlashes(limit)
+      if let interval = layer.options.intervalMicros, interval != previousInterval {
+        lastLogicalStep %= 2
+        elapsedMicros = lastLogicalStep * interval
+      }
     }
 
     /// Preparing controls never mutates the currently published state.
@@ -6918,7 +7264,8 @@ final class SceneRenderV2ImageSurfaceRuntime {
       lastFlashSerial = signal.flash.serial
       switch layer.program {
       case .backgroundSimpleDisco, .backgroundProColorful:
-        guard flashChanges.admit(atMicros: signal.flash.timestampMicros) else { return false }
+        guard !layer.options.limitFlashes ||
+          flashChanges.admit(atMicros: signal.flash.timestampMicros) else { return false }
         let colors = Self.palette(layer)
         colorIndex = (colorIndex + 1) % colors.count
         rotation += 0.1
@@ -6931,7 +7278,7 @@ final class SceneRenderV2ImageSurfaceRuntime {
         frame.rotation = target.rotation
         frame.scale = target.scale
       case .transparentProStrobe:
-        guard flashChanges.admit(
+        guard !layer.options.limitFlashes || flashChanges.admit(
           atMicros: signal.flash.timestampMicros,
           holdMicros: Int64((flashDurationSeconds * 1_000_000).rounded())) else { return false }
         flashVisible = true
@@ -7282,8 +7629,10 @@ final class SceneRenderV2ImageSurfaceRuntime {
 
     func consume(_ frame: SceneRenderSignalFrameV2) -> Bool {
       let naturalChanged = naturalReactiveLightState?.consume(frame) ?? false
-      let gainChanged = rgbGainState?.consume(frame) ?? false
-      return naturalChanged || gainChanged
+      // The gain rides on the next decoded frame (`currentImage`): a moving
+      // layer never asks for a presentation of its own just for the light.
+      _ = rgbGainState?.consume(frame)
+      return naturalChanged
     }
 
     func setPlaying(_ next: Bool, hostTime: CFTimeInterval) {
@@ -8604,6 +8953,54 @@ final class SceneRenderV2ImageSurfaceRuntime {
       }
       session.foregroundPlaying = playing
       self.applyEffectivePlayback(session)
+      DispatchQueue.main.async { result(nil) }
+    }
+  }
+
+  /// The scene's flash limit without a new document (session configuration,
+  /// 06-nov-2026). Every strobe keeps its light and restarts its periodic wait
+  /// when its played phase changes; the graph cadence follows.
+  func setFlashLimit(arguments: Any?, result: @escaping FlutterResult) {
+    guard
+      let arguments = arguments as? [String: Any],
+      Set(arguments.keys) == Set(["sessionId", "limitFlashes"]),
+      let sessionID = arguments["sessionId"] as? String,
+      let limitFlashes = arguments["limitFlashes"] as? Bool
+    else {
+      result(error("flash_limit_v2_invalid", "Invalid V2 flash limit."))
+      return
+    }
+    queue.async { [weak self] in
+      guard let self else {
+        DispatchQueue.main.async {
+          result(FlutterError(
+            code: "runtime_v2_unavailable",
+            message: "V2 runtime was released.",
+            details: nil
+          ))
+        }
+        return
+      }
+      guard let session = self.sessions[sessionID] else {
+        DispatchQueue.main.async {
+          result(self.error("session_v2_missing", "Unknown V2 session."))
+        }
+        return
+      }
+      var next = session.plan
+      next.nodes = next.nodes.map { $0.limitingFlashes(limitFlashes) }
+      // A pending recovery owns the cadence and commits its own plan.
+      let pending = session.pendingRecoveryPresentation
+      if pending == nil { self.stopCadence(session) }
+      session.plan = next
+      self.rebindStrobeStates(session, plan: next)
+      if let pending {
+        pending.plan.nodes = pending.plan.nodes.map {
+          $0.limitingFlashes(limitFlashes)
+        }
+      } else {
+        self.startCadenceIfNeeded(session)
+      }
       DispatchQueue.main.async { result(nil) }
     }
   }
@@ -10756,11 +11153,15 @@ final class SceneRenderV2ImageSurfaceRuntime {
   private func parseAttach(_ value: Any?) -> Plan? {
     guard
       let envelope = value as? [String: Any],
-      Set(envelope.keys).subtracting(["resolvedAssetDigestsById"]) == Set([
+      Set(envelope.keys).subtracting([
+        "resolvedAssetDigestsById", "limitFlashes",
+      ]) == Set([
         "sessionId", "sceneDocumentV2", "semanticPlanHash", "qualityPlanHash",
         "registryRevision", "initialQuality", "continuityState", "width",
         "height", "devicePixelRatio", "playing", "resolvedResourcePathsById",
       ]),
+      // Session configuration, sent only when true; never part of the document.
+      envelope["limitFlashes"] == nil || envelope["limitFlashes"] is Bool,
       let sessionID = envelope["sessionId"] as? String,
       validToken(sessionID),
       let document = envelope["sceneDocumentV2"] as? [String: Any],
@@ -10820,7 +11221,9 @@ final class SceneRenderV2ImageSurfaceRuntime {
       playing: playing,
       mediaPtsMicros: mediaPtsMicros,
       sessionSeed: UInt32(sessionSeedValue),
-      nodes: parsed.nodes,
+      nodes: parsed.nodes.map {
+        $0.limitingFlashes(envelope["limitFlashes"] as? Bool == true)
+      },
       filter: parsed.filter
     )
   }

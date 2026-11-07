@@ -23,51 +23,13 @@ const variations = [
 ];
 
 const nativeSource = r'''
-// Tope de destellos, el mismo que VisualSafetyPolicy en la app: como mucho 3
-// destellos (6 cambios de la pantalla entera) en cualquier segundo. Vive aquí
-// hasta que un cambio del runtime lo haga común (creator-readiness.md).
-class FlashCeiling {
- public:
-  static constexpr int maximumChanges = 6;
-  static constexpr double windowSeconds = 1.0;
-  void reset() { count_ = 0; latest_ = 0; }
-  // Pide permiso para un cambio en el instante time; si dice que no, la
-  // pantalla se queda como está.
-  bool admit(double time) {
-    if (!std::isfinite(time)) return false;
-    time = std::max(0.0, time);
-    // El tiempo vuelve atrás al reiniciar la escena: es otra línea de tiempo.
-    if (time < latest_) count_ = 0;
-    latest_ = time;
-    int n = 0;
-    for (int i = 0; i < count_; i++) {
-      if (changes_[i] > time - windowSeconds) changes_[n++] = changes_[i];
-    }
-    count_ = n;
-    if (n >= maximumChanges) return false;
-    changes_[count_++] = time;
-    return true;
-  }
-
- private:
-  std::array<double, maximumChanges> changes_{};
-  int count_ = 0;
-  double latest_ = 0;
-};
-
 class Visual final : public Scene {
   float bass = 0, body = 0, spark = 0, energy = 0, slowBass = 0;
   float kick = 0, flash = 0, drive = 0;
   // Relojes en doble precisión: la escena sin música es idéntica a 30 y 60 FPS.
-  double morph = 0, clock = 0, flickClock = 0, aux = 0, sinceBeat = 100, sinceIdle = 0;
+  double morph = 0, clock = 0, aux = 0, sinceBeat = 100, sinceIdle = 0;
   float spread = 0, spreadVel = 0, beatPower = 0;
   int beats = 0;
-  // El corte y la inversión que se ven: sólo cambian si el tope de
-  // destellos lo deja.
-  int shownCut = 0, previousCut = 0;
-  double sinceCut = 100;
-  bool inverted = false;
-  FlashCeiling flashes;
 
 
   static float follow(float v, float target, float up, float down, float dt) {
@@ -88,16 +50,12 @@ class Visual final : public Scene {
     bass = body = spark = energy = slowBass = kick = flash = drive = 0;
     morph = rng.unit() * 40.0;
     clock = 0;
-    flickClock = 0;
     aux = 0;
     sinceBeat = 100;
     sinceIdle = 0;
     spread = spreadVel = beatPower = 0;
     beats = 0;
-    shownCut = previousCut = 0;
-    sinceCut = 100;
-    inverted = false;
-    flashes.reset();
+
   }
 
   void update(const Frame& f) override {
@@ -138,36 +96,16 @@ class Visual final : public Scene {
     spreadVel += (-spread * 18.0f - spreadVel * 5.0f) * dt;
     spread += spreadVel * dt;
     clock += f.delta * f.speed;
-    // El parpadeo de agudos lleva su propio reloj: «Velocidad» puede frenarlo,
-    // nunca subirlo de 2,5 destellos por segundo (fases de 200 ms, el mismo
-    // tope que VisualSafetyPolicy.clockFlashHalfPeriod para todo destello por reloj).
-    flickClock += f.delta * std::min(std::abs(double(f.speed)), 1.0);
     morph += f.delta * f.speed * (0.14 + 0.35 * drive) * 0.5;
-    // Cada corte (la forma nueva y, con «Inversión», el negativo) y el
-    // parpadeo de agudos cambian la pantalla entera: piden permiso juntos, una
-    // vez por cuadro, al tope de destellos (FlashCeiling). Si llegan antes de tiempo,
-    // la pantalla se queda como está.
-    sinceCut += f.delta;
-    const int cut = m.pulso == 0 ? beats : beats / 4;
-    const bool flick = m.pulso == 2 && spark * f.intensity >= 0.5f &&
-        std::fmod(flickClock * 2.5, 1.0) >= 0.5;
-    const bool wanted = (m.invertir && cut % 2 == 1) || flick;
-    if ((cut != shownCut || wanted != inverted) && flashes.admit(f.time)) {
-      if (cut != shownCut) {
-        previousCut = shownCut;
-        shownCut = cut;
-        sinceCut = 0;
-      }
-      inverted = wanted;
-    }
+
   }
 
   void render(const Frame& f, Canvas& c) const override {
+    auto m = modifiers(f);
     auto g = glide(f);
-    // El corte que se ve (cada golpe; con graves o agudos, uno cada cuatro),
-    // ya limitado por el tope de destellos en update.
-    const int cut = shownCut;
-    const float blend = 1.0f - g.corte.weight(1) * (1.0f - std::clamp(float(sinceCut) / 0.25f, 0.0f, 1.0f));
+    // Cada golpe es un corte; con graves o agudos, uno cada cuatro.
+    const int cut = m.pulso == 0 ? beats : beats / 4;
+    const float blend = 1.0f - g.corte.weight(1) * (1.0f - std::clamp(float(sinceBeat) / 0.25f, 0.0f, 1.0f));
     static const float orders[4] = {2.0f, 4.0f, 8.0f, 6.0f};
     const float order = g.simetria.weight(0) * orders[cut % 4] + g.simetria.weight(1) * 2.0f + g.simetria.weight(2) * 6.0f;
     float amp = f.intensity;
@@ -176,7 +114,7 @@ class Visual final : public Scene {
     std::vector<float> u;
     u.reserve(56);
     u.insert(u.end(), {t, bass * amp, kick * amp, energy});
-    u.insert(u.end(), {float(cut % 97), float(previousCut % 97), blend, order});
+    u.insert(u.end(), {float(cut % 97), float((cut + 96) % 97), blend, order});
     u.insert(u.end(), {f.glow, flash * amp, spark * amp, float(std::fmod(clock, 1000.0))});
     // Lóbulos de la mancha: cinco manchas grandes que derivan despacio.
     static const float lx[5] = {0.12f, 0.24f, 0.2f, 0.32f, 0.08f};
@@ -186,8 +124,8 @@ class Visual final : public Scene {
       float fk = float(k);
       u.insert(u.end(), {lx[k] + 0.07f * std::sin(t * 0.7f + fk * 1.9f), ly[k] + 0.07f * std::cos(t * 0.5f + fk * 2.7f), lr[k], 0.0f});
     }
-    u.insert(u.end(), {inverted ? 1.0f : 0.0f, std::clamp(g.temblor, 0.0f, 1.0f), g.pulso.weight(1), g.pulso.weight(2)});
-    u.insert(u.end(), {pulse, std::max(-0.2f, spread) * amp, f.detail, float(std::fmod(flickClock, 1000.0))});
+    u.insert(u.end(), {std::clamp(g.invertir, 0.0f, 1.0f) * float(cut % 2), std::clamp(g.temblor, 0.0f, 1.0f), g.pulso.weight(1), g.pulso.weight(2)});
+    u.insert(u.end(), {pulse, std::max(-0.2f, spread) * amp, f.detail, 0.0f});
     for (int i = 0; i < 4; i++) u.insert(u.end(), {f.colors[i].r, f.colors[i].g, f.colors[i].b});
     c.material("inkblot_strobe", {0, 0, f.width, f.height}, u);
   }
@@ -208,7 +146,7 @@ uniform vec4 uL2;
 uniform vec4 uL3;
 uniform vec4 uL4;
 uniform vec4 uX;   // datos propios de la variante
-uniform vec4 uP;   // sobresalto, expansión, detalle, reloj del parpadeo
+uniform vec4 uP;   // sobresalto, expansión
 uniform vec3 uC0;
 uniform vec3 uC1;
 uniform vec3 uC2;
@@ -296,9 +234,9 @@ void main() {
   vec3 pap = paper(frag, p);
   vec3 col = mix(pap, uC1, ink);
   col = mix(col, uC2, echo * 0.9);
-  // Inversión en los cortes y parpadeo de agudos (2,5 Hz como mucho): llega
-  // decidida y limitada por el tope de destellos (FlashCeiling).
-  float inv = uX.x;
+  // Inversión en los cortes; con agudos, parpadeo de como mucho 2,5 Hz.
+  float flick = step(0.5, fract(clk * 2.5)) * step(0.5, uD.z * uX.w);
+  float inv = clamp(uX.x + flick, 0.0, 1.0);
   vec3 inverted = mix(uC1, pap, ink);
   inverted = mix(inverted, uC3, echo * 0.9);
   col = mix(col, inverted, inv);
