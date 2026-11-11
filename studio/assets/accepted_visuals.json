@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "Color Lights approved snapshots",
-  "approvedCatalogRevision": "199e372f24c264208577ec60f8d5ca3504534db28cacbf352abbb137e2ed6470",
+  "approvedCatalogRevision": "6eb1ea82f2d020286e856266f8605343c2528039f4399b97a1e01a0171a74db8",
   "entries": [
     {
       "id": "anillos_humo",
@@ -392,10 +392,10 @@
     },
     {
       "id": "corredor_neon",
-      "revision": "06096d8491072c06",
+      "revision": "22e3ed45669225a8",
       "integratedId": "corredor_neon",
-      "integratedRevision": "06096d8491072c06",
-      "snapshotRevision": "4f9ada109b8098e194aa0f238dc9079410c06761295a5a2bc42619bf7b7b0d49",
+      "integratedRevision": "22e3ed45669225a8",
+      "snapshotRevision": "37545d9b64448da1ad8c119a965c6676bd87202c170ed74691645baa3878cecc",
       "relation": "integrated",
       "family": "corredor_neon"
     },
@@ -716,10 +716,10 @@
     },
     {
       "id": "golden_particles_scene",
-      "revision": "1c9a8682d81a7ba3",
+      "revision": "90666a2f151da35f",
       "integratedId": "golden_particles_scene",
-      "integratedRevision": "1c9a8682d81a7ba3",
-      "snapshotRevision": "f705cec485cf5482dee8d16e88d0d133d92c5e799c768197200ef4171ba4c939",
+      "integratedRevision": "90666a2f151da35f",
+      "snapshotRevision": "220cca5fe7d0489654b6d072ad8895b2bebc2aa7d1b5c7c5fd67faf87f211a24",
       "relation": "integrated",
       "family": "golden_particles_scene"
     },
@@ -1462,58 +1462,13 @@
       "family": "reaccion_bz"
     },
     {
-      "id": "reactiva_mejorada_banda_obturador",
-      "revision": "f189debcbf7ab622",
-      "integratedId": "reactiva_mejorada_banda_obturador",
-      "integratedRevision": "f189debcbf7ab622",
-      "snapshotRevision": "464bd6255c20d950e815de62101dc00756adb4bc5013a98df2093974ab72db12",
-      "relation": "integrated",
-      "family": "reactiva_mejorada_banda_obturador"
-    },
-    {
-      "id": "reactiva_mejorada_borde_luz",
-      "revision": "e480c55821d70a53",
-      "integratedId": "reactiva_mejorada_borde_luz",
-      "integratedRevision": "e480c55821d70a53",
-      "snapshotRevision": "37fd5330800e58a7d0b0bcc1bef4634dd3950a076cebe6183d22edc045ad06be",
-      "relation": "integrated",
-      "family": "reactiva_mejorada_borde_luz"
-    },
-    {
-      "id": "reactiva_mejorada_carrera_neon_rechazo_critica",
-      "revision": "782d11b609594d05",
-      "integratedId": "reactiva_mejorada_carrera_neon_rechazo_critica",
-      "integratedRevision": "782d11b609594d05",
-      "snapshotRevision": "26536a47976d97c5633e8c9ccc981161f0c5443bf8fa62dfbfc100838c344c81",
-      "relation": "integrated",
-      "family": "reactiva_mejorada_carrera_neon_rechazo_critica"
-    },
-    {
-      "id": "reactiva_mejorada_cegadoras_cadena_usuario",
-      "revision": "6ea9d8bc68332dc7",
-      "integratedId": "reactiva_mejorada_cegadoras_cadena_usuario",
-      "integratedRevision": "6ea9d8bc68332dc7",
-      "snapshotRevision": "fb5f161174f246ad1d9a0fefd2d28c3be7420daca7a002c50a5ed64dbe677ddb",
-      "relation": "integrated",
-      "family": "reactiva_mejorada_cegadoras_cadena_usuario"
-    },
-    {
       "id": "reactiva_mejorada_celuloide_quemado",
-      "revision": "60fa1dafd14258b6",
+      "revision": "1cc306e092b75faa",
       "integratedId": "reactiva_mejorada_celuloide_quemado",
-      "integratedRevision": "60fa1dafd14258b6",
-      "snapshotRevision": "6089ab997eb856538fb7efd7338f348ee49488dd52ec45800dce7b80e7dd70a8",
+      "integratedRevision": "1cc306e092b75faa",
+      "snapshotRevision": "af2a2b2a7a2a6344529a55b1841502b997a2f82c51d23b7b874c4c7752473556",
       "relation": "integrated",
       "family": "reactiva_mejorada_celuloide_quemado"
-    },
-    {
-      "id": "reactiva_mejorada_destello_drop",
-      "revision": "8a310826b0931465",
-      "integratedId": "reactiva_mejorada_destello_drop",
-      "integratedRevision": "8a310826b0931465",
-      "snapshotRevision": "52c6eb0515f45d9b2c3357bc8413475c4ff9bf525255dc43caa56af29a434ba6",
-      "relation": "integrated",
-      "family": "reactiva_mejorada_destello_drop"
     },
     {
       "id": "reactiva_mejorada_destellos_anamorficos",
@@ -1525,33 +1480,6 @@
       "family": "reactiva_mejorada_destellos_anamorficos"
     },
     {
-      "id": "reactiva_mejorada_estrobo_entrada",
-      "revision": "5db0addf184bd093",
-      "integratedId": "reactiva_mejorada_estrobo_entrada",
-      "integratedRevision": "5db0addf184bd093",
-      "snapshotRevision": "518baa89d054f28889e9fd281e48964bf1735b5b7165e317aa2a09be9c40c8a7",
-      "relation": "integrated",
-      "family": "reactiva_mejorada_estrobo_entrada"
-    },
-    {
-      "id": "reactiva_mejorada_fisura_dimensional_rechazo_critica",
-      "revision": "4df19163e3a8ae57",
-      "integratedId": "reactiva_mejorada_fisura_dimensional_rechazo_critica",
-      "integratedRevision": "4df19163e3a8ae57",
-      "snapshotRevision": "f015313c0958e1774467cbb00aa93a91ea53052f2d81917b3fc6a2d9e714d85e",
-      "relation": "integrated",
-      "family": "reactiva_mejorada_fisura_dimensional_rechazo_critica"
-    },
-    {
-      "id": "reactiva_mejorada_flash_palmada",
-      "revision": "d38a4b017fdbf9f0",
-      "integratedId": "reactiva_mejorada_flash_palmada",
-      "integratedRevision": "d38a4b017fdbf9f0",
-      "snapshotRevision": "6ec5769712e71e86e3dc482880309d06b8dac5bd49a47577cd309280f69359d9",
-      "relation": "integrated",
-      "family": "reactiva_mejorada_flash_palmada"
-    },
-    {
       "id": "reactiva_mejorada_fotograma_impacto",
       "revision": "6bd314c676af67df",
       "integratedId": "reactiva_mejorada_fotograma_impacto",
@@ -1559,42 +1487,6 @@
       "snapshotRevision": "172bc1bbc99b86b2144911efdacac09b826d728087b124b67d3c37eb6bf7e20d",
       "relation": "integrated",
       "family": "reactiva_mejorada_fotograma_impacto"
-    },
-    {
-      "id": "reactiva_mejorada_fuga_carrete",
-      "revision": "096b0f3e2aeb4556",
-      "integratedId": "reactiva_mejorada_fuga_carrete",
-      "integratedRevision": "096b0f3e2aeb4556",
-      "snapshotRevision": "aff8e2c2606de3e654ebe137e7175b1dd7e1c45def6190d37325b541fd3db62d",
-      "relation": "integrated",
-      "family": "reactiva_mejorada_fuga_carrete"
-    },
-    {
-      "id": "reactiva_mejorada_relampago_campo",
-      "revision": "e53b4ce8dde5afa1",
-      "integratedId": "reactiva_mejorada_relampago_campo",
-      "integratedRevision": "e53b4ce8dde5afa1",
-      "snapshotRevision": "ba9bb0e60aab5b2108e7ffbd8c67f6d075e60b480d7a3867d8709171ee8d591c",
-      "relation": "integrated",
-      "family": "reactiva_mejorada_relampago_campo"
-    },
-    {
-      "id": "reactiva_mejorada_tajo_luz_rechazo_critica",
-      "revision": "e46e41fea5a1fd37",
-      "integratedId": "reactiva_mejorada_tajo_luz_rechazo_critica",
-      "integratedRevision": "e46e41fea5a1fd37",
-      "snapshotRevision": "6717fe704de71fc5bde7b4a8c021fd8f5dce6011c1f6c61bd27aa61f1c5d4d53",
-      "relation": "integrated",
-      "family": "reactiva_mejorada_tajo_luz_rechazo_critica"
-    },
-    {
-      "id": "reactiva_mejorada_trazo_luz",
-      "revision": "5c192ebcd8ca9d88",
-      "integratedId": "reactiva_mejorada_trazo_luz",
-      "integratedRevision": "5c192ebcd8ca9d88",
-      "snapshotRevision": "e128fdc0e1fd9f08d5e1a7f713741ae9126dac8a6ad2dce24cf76456cfcb959e",
-      "relation": "integrated",
-      "family": "reactiva_mejorada_trazo_luz"
     },
     {
       "id": "rorschach_rayos_x",
@@ -1759,20 +1651,11 @@
       "family": "v09_espiral_aurea"
     },
     {
-      "id": "v10_supernova",
-      "revision": "2bc2ece0552d8b5f",
-      "integratedId": "v10_supernova_transparente",
-      "integratedRevision": "487ec42ca4d7bdfc",
-      "snapshotRevision": "9373bea39f4e1a661f222a819de295d21d5ef1045df13aced838248359eaa4b4",
-      "relation": "equivalent",
-      "family": "v10_supernova"
-    },
-    {
       "id": "v10_supernova_transparente",
-      "revision": "487ec42ca4d7bdfc",
+      "revision": "e918bc78433b5144",
       "integratedId": "v10_supernova_transparente",
-      "integratedRevision": "487ec42ca4d7bdfc",
-      "snapshotRevision": "9373bea39f4e1a661f222a819de295d21d5ef1045df13aced838248359eaa4b4",
+      "integratedRevision": "e918bc78433b5144",
+      "snapshotRevision": "1d674708f1797da05446fef97372eb5c61632af0b4fb80febbbb44f245417018",
       "relation": "integrated",
       "family": "v10_supernova"
     },
@@ -1877,9 +1760,9 @@
     }
   ],
   "counts": {
-    "integratedSnapshots": 142,
-    "equivalentVariants": 66,
-    "currentAccepted": 204,
-    "currentEvaluation": 322
+    "integratedSnapshots": 130,
+    "equivalentVariants": 65,
+    "currentAccepted": 191,
+    "currentEvaluation": 335
   }
 }
